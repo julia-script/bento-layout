@@ -580,6 +580,34 @@ export function itemMarginsAxisSumsWithBaselineShims(item: GridItem, innerNodeWi
 }
 
 /** Compute known_dimensions for child sizing (applies stretch alignment) */
+/**
+ * Like `maybeApplyAspectRatio`, but for *used* (border-box) sizes: under
+ * `box-sizing: content-box` the ratio relates the content box, so the source
+ * axis's padding+border is stripped before the ratio is applied and the target
+ * axis's added back (css-sizing-4 §5). A stretched grid area height of 27 with
+ * ratio 1 and border sums 17w/27h yields width 17, not 27.
+ *
+ * The style-value sites (`maybeResolveSize(...)` then `maybeAddSize(...,
+ * boxSizingAdjustment)`) stay on plain `maybeApplyAspectRatio` — there the
+ * ratio is applied to content-box values *before* the adjustment, which is
+ * already correct.
+ */
+export function maybeApplyAspectRatioUsed(
+  size: Size<Opt>,
+  aspectRatio: number | null,
+  boxSizing: BoxSizing,
+  pbSum: Size<number>,
+): Size<Opt> {
+  if (aspectRatio === null || boxSizing !== 'content-box') return maybeApplyAspectRatio(size, aspectRatio);
+  if (size.width !== null && size.height === null) {
+    return { width: size.width, height: Math.max(size.width - pbSum.width, 0) / aspectRatio + pbSum.height };
+  }
+  if (size.width === null && size.height !== null) {
+    return { width: Math.max(size.height - pbSum.height, 0) * aspectRatio + pbSum.width, height: size.height };
+  }
+  return { ...size };
+}
+
 function itemKnownDimensions(item: GridItem, gridAreaSize: Size<Opt>): Size<Opt> {
   const margins = itemMarginsAxisSumsWithBaselineShims(item, gridAreaSize.width);
 
@@ -627,8 +655,9 @@ function itemKnownDimensions(item: GridItem, gridAreaSize: Size<Opt>): Size<Opt>
   ) {
     width = gridAreaMinusItemMarginsSize.width;
   }
-  // Reapply aspect ratio after stretch adjustments
-  let size = maybeApplyAspectRatio({ width, height: inherentSize.height }, aspectRatio);
+  // Reapply aspect ratio after stretch adjustments (on used border-box values,
+  // so the transfer must respect box-sizing)
+  let size = maybeApplyAspectRatioUsed({ width, height: inherentSize.height }, aspectRatio, item.boxSizing, paddingBorderSize);
 
   let height = size.height;
   if (
@@ -640,7 +669,7 @@ function itemKnownDimensions(item: GridItem, gridAreaSize: Size<Opt>): Size<Opt>
   ) {
     height = gridAreaMinusItemMarginsSize.height;
   }
-  size = maybeApplyAspectRatio({ width: size.width, height }, aspectRatio);
+  size = maybeApplyAspectRatioUsed({ width: size.width, height }, aspectRatio, item.boxSizing, paddingBorderSize);
 
   return {
     width: mClamp(size.width, minSize.width, maxSize.width),

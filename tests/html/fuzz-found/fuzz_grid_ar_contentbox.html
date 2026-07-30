@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: campaign seed=20260731 (mode=grid), minimized by hand
+  date: 2026-07-30
+  chrome: Chrome/151.0.7922.47
+  Engine bug (taffy-inherited): the grid item "reapply aspect ratio after
+  stretch adjustments" sites applied the raw ratio to used border-box values.
+  Under box-sizing: content-box the ratio relates the content box, so a
+  stretched grid-area height of 27 with ratio 1 and border sums 17w/27h must
+  transfer to width (27-27)*1+17 = 17, not 27. The grid twin of the flexbox
+  transferThroughRatio fix. Only the content_box_* variants diverge (the
+  border_box pair is covered by the leaf pb-transfer fix).
+  Regenerate the XML fixtures with: pnpm gentest fuzz_grid_ar_contentbox
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: grid aspect-ratio stretch transfer respects box-sizing (fuzz_grid_ar_contentbox)
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid;">
+  <div style="aspect-ratio: 1; border-width: 20px 7px 7px 10px; border-style: solid;"></div>
+</div>
+
+</body>
+</html>

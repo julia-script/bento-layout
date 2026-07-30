@@ -14,6 +14,7 @@ import {
   resolveSelfAlignmentSafety,
 } from '../alignment.js';
 import { measureChildSizeBoth, performChildLayout } from '../dispatch.js';
+import { maybeApplyAspectRatioUsed } from './types.js';
 import type { GridTrack } from './types.js';
 
 const ALIGN_START: AlignItems = { keyword: 'start', safe: false };
@@ -186,8 +187,9 @@ export function alignAndPositionItem(
       width = gridAreaMinusItemMarginsSize.width;
     }
   }
-  // Reapply aspect ratio after stretch/absolute width adjustments
-  let size = maybeApplyAspectRatio({ width, height: inherentSize.height }, aspectRatio);
+  // Reapply aspect ratio after stretch/absolute width adjustments (used
+  // border-box values, so the transfer must respect box-sizing)
+  let size = maybeApplyAspectRatioUsed({ width, height: inherentSize.height }, aspectRatio, style.boxSizing, paddingBorderSize);
 
   let height = size.height;
   if (height === null) {
@@ -204,7 +206,7 @@ export function alignAndPositionItem(
     }
   }
   // Reapply aspect ratio after stretch/absolute height adjustments
-  size = maybeApplyAspectRatio({ width: size.width, height }, aspectRatio);
+  size = maybeApplyAspectRatioUsed({ width: size.width, height }, aspectRatio, style.boxSizing, paddingBorderSize);
 
   // Clamp by min/max
   size = {

@@ -813,6 +813,59 @@ automatic-minimum path, so the fix is to make grid consistent with flexbox.
 
 ---
 
+## 15. Grid aspect-ratio stretch transfer ignores `box-sizing`
+
+**Verified in Taffy:** suspected (source read:
+`src/compute/grid/types/grid_item.rs:289-305` and
+`src/compute/grid/alignment.rs:170-194`)
+
+**Taffy source:**
+
+```rust
+// Reapply aspect ratio after stretch and absolute position width adjustments
+let Size { width, height } =
+    Size { width, height: inherent_size.height }.maybe_apply_aspect_ratio(aspect_ratio);
+```
+
+The grid twin of entry 9 (the flexbox `transferThroughRatio` family). The
+"reapply aspect ratio after stretch adjustments" sites feed **used border-box**
+values (the stretched grid-area size) through the raw ratio. Under
+`box-sizing: content-box` the ratio relates the content box, so the source
+axis's padding+border must be stripped and the target's added back.
+
+There are **four** sites: two in the item known-dimensions derivation and two
+in the alignment/absolute-position path — all with the same copy-pasted
+pattern.
+
+**Reproduction:**
+
+```html
+<div style="display: grid; box-sizing: content-box">
+  <div style="aspect-ratio: 1; border-width: 20px 7px 7px 10px;
+              border-style: solid"></div>
+</div>
+```
+
+Border sums 17w/27h; the stretched grid-area height is 27.
+
+| | item size |
+|---|--:|
+| Chrome | **17x27** (transfer: (27−27)x1 + 17) |
+| Engine (pre-fix) | **27x27** (raw: 27x1) |
+
+Border-box agrees at 27x27 in both engines, so only the content_box variants
+diverge. Note the style-value AR sites just above these (resolve style size →
+apply ratio → add `box_sizing_adjustment`) are already correct — the ratio is
+applied to content-box values *before* the adjustment there. Only the
+*used-value* re-applies are affected.
+
+**Fix applied here:** a `maybeApplyAspectRatioUsed(size, ratio, boxSizing,
+pbSum)` helper used at all four sites. See `src/compute/grid/types.ts` and
+`src/compute/grid/alignment.ts`; regression fixture
+`tests/html/fuzz-found/fuzz_grid_ar_contentbox.html`.
+
+---
+
 ## Not yet triaged
 
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they
