@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-flexbox/align-content-vert-001b.html @ 6e90070a5b
+  help: http://www.w3.org/TR/css-flexbox-1/#align-content-property
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: CSS Test: Testing 'align-content' in a vertical flex container</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+<div style="width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+    </div>
+    <div style="width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+      <div style="width: auto; height: 10px; flex: 0 0 auto; background: pink; display: block;"><div style="width: 30px; height: 5px; background: purple; display: block;"></div></div>
+    </div>
+    <div style="width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+      <div style="width: auto; height: 10px; flex: 0 0 auto; background: pink; display: block;"><div style="width: 30px; height: 5px; background: purple; display: block;"></div></div>
+      <div style="width: 40px; height: 10px; flex: 0 0 auto; background: orange; display: block;"></div>
+    </div>
+
+    
+    <div style="align-content: flex-start; width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+    </div>
+    <div style="align-content: flex-start; width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+      <div style="width: auto; height: 10px; flex: 0 0 auto; background: pink; display: block;"><div style="width: 30px; height: 5px; background: purple; display: block;"></div></div>
+    </div>
+    <div style="align-content: flex-start; width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+      <div style="width: auto; height: 10px; flex: 0 0 auto; background: pink; display: block;"><div style="width: 30px; height: 5px; background: purple; display: block;"></div></div>
+      <div style="width: 40px; height: 10px; flex: 0 0 auto; background: orange; display: block;"></div>
+    </div>
+
+    
+    <div style="align-content: flex-end; width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+    </div>
+    <div style="align-content: flex-end; width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+      <div style="width: auto; height: 10px; flex: 0 0 auto; background: pink; display: block;"><div style="width: 30px; height: 5px; background: purple; display: block;"></div></div>
+    </div>
+    <div style="align-content: flex-end; width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+      <div style="width: auto; height: 10px; flex: 0 0 auto; background: pink; display: block;"><div style="width: 30px; height: 5px; background: purple; display: block;"></div></div>
+      <div style="width: 40px; height: 10px; flex: 0 0 auto; background: orange; display: block;"></div>
+    </div>
+
+    
+    <div style="align-content: center; width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+    </div>
+    <div style="align-content: center; width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+      <div style="width: auto; height: 10px; flex: 0 0 auto; background: pink; display: block;"><div style="width: 30px; height: 5px; background: purple; display: block;"></div></div>
+    </div>
+    <div style="align-content: center; width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+      <div style="width: auto; height: 10px; flex: 0 0 auto; background: pink; display: block;"><div style="width: 30px; height: 5px; background: purple; display: block;"></div></div>
+      <div style="width: 40px; height: 10px; flex: 0 0 auto; background: orange; display: block;"></div>
+    </div>
+
+    
+    <div style="align-content: space-between; width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+    </div>
+    <div style="align-content: space-between; width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+      <div style="width: auto; height: 10px; flex: 0 0 auto; background: pink; display: block;"><div style="width: 30px; height: 5px; background: purple; display: block;"></div></div>
+    </div>
+    <div style="align-content: space-between; width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+      <div style="width: auto; height: 10px; flex: 0 0 auto; background: pink; display: block;"><div style="width: 30px; height: 5px; background: purple; display: block;"></div></div>
+      <div style="width: 40px; height: 10px; flex: 0 0 auto; background: orange; display: block;"></div>
+    </div>
+
+    
+    <div style="align-content: space-around; width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+    </div>
+    <div style="align-content: space-around; width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+      <div style="width: auto; height: 10px; flex: 0 0 auto; background: pink; display: block;"><div style="width: 30px; height: 5px; background: purple; display: block;"></div></div>
+    </div>
+    <div style="align-content: space-around; width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+      <div style="width: auto; height: 10px; flex: 0 0 auto; background: pink; display: block;"><div style="width: 30px; height: 5px; background: purple; display: block;"></div></div>
+      <div style="width: 40px; height: 10px; flex: 0 0 auto; background: orange; display: block;"></div>
+    </div>
+
+    
+    <div style="align-content: space-evenly; width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+    </div>
+    <div style="align-content: space-evenly; width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+      <div style="width: auto; height: 10px; flex: 0 0 auto; background: pink; display: block;"><div style="width: 30px; height: 5px; background: purple; display: block;"></div></div>
+    </div>
+    <div style="align-content: space-evenly; width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+      <div style="width: auto; height: 10px; flex: 0 0 auto; background: pink; display: block;"><div style="width: 30px; height: 5px; background: purple; display: block;"></div></div>
+      <div style="width: 40px; height: 10px; flex: 0 0 auto; background: orange; display: block;"></div>
+    </div>
+
+    
+    <div style="align-content: start; width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+    </div>
+    <div style="align-content: start; width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+      <div style="width: auto; height: 10px; flex: 0 0 auto; background: pink; display: block;"><div style="width: 30px; height: 5px; background: purple; display: block;"></div></div>
+    </div>
+    <div style="align-content: start; width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+      <div style="width: auto; height: 10px; flex: 0 0 auto; background: pink; display: block;"><div style="width: 30px; height: 5px; background: purple; display: block;"></div></div>
+      <div style="width: 40px; height: 10px; flex: 0 0 auto; background: orange; display: block;"></div>
+    </div>
+
+    
+    <div style="align-content: end; width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+    </div>
+    <div style="align-content: end; width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+      <div style="width: auto; height: 10px; flex: 0 0 auto; background: pink; display: block;"><div style="width: 30px; height: 5px; background: purple; display: block;"></div></div>
+    </div>
+    <div style="align-content: end; width: 200px; max-height: 10px; display: flex; flex-flow: column wrap; margin-bottom: 2px; background: lightgray;">
+      <div style="width: 10px; height: 10px; flex: 0 0 auto; background: lightgreen; display: block;"></div>
+      <div style="width: auto; height: 10px; flex: 0 0 auto; background: pink; display: block;"><div style="width: 30px; height: 5px; background: purple; display: block;"></div></div>
+      <div style="width: 40px; height: 10px; flex: 0 0 auto; background: orange; display: block;"></div>
+    </div>
+</div>
+
+</body>
+</html>

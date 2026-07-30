@@ -1,0 +1,43 @@
+<test name="flexbox-column-row-gap-003__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" box-sizing="content-box" direction="rtl">
+      <div display="flex" box-sizing="content-box" direction="rtl" flex-wrap="wrap" align-content="space-around" justify-content="space-around" width="200px" row-gap="40px" column-gap="20px" border-top="1px" border-left="1px" border-bottom="1px" border-right="1px">
+        <div display="block" box-sizing="content-box" direction="rtl" width="28px" height="28px" border-top="1px" border-left="1px" border-bottom="1px" border-right="1px"/>
+        <div display="block" box-sizing="content-box" direction="rtl" width="28px" height="28px" border-top="1px" border-left="1px" border-bottom="1px" border-right="1px"/>
+        <div display="block" box-sizing="content-box" direction="rtl" width="28px" height="28px" border-top="1px" border-left="1px" border-bottom="1px" border-right="1px"/>
+        <div display="block" box-sizing="content-box" direction="rtl" width="28px" height="28px" border-top="1px" border-left="1px" border-bottom="1px" border-right="1px"/>
+        <div display="block" box-sizing="content-box" direction="rtl" width="28px" height="28px" margin-left="auto" margin-bottom="auto" border-top="1px" border-left="1px" border-bottom="1px" border-right="1px"/>
+        <div display="block" box-sizing="content-box" direction="rtl" width="28px" height="28px" border-top="1px" border-left="1px" border-bottom="1px" border-right="1px"/>
+      </div>
+      <div display="flex" box-sizing="content-box" direction="rtl" flex-wrap="wrap" align-content="space-around" justify-content="space-around" width="200px" max-height="90px" row-gap="40px" column-gap="20px" border-top="1px" border-left="1px" border-bottom="1px" border-right="1px">
+        <div display="block" box-sizing="content-box" direction="rtl" width="28px" height="28px" border-top="1px" border-left="1px" border-bottom="1px" border-right="1px"/>
+        <div display="block" box-sizing="content-box" direction="rtl" width="28px" height="28px" border-top="1px" border-left="1px" border-bottom="1px" border-right="1px"/>
+        <div display="block" box-sizing="content-box" direction="rtl" width="28px" height="28px" border-top="1px" border-left="1px" border-bottom="1px" border-right="1px"/>
+        <div display="block" box-sizing="content-box" direction="rtl" width="28px" height="28px" border-top="1px" border-left="1px" border-bottom="1px" border-right="1px"/>
+        <div display="block" box-sizing="content-box" direction="rtl" width="28px" height="28px" margin-left="auto" margin-bottom="auto" border-top="1px" border-left="1px" border-bottom="1px" border-right="1px"/>
+        <div display="block" box-sizing="content-box" direction="rtl" width="28px" height="28px" border-top="1px" border-left="1px" border-bottom="1px" border-right="1px"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="202" height="194">
+      <node x="0" y="0" width="202" height="102">
+        <node x="169" y="1" width="30" height="30"/>
+        <node x="114" y="1" width="30" height="30"/>
+        <node x="59" y="1" width="30" height="30"/>
+        <node x="4" y="1" width="30" height="30"/>
+        <node x="171" y="71" width="30" height="30"/>
+        <node x="1" y="71" width="30" height="30"/>
+      </node>
+      <node x="0" y="102" width="202" height="92">
+        <node x="169" y="1" width="30" height="30"/>
+        <node x="114" y="1" width="30" height="30"/>
+        <node x="59" y="1" width="30" height="30"/>
+        <node x="4" y="1" width="30" height="30"/>
+        <node x="171" y="71" width="30" height="30"/>
+        <node x="1" y="71" width="30" height="30"/>
+      </node>
+    </node>
+  </expectations>
+</test>

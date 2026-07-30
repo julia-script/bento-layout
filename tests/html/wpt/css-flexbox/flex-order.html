@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-flexbox/flex-order.html @ 6e90070a5b
+  help: http://www.w3.org/TR/css-flexbox-1/#order-property
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: CSS Test: flex order</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+<div id="container" style="display: flex;">
+    <div id="highOrdinal" style="order: 1; background: lime; height: 100px; width: 100px; display: block;"></div>
+    <div id="lowOrdinal" style="order: 3; background: red; height: 100px; width: 100px; display: block;"></div>
+    <div id="middleOrdinal" style="order: 2; background: orange; height: 100px; width: 100px; display: block;"></div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,21 @@
+<test name="implicit-grids_grid-support-grid-auto-columns-rows-001__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" direction="rtl">
+      <div display="grid" direction="rtl" grid-auto-rows="30px" grid-auto-columns="30px">
+        <div display="block" direction="rtl" grid-row-start="1" grid-column-start="1"/>
+        <div display="block" direction="rtl" grid-row-start="1" grid-row-end="span 2" grid-column-start="3"/>
+        <div display="block" direction="rtl" grid-row-start="2" grid-column-start="1" grid-column-end="span 2"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="90" height="60">
+      <node x="0" y="0" width="90" height="60">
+        <node x="60" y="0" width="30" height="30"/>
+        <node x="0" y="0" width="30" height="60"/>
+        <node x="30" y="30" width="60" height="30"/>
+      </node>
+    </node>
+  </expectations>
+</test>

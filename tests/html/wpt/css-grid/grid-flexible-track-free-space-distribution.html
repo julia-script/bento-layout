@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-grid/grid-flexible-track-free-space-distribution.html @ 6e90070a5b
+  help: https://drafts.csswg.org/css-grid-1/#algo-find-fr-size
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: Verify no rounding loss for flex track sizing</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr; grid-template-rows: 100px; width: 100px; background: red;">
+    <div style="grid-area: 1 / 1 / 2 / 2; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 2 / 2 / 3; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 3 / 2 / 4; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 4 / 2 / 5; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 5 / 2 / 6; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 6 / 2 / 7; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 7 / 2 / 8; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 8 / 2 / 9; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 9 / 2 / 10; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 10 / 2 / 11; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 11 / 2 / 12; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 12 / 2 / 13; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 13 / 2 / 14; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 14 / 2 / 15; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 15 / 2 / 16; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 16 / 2 / 17; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 17 / 2 / 18; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 18 / 2 / 19; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 19 / 2 / 20; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 20 / 2 / 21; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 21 / 2 / 22; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 22 / 2 / 23; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 23 / 2 / 24; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 24 / 2 / 25; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 25 / 2 / 26; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 26 / 2 / 27; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 27 / 2 / 28; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 28 / 2 / 29; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 29 / 2 / 30; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 30 / 2 / 31; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 31 / 2 / 32; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 32 / 2 / 33; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 33 / 2 / 34; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 34 / 2 / 35; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 35 / 2 / 36; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 36 / 2 / 37; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 37 / 2 / 38; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 38 / 2 / 39; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 39 / 2 / 40; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 40 / 2 / 41; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 41 / 2 / 42; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 42 / 2 / 43; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 43 / 2 / 44; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 44 / 2 / 45; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 45 / 2 / 46; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 46 / 2 / 47; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 47 / 2 / 48; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 48 / 2 / 49; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 49 / 2 / 50; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 50 / 2 / 51; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 51 / 2 / 52; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 52 / 2 / 53; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 53 / 2 / 54; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 54 / 2 / 55; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 55 / 2 / 56; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 56 / 2 / 57; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 57 / 2 / 58; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 58 / 2 / 59; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 59 / 2 / 60; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 60 / 2 / 61; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 61 / 2 / 62; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 62 / 2 / 63; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 63 / 2 / 64; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 64 / 2 / 65; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 65 / 2 / 66; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 66 / 2 / 67; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 67 / 2 / 68; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 68 / 2 / 69; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 69 / 2 / 70; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 70 / 2 / 71; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 71 / 2 / 72; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 72 / 2 / 73; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 73 / 2 / 74; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 74 / 2 / 75; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 75 / 2 / 76; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 76 / 2 / 77; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 77 / 2 / 78; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 78 / 2 / 79; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 79 / 2 / 80; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 80 / 2 / 81; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 81 / 2 / 82; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 82 / 2 / 83; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 83 / 2 / 84; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 84 / 2 / 85; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 85 / 2 / 86; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 86 / 2 / 87; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 87 / 2 / 88; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 88 / 2 / 89; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 89 / 2 / 90; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 90 / 2 / 91; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 91 / 2 / 92; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 92 / 2 / 93; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 93 / 2 / 94; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 94 / 2 / 95; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 95 / 2 / 96; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 96 / 2 / 97; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 97 / 2 / 98; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 98 / 2 / 99; background: green; display: block;"></div>
+    <div style="grid-area: 1 / 99 / 2 / 100; background: green; display: block;"></div>
+</div>
+</div>
+
+</body>
+</html>

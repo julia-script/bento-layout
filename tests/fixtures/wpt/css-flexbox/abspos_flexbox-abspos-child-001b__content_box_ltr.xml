@@ -1,0 +1,35 @@
+<test name="abspos_flexbox-abspos-child-001b__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" box-sizing="content-box" direction="ltr">
+      <div display="flex" box-sizing="content-box" direction="ltr" flex-direction="column" width="10px" height="10px" margin-bottom="15px">
+        <div display="block" box-sizing="content-box" direction="ltr" position="absolute" width="10px" height="20px" min-width="20px"/>
+      </div>
+      <div display="flex" box-sizing="content-box" direction="ltr" flex-direction="column" width="10px" height="10px" margin-bottom="15px">
+        <div display="block" box-sizing="content-box" direction="ltr" position="absolute" width="50px" height="20px" max-width="20px"/>
+      </div>
+      <div display="flex" box-sizing="content-box" direction="ltr" flex-direction="column" width="10px" height="10px" margin-bottom="15px">
+        <div display="block" box-sizing="content-box" direction="ltr" position="absolute" width="20px" height="10px" min-height="20px"/>
+      </div>
+      <div display="flex" box-sizing="content-box" direction="ltr" flex-direction="column" width="10px" height="10px" margin-bottom="15px">
+        <div display="block" box-sizing="content-box" direction="ltr" position="absolute" width="20px" height="50px" max-height="20px"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="10" height="100">
+      <node x="0" y="0" width="10" height="10">
+        <node x="0" y="0" width="20" height="20"/>
+      </node>
+      <node x="0" y="25" width="10" height="10">
+        <node x="0" y="0" width="20" height="20"/>
+      </node>
+      <node x="0" y="50" width="10" height="10">
+        <node x="0" y="0" width="20" height="20"/>
+      </node>
+      <node x="0" y="75" width="10" height="10">
+        <node x="0" y="0" width="20" height="20"/>
+      </node>
+    </node>
+  </expectations>
+</test>

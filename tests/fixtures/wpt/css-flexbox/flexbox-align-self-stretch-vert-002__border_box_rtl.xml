@@ -1,0 +1,19 @@
+<test name="flexbox-align-self-stretch-vert-002__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" direction="rtl">
+      <div display="flex" direction="rtl" flex-direction="column" flex-wrap="wrap" width="100px" height="20px" border-top="2px" border-left="2px" border-bottom="2px" border-right="2px">
+        <div display="block" direction="rtl" min-height="15px" border-top="1px" border-left="1px" border-bottom="1px" border-right="1px"/>
+        <div display="block" direction="rtl" min-height="15px" border-top="1px" border-left="1px" border-bottom="1px" border-right="1px"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="100" height="20">
+      <node x="0" y="0" width="100" height="20">
+        <node x="50" y="2" width="48" height="15"/>
+        <node x="2" y="2" width="48" height="15"/>
+      </node>
+    </node>
+  </expectations>
+</test>

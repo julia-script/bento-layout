@@ -1,0 +1,33 @@
+<test name="alignment_grid-gutters-explicit-placement__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" box-sizing="content-box" direction="ltr">
+      <div display="grid" box-sizing="content-box" direction="ltr" width="310px" row-gap="20px" column-gap="20px" grid-template-rows="90px 90px 90px" grid-template-columns="90px 90px 90px">
+        <div display="block" box-sizing="content-box" direction="ltr" grid-row-start="1" grid-row-end="2" grid-column-start="1" grid-column-end="2"/>
+        <div display="block" box-sizing="content-box" direction="ltr" grid-row-start="1" grid-row-end="2" grid-column-start="2" grid-column-end="3"/>
+        <div display="block" box-sizing="content-box" direction="ltr" grid-row-start="1" grid-row-end="2" grid-column-start="3" grid-column-end="4"/>
+        <div display="block" box-sizing="content-box" direction="ltr" grid-row-start="2" grid-row-end="3" grid-column-start="1" grid-column-end="2"/>
+        <div display="block" box-sizing="content-box" direction="ltr" grid-row-start="2" grid-row-end="3" grid-column-start="2" grid-column-end="3"/>
+        <div display="block" box-sizing="content-box" direction="ltr" grid-row-start="2" grid-row-end="3" grid-column-start="3" grid-column-end="4"/>
+        <div display="block" box-sizing="content-box" direction="ltr" grid-row-start="3" grid-row-end="4" grid-column-start="1" grid-column-end="2"/>
+        <div display="block" box-sizing="content-box" direction="ltr" grid-row-start="3" grid-row-end="4" grid-column-start="2" grid-column-end="3"/>
+        <div display="block" box-sizing="content-box" direction="ltr" grid-row-start="3" grid-row-end="4" grid-column-start="3" grid-column-end="4"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="310" height="310">
+      <node x="0" y="0" width="310" height="310">
+        <node x="0" y="0" width="90" height="90"/>
+        <node x="110" y="0" width="90" height="90"/>
+        <node x="220" y="0" width="90" height="90"/>
+        <node x="0" y="110" width="90" height="90"/>
+        <node x="110" y="110" width="90" height="90"/>
+        <node x="220" y="110" width="90" height="90"/>
+        <node x="0" y="220" width="90" height="90"/>
+        <node x="110" y="220" width="90" height="90"/>
+        <node x="220" y="220" width="90" height="90"/>
+      </node>
+    </node>
+  </expectations>
+</test>

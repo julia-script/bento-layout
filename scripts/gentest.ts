@@ -19,7 +19,20 @@ import puppeteer from 'puppeteer';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const HTML_ROOT = join(ROOT, 'tests', 'html');
 const FIXTURES_ROOT = join(ROOT, 'tests', 'fixtures');
-const DIRS = ['flex', 'block', 'blockflex', 'blockgrid', 'grid', 'gridflex', 'fuzz-found'] as const;
+const DIRS = [
+  'flex',
+  'block',
+  'blockflex',
+  'blockgrid',
+  'grid',
+  'gridflex',
+  'fuzz-found',
+  // WPT imports are nested one level deeper (tests/html/wpt/<suite>/).
+  'wpt/css-flexbox',
+  'wpt/css-grid',
+  'wpt/css-sizing',
+  'wpt/css-align',
+] as const;
 
 type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
 type JsonObject = { [key: string]: Json };

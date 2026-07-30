@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-grid/grid-definition/grid-auto-repeat-multiple-values-002.html @ 6e90070a5b
+  help: https://drafts.csswg.org/css-grid/#typedef-auto-repeat
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: css/css-grid/grid-definition/grid-auto-repeat-multiple-values-002.html</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+<div style="height: 30px; width: 300px; border-bottom: 2px solid rgb(207, 191, 207); display: block;">
+    <div style="display: grid; grid-template-columns: 10px 20px repeat(auto-fill, 30px 40px) 50px 60px; grid-template-rows: repeat(auto-fill, minmax(30px, auto));">
+      <div style="background: orange; display: block;"></div>
+      <div style="background: sienna; display: block;"></div>
+      <div style="background: orange; display: block;"></div>
+      <div style="background: sienna; display: block;"></div>
+      <div style="background: orange; display: block;"></div>
+      <div style="background: sienna; display: block;"></div>
+    </div>
+  </div>
+
+  <div style="height: 30px; width: 300px; border-bottom: 2px solid rgb(207, 191, 207); display: block;">
+    <div style="display: grid; grid-template-columns: 10px 20px repeat(auto-fill, 30px 40px) 50px 60px; grid-template-rows: repeat(auto-fill, minmax(30px, auto));">
+      <div style="background: orange; display: block;"></div>
+      <div style="background: sienna; display: block;"></div>
+      <div style="background: orange; display: block;"></div>
+      <div style="background: sienna; display: block;"></div>
+      <div style="background: orange; display: block;"></div>
+      <div style="grid-column: 7; background: sienna; display: block;"></div>
+    </div>
+  </div>
+
+  <div style="height: 30px; width: 300px; border-bottom: 2px solid rgb(207, 191, 207); display: block;">
+    <div style="display: grid; grid-template-columns: 10px 20px repeat(auto-fill, 30px 40px) 50px 60px; grid-template-rows: repeat(auto-fill, minmax(30px, auto));">
+      <div style="grid-column: 2; background: orange; display: block;"></div>
+      <div style="background: sienna; display: block;"></div>
+      <div style="grid-column: 5; background: orange; display: block;"></div>
+      <div style="background: sienna; display: block;"></div>
+      <div style="background: orange; display: block;"></div>
+      <div style="background: sienna; display: block;"></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

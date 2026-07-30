@@ -1,0 +1,31 @@
+<test name="layout-algorithm_auto-margins-ignored-during-track-sizing-001__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" direction="ltr">
+      <div display="grid" direction="ltr" grid-template-columns="1fr 1fr 1fr">
+        <text display="block" direction="ltr">
+          In a few questions, you will get an expert-designed investment portfolio to fit your financial needs.
+        </text>
+        <text display="block" direction="ltr">
+          Open and fund your account with 10,000 or more and we will put your money to work.
+        </text>
+        <text display="block" direction="ltr">
+          We will take it from here, monitoring your portfolio daily to help keep it on track.
+        </text>
+        <text display="block" direction="ltr" margin-top="10px" margin-left="auto" margin-right="auto">
+          Learn More
+        </text>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="1280" height="50">
+      <node x="0" y="0" width="1280" height="50">
+        <node x="0" y="0" width="427" height="30"/>
+        <node x="427" y="0" width="426" height="30"/>
+        <node x="853" y="0" width="427" height="30"/>
+        <node x="163" y="40" width="100" height="10"/>
+      </node>
+    </node>
+  </expectations>
+</test>

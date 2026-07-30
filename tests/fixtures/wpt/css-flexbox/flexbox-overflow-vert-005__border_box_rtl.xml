@@ -1,0 +1,27 @@
+<test name="flexbox-overflow-vert-005__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" direction="rtl">
+      <div display="flex" direction="rtl" flex-direction="column" flex-wrap="wrap" align-content="space-around" width="70px" height="70px" margin-bottom="5px">
+        <div display="block" direction="rtl" flex-shrink="0" width="20px" height="72px"/>
+        <div display="block" direction="rtl" width="20px" height="20px"/>
+      </div>
+      <div display="flex" direction="rtl" flex-direction="column" flex-wrap="wrap" overflow-x="hidden" overflow-y="hidden" scrollbar-width="0" align-content="space-around" width="70px" height="70px" margin-bottom="5px">
+        <div display="block" direction="rtl" flex-shrink="0" width="20px" height="72px"/>
+        <div display="block" direction="rtl" width="20px" height="20px"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="70" height="150">
+      <node x="0" y="0" width="70" height="70">
+        <node x="43" y="0" width="20" height="72"/>
+        <node x="8" y="0" width="20" height="20"/>
+      </node>
+      <node x="0" y="75" width="70" height="70" scroll_width="0" scroll_height="2">
+        <node x="43" y="0" width="20" height="72"/>
+        <node x="8" y="0" width="20" height="20"/>
+      </node>
+    </node>
+  </expectations>
+</test>

@@ -1,0 +1,169 @@
+<test name="align-content-wrap-002__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" box-sizing="content-box" direction="rtl">
+      <div display="block" box-sizing="content-box" direction="rtl"/>
+      <div display="flex" box-sizing="content-box" direction="rtl" width="600px" height="100px" margin-bottom="100px">
+        <div display="block" box-sizing="content-box" direction="rtl" flex-shrink="0" width="150px" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px">
+          <div display="block" box-sizing="content-box" direction="rtl" width="100px" height="150px"/>
+        </div>
+        <div display="block" box-sizing="content-box" direction="rtl" flex-shrink="0" width="150px" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px">
+          <div display="block" box-sizing="content-box" direction="rtl" width="100px" height="100px"/>
+        </div>
+        <div display="block" box-sizing="content-box" direction="rtl" flex-shrink="0" width="150px" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px">
+          <div display="block" box-sizing="content-box" direction="rtl" width="100px" height="50px"/>
+        </div>
+      </div>
+      <div display="flex" box-sizing="content-box" direction="rtl" flex-wrap="wrap" width="600px" height="100px" margin-bottom="100px">
+        <div display="block" box-sizing="content-box" direction="rtl" flex-shrink="0" width="150px" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px">
+          <div display="block" box-sizing="content-box" direction="rtl" width="100px" height="150px"/>
+        </div>
+        <div display="block" box-sizing="content-box" direction="rtl" flex-shrink="0" width="150px" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px">
+          <div display="block" box-sizing="content-box" direction="rtl" width="100px" height="100px"/>
+        </div>
+        <div display="block" box-sizing="content-box" direction="rtl" flex-shrink="0" width="150px" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px">
+          <div display="block" box-sizing="content-box" direction="rtl" width="100px" height="50px"/>
+        </div>
+      </div>
+      <div display="flex" box-sizing="content-box" direction="rtl" flex-wrap="wrap" width="600px" height="100px" margin-bottom="100px">
+        <div display="block" box-sizing="content-box" direction="rtl" flex-shrink="0" width="150px" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px">
+          <div display="block" box-sizing="content-box" direction="rtl" width="100px" height="150px"/>
+        </div>
+        <div display="block" box-sizing="content-box" direction="rtl" flex-shrink="0" width="150px" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px">
+          <div display="block" box-sizing="content-box" direction="rtl" width="100px" height="100px"/>
+        </div>
+        <div display="block" box-sizing="content-box" direction="rtl" flex-shrink="0" width="150px" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px">
+          <div display="block" box-sizing="content-box" direction="rtl" width="100px" height="50px"/>
+        </div>
+        <div display="block" box-sizing="content-box" direction="rtl" flex-shrink="0" width="150px" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px">
+          <div display="block" box-sizing="content-box" direction="rtl" width="100px" height="150px"/>
+        </div>
+        <div display="block" box-sizing="content-box" direction="rtl" flex-shrink="0" width="150px" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px">
+          <div display="block" box-sizing="content-box" direction="rtl" width="100px" height="100px"/>
+        </div>
+      </div>
+      <div display="flex" box-sizing="content-box" direction="rtl" flex-direction="column" width="100px" height="600px" margin-top="200px" margin-bottom="100px">
+        <div display="block" box-sizing="content-box" direction="rtl" flex-shrink="0" height="150px" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px">
+          <div display="block" box-sizing="content-box" direction="rtl" width="150px" height="100px"/>
+        </div>
+        <div display="block" box-sizing="content-box" direction="rtl" flex-shrink="0" height="150px" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px">
+          <div display="block" box-sizing="content-box" direction="rtl" width="100px" height="100px"/>
+        </div>
+        <div display="block" box-sizing="content-box" direction="rtl" flex-shrink="0" height="150px" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px">
+          <div display="block" box-sizing="content-box" direction="rtl" width="50px" height="100px"/>
+        </div>
+      </div>
+      <div display="flex" box-sizing="content-box" direction="rtl" flex-direction="column" flex-wrap="wrap" width="100px" height="600px" margin-top="200px" margin-bottom="100px">
+        <div display="block" box-sizing="content-box" direction="rtl" flex-shrink="0" height="150px" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px">
+          <div display="block" box-sizing="content-box" direction="rtl" width="150px" height="100px"/>
+        </div>
+        <div display="block" box-sizing="content-box" direction="rtl" flex-shrink="0" height="150px" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px">
+          <div display="block" box-sizing="content-box" direction="rtl" width="100px" height="100px"/>
+        </div>
+        <div display="block" box-sizing="content-box" direction="rtl" flex-shrink="0" height="150px" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px">
+          <div display="block" box-sizing="content-box" direction="rtl" width="50px" height="100px"/>
+        </div>
+      </div>
+      <div display="flex" box-sizing="content-box" direction="rtl" flex-direction="column" flex-wrap="wrap" width="100px" height="600px" margin-top="200px" margin-bottom="100px">
+        <div display="block" box-sizing="content-box" direction="rtl" flex-shrink="0" height="150px" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px">
+          <div display="block" box-sizing="content-box" direction="rtl" width="150px" height="100px"/>
+        </div>
+        <div display="block" box-sizing="content-box" direction="rtl" flex-shrink="0" height="150px" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px">
+          <div display="block" box-sizing="content-box" direction="rtl" width="100px" height="100px"/>
+        </div>
+        <div display="block" box-sizing="content-box" direction="rtl" flex-shrink="0" height="150px" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px">
+          <div display="block" box-sizing="content-box" direction="rtl" width="50px" height="100px"/>
+        </div>
+        <div display="block" box-sizing="content-box" direction="rtl" flex-shrink="0" height="150px" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px">
+          <div display="block" box-sizing="content-box" direction="rtl" width="150px" height="100px"/>
+        </div>
+        <div display="block" box-sizing="content-box" direction="rtl" flex-shrink="0" height="150px" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px">
+          <div display="block" box-sizing="content-box" direction="rtl" width="100px" height="100px"/>
+        </div>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="600" height="3000">
+      <node x="0" y="0" width="600" height="0"/>
+      <node x="0" y="0" width="600" height="100">
+        <node x="440" y="10" width="150" height="80">
+          <node x="50" y="0" width="100" height="150"/>
+        </node>
+        <node x="270" y="10" width="150" height="80">
+          <node x="50" y="0" width="100" height="100"/>
+        </node>
+        <node x="100" y="10" width="150" height="80">
+          <node x="50" y="0" width="100" height="50"/>
+        </node>
+      </node>
+      <node x="0" y="200" width="600" height="100">
+        <node x="440" y="10" width="150" height="150">
+          <node x="50" y="0" width="100" height="150"/>
+        </node>
+        <node x="270" y="10" width="150" height="150">
+          <node x="50" y="0" width="100" height="100"/>
+        </node>
+        <node x="100" y="10" width="150" height="150">
+          <node x="50" y="0" width="100" height="50"/>
+        </node>
+      </node>
+      <node x="0" y="400" width="600" height="100">
+        <node x="440" y="10" width="150" height="150">
+          <node x="50" y="0" width="100" height="150"/>
+        </node>
+        <node x="270" y="10" width="150" height="150">
+          <node x="50" y="0" width="100" height="100"/>
+        </node>
+        <node x="100" y="10" width="150" height="150">
+          <node x="50" y="0" width="100" height="50"/>
+        </node>
+        <node x="440" y="180" width="150" height="150">
+          <node x="50" y="0" width="100" height="150"/>
+        </node>
+        <node x="270" y="180" width="150" height="150">
+          <node x="50" y="0" width="100" height="100"/>
+        </node>
+      </node>
+      <node x="500" y="700" width="100" height="600">
+        <node x="10" y="10" width="80" height="150">
+          <node x="-70" y="0" width="150" height="100"/>
+        </node>
+        <node x="10" y="180" width="80" height="150">
+          <node x="-20" y="0" width="100" height="100"/>
+        </node>
+        <node x="10" y="350" width="80" height="150">
+          <node x="30" y="0" width="50" height="100"/>
+        </node>
+      </node>
+      <node x="500" y="1500" width="100" height="600">
+        <node x="-60" y="10" width="150" height="150">
+          <node x="0" y="0" width="150" height="100"/>
+        </node>
+        <node x="-60" y="180" width="150" height="150">
+          <node x="50" y="0" width="100" height="100"/>
+        </node>
+        <node x="-60" y="350" width="150" height="150">
+          <node x="100" y="0" width="50" height="100"/>
+        </node>
+      </node>
+      <node x="500" y="2300" width="100" height="600">
+        <node x="-60" y="10" width="150" height="150">
+          <node x="0" y="0" width="150" height="100"/>
+        </node>
+        <node x="-60" y="180" width="150" height="150">
+          <node x="50" y="0" width="100" height="100"/>
+        </node>
+        <node x="-60" y="350" width="150" height="150">
+          <node x="100" y="0" width="50" height="100"/>
+        </node>
+        <node x="-230" y="10" width="150" height="150">
+          <node x="0" y="0" width="150" height="100"/>
+        </node>
+        <node x="-230" y="180" width="150" height="150">
+          <node x="50" y="0" width="100" height="100"/>
+        </node>
+      </node>
+    </node>
+  </expectations>
+</test>

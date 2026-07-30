@@ -1,0 +1,185 @@
+<test name="grid-definition_grid-auto-repeat-multiple-values-003__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" box-sizing="content-box" direction="ltr">
+      <div display="block" box-sizing="content-box" direction="ltr" width="300px" height="30px" border-bottom="2px">
+        <div display="grid" box-sizing="content-box" direction="ltr" grid-template-rows="repeat(auto-fill, minmax(30px,auto))" grid-template-columns="10px 20px repeat(auto-fit, 30px 40px) 50px 60px">
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+        </div>
+      </div>
+      <div display="block" box-sizing="content-box" direction="ltr" width="300px" height="30px" border-bottom="2px">
+        <div display="grid" box-sizing="content-box" direction="ltr" grid-template-rows="repeat(auto-fill, minmax(30px,auto))" grid-template-columns="10px 20px repeat(auto-fit, 30px 40px) 50px 60px">
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr" grid-column-start="7"/>
+        </div>
+      </div>
+      <div display="block" box-sizing="content-box" direction="ltr" width="650px" height="30px" border-bottom="2px">
+        <div display="grid" box-sizing="content-box" direction="ltr" grid-template-rows="repeat(auto-fill, minmax(30px,auto))" grid-template-columns="10px 20px repeat(auto-fit, 30px 40px) 50px 60px">
+          <div display="block" box-sizing="content-box" direction="ltr" grid-column-start="2"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr" grid-column-start="6"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+        </div>
+      </div>
+      <div display="block" box-sizing="content-box" direction="ltr" width="650px" height="30px" border-bottom="2px">
+        <div display="grid" box-sizing="content-box" direction="ltr" grid-template-rows="repeat(auto-fill, minmax(30px,auto))" grid-template-columns="10px 20px repeat(auto-fit, 30px 40px) 50px 60px">
+          <div display="block" box-sizing="content-box" direction="ltr" grid-column-start="2"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr" grid-column-start="10"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+        </div>
+      </div>
+      <div display="block" box-sizing="content-box" direction="ltr" width="650px" height="30px" border-bottom="2px">
+        <div display="grid" box-sizing="content-box" direction="ltr" grid-template-rows="repeat(auto-fill, minmax(30px,auto))" grid-template-columns="10px 20px repeat(auto-fit, 30px 40px) 50px 60px">
+          <div display="block" box-sizing="content-box" direction="ltr" grid-column-start="2"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr" grid-column-start="12"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+        </div>
+      </div>
+      <div display="block" box-sizing="content-box" direction="ltr" width="300px" height="30px" border-bottom="2px">
+        <div display="grid" box-sizing="content-box" direction="ltr" grid-template-rows="repeat(auto-fill, minmax(30px,auto))" grid-template-columns="10px 20px repeat(auto-fit, 30px 40px) 50px 60px">
+          <div display="block" box-sizing="content-box" direction="ltr" grid-column-start="2"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr" grid-column-start="5"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+        </div>
+      </div>
+      <div display="block" box-sizing="content-box" direction="ltr" width="300px" height="30px" border-bottom="2px">
+        <div display="grid" box-sizing="content-box" direction="ltr" grid-template-rows="repeat(auto-fill, minmax(30px,auto))" grid-template-columns="10px 20px repeat(auto-fit, 30px 40px) 50px 60px">
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr" grid-column-start="5"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+        </div>
+      </div>
+      <div display="block" box-sizing="content-box" direction="ltr" width="300px" height="30px" border-bottom="2px">
+        <div display="grid" box-sizing="content-box" direction="ltr" grid-template-rows="repeat(auto-fill, minmax(30px,auto))" grid-template-columns="10px 20px repeat(auto-fit, 30px 40px) 50px 60px">
+          <div display="block" box-sizing="content-box" direction="ltr" grid-column-start="4"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+        </div>
+      </div>
+      <div display="block" box-sizing="content-box" direction="ltr" width="510px" height="30px" border-bottom="2px">
+        <div display="grid" box-sizing="content-box" direction="ltr" grid-template-rows="repeat(auto-fill, minmax(30px,auto))" grid-template-columns="10px 20px repeat(auto-fit, 30px 40px) 50px 60px">
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+          <div display="block" box-sizing="content-box" direction="ltr" grid-column-start="4" grid-column-end="7"/>
+          <div display="block" box-sizing="content-box" direction="ltr"/>
+        </div>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="650" height="288">
+      <node x="0" y="0" width="300" height="32">
+        <node x="0" y="0" width="300" height="30">
+          <node x="0" y="0" width="10" height="30"/>
+          <node x="10" y="0" width="20" height="30"/>
+          <node x="30" y="0" width="30" height="30"/>
+          <node x="60" y="0" width="40" height="30"/>
+          <node x="100" y="0" width="30" height="30"/>
+          <node x="130" y="0" width="40" height="30"/>
+        </node>
+      </node>
+      <node x="0" y="32" width="300" height="32">
+        <node x="0" y="0" width="300" height="30">
+          <node x="0" y="0" width="10" height="30"/>
+          <node x="10" y="0" width="20" height="30"/>
+          <node x="30" y="0" width="30" height="30"/>
+          <node x="60" y="0" width="40" height="30"/>
+          <node x="100" y="0" width="30" height="30"/>
+          <node x="130" y="0" width="50" height="30"/>
+        </node>
+      </node>
+      <node x="0" y="64" width="650" height="32">
+        <node x="0" y="0" width="650" height="30">
+          <node x="10" y="0" width="20" height="30"/>
+          <node x="30" y="0" width="30" height="30"/>
+          <node x="60" y="0" width="40" height="30"/>
+          <node x="100" y="0" width="30" height="30"/>
+          <node x="130" y="0" width="40" height="30"/>
+          <node x="170" y="0" width="30" height="30"/>
+        </node>
+      </node>
+      <node x="0" y="96" width="650" height="32">
+        <node x="0" y="0" width="650" height="30">
+          <node x="10" y="0" width="20" height="30"/>
+          <node x="30" y="0" width="30" height="30"/>
+          <node x="60" y="0" width="40" height="30"/>
+          <node x="100" y="0" width="30" height="30"/>
+          <node x="130" y="0" width="40" height="30"/>
+          <node x="170" y="0" width="30" height="30"/>
+        </node>
+      </node>
+      <node x="0" y="128" width="650" height="32">
+        <node x="0" y="0" width="650" height="30">
+          <node x="10" y="0" width="20" height="30"/>
+          <node x="30" y="0" width="30" height="30"/>
+          <node x="60" y="0" width="40" height="30"/>
+          <node x="100" y="0" width="30" height="30"/>
+          <node x="130" y="0" width="40" height="30"/>
+          <node x="170" y="0" width="30" height="30"/>
+        </node>
+      </node>
+      <node x="0" y="160" width="300" height="32">
+        <node x="0" y="0" width="300" height="30">
+          <node x="10" y="0" width="20" height="30"/>
+          <node x="30" y="0" width="30" height="30"/>
+          <node x="60" y="0" width="30" height="30"/>
+          <node x="90" y="0" width="40" height="30"/>
+          <node x="130" y="0" width="50" height="30"/>
+          <node x="180" y="0" width="60" height="30"/>
+        </node>
+      </node>
+      <node x="0" y="192" width="300" height="32">
+        <node x="0" y="0" width="300" height="30">
+          <node x="0" y="0" width="10" height="30"/>
+          <node x="10" y="0" width="20" height="30"/>
+          <node x="30" y="0" width="30" height="30"/>
+          <node x="60" y="0" width="40" height="30"/>
+          <node x="100" y="0" width="50" height="30"/>
+          <node x="150" y="0" width="60" height="30"/>
+        </node>
+      </node>
+      <node x="0" y="224" width="300" height="32">
+        <node x="0" y="0" width="300" height="30">
+          <node x="30" y="0" width="40" height="30"/>
+          <node x="70" y="0" width="30" height="30"/>
+          <node x="100" y="0" width="40" height="30"/>
+          <node x="140" y="0" width="50" height="30"/>
+          <node x="190" y="0" width="60" height="30"/>
+          <node x="0" y="30" width="10" height="0"/>
+        </node>
+      </node>
+      <node x="0" y="256" width="510" height="32">
+        <node x="0" y="0" width="510" height="30">
+          <node x="0" y="0" width="10" height="30"/>
+          <node x="30" y="0" width="110" height="30"/>
+          <node x="140" y="0" width="30" height="30"/>
+        </node>
+      </node>
+    </node>
+  </expectations>
+</test>

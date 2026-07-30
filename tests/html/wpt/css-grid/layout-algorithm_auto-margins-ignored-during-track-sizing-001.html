@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-grid/layout-algorithm/auto-margins-ignored-during-track-sizing-001.html @ 6e90070a5b
+  help: https://drafts.csswg.org/css-grid/#auto-margins
+  help: https://drafts.csswg.org/css-grid/#layout-algorithm
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: CSS Grid: grid items using 'auto' margins.</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr;">
+  <div style="background: magenta; display: block;">
+    In a few questions, you will get an expert-designed investment portfolio to fit your financial needs.
+  </div>
+  <div style="background: cyan; display: block;">
+    Open and fund your account with 10,000 or more and we will put your money to work.
+  </div>
+  <div style="background: yellow; display: block;">
+    We will take it from here, monitoring your portfolio daily to help keep it on track.
+  </div>
+  <div style="margin-top: 10px; margin-left: auto; margin-right: auto; background: lime; display: block;">Learn More
+</div>
+</div>
+
+</div>
+
+</body>
+</html>

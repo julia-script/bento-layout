@@ -1,0 +1,19 @@
+<test name="alignment_grid-align-content-space-between-001__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" box-sizing="content-box" direction="ltr">
+      <div display="grid" box-sizing="content-box" direction="ltr" align-content="space-between" width="50px" height="100px" grid-template-rows="25px 25px" grid-template-columns="50px">
+        <div display="block" box-sizing="content-box" direction="ltr" width="50px" height="25px" grid-row-start="1" grid-row-end="2" grid-column-start="1" grid-column-end="2"/>
+        <div display="block" box-sizing="content-box" direction="ltr" width="50px" height="25px" grid-row-start="2" grid-row-end="3" grid-column-start="1" grid-column-end="2"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="50" height="100">
+      <node x="0" y="0" width="50" height="100">
+        <node x="0" y="0" width="50" height="25"/>
+        <node x="0" y="75" width="50" height="25"/>
+      </node>
+    </node>
+  </expectations>
+</test>

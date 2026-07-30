@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-flexbox/abspos/flexbox-abspos-child-001b.html @ 6e90070a5b
+  help: http://www.w3.org/TR/css-flexbox-1/#abspos-items
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: CSS Test: Testing that "min-width", "max-width", "min-height", and "max-height" are applied on absolutely positioned children of a vertical flex container</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+<div style="display: flex; flex-direction: column; height: 10px; width: 10px; background: purple; margin-bottom: 15px; position: relative;"><div style="position: absolute; background: teal; width: 10px; height: 20px; min-width: 20px; display: block;"></div></div>
+  <div style="display: flex; flex-direction: column; height: 10px; width: 10px; background: purple; margin-bottom: 15px; position: relative;"><div style="position: absolute; background: teal; width: 50px; height: 20px; max-width: 20px; display: block;"></div></div>
+  <div style="display: flex; flex-direction: column; height: 10px; width: 10px; background: purple; margin-bottom: 15px; position: relative;"><div style="position: absolute; background: teal; width: 20px; height: 10px; min-height: 20px; display: block;"></div></div>
+  <div style="display: flex; flex-direction: column; height: 10px; width: 10px; background: purple; margin-bottom: 15px; position: relative;"><div style="position: absolute; background: teal; width: 20px; height: 50px; max-height: 20px; display: block;"></div></div>
+</div>
+
+</body>
+</html>

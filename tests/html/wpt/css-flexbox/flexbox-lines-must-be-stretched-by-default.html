@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-flexbox/flexbox-lines-must-be-stretched-by-default.html @ 6e90070a5b
+  help: https://drafts.csswg.org/css-flexbox-1/#align-content-property
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: CSS Flexbox: align-content initial value.</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+<div id="flexContainer" style="display: flex; height: 100px; width: 200px; background-color: pink; flex-wrap: wrap;">
+    <div id="flexItem1" style="width: 100%; background-color: blue; border: 1px solid red; display: block;"></div>
+    <div id="flexItem2" style="width: 100%; background-color: blue; display: block;"></div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-flexbox/order/order-abs-children-painting-order-different-container.html @ 6e90070a5b
+  help: https://drafts.csswg.org/css-flexbox/#propdef-order
+  help: https://bugs.chromium.org/p/chromium/issues/detail?id=1489495
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: CSS Test: flex order affects painting order of absolutely positioned boxes inside flex</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+<div id="test" style="display: flex; height: 100px; width: 100px;">
+  <div id="order-2" style="order: 2; display: block;">
+    <div style="position: relative; width: 100px; height: 100px; background-color: red; display: block;"></div>
+  </div>
+</div>
+<div id="test2" style="margin-top: -100px; display: flex; height: 100px; width: 100px;">
+  <div id="order-1" style="order: 1; display: block;">
+    <div style="position: relative; width: 100px; height: 100px; background-color: green; display: block;"></div>
+  </div>
+</div>
+</div>
+
+</body>
+</html>

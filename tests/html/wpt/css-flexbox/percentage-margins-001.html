@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-flexbox/percentage-margins-001.html @ 6e90070a5b
+  help: https://drafts.csswg.org/css-flexbox/#flex-containers
+  help: https://drafts.csswg.org/css2/box.html#margin-properties
+  help: https://bugs.webkit.org/show_bug.cgi?id=93411
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: CSS Flexbox: percent margins with flex child</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+<div id="log" style="display: block;"></div>
+
+<div style="display:flex; flex-direction: column; background-color: salmon; height: 300px; width: 400px;">
+    <div style="margin: 10%; background-color: orange; height: 5px; flex: 1 1 0%; display: block;"></div>
+    <div style="margin: 10%; background-color: orange; height: 5px; display: block;"></div>
+</div>
+
+<div style="display:flex; background-color: salmon; height: 300px; width: 400px;">
+    <div style="margin: 10%; background-color: orange; height: 5px; flex: 1 1 5px; display: block;"></div>
+    <div style="margin: 10%; background-color: orange; height: 5px; width: 5px; display: block;"></div>
+</div>
+
+<div style="display:flex; background-color: salmon; height: 300px; width: 400px; padding: 100px;">
+    <div style="margin: 10%; background-color: orange; height: 5px; flex: 1 1 5px; display: block;"></div>
+    <div style="margin: 10%; background-color: orange; height: 5px; width: 5px; display: block;"></div>
+</div>
+</div>
+
+</body>
+</html>

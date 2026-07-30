@@ -1,0 +1,17 @@
+<test name="grid-items_grid-item-border-padding-004__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" box-sizing="content-box" direction="rtl">
+      <div display="grid" box-sizing="content-box" direction="rtl" width="100px" height="100px" padding-top="5px" padding-left="20px" padding-bottom="15px" padding-right="10px" border-top="5px" border-left="20px" border-bottom="15px" border-right="10px" grid-template-rows="100px" grid-template-columns="100px">
+        <div display="block" box-sizing="content-box" direction="rtl" width="50px" height="50px" grid-row-start="1" grid-row-end="2"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="160" height="140">
+      <node x="0" y="0" width="160" height="140">
+        <node x="90" y="10" width="50" height="50"/>
+      </node>
+    </node>
+  </expectations>
+</test>

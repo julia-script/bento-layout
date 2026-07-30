@@ -1,0 +1,71 @@
+<test name="grid-definition_grid-auto-repeat-multiple-values-002__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" direction="rtl">
+      <div display="block" direction="rtl" width="300px" height="30px" border-bottom="2px">
+        <div display="grid" direction="rtl" grid-template-rows="repeat(auto-fill, minmax(30px,auto))" grid-template-columns="10px 20px repeat(auto-fill, 30px 40px) 50px 60px">
+          <div display="block" direction="rtl"/>
+          <div display="block" direction="rtl"/>
+          <div display="block" direction="rtl"/>
+          <div display="block" direction="rtl"/>
+          <div display="block" direction="rtl"/>
+          <div display="block" direction="rtl"/>
+        </div>
+      </div>
+      <div display="block" direction="rtl" width="300px" height="30px" border-bottom="2px">
+        <div display="grid" direction="rtl" grid-template-rows="repeat(auto-fill, minmax(30px,auto))" grid-template-columns="10px 20px repeat(auto-fill, 30px 40px) 50px 60px">
+          <div display="block" direction="rtl"/>
+          <div display="block" direction="rtl"/>
+          <div display="block" direction="rtl"/>
+          <div display="block" direction="rtl"/>
+          <div display="block" direction="rtl"/>
+          <div display="block" direction="rtl" grid-column-start="7"/>
+        </div>
+      </div>
+      <div display="block" direction="rtl" width="300px" height="30px" border-bottom="2px">
+        <div display="grid" direction="rtl" grid-template-rows="repeat(auto-fill, minmax(30px,auto))" grid-template-columns="10px 20px repeat(auto-fill, 30px 40px) 50px 60px">
+          <div display="block" direction="rtl" grid-column-start="2"/>
+          <div display="block" direction="rtl"/>
+          <div display="block" direction="rtl" grid-column-start="5"/>
+          <div display="block" direction="rtl"/>
+          <div display="block" direction="rtl"/>
+          <div display="block" direction="rtl"/>
+        </div>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="300" height="90">
+      <node x="0" y="0" width="300" height="30">
+        <node x="0" y="0" width="300" height="30">
+          <node x="290" y="0" width="10" height="30"/>
+          <node x="270" y="0" width="20" height="30"/>
+          <node x="240" y="0" width="30" height="30"/>
+          <node x="200" y="0" width="40" height="30"/>
+          <node x="170" y="0" width="30" height="30"/>
+          <node x="130" y="0" width="40" height="30"/>
+        </node>
+      </node>
+      <node x="0" y="30" width="300" height="30">
+        <node x="0" y="0" width="300" height="30">
+          <node x="290" y="0" width="10" height="30"/>
+          <node x="270" y="0" width="20" height="30"/>
+          <node x="240" y="0" width="30" height="30"/>
+          <node x="200" y="0" width="40" height="30"/>
+          <node x="170" y="0" width="30" height="30"/>
+          <node x="80" y="0" width="50" height="30"/>
+        </node>
+      </node>
+      <node x="0" y="60" width="300" height="30">
+        <node x="0" y="0" width="300" height="30">
+          <node x="270" y="0" width="20" height="30"/>
+          <node x="240" y="0" width="30" height="30"/>
+          <node x="170" y="0" width="30" height="30"/>
+          <node x="130" y="0" width="40" height="30"/>
+          <node x="80" y="0" width="50" height="30"/>
+          <node x="20" y="0" width="60" height="30"/>
+        </node>
+      </node>
+    </node>
+  </expectations>
+</test>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-grid/implicit-grids/grid-support-grid-auto-columns-rows-002.html @ 6e90070a5b
+  help: http://www.w3.org/TR/css-grid-1/#auto-tracks
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: CSS Grid Layout Test: Support for 'grid-auto-columns' and 'grid-auto-rows' accepting track listing as value</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+<div id="grid" style="display: grid; grid-auto-columns: 25px 50px; grid-auto-rows: 40px 30px;">
+    <div id="first-column-first-row" style="grid-area: 1 / 1; background-color: purple; display: block;"></div>
+    <div id="second-column-first-row" style="grid-area: 1 / 2; background-color: orange; display: block;"></div>
+    <div id="first-column-second-row" style="grid-area: 2 / 1; background-color: green; display: block;"></div>
+    <div id="second-column-second-row" style="grid-area: 2 / 2; background-color: pink; display: block;"></div>
+    <div id="first-and-second-column-third-row" style="grid-area: 3 / 1 / auto / span 2; background-color: silver; display: block;"></div>
+    <div id="third-column-all-rows" style="grid-area: 1 / 3 / span 3; background-color: blue; display: block;"></div>
+</div>
+</div>
+
+</body>
+</html>

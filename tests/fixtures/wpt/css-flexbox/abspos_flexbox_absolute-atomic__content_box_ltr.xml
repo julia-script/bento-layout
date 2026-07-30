@@ -1,0 +1,27 @@
+<test name="abspos_flexbox_absolute-atomic__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" box-sizing="content-box" direction="ltr" justify-content="space-around">
+      <div display="block" box-sizing="content-box" direction="ltr" margin-top="20px" margin-left="20px" margin-bottom="20px" margin-right="20px">
+        <text display="block" box-sizing="content-box" direction="ltr" margin-top="20px" margin-left="20px" margin-bottom="20px" margin-right="20px">
+          filler
+        </text>
+        <text display="block" box-sizing="content-box" direction="ltr" position="absolute" margin-top="20px" margin-left="20px" margin-bottom="20px" margin-right="20px" top="-1000px">
+          filler
+        </text>
+        <text display="block" box-sizing="content-box" direction="ltr" margin-top="20px" margin-left="20px" margin-bottom="20px" margin-right="20px">
+          filler
+        </text>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="140" height="80">
+      <node x="20" y="20" width="100" height="40">
+        <node x="20" y="0" width="60" height="10"/>
+        <node x="20" y="-980" width="60" height="10"/>
+        <node x="20" y="30" width="60" height="10"/>
+      </node>
+    </node>
+  </expectations>
+</test>

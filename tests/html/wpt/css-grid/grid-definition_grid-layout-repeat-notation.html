@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-grid/grid-definition/grid-layout-repeat-notation.html @ 6e90070a5b
+  help: http://www.w3.org/TR/css-grid-1/#repeat-notation
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: CSS Grid Layout Test: repeat notation</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+<div id="grid" style="width: 450px; background: rgb(238, 238, 238); display: grid; grid-template-columns: repeat(4, 100px) 50px;">
+      <div style="background: blue; grid-column: 1; display: block;">&nbsp;</div>
+      <div style="background: yellow; grid-column: 2; display: block;">&nbsp;</div>
+      <div style="background: orange; grid-column: 3; display: block;">&nbsp;</div>
+      <div style="background: cyan; grid-column: 4; display: block;">&nbsp;</div>
+      <div style="background: pink; grid-column: 5; display: block;">&nbsp;</div>
+    </div>
+</div>
+
+</body>
+</html>

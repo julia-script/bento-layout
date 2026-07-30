@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-flexbox/percentage-size.html @ 6e90070a5b
+  help: https://drafts.csswg.org/css-flexbox/#flex-containers
+  help: https://drafts.csswg.org/css-sizing-3/#percentage-sizing
+  help: https://bugs.webkit.org/show_bug.cgi?id=81809
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: CSS Flexbox: Percentage size in flexbox children</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+<div id="log" style="display: block;"></div>
+
+<div style="width: 50px; display: block;">
+    <div style="display: flex; outline: blue solid 2px;">
+        <div style="width: 10px; min-width: 50%; height: 20px; flex: 0 0 auto; background-color: orange; display: block;"></div>
+        <div style="width: 50%; height: 20px; flex: 0 0 auto; background-color: yellow; display: block;"></div>
+        <div style="width: 10px; max-width: 50%; height: 20px; flex: 0 0 auto; background-color: salmon; display: block;"></div>
+        <div style="min-width: 10px; width: 100px; max-width: 50%; height: 20px; flex: 0 0 auto; background-color: purple; display: block;"></div>
+    </div>
+</div>
+
+<div style="width: 100px; display: block;">
+    <div style="display: flex; width: 50px; outline: blue solid 2px;">
+        <div style="width: 10px; min-width: 50%; height: 20px; flex: 0 0 auto; background-color: orange; display: block;"></div>
+        <div style="width: 50%; height: 20px; flex: 0 0 auto; background-color: yellow; display: block;"></div>
+        <div style="width: 10px; max-width: 50%; height: 20px; flex: 0 0 auto; background-color: salmon; display: block;"></div>
+        <div style="min-width: 10px; width: 100px; max-width: 50%; height: 20px; flex: 0 0 auto; background-color: purple; display: block;"></div>
+    </div>
+</div>
+
+<div style="margin-bottom: 100px; height: 50px; display: block;">
+    <div style="height: auto; display: flex; outline: blue solid 2px; flex-direction: column;">
+        <div style="height: 10px; min-height: 50%; flex: 0 0 auto; background-color: orange; display: block;"></div>
+        <div style="height: 50%; flex: 0 0 auto; background-color: yellow; display: block;"></div>
+        <div style="height: 10px; max-height: 50%; flex: 0 0 auto; background-color: salmon; display: block;"></div>
+        <div style="min-height: 10px; height: 100px; max-height: 50%; flex: 0 0 auto; background-color: purple; display: block;"></div>
+    </div>
+</div>
+
+<div style="height: 50px; display: block;">
+    <div style="display: flex; height: 50px; outline: blue solid 2px; flex-direction: column;">
+        <div style="height: 10px; min-height: 50%; flex: 0 0 auto; background-color: orange; display: block;"></div>
+        <div style="height: 50%; flex: 0 0 auto; background-color: yellow; display: block;"></div>
+        <div style="height: 10px; max-height: 50%; flex: 0 0 auto; background-color: salmon; display: block;"></div>
+        <div style="min-height: 10px; height: 100px; max-height: 50%; flex: 0 0 auto; background-color: purple; display: block;"></div>
+    </div>
+</div>
+
+<div style="width: 50px; display: block;">
+    <div style="display: flex; outline: blue solid 2px;">
+        <div style="flex: 0 0 50%; height: 20px; background-color: orange; display: block;"></div>
+    </div>
+</div>
+
+<div style="height: 50px; display: block;">
+    <div style="display: flex; outline: blue solid 2px; flex-direction: column;">
+        <div style="flex: 0 0 50%; background-color: orange; display: block;"></div>
+    </div>
+</div>
+
+<div style="width: 50px; display: block;">
+    <div style="display: flex; width: 50px; outline: blue solid 2px;">
+        <div style="flex: 0 0 50%; height: 20px; background-color: orange; display: block;"></div>
+    </div>
+</div>
+
+<div style="height: 50px; display: block;">
+    <div style="display: flex; height: 50px; outline: blue solid 2px; flex-direction: column;">
+        <div style="flex: 0 0 50%; background-color: orange; display: block;"></div>
+    </div>
+</div>
+</div>
+
+</body>
+</html>

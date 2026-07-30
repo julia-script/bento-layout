@@ -1,0 +1,19 @@
+<test name="flexbox-anonymous-items-001__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" direction="ltr">
+      <div display="flex" direction="ltr">
+        <text display="block" direction="ltr">
+          x x
+        </text>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="90" height="10">
+      <node x="0" y="0" width="90" height="10">
+        <node x="60" y="0" width="30" height="10"/>
+      </node>
+    </node>
+  </expectations>
+</test>

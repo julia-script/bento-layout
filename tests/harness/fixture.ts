@@ -322,8 +322,20 @@ function parseLengthPercentage(input: string | undefined): LengthPercentage {
 }
 
 function parseLength(input: string): LengthPercentage {
-  if (input.endsWith('%')) return { percent: parseFloat(input) / 100 };
-  return parseFloat(input);
+  if (input.endsWith('%')) {
+    const pct = parseFloat(input);
+    if (Number.isNaN(pct)) throw new Error(`fixture: unparseable percentage "${input}"`);
+    return { percent: pct / 100 };
+  }
+  const px = parseFloat(input);
+  // A silent NaN here is the worst possible outcome: it survives every bounds
+  // check downstream (all comparisons with NaN are false) and can hang the
+  // sizing algorithms outright — `width: min-content` on an element reached
+  // findSizeOfFr with spaceToFill=NaN and spun forever. The engine's
+  // `Dimension` models px/percent/auto only; anything else must be rejected
+  // at the boundary, not turned into NaN.
+  if (Number.isNaN(px)) throw new Error(`fixture: unsupported length value "${input}"`);
+  return px;
 }
 
 function parseTextAlign(input: string | undefined): Style['textAlign'] {

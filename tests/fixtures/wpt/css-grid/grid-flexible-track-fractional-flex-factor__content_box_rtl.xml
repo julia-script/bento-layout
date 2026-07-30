@@ -1,0 +1,21 @@
+<test name="grid-flexible-track-fractional-flex-factor__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" box-sizing="content-box" direction="rtl">
+      <div display="grid" box-sizing="content-box" direction="rtl" width="600px" grid-template-rows="100px" grid-template-columns="1.01fr 0.99fr 1fr">
+        <div display="block" box-sizing="content-box" direction="rtl" grid-row-start="1" grid-row-end="2" grid-column-start="1" grid-column-end="2"/>
+        <div display="block" box-sizing="content-box" direction="rtl" grid-row-start="1" grid-row-end="2" grid-column-start="2" grid-column-end="3"/>
+        <div display="block" box-sizing="content-box" direction="rtl" grid-row-start="1" grid-row-end="2" grid-column-start="3" grid-column-end="4"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="600" height="100">
+      <node x="0" y="0" width="600" height="100">
+        <node x="398" y="0" width="202" height="100"/>
+        <node x="200" y="0" width="198" height="100"/>
+        <node x="0" y="0" width="200" height="100"/>
+      </node>
+    </node>
+  </expectations>
+</test>

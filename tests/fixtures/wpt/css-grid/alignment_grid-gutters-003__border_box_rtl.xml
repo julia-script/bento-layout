@@ -1,0 +1,23 @@
+<test name="alignment_grid-gutters-003__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" direction="rtl">
+      <div display="grid" direction="rtl" width="200px" row-gap="40px" column-gap="20px" grid-template-rows="90px 90px" grid-template-columns="90px 90px">
+        <div display="block" direction="rtl"/>
+        <div display="block" direction="rtl"/>
+        <div display="block" direction="rtl"/>
+        <div display="block" direction="rtl"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="200" height="220">
+      <node x="0" y="0" width="200" height="220">
+        <node x="110" y="0" width="90" height="90"/>
+        <node x="0" y="0" width="90" height="90"/>
+        <node x="110" y="130" width="90" height="90"/>
+        <node x="0" y="130" width="90" height="90"/>
+      </node>
+    </node>
+  </expectations>
+</test>

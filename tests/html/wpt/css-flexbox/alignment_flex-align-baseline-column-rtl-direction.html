@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-flexbox/alignment/flex-align-baseline-column-rtl-direction.html @ 6e90070a5b
+  help: https://drafts.csswg.org/css-flexbox-1/#flex-wrap-property
+  help: https://drafts.csswg.org/css-align-3/#align-by-baseline
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: css/css-flexbox/alignment/flex-align-baseline-column-rtl-direction.html</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+<div style="display: flex; width: 100px; height: 100px; align-items: baseline; flex-direction: column; direction: rtl; position: relative;">
+  <div style="width: 50px; height: 100px; background-color: green; position: absolute; right: 50px; display: block;"></div>
+  <div style="width: 50px; height: 100px; background-color: green; display: block;"></div>
+</div>
+</div>
+
+</body>
+</html>

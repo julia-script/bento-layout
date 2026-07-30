@@ -1,0 +1,37 @@
+<test name="percentage-margins-001__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" box-sizing="content-box" direction="ltr">
+      <div display="block" box-sizing="content-box" direction="ltr"/>
+      <div display="flex" box-sizing="content-box" direction="ltr" flex-direction="column" width="400px" height="300px">
+        <div display="block" box-sizing="content-box" direction="ltr" flex-grow="1" flex-basis="0%" height="5px" margin-top="10%" margin-left="10%" margin-bottom="10%" margin-right="10%"/>
+        <div display="block" box-sizing="content-box" direction="ltr" height="5px" margin-top="10%" margin-left="10%" margin-bottom="10%" margin-right="10%"/>
+      </div>
+      <div display="flex" box-sizing="content-box" direction="ltr" width="400px" height="300px">
+        <div display="block" box-sizing="content-box" direction="ltr" flex-grow="1" flex-basis="5px" height="5px" margin-top="10%" margin-left="10%" margin-bottom="10%" margin-right="10%"/>
+        <div display="block" box-sizing="content-box" direction="ltr" width="5px" height="5px" margin-top="10%" margin-left="10%" margin-bottom="10%" margin-right="10%"/>
+      </div>
+      <div display="flex" box-sizing="content-box" direction="ltr" width="400px" height="300px" padding-top="100px" padding-left="100px" padding-bottom="100px" padding-right="100px">
+        <div display="block" box-sizing="content-box" direction="ltr" flex-grow="1" flex-basis="5px" height="5px" margin-top="10%" margin-left="10%" margin-bottom="10%" margin-right="10%"/>
+        <div display="block" box-sizing="content-box" direction="ltr" width="5px" height="5px" margin-top="10%" margin-left="10%" margin-bottom="10%" margin-right="10%"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="600" height="1100">
+      <node x="0" y="0" width="600" height="0"/>
+      <node x="0" y="0" width="400" height="300">
+        <node x="40" y="40" width="320" height="135"/>
+        <node x="40" y="255" width="320" height="5"/>
+      </node>
+      <node x="0" y="300" width="400" height="300">
+        <node x="40" y="40" width="235" height="5"/>
+        <node x="355" y="40" width="5" height="5"/>
+      </node>
+      <node x="0" y="600" width="600" height="500">
+        <node x="140" y="140" width="235" height="5"/>
+        <node x="455" y="140" width="5" height="5"/>
+      </node>
+    </node>
+  </expectations>
+</test>

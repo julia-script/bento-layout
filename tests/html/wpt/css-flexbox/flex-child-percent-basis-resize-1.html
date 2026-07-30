@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-flexbox/flex-child-percent-basis-resize-1.html @ 6e90070a5b
+  help: https://drafts.csswg.org/css-flexbox
+  help: https://bugzilla.mozilla.org/show_bug.cgi?id=1584018
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: Testcase, bug 1584018</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+<div style="display: flex; flex-direction: row; width: 100px;">
+  <div style="flex: 1 0 auto; display: block;">
+    <div style="overflow: hidden; height: 100%; max-height: 100px; display: block;">
+      <div style="overflow: scroll; height: 100%; display: block;">
+        <div style="display: block;">0</div>
+        <div style="display: block;">1</div>
+        <div style="display: block;">2</div>
+        <div style="display: block;">3</div>
+        <div style="display: block;">4</div>
+        <div style="display: block;">5</div>
+        <div style="display: block;">6</div>
+        <div style="display: block;">7</div>
+        <div style="display: block;">8</div>
+        <div style="display: block;">9</div>
+        <div style="display: block;">0</div>
+        <div style="display: block;">1</div>
+        <div style="display: block;">2</div>
+        <div style="display: block;">3</div>
+        <div style="display: block;">4</div>
+        <div style="display: block;">5</div>
+        <div style="display: block;">6</div>
+        <div style="display: block;">7</div>
+        <div style="display: block;">8</div>
+        <div style="display: block;">9</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+</body>
+</html>

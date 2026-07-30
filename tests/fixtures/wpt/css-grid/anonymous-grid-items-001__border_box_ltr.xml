@@ -1,0 +1,19 @@
+<test name="anonymous-grid-items-001__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" direction="ltr">
+      <text display="block" direction="ltr">
+        The test passes if it has the same output than the reference.
+      </text>
+      <text display="grid" direction="ltr">
+        anonymous item
+      </text>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="610" height="20">
+      <node x="0" y="0" width="610" height="10"/>
+      <node x="0" y="10" width="610" height="10"/>
+    </node>
+  </expectations>
+</test>

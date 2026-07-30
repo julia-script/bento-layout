@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-flexbox/flexbox-single-line-clamp-2.html @ 6e90070a5b
+  help: https://www.w3.org/TR/css-flexbox-1/#algo-cross-line
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: CSS Test: Single-line flex containers should clamp their line's height to the container's computed min and max cross-size.</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+<div style="display: flex; background: gray; height: 500px; flex-direction: column; max-width: 250px;">
+  <div style="background: lightblue; border: 1px solid purple; display: block;">
+    <div style="width: 100px; height: 100px; display: block;"></div>
+  </div>
+  <div style="background: lightblue; border: 1px solid purple; display: block;">
+    <div style="width: 500px; height: 100px; display: block;"></div>
+  </div>
+</div>
+</div>
+
+</body>
+</html>

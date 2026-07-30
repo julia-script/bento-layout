@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-align/baseline-rules/inline-table-inline-block-baseline-vert-rl-export-ref.tentative.html @ 6e90070a5b
+  help: https://www.w3.org/TR/css-align-3/#baseline-export
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: CSS Box Alignment Test: inline-block and inline-table baseline export</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+<div style="outline: black solid 1px; width: 240px; height: 60px; display: block;">
+    <div style="background: black; width: 20px; height: 20px; margin-left: 170px; display: block;"></div>
+    <div style="background: linear-gradient(to left, yellowgreen 0%, yellowgreen 25%, deepskyblue 25%, deepskyblue 50%, deeppink 50%, deeppink 75%, darkviolet 75%, darkviolet 100%); width: 160px; height: 40px; margin-left: 40px; display: block;"></div>
+</div>
+<div style="outline: black solid 1px; width: 240px; height: 60px; display: block;">
+    <div style="background: linear-gradient(to left, yellowgreen 0%, yellowgreen 25%, deepskyblue 25%, deepskyblue 50%, deeppink 50%, deeppink 75%, darkviolet 75%, darkviolet 100%); width: 160px; height: 40px; margin-left: 40px; display: block;"></div>
+    <div style="background: black; width: 20px; height: 20px; margin-left: 50px; display: block;"></div>
+</div>
+</div>
+
+</body>
+</html>

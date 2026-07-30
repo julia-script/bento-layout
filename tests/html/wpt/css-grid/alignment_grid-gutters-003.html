@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-grid/alignment/grid-gutters-003.html @ 6e90070a5b
+  help: https://www.w3.org/TR/css-grid-1/#gutters
+  help: https://www.w3.org/TR/css-align-3/#gap-shorthand
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: CSS Grid Layout Test: Support for gap shorthand property of row-gap and column-gap setting both to different values</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+<div id="grid" style="display: grid; width: 200px; gap: 40px 20px; grid-template-columns: 90px 90px; grid-template-rows: 90px 90px; background-color: green;">
+    <div style="background-color: silver; display: block;"></div>
+    <div style="background-color: silver; display: block;"></div>
+    <div style="background-color: silver; display: block;"></div>
+    <div style="background-color: silver; display: block;"></div>
+</div>
+</div>
+
+</body>
+</html>

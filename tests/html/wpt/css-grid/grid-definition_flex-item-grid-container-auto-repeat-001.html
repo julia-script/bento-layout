@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-grid/grid-definition/flex-item-grid-container-auto-repeat-001.html @ 6e90070a5b
+  help: https://drafts.csswg.org/css-grid-1/#auto-repeat
+  help: https://bugzilla.mozilla.org/show_bug.cgi?id=1936276
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: css/css-grid/grid-definition/flex-item-grid-container-auto-repeat-001.html</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+<div style="display: flex; width: 100px; height: 100px;">
+  <div style="width: 50px; flex: 0 0 auto; background: green; display: block;"></div>
+  <div style="display: grid; width: 200%; grid-template-columns: repeat(auto-fill, 50px); background: green;"></div>
+</div>
+</div>
+
+</body>
+</html>

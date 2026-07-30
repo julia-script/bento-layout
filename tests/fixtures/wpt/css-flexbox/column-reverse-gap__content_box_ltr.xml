@@ -1,0 +1,23 @@
+<test name="column-reverse-gap__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" box-sizing="content-box" direction="ltr">
+      <div display="block" box-sizing="content-box" direction="ltr"/>
+      <div display="flex" box-sizing="content-box" direction="ltr" flex-direction="column-reverse" row-gap="5px" column-gap="5px">
+        <div display="block" box-sizing="content-box" direction="ltr" height="10px"/>
+        <div display="block" box-sizing="content-box" direction="ltr" height="10px"/>
+        <div display="block" box-sizing="content-box" direction="ltr" height="10px"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="0" height="40">
+      <node x="0" y="0" width="0" height="0"/>
+      <node x="0" y="0" width="0" height="40">
+        <node x="0" y="30" width="0" height="10"/>
+        <node x="0" y="15" width="0" height="10"/>
+        <node x="0" y="0" width="0" height="10"/>
+      </node>
+    </node>
+  </expectations>
+</test>

@@ -1,0 +1,25 @@
+<test name="flexbox-definite-sizes-003__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" box-sizing="content-box" direction="ltr">
+      <div display="flex" box-sizing="content-box" direction="ltr" width="100px" max-height="100px">
+        <div display="flex" box-sizing="content-box" direction="ltr" align-items="flex-end" width="100px">
+          <div display="block" box-sizing="content-box" direction="ltr" width="100px" max-height="100%">
+            <div display="block" box-sizing="content-box" direction="ltr" height="9999px"/>
+          </div>
+        </div>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="100" height="100">
+      <node x="0" y="0" width="100" height="100">
+        <node x="0" y="0" width="100" height="100">
+          <node x="0" y="0" width="100" height="100">
+            <node x="0" y="0" width="100" height="9999"/>
+          </node>
+        </node>
+      </node>
+    </node>
+  </expectations>
+</test>

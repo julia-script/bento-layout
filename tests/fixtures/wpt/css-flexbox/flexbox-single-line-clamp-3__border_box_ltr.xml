@@ -1,0 +1,21 @@
+<test name="flexbox-single-line-clamp-3__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" direction="ltr">
+      <div display="flex" direction="ltr" align-content="flex-start" min-height="80px">
+        <div display="block" direction="ltr" width="150px">
+          <div display="block" direction="ltr" width="10px" height="10px"/>
+        </div>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="150" height="80">
+      <node x="0" y="0" width="150" height="80">
+        <node x="0" y="0" width="150" height="80">
+          <node x="0" y="0" width="10" height="10"/>
+        </node>
+      </node>
+    </node>
+  </expectations>
+</test>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-flexbox/flex-item-position-relative-001.html @ 6e90070a5b
+  help: https://drafts.csswg.org/css-position/#position-property
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: Flex items and `position: relative`</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+<div style="position: absolute; background: red; width: 50px; height: 50px; left: 50px; top: 50px; display: block;"></div>
+
+<div style="position: absolute; background: red; width: 50px; height: 50px; left: 100px; top: 100px; display: block;"></div>
+<div id="flex" style="display: flex; width: 100px; height: 100px;">
+    <div style="width: 50px; height: 50px; background: green; position: relative; top: 50px; left: 50px; display: block;"><div style="background: green; width: 50px; height: 50px; position: absolute; left: 100%; top: 100%; display: block;"></div></div>
+</div>
+</div>
+
+</body>
+</html>

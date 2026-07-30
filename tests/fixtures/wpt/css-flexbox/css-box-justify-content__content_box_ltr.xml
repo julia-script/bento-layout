@@ -1,0 +1,35 @@
+<test name="css-box-justify-content__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" box-sizing="content-box" direction="ltr">
+      <div display="flex" box-sizing="content-box" direction="ltr" justify-content="flex-end" width="300px" height="40px">
+        <text display="block" box-sizing="content-box" direction="ltr" width="50px" height="30px">
+          DIV1
+        </text>
+        <text display="block" box-sizing="content-box" direction="ltr" width="50px" height="30px">
+          DIV2
+        </text>
+        <text display="block" box-sizing="content-box" direction="ltr" width="50px" height="30px">
+          DIV3
+        </text>
+        <text display="block" box-sizing="content-box" direction="ltr" width="50px" height="30px">
+          DIV4
+        </text>
+        <text display="block" box-sizing="content-box" direction="ltr" width="50px" height="30px">
+          DIV5
+        </text>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="300" height="40">
+      <node x="0" y="0" width="300" height="40">
+        <node x="10" y="0" width="50" height="30"/>
+        <node x="70" y="0" width="50" height="30"/>
+        <node x="130" y="0" width="50" height="30"/>
+        <node x="190" y="0" width="50" height="30"/>
+        <node x="250" y="0" width="50" height="30"/>
+      </node>
+    </node>
+  </expectations>
+</test>

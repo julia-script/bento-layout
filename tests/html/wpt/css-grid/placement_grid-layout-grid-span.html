@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-grid/placement/grid-layout-grid-span.html @ 6e90070a5b
+  help: http://www.w3.org/TR/css-grid-1/#grid-span
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: CSS Grid Layout Test: grid span</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+<div id="grid" style="width: 150px; background: rgb(238, 238, 238); display: grid; grid-template-columns: 50px 50px 50px;">
+      <div style="background: blue; grid-area: 1 / 1 / auto / span 2; display: block;">&nbsp;</div>
+      <div style="background: yellow; grid-area: 1 / 3; display: block;">&nbsp;</div>
+    </div>
+</div>
+
+</body>
+</html>

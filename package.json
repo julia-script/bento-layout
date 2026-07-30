@@ -21,7 +21,9 @@
     "gentest": "tsx scripts/gentest.ts",
     "bench": "tsx scripts/bench.ts",
     "fuzz": "tsx scripts/fuzz.ts",
-    "fuzz-triage": "tsx scripts/fuzz-triage.ts"
+    "fuzz-triage": "tsx scripts/fuzz-triage.ts",
+    "wpt-import": "tsx scripts/wpt-import.ts",
+    "wpt-score": "tsx scripts/wpt-score.ts"
   },
   "devDependencies": {
     "@types/node": "^26.1.2",

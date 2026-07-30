@@ -898,8 +898,11 @@ function expandFlexibleTracks(
 
 /** 11.7.1. Find the Size of an fr */
 function findSizeOfFr(tracks: GridTrack[], spaceToFill: number): number {
-  // Trivial case — do not remove (the loop below would loop infinitely)
-  if (spaceToFill === 0) return 0;
+  // Trivial case — do not remove (the loop below would loop infinitely).
+  // The same applies to a non-finite `spaceToFill`: the validity test below is
+  // a set of comparisons, and every comparison with NaN is false, so the loop
+  // could never terminate. Returning 0 keeps a bad input from becoming a hang.
+  if (spaceToFill === 0 || !Number.isFinite(spaceToFill)) return 0;
 
   let hypotheticalFrSize = Infinity;
   let previousIterHypotheticalFrSize: number;

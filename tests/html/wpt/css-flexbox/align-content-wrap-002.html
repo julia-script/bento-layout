@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-flexbox/align-content-wrap-002.html @ 6e90070a5b
+  help: https://drafts.csswg.org/css-flexbox/#propdef-align-content
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: css-flexbox: Tests align-content with flex-wrap: wrap</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+<div id="log" style="display: block;"></div>
+
+<div style="width: 600px; display: flex; height: 100px; background: gray; margin-bottom: 100px;">
+    <div style="width: 150px; background: yellow; margin: 10px; flex: 0 0 auto; display: block;"><div style="width: 100px; height: 150px; background: red; display: block;"></div></div>
+    <div style="width: 150px; background: yellow; margin: 10px; flex: 0 0 auto; display: block;"><div style="width: 100px; height: 100px; background: red; display: block;"></div></div>
+    <div style="width: 150px; background: yellow; margin: 10px; flex: 0 0 auto; display: block;"><div style="width: 100px; height: 50px; background: red; display: block;"></div></div>
+</div>
+
+<div style="flex-wrap: wrap; width: 600px; display: flex; height: 100px; background: gray; margin-bottom: 100px;">
+    <div style="width: 150px; background: yellow; margin: 10px; flex: 0 0 auto; display: block;"><div style="width: 100px; height: 150px; background: red; display: block;"></div></div>
+    <div style="width: 150px; background: yellow; margin: 10px; flex: 0 0 auto; display: block;"><div style="width: 100px; height: 100px; background: red; display: block;"></div></div>
+    <div style="width: 150px; background: yellow; margin: 10px; flex: 0 0 auto; display: block;"><div style="width: 100px; height: 50px; background: red; display: block;"></div></div>
+</div>
+
+<div style="flex-wrap: wrap; width: 600px; display: flex; height: 100px; background: gray; margin-bottom: 100px;">
+    <div style="width: 150px; background: yellow; margin: 10px; flex: 0 0 auto; display: block;"><div style="width: 100px; height: 150px; background: red; display: block;"></div></div>
+    <div style="width: 150px; background: yellow; margin: 10px; flex: 0 0 auto; display: block;"><div style="width: 100px; height: 100px; background: red; display: block;"></div></div>
+    <div style="width: 150px; background: yellow; margin: 10px; flex: 0 0 auto; display: block;"><div style="width: 100px; height: 50px; background: red; display: block;"></div></div>
+    <div style="width: 150px; background: yellow; margin: 10px; flex: 0 0 auto; display: block;"><div style="width: 100px; height: 150px; background: red; display: block;"></div></div>
+    <div style="width: 150px; background: yellow; margin: 10px; flex: 0 0 auto; display: block;"><div style="width: 100px; height: 100px; background: red; display: block;"></div></div>
+</div>
+
+<div style="width: 100px; display: flex; flex-direction: column; height: 600px; background: gray; margin-top: 200px; margin-bottom: 100px;">
+    <div style="height: 150px; background: yellow; margin: 10px; flex: 0 0 auto; display: block;"><div style="width: 150px; height: 100px; background: red; display: block;"></div></div>
+    <div style="height: 150px; background: yellow; margin: 10px; flex: 0 0 auto; display: block;"><div style="width: 100px; height: 100px; background: red; display: block;"></div></div>
+    <div style="height: 150px; background: yellow; margin: 10px; flex: 0 0 auto; display: block;"><div style="width: 50px; height: 100px; background: red; display: block;"></div></div>
+</div>
+
+<div style="flex-flow: column wrap; width: 100px; display: flex; height: 600px; background: gray; margin-top: 200px; margin-bottom: 100px;">
+    <div style="height: 150px; background: yellow; margin: 10px; flex: 0 0 auto; display: block;"><div style="width: 150px; height: 100px; background: red; display: block;"></div></div>
+    <div style="height: 150px; background: yellow; margin: 10px; flex: 0 0 auto; display: block;"><div style="width: 100px; height: 100px; background: red; display: block;"></div></div>
+    <div style="height: 150px; background: yellow; margin: 10px; flex: 0 0 auto; display: block;"><div style="width: 50px; height: 100px; background: red; display: block;"></div></div>
+</div>
+
+<div style="flex-flow: column wrap; width: 100px; display: flex; height: 600px; background: gray; margin-top: 200px; margin-bottom: 100px;">
+    <div style="height: 150px; background: yellow; margin: 10px; flex: 0 0 auto; display: block;"><div style="width: 150px; height: 100px; background: red; display: block;"></div></div>
+    <div style="height: 150px; background: yellow; margin: 10px; flex: 0 0 auto; display: block;"><div style="width: 100px; height: 100px; background: red; display: block;"></div></div>
+    <div style="height: 150px; background: yellow; margin: 10px; flex: 0 0 auto; display: block;"><div style="width: 50px; height: 100px; background: red; display: block;"></div></div>
+    <div style="height: 150px; background: yellow; margin: 10px; flex: 0 0 auto; display: block;"><div style="width: 150px; height: 100px; background: red; display: block;"></div></div>
+    <div style="height: 150px; background: yellow; margin: 10px; flex: 0 0 auto; display: block;"><div style="width: 100px; height: 100px; background: red; display: block;"></div></div>
+</div>
+</div>
+
+</body>
+</html>

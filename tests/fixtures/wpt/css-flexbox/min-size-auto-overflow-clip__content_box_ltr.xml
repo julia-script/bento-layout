@@ -1,0 +1,21 @@
+<test name="min-size-auto-overflow-clip__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" box-sizing="content-box" direction="ltr">
+      <div display="flex" box-sizing="content-box" direction="ltr" width="100px" border-top="1px" border-left="1px" border-bottom="1px" border-right="1px">
+        <div display="block" box-sizing="content-box" direction="ltr" overflow-x="clip" overflow-y="clip" scrollbar-width="0">
+          <div display="block" box-sizing="content-box" direction="ltr" width="150px" height="50px"/>
+        </div>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="102" height="52">
+      <node x="0" y="0" width="102" height="52">
+        <node x="1" y="1" width="150" height="50">
+          <node x="0" y="0" width="150" height="50"/>
+        </node>
+      </node>
+    </node>
+  </expectations>
+</test>

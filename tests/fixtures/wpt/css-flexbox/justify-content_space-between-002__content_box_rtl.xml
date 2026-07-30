@@ -1,0 +1,23 @@
+<test name="justify-content_space-between-002__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" box-sizing="content-box" direction="rtl">
+      <div display="flex" box-sizing="content-box" direction="rtl" flex-direction="column" justify-content="space-between" min-height="500px">
+        <text display="block" box-sizing="content-box" direction="rtl">
+          First item
+        </text>
+        <text display="block" box-sizing="content-box" direction="rtl">
+          Second item
+        </text>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="110" height="500">
+      <node x="0" y="0" width="110" height="500">
+        <node x="0" y="0" width="110" height="10"/>
+        <node x="0" y="490" width="110" height="10"/>
+      </node>
+    </node>
+  </expectations>
+</test>
