@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<!--
+  Found via the imported WPT corpus (css-flexbox
+  justify-content_space-between-003_tentative), minimized by hand.
+  date: 2026-07-30
+  chrome: Chrome/151.0.7922.47
+
+  Engine bug: when a distributed `justify-content` fell back on overflow, the
+  implicit safety it acquired rewrote the fallback keyword to `start`. `start`
+  is direction-agnostic, so a reversed container lost its reversal.
+
+  The distinction is the ORIGIN of the safety, not the keyword -- Chrome treats
+  an explicitly `safe flex-start` differently from the `flex-start` that
+  `space-between` falls back to:
+
+  All rows: 100x50 `overflow: hidden` container, one item 300px tall
+  (via two children 200 + 50), so free space is negative.
+    #a  column-reverse + space-between -> y=-200 (engine gave 0)
+    #b  column-reverse + stretch       -> y=-200 (engine gave 0)
+    #c  row-reverse    + space-between -> x=-100 (engine gave 0)
+    #d  column        + space-between  -> y=0    (control: not reversed)
+    #e  column-reverse + flex-start    -> y=-200 (control: already correct)
+    #f  column-reverse + space-around  -> y=0    (control: the center fallback
+        IS implicitly safe, and this is what a first, over-broad fix broke --
+        60 existing fixtures regressed)
+    #g  column-reverse + space-evenly  -> y=0    (control, same as #f)
+
+  NOTE: test_base_style.css sets `div { display: flex }`, so every element here
+  states its display explicitly.
+  Regenerate the XML fixtures with: pnpm gentest flex_reverse_overflow_alignment_fallback
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Distributed alignment fallbacks stay flex-relative (flex_reverse_overflow_alignment_fallback)
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+  <div style="display: flex; flex-direction: column-reverse; overflow: hidden; width: 100px; height: 50px; justify-content: space-between;">
+    <div style="display: block;"><div style="display: block; width: 200px; height: 200px;"></div><div style="display: block; width: 100px; height: 50px;"></div></div>
+  </div>
+  <div style="display: flex; flex-direction: column-reverse; overflow: hidden; width: 100px; height: 50px; align-content: stretch; justify-content: stretch;">
+    <div style="display: block;"><div style="display: block; width: 200px; height: 200px;"></div><div style="display: block; width: 100px; height: 50px;"></div></div>
+  </div>
+  <div style="display: flex; flex-direction: row-reverse; overflow: hidden; width: 100px; height: 50px; justify-content: space-between;">
+    <div style="display: block;"><div style="display: block; width: 200px; height: 200px;"></div><div style="display: block; width: 100px; height: 50px;"></div></div>
+  </div>
+  <div style="display: flex; flex-direction: column; overflow: hidden; width: 100px; height: 50px; justify-content: space-between;">
+    <div style="display: block;"><div style="display: block; width: 200px; height: 200px;"></div><div style="display: block; width: 100px; height: 50px;"></div></div>
+  </div>
+  <div style="display: flex; flex-direction: column-reverse; overflow: hidden; width: 100px; height: 50px; justify-content: flex-start;">
+    <div style="display: block;"><div style="display: block; width: 200px; height: 200px;"></div><div style="display: block; width: 100px; height: 50px;"></div></div>
+  </div>
+  <div style="display: flex; flex-direction: column-reverse; overflow: hidden; width: 100px; height: 50px; justify-content: space-around;">
+    <div style="display: block;"><div style="display: block; width: 200px; height: 200px;"></div><div style="display: block; width: 100px; height: 50px;"></div></div>
+  </div>
+  <div style="display: flex; flex-direction: column-reverse; overflow: hidden; width: 100px; height: 50px; justify-content: space-evenly;">
+    <div style="display: block;"><div style="display: block; width: 200px; height: 200px;"></div><div style="display: block; width: 100px; height: 50px;"></div></div>
+  </div>
+</div>
+
+</body>
+</html>

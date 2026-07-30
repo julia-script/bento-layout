@@ -568,6 +568,13 @@ export async function rewriteCandidate(
   if (/box-sizing/i.test(candidate.styleCss ?? '') || /box-sizing/i.test(candidate.bodyHtml ?? '')) {
     return { ok: false, reason: 'harness-conflict:box-sizing' };
   }
+  // Bare text between sibling elements becomes an *anonymous* flex/grid item in
+  // the browser, but test_helper.js records only element children — so Chrome's
+  // geometry accounts for items the fixture cannot express. Unpassable by
+  // construction, like `order`.
+  if (/<\/div>\s*[^<>\s][^<>]*?\s*<div/.test(body)) {
+    return { ok: false, reason: 'harness-conflict:anonymous-item' };
+  }
   await page.setContent(buildRenderPage(supportJs, supportCss, candidate.styleCss ?? '', body), {
     waitUntil: 'load',
   });

@@ -1141,6 +1141,57 @@ Verified in Taffy: suspected (source-read, not executed).
 
 ---
 
+## 22. A distributed alignment fallback loses flex-relativity on overflow
+
+`apply_alignment_fallback` marks all four distributed fallbacks as `is_safe`,
+then rewrites any safe alignment to `Start` when free space is negative.
+`Start` is direction-agnostic, so the `FlexStart` produced by the
+`Stretch`/`SpaceBetween` branch loses its reversal: in a reversed container the
+item is placed at the wrong end.
+
+The `Center` branch (`SpaceAround`/`SpaceEvenly`) is unaffected — `Center` has
+no flex-relative meaning, and Chrome does resolve those to `start` on overflow.
+The distinction is the **origin** of the safety, not the keyword: an
+*explicitly* `safe flex-start` resolves to `start`, while the `flex-start` that
+`space-between` falls back to does not.
+
+**Behaviour matrix** (Chrome 151.0.7922.47). All rows: 100x50
+`overflow: hidden` flex container, one item 300px tall (two children, 200 + 50),
+so free space is negative:
+
+| container | Chrome | Taffy / pre-fix |
+|---|---|---|
+| `column-reverse` + `space-between` | y = **-200** | y = **0** |
+| `column-reverse` + `stretch` | y = **-200** | y = **0** |
+| `row-reverse` + `space-between` | x = **-100** | x = **0** |
+| `column` + `space-between` | y = 0 | y = 0 (control — not reversed) |
+| `column-reverse` + `flex-start` | y = -200 | y = -200 (control) |
+| `column-reverse` + `space-around` | y = 0 | y = 0 (control — center fallback) |
+| `column-reverse` + `space-evenly` | y = 0 | y = 0 (control — center fallback) |
+| `column-reverse` + explicit `safe flex-start` | y = **0** | y = 0 (control) |
+
+The last four rows matter: a fix that exempts `FlexStart` from the safe-start
+rule *by keyword* is wrong on two counts — it breaks the explicit `safe
+flex-start` row, and (in this port) an over-broad first attempt that dropped
+the implicit safety entirely regressed 60 existing fixtures via the
+`space-around`/`space-evenly` path. Only the safety introduced by the
+distributed→`FlexStart` fallback may be ignored.
+
+**Taffy source:** `src/compute/common/alignment.rs:18-31` — lines 20-21 set
+`is_safe = true` alongside `FlexStart`; line 29-30 then collapses it to
+`Start`.
+
+**Fix applied here:** `src/compute/alignment.ts` no longer tracks an implicit
+safety flag. The `space-around`/`space-evenly` branch resolves to `start`
+directly when free space is negative (its own fallback), and the safe-start
+rule keys on `alignmentMode.safe` — the *declared* safety — only. Regression
+fixture `tests/html/flex/flex_reverse_overflow_alignment_fallback.html` covers
+seven of the eight rows.
+
+Verified in Taffy: suspected (source-read, not executed).
+
+---
+
 ## Not yet triaged
 
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they

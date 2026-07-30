@@ -15,22 +15,30 @@ export function applyAlignmentFallback(
   alignmentMode: AlignContent,
 ): AlignContentKeyword {
   let keyword = alignmentMode.keyword;
-  let isSafe = alignmentMode.safe;
 
   // Distributed alignment keywords fall back to positional keywords (with
   // implicit `safe`) when there is one item or the items overflow.
   if (numItems <= 1 || freeSpace <= 0) {
     if (keyword === 'stretch' || keyword === 'space-between') {
       keyword = 'flex-start';
-      isSafe = true;
     } else if (keyword === 'space-around' || keyword === 'space-evenly') {
-      keyword = 'center';
-      isSafe = true;
+      // The distributed-to-center fallback is implicitly safe: it resolves to
+      // `start` on overflow even without an explicit `safe` keyword.
+      keyword = freeSpace <= 0 ? 'start' : 'center';
     }
   }
 
-  // Safe alignment falls back to start on overflow.
-  if (freeSpace <= 0 && isSafe) {
+  // Safe alignment falls back to start on overflow. `start` is
+  // direction-agnostic, so this must not swallow the `flex-start` produced by
+  // the *distributed* fallback above: that keyword is flex-relative and keeps
+  // the reversal. `column-reverse` + `justify-content: space-between` with an
+  // overflowing item sits at y=-200 in Chrome (the flex-start of a reversed
+  // column), not y=0 — while an *explicitly* `safe flex-start` on the same
+  // container does resolve to y=0, so the distinction is the origin of the
+  // safety, not the keyword. The `center` fallback carries no flex-relative
+  // meaning and resolves to `start` either way (verified for space-around and
+  // space-evenly, both y=0 in that container).
+  if (freeSpace <= 0 && alignmentMode.safe) {
     keyword = 'start';
   }
 
