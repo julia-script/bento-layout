@@ -71,6 +71,15 @@ export interface Style {
   flexBasis: Dimension;
   flexGrow: number;
   flexShrink: number;
+  justifyItems: AlignItems | null;
+  justifySelf: AlignSelf | null;
+  gridTemplateRows: GridTemplateComponent[];
+  gridTemplateColumns: GridTemplateComponent[];
+  gridAutoRows: TrackSizingFunction[];
+  gridAutoColumns: TrackSizingFunction[];
+  gridAutoFlow: GridAutoFlow;
+  gridRow: GridPlacementLine;
+  gridColumn: GridPlacementLine;
 }
 
 export const defaultStyle = (): Style => ({
@@ -99,6 +108,15 @@ export const defaultStyle = (): Style => ({
   flexBasis: 'auto',
   flexGrow: 0,
   flexShrink: 1,
+  justifyItems: null,
+  justifySelf: null,
+  gridTemplateRows: [],
+  gridTemplateColumns: [],
+  gridAutoRows: [],
+  gridAutoColumns: [],
+  gridAutoFlow: 'row',
+  gridRow: { start: 'auto', end: 'auto' },
+  gridColumn: { start: 'auto', end: 'auto' },
 });
 
 export function resolveStyle(partial: Partial<Style> = {}): Style {
@@ -204,4 +222,119 @@ export function parseAlignContent(input: string): AlignContent {
   if (parts[0] === 'safe') return { keyword: parts[1] as AlignContentKeyword, safe: true };
   if (parts[0] === 'unsafe') return { keyword: parts[1] as AlignContentKeyword, safe: false };
   return { keyword: parts[0] as AlignContentKeyword, safe: false };
+}
+
+// --- Grid style types (port of style/grid.rs, unnamed-track subset)
+
+/** Min track sizing function: length/percent, auto, or min/max-content */
+export type MinTrackSizingFunction = LengthPercentage | 'auto' | 'min-content' | 'max-content';
+/** Max track sizing function: adds fr units and fit-content() */
+export type MaxTrackSizingFunction =
+  | MinTrackSizingFunction
+  | { fr: number }
+  | { fitContent: LengthPercentage };
+
+/** A single track's sizing bounds (CSS minmax(); single values set both) */
+export interface TrackSizingFunction {
+  min: MinTrackSizingFunction;
+  max: MaxTrackSizingFunction;
+}
+
+export type RepetitionCount = number | 'auto-fill' | 'auto-fit';
+
+/** An entry in grid-template-rows/columns: a single track or a repeat() */
+export type GridTemplateComponent =
+  | TrackSizingFunction
+  | { repeat: RepetitionCount; tracks: TrackSizingFunction[] };
+
+export type GridAutoFlow = 'row' | 'column' | 'row-dense' | 'column-dense';
+
+/** Grid line placement: auto, a 1-based line number (negative counts from end), or a span */
+export type GridPlacement = 'auto' | { line: number } | { span: number };
+
+export interface GridPlacementLine {
+  start: GridPlacement;
+  end: GridPlacement;
+}
+
+export const AUTO_TRACK: TrackSizingFunction = { min: 'auto', max: 'auto' };
+
+export const isRepeat = (c: GridTemplateComponent): c is { repeat: RepetitionCount; tracks: TrackSizingFunction[] } =>
+  typeof c === 'object' && 'repeat' in c;
+
+export const gridAutoFlowIsDense = (f: GridAutoFlow): boolean => f === 'row-dense' || f === 'column-dense';
+/** Whether auto placement fills row-wise (horizontal primary axis) or column-wise */
+export const gridAutoFlowPrimaryAxis = (f: GridAutoFlow): 'horizontal' | 'vertical' =>
+  f === 'row' || f === 'row-dense' ? 'horizontal' : 'vertical';
+
+// --- Track sizing function helpers (port of Min/MaxTrackSizingFunction impls)
+
+const isLp = (v: MaxTrackSizingFunction): v is LengthPercentage =>
+  typeof v === 'number' || (typeof v === 'object' && 'percent' in v);
+
+export function minIsIntrinsic(min: MinTrackSizingFunction): boolean {
+  return min === 'auto' || min === 'min-content' || min === 'max-content';
+}
+
+export function maxIsIntrinsic(max: MaxTrackSizingFunction): boolean {
+  return (
+    max === 'auto' ||
+    max === 'min-content' ||
+    max === 'max-content' ||
+    (typeof max === 'object' && 'fitContent' in max)
+  );
+}
+
+/** "Treat auto and fit-content() as max-content" — css-grid-1 §11.1 */
+export function maxIsMaxContentAlike(max: MaxTrackSizingFunction): boolean {
+  return max === 'auto' || max === 'max-content' || (typeof max === 'object' && 'fitContent' in max);
+}
+
+export function maxIsMaxOrFitContent(max: MaxTrackSizingFunction): boolean {
+  return max === 'max-content' || (typeof max === 'object' && 'fitContent' in max);
+}
+
+export const maxIsFr = (max: MaxTrackSizingFunction): max is { fr: number } =>
+  typeof max === 'object' && 'fr' in max;
+
+export const maxIsFitContent = (max: MaxTrackSizingFunction): max is { fitContent: LengthPercentage } =>
+  typeof max === 'object' && 'fitContent' in max;
+
+/** Definite value of a min/max sizing function (length always; percent against parent) */
+export function trackDefiniteValue(v: MinTrackSizingFunction | MaxTrackSizingFunction, parentSize: Opt): Opt {
+  if (typeof v === 'number') return v;
+  if (typeof v === 'object' && 'percent' in v) return parentSize !== null ? v.percent * parentSize : null;
+  return null;
+}
+
+/** Like trackDefiniteValue but fit-content() limits also resolve */
+export function maxDefiniteLimit(max: MaxTrackSizingFunction, parentSize: Opt): Opt {
+  if (maxIsFitContent(max)) {
+    const limit = max.fitContent;
+    if (typeof limit === 'number') return limit;
+    return parentSize !== null ? limit.percent * parentSize : null;
+  }
+  return trackDefiniteValue(max, parentSize);
+}
+
+/** Resolved size of a percentage sizing function (null for everything else) */
+export function trackResolvedPercentageSize(
+  v: MinTrackSizingFunction | MaxTrackSizingFunction,
+  parentSize: number,
+): Opt {
+  return typeof v === 'object' && 'percent' in v ? v.percent * parentSize : null;
+}
+
+export function trackUsesPercentage(v: MinTrackSizingFunction | MaxTrackSizingFunction): boolean {
+  return typeof v === 'object' && 'percent' in v;
+}
+
+export function maxHasDefiniteValue(max: MaxTrackSizingFunction, parentSize: Opt): boolean {
+  if (typeof max === 'number') return true;
+  if (typeof max === 'object' && 'percent' in max) return parentSize !== null;
+  return false;
+}
+
+export function trackHasFixedComponent(track: TrackSizingFunction): boolean {
+  return isLp(track.min as MaxTrackSizingFunction) || isLp(track.max);
 }

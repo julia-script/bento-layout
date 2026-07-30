@@ -1,9 +1,9 @@
 ## 1. Fixtures, styles & harness
 
-- [ ] 1.1 Vendor `tests/xml/{grid,blockgrid,gridflex}/*.xml` from the pinned Taffy clone into `tests/fixtures/`
-- [ ] 1.2 Add grid style types to `src/style.ts` (track sizing unions, repeat, placements, `gridAutoFlow`, `justifyItems`/`justifySelf`) with defaults
-- [ ] 1.3 Harness: track-list/placement attribute parser + wire the three new fixture directories (all grid fixtures failing is expected); unit-test the parser against the distinct attribute values present in the vendored fixtures
-- [ ] 1.4 Verify flex/block suites still green after style changes
+- [x] 1.1 Vendor `tests/xml/{grid,blockgrid,gridflex}/*.xml` from the pinned Taffy clone into `tests/fixtures/`
+- [x] 1.2 Add grid style types to `src/style.ts` (track sizing unions, repeat, placements, `gridAutoFlow`, `justifyItems`/`justifySelf`) with defaults
+- [x] 1.3 Harness: track-list/placement attribute parser + wire the three new fixture directories (all grid fixtures failing is expected); unit-test the parser against the distinct attribute values present in the vendored fixtures
+- [x] 1.4 Verify flex/block suites still green after style changes
 
 ## 2. Grid structure
 

@@ -24,9 +24,13 @@ const allBoxVariants = (names: string[]): string[] =>
 // Fixtures whose expectations require layout algorithms this package does not
 // implement: trees containing display:grid containers (grid templates).
 const SKIP_BY_DIR: Record<string, ReadonlySet<string>> = {
+  // Grid-rooted skips removed once the grid port lands (port-taffy-grid-layout 4.1)
   flex: new Set(allBoxVariants(['bevy_issue_10343_grid', 'bevy_issue_21240'])),
   block: new Set(),
   blockflex: new Set(),
+  grid: new Set(),
+  blockgrid: new Set(),
+  gridflex: new Set(),
 };
 
 function assertLayoutMatches(node: Node, expected: ExpectedNode, path: string): void {

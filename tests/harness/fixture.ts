@@ -2,7 +2,20 @@
 
 import { XMLParser } from 'fast-xml-parser';
 import { createNode } from '../../src/index.js';
-import type { AvailableSpace, Dimension, LengthPercentage, LengthPercentageAuto, Node, Size, Style } from '../../src/index.js';
+import type {
+  AvailableSpace,
+  Dimension,
+  GridPlacement,
+  GridTemplateComponent,
+  LengthPercentage,
+  LengthPercentageAuto,
+  MaxTrackSizingFunction,
+  MinTrackSizingFunction,
+  Node,
+  Size,
+  Style,
+  TrackSizingFunction,
+} from '../../src/index.js';
 import { parseAlignContent, parseAlignItems } from '../../src/index.js';
 import { ahemTextMeasure } from './measure.js';
 import type { WritingMode } from './measure.js';
@@ -186,8 +199,114 @@ function buildStyle(attrs: Record<string, string>): Partial<Style> {
   if (attrs['align-self'] !== undefined) style.alignSelf = parseAlignItems(attrs['align-self']);
   if (attrs['align-content'] !== undefined) style.alignContent = parseAlignContent(attrs['align-content']);
   if (attrs['justify-content'] !== undefined) style.justifyContent = parseAlignContent(attrs['justify-content']);
+  if (attrs['justify-items'] !== undefined) style.justifyItems = parseAlignItems(attrs['justify-items']);
+  if (attrs['justify-self'] !== undefined) style.justifySelf = parseAlignItems(attrs['justify-self']);
+
+  if (attrs['grid-template-rows'] !== undefined) style.gridTemplateRows = parseTrackList(attrs['grid-template-rows']);
+  if (attrs['grid-template-columns'] !== undefined)
+    style.gridTemplateColumns = parseTrackList(attrs['grid-template-columns']);
+  if (attrs['grid-auto-rows'] !== undefined)
+    style.gridAutoRows = parseTrackList(attrs['grid-auto-rows']).filter(isSingleTrack);
+  if (attrs['grid-auto-columns'] !== undefined)
+    style.gridAutoColumns = parseTrackList(attrs['grid-auto-columns']).filter(isSingleTrack);
+  if (attrs['grid-auto-flow'] !== undefined) style.gridAutoFlow = parseGridAutoFlow(attrs['grid-auto-flow']);
+  style.gridRow = {
+    start: parseGridPlacement(attrs['grid-row-start']),
+    end: parseGridPlacement(attrs['grid-row-end']),
+  };
+  style.gridColumn = {
+    start: parseGridPlacement(attrs['grid-column-start']),
+    end: parseGridPlacement(attrs['grid-column-end']),
+  };
 
   return style;
+}
+
+function isSingleTrack(c: GridTemplateComponent): c is TrackSizingFunction {
+  return !('repeat' in c);
+}
+
+// --- Grid attribute parsing (mirrors taffy's cssparser-based FromCss impls)
+
+/** Split a track list on top-level whitespace (parens protect their contents) */
+function splitTopLevel(input: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let current = '';
+  for (const ch of input) {
+    if (ch === '(') depth++;
+    if (ch === ')') depth--;
+    if (/\s/.test(ch) && depth === 0) {
+      if (current.length > 0) parts.push(current);
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  if (current.length > 0) parts.push(current);
+  return parts;
+}
+
+export function parseTrackList(input: string): GridTemplateComponent[] {
+  return splitTopLevel(input.trim()).map((entry) => {
+    const repeatMatch = /^repeat\((.*)\)$/s.exec(entry);
+    if (repeatMatch) {
+      const inner = repeatMatch[1]!;
+      const commaIdx = inner.indexOf(',');
+      const countStr = inner.slice(0, commaIdx).trim();
+      const tracksStr = inner.slice(commaIdx + 1).trim();
+      const count =
+        countStr === 'auto-fill' ? ('auto-fill' as const) : countStr === 'auto-fit' ? ('auto-fit' as const) : parseInt(countStr, 10);
+      const tracks = splitTopLevel(tracksStr).map(parseTrackSizingFunction);
+      return { repeat: count, tracks };
+    }
+    return parseTrackSizingFunction(entry);
+  });
+}
+
+export function parseTrackSizingFunction(input: string): TrackSizingFunction {
+  const minmaxMatch = /^minmax\((.*)\)$/s.exec(input);
+  if (minmaxMatch) {
+    const inner = minmaxMatch[1]!;
+    const commaIdx = inner.indexOf(',');
+    return {
+      min: parseMinTrack(inner.slice(0, commaIdx).trim()),
+      max: parseMaxTrack(inner.slice(commaIdx + 1).trim()),
+    };
+  }
+  const max = parseMaxTrack(input);
+  const min: MinTrackSizingFunction =
+    typeof max === 'object' && ('fr' in max || 'fitContent' in max) ? 'auto' : max;
+  return { min, max };
+}
+
+function parseMinTrack(input: string): MinTrackSizingFunction {
+  if (input === 'auto' || input === 'min-content' || input === 'max-content') return input;
+  return parseLength(input);
+}
+
+function parseMaxTrack(input: string): MaxTrackSizingFunction {
+  if (input === 'auto' || input === 'min-content' || input === 'max-content') return input;
+  const fitMatch = /^fit-content\((.*)\)$/s.exec(input);
+  if (fitMatch) return { fitContent: parseLength(fitMatch[1]!.trim()) };
+  const frMatch = /^(-?[\d.]+)fr$/.exec(input);
+  if (frMatch) return { fr: parseFloat(frMatch[1]!) };
+  return parseLength(input);
+}
+
+function parseGridAutoFlow(input: string): Style['gridAutoFlow'] {
+  const parts = input.trim().split(/\s+/);
+  const dense = parts.includes('dense');
+  const column = parts.includes('column');
+  if (column) return dense ? 'column-dense' : 'column';
+  return dense ? 'row-dense' : 'row';
+}
+
+export function parseGridPlacement(input: string | undefined): GridPlacement {
+  if (input === undefined || input === 'auto') return 'auto';
+  const spanMatch = /^span\s+(\d+)$/.exec(input.trim());
+  if (spanMatch) return { span: parseInt(spanMatch[1]!, 10) };
+  return { line: parseInt(input.trim(), 10) };
 }
 
 function parseDimension(input: string | undefined, fallback: Dimension): Dimension {
