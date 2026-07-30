@@ -510,6 +510,72 @@ same duplication exists upstream before patching.
 
 ---
 
+## 10. Stretched cross size is not floored by the item's padding+border
+
+**Verified in Taffy:** suspected (source read: `src/compute/flexbox.rs:1616-1628`)
+
+**Taffy source:**
+
+```rust
+(line_cross_size - child.margin.cross_axis_sum(constants.dir)).maybe_clamp(
+    child.min_size.cross(constants.dir),
+    max_size_ignoring_aspect_ratio.cross(constants.dir),
+)
+```
+
+The stretched cross size is clamped by the item's min/max size but never
+floored by its own padding+border sum. A border box cannot be smaller than its
+borders, so a `max-width` below that sum does not actually shrink the rendered
+box — the used size is floored elsewhere. The two then disagree, and the
+alignment math runs on the un-floored value.
+
+The visible symptom is a **position**, not a size: every variant renders the
+right size, but RTL column placement subtracts the target size when walking the
+cross axis backwards, so the item is offset by exactly the difference.
+
+**Reproduction:**
+
+```html
+<div style="display: flex; flex-direction: column">
+  <div style="max-width: 0; border-width: 17px 120px 17px 3px;
+              border-style: solid"></div>
+</div>
+```
+
+| | item x | item size |
+|---|--:|--:|
+| Chrome | **0** | 123x34 |
+| Engine (pre-fix) | **123** | 123x34 |
+
+**Behaviour matrix** — the bug needs a max-size *below* the padding+border sum;
+the last row is the control:
+
+| setup | diverges? |
+|---|---|
+| column, `max-width: 0` + 123px border | yes (RTL position) |
+| column, `max-width: 50px` + 123px border | yes |
+| column, `max-width: 0` + 123px *padding* | yes |
+| column, border but no `max-width` | no |
+| column, `max-width: 0` but no border | no |
+| row instead of column | no |
+| column, `max-width: 300px` + 123px border | no (max exceeds the sum) |
+
+**Spec:** css-box-3 §4 — the content box floors at zero, so the border box is
+never smaller than the padding+border sum, regardless of `max-width`.
+
+**Fix applied here:** floor the stretched cross size by
+`padding + border` on the cross axis. See `src/compute/flexbox.ts`; regression
+fixture `tests/html/fuzz-found/fuzz_stretch_pb_floor.html`.
+
+**Note:** in *this port* the non-stretch cross-size path already applies this
+floor, so the fix here was to make the stretch branch consistent with its
+sibling. That asymmetry was not confirmed in Taffy — the `maybe_max` calls
+around Taffy's cross-size determination are the container-level and flex-basis
+floors, not a per-item padding+border floor on the cross axis. Locate Taffy's
+equivalent (if any) before assuming the same one-line fix applies.
+
+---
+
 ## Not yet triaged
 
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they

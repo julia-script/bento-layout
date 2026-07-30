@@ -1398,13 +1398,23 @@ function determineUsedCrossSize(flexLines: FlexLine[], constants: AlgoConstants)
           boxSizingAdjustment,
         );
 
+        // Floor the stretched cross size by the item's own padding+border: a
+        // border box can never be smaller than its borders, so a `max-width`
+        // below that sum does not shrink the rendered box. Without the floor
+        // the *used* size (which is floored later) and the size the alignment
+        // math sees disagree, and RTL column placement offsets the item by the
+        // difference — `max-width: 0` with a 123px border placed the item at
+        // x=123 instead of x=0.
         setCross(
           child.targetSize,
           constants.dir,
-          vClamp(
-            lineCrossSize - rectCrossAxisSum(child.margin, constants.dir),
-            cross(child.minSize, constants.dir),
-            cross(maxSizeIgnoringAspectRatio, constants.dir),
+          Math.max(
+            vClamp(
+              lineCrossSize - rectCrossAxisSum(child.margin, constants.dir),
+              cross(child.minSize, constants.dir),
+              cross(maxSizeIgnoringAspectRatio, constants.dir),
+            ),
+            rectCrossAxisSum(rectAdd(child.padding, child.border), constants.dir),
           ),
         );
       } else {

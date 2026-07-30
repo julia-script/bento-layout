@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: campaign seed=20260731 (mode=flex), minimized by hand
+  date: 2026-07-30
+  chrome: Chrome/151.0.7922.47
+  Engine bug (taffy-inherited): the stretched cross size was clamped by
+  max-width but never floored by the item's own padding+border, so a max-width
+  below the border sum produced a target size smaller than the rendered box.
+  The used size is floored later, so the two disagreed and RTL column placement
+  offset the item by the difference: max-width 0 with a 123px horizontal border
+  placed the item at x=123 instead of x=0.
+  Sizes match in every variant -- only the border_box_rtl position diverges.
+  Regenerate the XML fixtures with: pnpm gentest fuzz_stretch_pb_floor
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: stretched cross size is floored by padding+border (fuzz_stretch_pb_floor)
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex; flex-direction: column;">
+  <div style="max-width: 0px; border-width: 17px 120px 17px 3px; border-style: solid;"></div>
+</div>
+
+</body>
+</html>
