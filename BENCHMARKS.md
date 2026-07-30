@@ -1,8 +1,12 @@
 # Benchmarks
 
 Run with `pnpm bench` (scripts/bench.ts). Each scenario reports the median of 10
-samples after 3 warmups, plus iterations completed in a fixed window. Every run
-is a full from-scratch layout (`computeLayout` clears all caches).
+samples after 3 warmups, plus iterations completed in a fixed window (2s by
+default; set `BENCH_WINDOW_MS` to widen it). Every run is a full from-scratch
+layout (`computeLayout` clears all caches). `pnpm bench --json` additionally
+emits each scenario's tree shape.
+
+Figures below were taken with `BENCH_WINDOW_MS=3000`.
 
 **Environment:** Apple M1 Max, 32 GB, Node v26.5.0, 2026-07-30.
 
@@ -20,9 +24,11 @@ is a full from-scratch layout (`computeLayout` clears all caches).
 > that a uniform-direction tree of the same shape does, so the comparison was
 > measuring our extra work against taffy's lighter tree.
 >
-> On taffy's actual shape the gap is **~7–10×**. The accompanying diagnosis was
-> also wrong: the dominant cost was per-lookup allocation in the measurement
-> cache, not redundant measure passes. See [Reading](#reading).
+> On taffy's actual shape the gap measured **~7–8×** at the time of the
+> retraction, and **~5.6–6×** after the cache fix described in
+> [Reading](#reading). The accompanying diagnosis was also wrong: the dominant
+> cost was per-lookup allocation in the measurement cache, not redundant
+> measure passes.
 
 ## Comparable scenarios
 
@@ -76,7 +82,13 @@ harness), same M1 Max.
 | Wide 2-level, 10k nodes | 7.8 ms | 27.9 ms | ~3.6× |
 | Deep tree (auto size), 12-level / ~4k | 5.4 ms | 30.3 ms | ~5.6× |
 | Deep tree (auto size), 14-level / ~10k | 12.8 ms | 77.6 ms | ~6× |
-| Super-deep chain, 100 levels | 0.50 ms | 2.0 ms | ~4× |
+
+Taffy also benchmarks a 100-level "super deep" single chain (0.50 ms). An
+earlier revision of this file paired it with a 2.0 ms figure for a ~4× ratio,
+but no such scenario exists in `scripts/bench.ts` — that number came from a
+builder that has since been removed, so it is not reproducible and has been
+dropped rather than carried forward. Add a matching scenario to the suite
+before republishing that comparison.
 
 ## Reading
 
