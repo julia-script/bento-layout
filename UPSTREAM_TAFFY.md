@@ -270,5 +270,13 @@ too.
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they
 are not lost; each needs the same treatment before it can move up:
 
-- `aspect-ratio` combined with asymmetric padding/border on auto-sized leaves
-  (pure px values) — suspected to be in the same leaf-sizing area as entry 1.
+- `aspect-ratio` on an auto-sized leaf with padding/border, **content-box
+  only**. The ratio is applied to the border-box width rather than the content
+  box: `aspect-ratio: 2; border-left: 1px; border-right: 120px` gives Chrome
+  `121x0` under `box-sizing: content-box` (content 0x0 plus 121px of horizontal
+  border) but the engine derives height `121/2 = 61` from the border-box width.
+  Border-box variants already match, which is why single-variant triage missed
+  it. One bidirectional-floor fix was attempted and reverted — it addressed a
+  mis-diagnosed symptom and changed nothing; the actual fix must make the ratio
+  operate on the content box under content-box sizing. Source area:
+  `src/compute/leaf.ts` size computation.

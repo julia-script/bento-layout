@@ -55,13 +55,26 @@ export interface Mismatch {
 }
 
 function collectMismatches(node: Node, expected: ExpectedNode, path: string, variant: string, out: Mismatch[]): void {
+  // A display:none node has no box, so Chrome's getBoundingClientRect returns
+  // all zeros and the extractor reports x/y as `0 - parentOrigin` — a negative
+  // offset that tracks the parent's position rather than any layout decision.
+  // Its SIZE is still meaningful (both sides must agree it is 0x0), so compare
+  // that and skip the coordinates. Not an engine divergence: the vendored
+  // corpus only ever places hidden nodes under parents at the origin, where
+  // the artifact is invisible.
+  const isHidden = node.style.display === 'none';
   const { location, size } = node.layout;
-  const checks: [Mismatch['axis'], number, number][] = [
-    ['x', expected.x, location.x],
-    ['y', expected.y, location.y],
-    ['width', expected.width, size.width],
-    ['height', expected.height, size.height],
-  ];
+  const checks: [Mismatch['axis'], number, number][] = isHidden
+    ? [
+        ['width', expected.width, size.width],
+        ['height', expected.height, size.height],
+      ]
+    : [
+        ['x', expected.x, location.x],
+        ['y', expected.y, location.y],
+        ['width', expected.width, size.width],
+        ['height', expected.height, size.height],
+      ];
   for (const [axis, exp, act] of checks) {
     if (Math.abs(exp - act) >= TOLERANCE) out.push({ variant, path, axis, expected: exp, actual: act });
   }
