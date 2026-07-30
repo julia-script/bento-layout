@@ -576,6 +576,63 @@ equivalent (if any) before assuming the same one-line fix applies.
 
 ---
 
+## 11. Zero-size `repeat(auto-fit)` divides by zero when resolving the repetition count
+
+**Verified in Taffy:** suspected (source read:
+`src/compute/grid/explicit_grid.rs:156-160`)
+
+**Taffy source:**
+
+```rust
+let per_repetition_gap_used_space = (repetition_definition.len() as f32) * gap_size;
+let per_repetition_used_space = per_repetition_track_used_space + per_repetition_gap_used_space;
+let num_repetition_that_fit = (inner_container_size - first_repetition_and_non_repeating_tracks_used_space)
+    / per_repetition_used_space;
+```
+
+`per_repetition_used_space` is not checked against zero. When the repetition's
+tracks resolve to zero size and there is no gap, this is `0.0 / 0.0` = `NaN`.
+
+**Reproduction:** an `auto-fit` repetition whose track is a percentage that
+cannot resolve, in a zero-size container:
+
+```html
+<div>
+  <div style="display: grid; grid-template-rows: repeat(auto-fit, 75%)">
+    <div></div>
+  </div>
+</div>
+```
+
+**Severity differs by language.** In Rust `NaN as u16` saturates to 0, so Taffy
+should get a wrong (zero) explicit track count rather than memory unsafety —
+worth confirming, but likely a silently wrong layout, not a panic. In this
+TypeScript port the NaN stayed a NaN and propagated into the explicit track
+count, and since `x + NaN + y` is NaN rather than a number larger than any
+index, the occupancy matrix's `range.end > len` bounds check passed *vacuously*
+(every comparison with NaN is false). Placement then wrote past the end of the
+matrix: `TypeError: Cannot set properties of undefined`.
+
+The crash aborted the whole fuzz run at that tree, which had been hiding all
+grid-mode coverage past it.
+
+**Spec:** css-grid-1 §7.2.3.1 — a repetition that consumes no space would
+repeat infinitely, so the auto-repeat count is 1.
+
+**Fix applied here:** treat `perRepetitionUsedSpace <= 0` like the
+does-not-fit case and use a single repetition; additionally, make the track-count
+helper throw on a non-finite total so a future sizing bug fails where it
+originates instead of corrupting the matrix. See
+`src/compute/grid/explicit.ts` and `src/compute/grid/types.ts`; regression
+fixture `tests/html/fuzz-found/fuzz_grid_autofit_zero.html`.
+
+**Note:** the reproduction is spelling-sensitive. `repeat(auto-fit, 75%)`
+crashes; `repeat(auto-fit, minmax(75%, 75%))` does not, and neither does the
+same grid with `display: block` on the wrapper. Any upstream test should use the
+exact markup above.
+
+---
+
 ## Not yet triaged
 
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they

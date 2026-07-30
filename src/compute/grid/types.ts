@@ -157,7 +157,14 @@ export interface TrackCounts {
   positiveImplicit: number;
 }
 
-export const trackCountsLen = (c: TrackCounts): number => c.negativeImplicit + c.explicit + c.positiveImplicit;
+export const trackCountsLen = (c: TrackCounts): number => {
+  const len = c.negativeImplicit + c.explicit + c.positiveImplicit;
+  // A non-finite count silently defeats every `range.end > len` bounds check
+  // (comparisons against NaN are false), which turns a sizing bug upstream into
+  // an out-of-bounds write in the occupancy matrix. Fail where it originates.
+  if (!Number.isFinite(len)) throw new Error(`grid: non-finite track count (${JSON.stringify(c)})`);
+  return len;
+};
 export const implicitStartLine = (c: TrackCounts): number => 0 - c.negativeImplicit + 0; // +0 avoids -0
 export const implicitEndLine = (c: TrackCounts): number => c.explicit + c.positiveImplicit;
 

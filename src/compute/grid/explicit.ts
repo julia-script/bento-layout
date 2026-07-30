@@ -85,11 +85,18 @@ export function computeExplicitGridSizeInAxis(
       perRepetitionTrackUsedSpace +
       Math.max(nonAutoRepeatingTrackCount + repetitionTrackCount - 1, 0) * gapSize;
 
-    if (firstRepetitionAndNonRepeatingTracksUsedSpace > innerContainerSize) {
+    const perRepetitionGapUsedSpace = repetitionTrackCount * gapSize;
+    const perRepetitionUsedSpace = perRepetitionTrackUsedSpace + perRepetitionGapUsedSpace;
+
+    if (firstRepetitionAndNonRepeatingTracksUsedSpace > innerContainerSize || perRepetitionUsedSpace <= 0) {
+      // A repetition that consumes no space would repeat infinitely; css-grid-1
+      // §7.2.3.1 caps the count at 1. Guarding here also keeps the division
+      // below from producing NaN (0/0), which used to flow all the way into the
+      // explicit track count — and since `x + NaN + y` is NaN, not a number
+      // greater than any index, the occupancy matrix's bounds check passed
+      // vacuously and placement wrote out of bounds (TypeError).
       numRepetitions = 1;
     } else {
-      const perRepetitionGapUsedSpace = repetitionTrackCount * gapSize;
-      const perRepetitionUsedSpace = perRepetitionTrackUsedSpace + perRepetitionGapUsedSpace;
       const numRepetitionThatFit =
         (innerContainerSize - firstRepetitionAndNonRepeatingTracksUsedSpace) / perRepetitionUsedSpace;
 
