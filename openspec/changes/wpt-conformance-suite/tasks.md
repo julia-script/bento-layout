@@ -23,7 +23,7 @@
 - [x] 2.2 Run engine vs fixtures once; write initial
       `tests/fixtures/wpt-quarantine.json` from the failures. `pnpm test`
       must stay green with wpt fixtures included and quarantine applied.
-- [ ] 2.3 Commit corpus + fixtures + quarantine in one reviewable commit.
+- [x] 2.3 Commit corpus + fixtures + quarantine in one reviewable commit.
 
 ## 3. Scoreboard
 
@@ -31,7 +31,7 @@
       pass/fail per suite + per help-URL section, newly-passing and
       newly-failing lists. Deterministic output (spec: identical numbers on
       unchanged re-run).
-- [ ] 3.2 Record the initial scoreboard in the change (baseline numbers) and
+- [x] 3.2 Record the initial scoreboard in the change (baseline numbers) and
       triage the top section clusters: reclassify whole-section unsupported
       groups to skip so the denominator is honest.
 

@@ -83,3 +83,56 @@ comes from the recorded help URLs, tallied per URL path segment
   4-variant generation (likely: import as-is, let gentest's rtl variants stand).
 - Whether css-align's low clean rate (6/102 by grep) is real or a filter
   artifact — resolved by the allowlist scan in task 1.
+
+## Triage outcome (task 3.2)
+
+Baseline 370/452 (81.9%) → **418/428 (97.7%)**. css-flexbox, css-sizing and
+css-align are at 100%; css-grid at 96%.
+
+Three classes were reclassified as unimportable rather than left in quarantine,
+because the harness cannot express them and no engine change would help:
+
+- **`order`** — no engine style field, never extracted by test_helper.js, so
+  Chrome lays out visual order while the fixture records DOM order.
+- **anonymous flex/grid items** — bare text between siblings becomes an
+  anonymous item in the browser; the fixture records only element children.
+- **`box-sizing` set by the test itself** — collides with the harness's own
+  border-box/content-box variant generation.
+
+A fourth class was *considered and rejected*: skipping tests containing prose.
+The intent was `auto-margins-ignored-during-track-sizing-001`, whose prose wraps
+against the real viewport while the fixture records
+`viewport width="max-content"`. But every length- or word-count-based filter
+also caught 3–5 tests that **pass** (e.g. `percentage-heights-002` has a 331
+character run and passes, because its container is fixed-width so wrapping is
+deterministic). The discriminator is "prose under a viewport-dependent width",
+which is not reliably detectable statically — and shrinking the denominator by
+dropping passing tests would inflate the score, which is exactly what this task
+exists to prevent. It stays quarantined and counted.
+
+### Remaining 10 fixtures
+
+All css-grid, and **9 of 10 are RTL-only** (they pass in both LTR variants):
+
+| test | fixtures | note |
+|---|---|---|
+| `positioned-grid-items-022` / `-026` | 4 | abspos placement; area comes out as the complement (5px where Chrome says 95px) |
+| `grid-flexible-track-free-space-distribution` | 2 | 99 `1fr` tracks in 100px — the extra pixel from rounding lands on a different track index |
+| `auto-margins-ignored-during-track-sizing-001` | 4 | the prose/viewport case above; fails in both directions |
+
+The abspos RTL bug is diagnosed but unfixed after three attempts, each reverted:
+
+1. Reordering the start/end swap to before the line mapping — no effect, because
+   the mirror `explicit - line` is the identity when `explicit === 0`.
+2. Widening the mirror axis to all tracks (`negativeImplicit + explicit +
+   positiveImplicit`) — fixes the implicit-track case but **regresses**
+   `positioned-grid-items-negative-indices-003`, which needs the `explicit`-based
+   reflection.
+3. Both together — fixes the zero-track case, still regresses negative indices.
+
+So the two shapes genuinely want different reflection axes; the fix needs a
+model of RTL line mirroring that handles negative, explicit and implicit lines
+uniformly, not another adjustment to the existing formula. Probes for all four
+shapes (zero-track, one-implicit-track, explicit-tracks, negative-indices) are
+worth rebuilding before the next attempt — the negative-index one is the control
+that invalidated attempts 2 and 3.
