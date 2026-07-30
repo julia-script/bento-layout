@@ -1155,12 +1155,24 @@ function determineHypotheticalCrossSize(
 
     // An aspect-ratio item with a definite used main size derives its automatic
     // cross size from the ratio rather than from content (css-sizing-4 §5.1).
-    const arDerivedCross =
-      child.aspectRatio !== null
-        ? constants.isRow
-          ? main(child.targetSize, constants.dir) / child.aspectRatio
-          : main(child.targetSize, constants.dir) * child.aspectRatio
-        : null;
+    //
+    // The ratio relates the two axes of the box named by `box-sizing`, so under
+    // content-box it has to operate on the content box: strip the main-axis
+    // padding+border before applying the ratio and add the cross-axis back.
+    // `targetSize` is always a border-box value, so dividing it directly is
+    // correct only under border-box (same defect as the leaf floor in
+    // src/compute/leaf.ts).
+    const arDerivedCross = ((): number | null => {
+      if (child.aspectRatio === null) return null;
+      const targetMain = main(child.targetSize, constants.dir);
+      if (child.node.style.boxSizing !== 'content-box') {
+        return constants.isRow ? targetMain / child.aspectRatio : targetMain * child.aspectRatio;
+      }
+      const mainPbSum = rectMainAxisSum(rectAdd(child.padding, child.border), constants.dir);
+      const contentMain = Math.max(targetMain - mainPbSum, 0);
+      const contentCross = constants.isRow ? contentMain / child.aspectRatio : contentMain * child.aspectRatio;
+      return contentCross + paddingBorderSum;
+    })();
 
     const childCross = mMax(
       mClamp(cross(child.size, constants.dir) ?? arDerivedCross, transferredMinCross, transferredMaxCross),

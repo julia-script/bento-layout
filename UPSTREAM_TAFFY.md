@@ -442,11 +442,65 @@ correctly and is then shrunk back to the container.
 
 ---
 
+## 9. Flexbox aspect-ratio cross size ignores `box-sizing`
+
+**Verified in Taffy:** suspected (source read: `src/compute/flexbox.rs`, the
+aspect-ratio cross-size derivation in the cross-size determination step)
+
+The same defect as entry 6, on the flexbox path instead of the leaf. An item's
+automatic cross size is derived by applying the ratio to the used main size,
+but the used main size is a **border-box** value, so dividing it directly is
+correct only under `box-sizing: border-box`. Under `content-box` the ratio
+relates the two axes of the content box.
+
+**Reproduction:**
+
+```html
+<div style="display: flex; box-sizing: content-box">
+  <div style="aspect-ratio: 0.5; border-width: 20px 20px 10px 3px;
+              border-style: solid"></div>
+</div>
+```
+
+Horizontal border 23, vertical border 30, ratio 0.5:
+
+| | item height |
+|---|--:|
+| Chrome | **30** (content 0 x 0, plus 30 vertical border) |
+| Engine (pre-fix) | **46** (23 / 0.5, i.e. the border box) |
+
+**Fix applied here:** under `content-box`, strip the main-axis padding+border
+before applying the ratio and add the cross-axis sum back. See
+`src/compute/flexbox.ts`; regression fixture
+`tests/html/fuzz-found/fuzz_flex_ar_contentbox.html`.
+
+**Note:** this fixes the main-to-cross direction only. The cross-to-main
+direction has the same omission and is still open — see the untriaged list
+below. Anyone fixing this upstream should fix both together.
+
+---
+
 ## Not yet triaged
 
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they
 are not lost; each needs the same treatment before it can move up:
 
+- **Flexbox aspect-ratio *cross-to-main* under content-box** — the other half of
+  entry 9. In a column container the cross (width) size is the input and the
+  main (height) is derived, and that direction still divides the border box:
+
+  ```html
+  <div style="display: flex; flex-direction: column; box-sizing: content-box;
+              width: 100px; height: 60px">
+    <div style="aspect-ratio: 2; border-width: 20px 20px 10px 3px;
+                border-style: solid"></div>
+  </div>
+  ```
+
+  Chrome gives the item height **69** (content width 100−23 = 77, 77/2 = 38.5,
+  plus 30 vertical border = 68.5), the engine **50**. Confirmed pre-existing —
+  it reproduces identically before and after the entry-9 fix, so it is a
+  separate site, not a regression.
 - **`fuzz_408e514f`** — percentage padding on an aspect-ratio flex item under a
   `height: auto` root, **content-box only**: Chrome collapses the root and item
   to height 8, the engine to 100. Percentage padding against an indefinite

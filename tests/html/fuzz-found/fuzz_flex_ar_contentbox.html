@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: campaign seed=20260731 (mode=flex), minimized by hand
+  date: 2026-07-30
+  chrome: Chrome/151.0.7922.47
+  Engine bug (taffy-inherited): the flexbox aspect-ratio cross-size derivation
+  divided the border-box main size regardless of box-sizing. Under content-box
+  the ratio relates the two axes of the *content* box, so the main-axis
+  padding+border must be stripped before applying the ratio and the cross-axis
+  added back. Only visible in the content_box_* variants.
+  Regenerate the XML fixtures with: pnpm gentest fuzz_flex_ar_contentbox
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: flex aspect-ratio cross size respects box-sizing (fuzz_flex_ar_contentbox)
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex;">
+  <div style="aspect-ratio: 0.5; border-width: 20px 20px 10px 3px; border-style: solid;"></div>
+</div>
+
+</body>
+</html>
