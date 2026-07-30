@@ -10,18 +10,18 @@
 
 ## 2. Cache allocation audit (confirm the safety precondition before changing anything)
 
-- [ ] 2.1 Enumerate every caller of `computeChildLayout` / `measureChildSize` / `measureChildSizeBoth` / `performChildLayout` and confirm none mutates the returned `LayoutOutput` or any object reachable from it.
-- [ ] 2.2 Add a temporary debug build that deep-freezes every `LayoutOutput` returned from `Cache.get`, run the full fixture suite under it, and confirm zero frozen-object write errors. Record the result; remove the temporary build before committing.
+- [x] 2.1 Enumerate every caller of `computeChildLayout` / `measureChildSize` / `measureChildSizeBoth` / `performChildLayout` and confirm none mutates the returned `LayoutOutput` or any object reachable from it.
+- [x] 2.2 Add a temporary debug build that deep-freezes every `LayoutOutput` returned from `Cache.get`, run the full fixture suite under it, and confirm zero frozen-object write errors. Record the result; remove the temporary build before committing.
 
 ## 3. Allocation-free cache
 
-- [ ] 3.1 Rewrite the `Cache` class in `src/tree.ts` to store key fields inline as primitives (`kw`, `kh`, `aw`, `ah`, `pw`, `axis`; plus `ph` on the final-layout entry only) and compare them with `===`. Delete `cacheKey`, `mixedKey`, and the `CacheKey` interface.
-- [ ] 3.2 Preserve the existing match predicate exactly: `axis` remains part of the key (dropping it fails 4 grid baseline fixtures); do NOT adopt taffy's `known_dimensions == cached_size` relaxation (it fails 12 more); `compute-size` compares `pw` but not `ph`, `perform-layout` compares both.
-- [ ] 3.3 Store a prebuilt `LayoutOutput` per measure slot in `store()` so `get()` returns an existing object and allocates nothing on hit.
-- [ ] 3.4 Keep `computeCacheSlot` slot assignment identical (0 = both known, 1–4 = one known, 5–8 = neither), now taking primitives instead of `Size` objects.
-- [ ] 3.5 Verify `pnpm vitest run` reports 4,410 passing with zero skips.
-- [ ] 3.6 Re-measure: fixed-time iteration count on both deep scenarios plus GC scavenge count per 20 runs, baseline vs new, each in its own process on real source (no monkeypatching). Record actual numbers — publish a null or negative result if that is what appears.
-- [ ] 3.7 Commit as a standalone, independently revertible change.
+- [x] 3.1 Rewrite the `Cache` class in `src/tree.ts` to store key fields inline as primitives (`kw`, `kh`, `aw`, `ah`, `pw`, `axis`; plus `ph` on the final-layout entry only) and compare them with `===`. Delete `cacheKey`, `mixedKey`, and the `CacheKey` interface.
+- [x] 3.2 Preserve the existing match predicate exactly: `axis` remains part of the key (dropping it fails 4 grid baseline fixtures); do NOT adopt taffy's `known_dimensions == cached_size` relaxation (it fails 12 more); `compute-size` compares `pw` but not `ph`, `perform-layout` compares both.
+- [x] 3.3 Store a prebuilt `LayoutOutput` per measure slot in `store()` so `get()` returns an existing object and allocates nothing on hit.
+- [x] 3.4 Keep `computeCacheSlot` slot assignment identical (0 = both known, 1–4 = one known, 5–8 = neither), now taking primitives instead of `Size` objects.
+- [x] 3.5 Verify `pnpm vitest run` reports 4,410 passing with zero skips.
+- [x] 3.6 Re-measure: fixed-time iteration count on both deep scenarios plus GC scavenge count per 20 runs, baseline vs new, each in its own process on real source (no monkeypatching). Record actual numbers — publish a null or negative result if that is what appears.
+- [x] 3.7 Commit as a standalone, independently revertible change.
 
 ## 4. FlexItem allocation reduction
 

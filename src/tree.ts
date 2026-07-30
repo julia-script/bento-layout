@@ -144,100 +144,133 @@ export interface Node {
 
 // --- Cache (port of tree/cache.rs)
 //
-// Keys are strings rather than bit-packed u64s. A known-dimension of v and a
-// definite available-space of v must produce different keys (taffy negates the
-// definite value); the `k`/`a` prefixes handle that.
+// Entries hold each key field inline as a primitive and compare them with ===,
+// so a lookup allocates nothing. Taffy packs the same fields into a u64; we
+// compare them separately, which also removes the need for taffy's disambiguation
+// between a known-dimension of v and a definite available-space of v — `kw`/`aw`
+// are distinct fields and cannot collide.
+//
+// Note this is deliberately NOT a literal port of taffy's match predicate.
+// Taffy matches on known_dimensions + available_space alone and additionally
+// accepts an entry whose cached size equals the requested known dimension.
+// Both divergences are load-bearing here: dropping `axis` from the key fails 4
+// grid baseline fixtures, and adopting taffy's cached-size relaxation fails 12
+// more. Only the allocation behaviour is being changed.
 
 const CACHE_SIZE = 9;
 
-function mixedKey(kd: Opt, avs: AvailableSpace): string {
-  if (kd !== null) return `k${kd}`;
-  return typeof avs === 'number' ? `a${avs}` : avs;
-}
-
-interface CacheKey {
-  kdAvailableSpace: string;
-  parentSizeW: string;
-  parentSizeH: string;
+interface MeasureEntry {
+  kw: Opt;
+  kh: Opt;
+  aw: AvailableSpace;
+  ah: AvailableSpace;
+  pw: Opt;
   axis: RequestedAxis;
+  /** Prebuilt at store time so a hit returns an existing object. */
+  out: LayoutOutput;
 }
 
-function cacheKey(input: LayoutInput): CacheKey {
-  return {
-    kdAvailableSpace:
-      mixedKey(input.knownDimensions.width, input.availableSpace.width) +
-      '|' +
-      mixedKey(input.knownDimensions.height, input.availableSpace.height),
-    parentSizeW: `${input.parentSize.width}`,
-    parentSizeH: `${input.parentSize.height}`,
-    axis: input.axis,
-  };
-}
-
-interface CacheEntry<T> {
-  key: CacheKey;
-  content: T;
+/** The final-layout entry additionally discriminates on the y-axis parent size. */
+interface FinalEntry extends MeasureEntry {
+  ph: Opt;
 }
 
 export class Cache {
-  private finalLayoutEntry: CacheEntry<LayoutOutput> | null = null;
-  private measureEntries: (CacheEntry<Size<number>> | null)[] = new Array(CACHE_SIZE).fill(null);
+  private finalLayoutEntry: FinalEntry | undefined = undefined;
+  /** Allocated lazily: leaf-heavy trees never reach the compute-size path. */
+  private measureEntries: (MeasureEntry | undefined)[] | undefined = undefined;
 
   /**
    * Cache slots (see taffy tree/cache.rs for the full rationale):
    * 0: both known dimensions set; 1-4: one known dimension; 5-8: none.
    */
-  private static computeCacheSlot(kd: Size<Opt>, avs: Size<AvailableSpace>): number {
-    const hasKnownWidth = kd.width !== null;
-    const hasKnownHeight = kd.height !== null;
+  private static computeCacheSlot(kw: Opt, kh: Opt, aw: AvailableSpace, ah: AvailableSpace): number {
+    const hasKnownWidth = kw !== null;
+    const hasKnownHeight = kh !== null;
     if (hasKnownWidth && hasKnownHeight) return 0;
-    if (hasKnownWidth) return 1 + (avs.height === 'min-content' ? 1 : 0);
-    if (hasKnownHeight) return 3 + (avs.width === 'min-content' ? 1 : 0);
-    const wMin = avs.width === 'min-content';
-    const hMin = avs.height === 'min-content';
+    if (hasKnownWidth) return 1 + (ah === 'min-content' ? 1 : 0);
+    if (hasKnownHeight) return 3 + (aw === 'min-content' ? 1 : 0);
+    const wMin = aw === 'min-content';
+    const hMin = ah === 'min-content';
     return 5 + (wMin ? 2 : 0) + (hMin ? 1 : 0);
   }
 
   get(input: LayoutInput): LayoutOutput | null {
-    const key = cacheKey(input);
+    const kw = input.knownDimensions.width;
+    const kh = input.knownDimensions.height;
+    const aw = input.availableSpace.width;
+    const ah = input.availableSpace.height;
+    const pw = input.parentSize.width;
+    const axis = input.axis;
+
     if (input.runMode === 'perform-layout') {
       const entry = this.finalLayoutEntry;
       if (
-        entry &&
-        entry.key.kdAvailableSpace === key.kdAvailableSpace &&
-        entry.key.parentSizeW === key.parentSizeW &&
-        entry.key.parentSizeH === key.parentSizeH &&
-        entry.key.axis === key.axis
+        entry !== undefined &&
+        entry.kw === kw &&
+        entry.kh === kh &&
+        entry.aw === aw &&
+        entry.ah === ah &&
+        entry.pw === pw &&
+        entry.ph === input.parentSize.height &&
+        entry.axis === axis
       ) {
-        return entry.content;
+        return entry.out;
       }
       return null;
     }
+
     if (input.runMode === 'compute-size') {
       // Measure entries match on knownDimensions/availableSpace and the
       // x-axis parent size only (taffy masks out the y-axis and axis bits).
-      for (const entry of this.measureEntries) {
-        if (entry && entry.key.kdAvailableSpace === key.kdAvailableSpace && entry.key.parentSizeW === key.parentSizeW) {
-          return fromOuterSize(entry.content);
+      const entries = this.measureEntries;
+      if (entries === undefined) return null;
+      for (let i = 0; i < CACHE_SIZE; i++) {
+        const entry = entries[i];
+        if (
+          entry !== undefined &&
+          entry.kw === kw &&
+          entry.kh === kh &&
+          entry.aw === aw &&
+          entry.ah === ah &&
+          entry.pw === pw &&
+          entry.axis === axis
+        ) {
+          return entry.out;
         }
       }
       return null;
     }
+
     return null;
   }
 
   store(input: LayoutInput, layoutOutput: LayoutOutput): void {
-    const key = cacheKey(input);
+    const kw = input.knownDimensions.width;
+    const kh = input.knownDimensions.height;
+    const aw = input.availableSpace.width;
+    const ah = input.availableSpace.height;
+    const pw = input.parentSize.width;
+    const axis = input.axis;
+
     if (input.runMode === 'perform-layout') {
-      this.finalLayoutEntry = { key, content: layoutOutput };
+      this.finalLayoutEntry = { kw, kh, aw, ah, pw, ph: input.parentSize.height, axis, out: layoutOutput };
     } else if (input.runMode === 'compute-size') {
-      const slot = Cache.computeCacheSlot(input.knownDimensions, input.availableSpace);
-      this.measureEntries[slot] = { key, content: layoutOutput.size };
+      const entries = this.measureEntries ?? (this.measureEntries = new Array(CACHE_SIZE).fill(undefined));
+      entries[Cache.computeCacheSlot(kw, kh, aw, ah)] = {
+        kw,
+        kh,
+        aw,
+        ah,
+        pw,
+        axis,
+        out: fromOuterSize(layoutOutput.size),
+      };
     }
   }
 
   clear(): void {
-    this.finalLayoutEntry = null;
-    this.measureEntries.fill(null);
+    this.finalLayoutEntry = undefined;
+    this.measureEntries = undefined;
   }
 }
