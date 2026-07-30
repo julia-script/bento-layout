@@ -1098,7 +1098,8 @@
    "reason": "value:display:-webkit-flex"
   },
   "css/css-flexbox/css-box-justify-content.html": {
-   "class": "import"
+   "class": "skip",
+   "reason": "harness-conflict:anonymous-item"
   },
   "css/css-flexbox/css-flexbox-height-animation-stretch.html": {
    "class": "skip",
