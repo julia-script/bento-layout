@@ -53,6 +53,8 @@ export async function shrinkTree(
   tree: FuzzTree,
   stillFails: (candidate: FuzzTree) => Promise<boolean>,
   maxChecks = 250,
+  /** Reject candidates leaving the modeled space (e.g. percent invariant). */
+  isValid: (candidate: FuzzTree) => boolean = () => true,
 ): Promise<ShrinkResult> {
   let current = cloneTree(tree);
   let applied = 0;
@@ -60,6 +62,7 @@ export async function shrinkTree(
 
   const budgetLeft = (): boolean => checks < maxChecks;
   const tryCandidate = async (candidate: FuzzTree): Promise<boolean> => {
+    if (!isValid(candidate)) return false;
     checks++;
     return stillFails(candidate);
   };

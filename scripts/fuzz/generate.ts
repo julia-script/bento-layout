@@ -115,16 +115,16 @@ const ALIGN_CONTENT_KEYWORDS: readonly AlignContentKeyword[] = [
 
 const ZWS = '​';
 
-function lengthPercentage(rng: Rng): LengthPercentage {
-  return rng.chance(0.65) ? rng.pick(PX) : { percent: rng.pick(PCT) / 100 };
+function lengthPercentage(rng: Rng, allowPercent: boolean): LengthPercentage {
+  return !allowPercent || rng.chance(0.65) ? rng.pick(PX) : { percent: rng.pick(PCT) / 100 };
 }
 
-function lengthPercentageAuto(rng: Rng, autoWeight = 0.15): LengthPercentageAuto {
-  return rng.chance(autoWeight) ? 'auto' : lengthPercentage(rng);
+function lengthPercentageAuto(rng: Rng, allowPercent: boolean, autoWeight = 0.15): LengthPercentageAuto {
+  return rng.chance(autoWeight) ? 'auto' : lengthPercentage(rng, allowPercent);
 }
 
-function dimension(rng: Rng, autoWeight = 0.2): Dimension {
-  return lengthPercentageAuto(rng, autoWeight);
+function dimension(rng: Rng, allowPercent: boolean, autoWeight = 0.2): Dimension {
+  return lengthPercentageAuto(rng, allowPercent, autoWeight);
 }
 
 function alignItems(rng: Rng): AlignItems {
@@ -140,23 +140,23 @@ function alignContent(rng: Rng): AlignContent {
   return { keyword, safe };
 }
 
-function trackSizingFunction(rng: Rng): TrackSizingFunction {
+function trackSizingFunction(rng: Rng, allowPercent: boolean): TrackSizingFunction {
   return rng.weighted<TrackSizingFunction>([
     [3, { min: 'auto', max: 'auto' }],
     [2, (() => { const v = rng.pick(PX); return { min: v, max: v }; })()],
-    [2, (() => { const p = { percent: rng.pick(PCT) / 100 }; return { min: p, max: p }; })()],
+    [allowPercent ? 2 : 0, (() => { const p = { percent: rng.pick(PCT) / 100 }; return { min: p, max: p }; })()],
     [1, { min: 'min-content', max: 'min-content' }],
     [1, { min: 'max-content', max: 'max-content' }],
     [3, { min: 'auto', max: { fr: rng.pick(FR) } }],
-    [1, { min: 'auto', max: { fitContent: rng.chance(0.5) ? rng.pick(PX) : { percent: rng.pick(PCT) / 100 } } }],
+    [1, { min: 'auto', max: { fitContent: !allowPercent || rng.chance(0.5) ? rng.pick(PX) : { percent: rng.pick(PCT) / 100 } } }],
     [2, { min: rng.chance(0.5) ? rng.pick(PX) : 'auto', max: rng.chance(0.5) ? { fr: rng.pick(FR) } : 'auto' }],
     [1, { min: 'min-content', max: 'max-content' }],
   ]);
 }
 
 /** A fixed-size track (auto-fill/auto-fit repeats require one). */
-function fixedTrack(rng: Rng): TrackSizingFunction {
-  if (rng.chance(0.6)) {
+function fixedTrack(rng: Rng, allowPercent: boolean): TrackSizingFunction {
+  if (!allowPercent || rng.chance(0.6)) {
     const v = rng.pick(PX.filter((p) => p > 0));
     return { min: v, max: v };
   }
@@ -164,7 +164,7 @@ function fixedTrack(rng: Rng): TrackSizingFunction {
   return { min: p, max: p };
 }
 
-function gridTemplate(rng: Rng): GridTemplateComponent[] {
+function gridTemplate(rng: Rng, allowPercent: boolean): GridTemplateComponent[] {
   const components: GridTemplateComponent[] = [];
   const count = rng.int(1, 4);
   for (let i = 0; i < count; i++) {
@@ -176,11 +176,11 @@ function gridTemplate(rng: Rng): GridTemplateComponent[] {
       ]);
       const tracks =
         repeat === 'auto-fill' || repeat === 'auto-fit'
-          ? [fixedTrack(rng)]
-          : Array.from({ length: rng.int(1, 2) }, () => trackSizingFunction(rng));
+          ? [fixedTrack(rng, allowPercent)]
+          : Array.from({ length: rng.int(1, 2) }, () => trackSizingFunction(rng, allowPercent));
       components.push({ repeat, tracks });
     } else {
-      components.push(trackSizingFunction(rng));
+      components.push(trackSizingFunction(rng, allowPercent));
     }
   }
   return components;
@@ -207,6 +207,17 @@ interface GenContext {
   depth: number;
   /** Mutable node budget shared across the whole tree. */
   budget: { remaining: number };
+  /**
+   * Whether the containing block is definite per axis. Percentages are only
+   * generated where they resolve against a definite size: resolving them
+   * against an indefinite (max-content-sized) ancestor is the cyclic-percentage
+   * area css-sizing-3 §5.2 leaves loosely defined, where the engine (like
+   * taffy) resolves against indefinite as zero while Chrome re-resolves after
+   * layout. Documented as a known divergence class in KNOWN_DIVERGENCES.md;
+   * the corpus follows the same convention.
+   */
+  wDef: boolean;
+  hDef: boolean;
 }
 
 function containerDisplay(rng: Rng, mode: FuzzMode): Style['display'] {
@@ -238,7 +249,7 @@ function pxSize(rng: Rng, autoWeight: number): Dimension {
   return rng.chance(autoWeight) ? 'auto' : rng.pick(PX);
 }
 
-function genCommonStyle(rng: Rng, style: Partial<Style>, isRoot: boolean): void {
+function genCommonStyle(rng: Rng, style: Partial<Style>, isRoot: boolean, ctx: GenContext): void {
   if (isRoot) {
     if (rng.chance(0.8)) style.size = { width: pxSize(rng, 0.15), height: pxSize(rng, 0.15) };
     if (rng.chance(0.15)) style.minSize = { width: pxSize(rng, 0.4), height: pxSize(rng, 0.4) };
@@ -256,26 +267,28 @@ function genCommonStyle(rng: Rng, style: Partial<Style>, isRoot: boolean): void 
   }
 
   if (rng.chance(0.45)) {
-    style.size = { width: dimension(rng), height: dimension(rng) };
+    style.size = { width: dimension(rng, ctx.wDef), height: dimension(rng, ctx.hDef) };
   }
-  if (rng.chance(0.2)) style.minSize = { width: dimension(rng, 0.4), height: dimension(rng, 0.4) };
-  if (rng.chance(0.2)) style.maxSize = { width: dimension(rng, 0.4), height: dimension(rng, 0.4) };
+  if (rng.chance(0.2)) style.minSize = { width: dimension(rng, ctx.wDef, 0.4), height: dimension(rng, ctx.hDef, 0.4) };
+  if (rng.chance(0.2)) style.maxSize = { width: dimension(rng, ctx.wDef, 0.4), height: dimension(rng, ctx.hDef, 0.4) };
   if (rng.chance(0.15)) style.aspectRatio = rng.pick(ASPECT_RATIOS);
 
+  // Margin/padding percentages all resolve against the containing block's
+  // WIDTH (vertical sides included), so they gate on wDef alone.
   if (rng.chance(0.4)) {
     style.margin = {
-      left: lengthPercentageAuto(rng),
-      right: lengthPercentageAuto(rng),
-      top: lengthPercentageAuto(rng),
-      bottom: lengthPercentageAuto(rng),
+      left: lengthPercentageAuto(rng, ctx.wDef),
+      right: lengthPercentageAuto(rng, ctx.wDef),
+      top: lengthPercentageAuto(rng, ctx.wDef),
+      bottom: lengthPercentageAuto(rng, ctx.wDef),
     };
   }
   if (rng.chance(0.3)) {
     style.padding = {
-      left: lengthPercentage(rng),
-      right: lengthPercentage(rng),
-      top: lengthPercentage(rng),
-      bottom: lengthPercentage(rng),
+      left: lengthPercentage(rng, ctx.wDef),
+      right: lengthPercentage(rng, ctx.wDef),
+      top: lengthPercentage(rng, ctx.wDef),
+      bottom: lengthPercentage(rng, ctx.wDef),
     };
   }
   if (rng.chance(0.2)) {
@@ -291,17 +304,17 @@ function genCommonStyle(rng: Rng, style: Partial<Style>, isRoot: boolean): void 
   if (rng.chance(0.08)) {
     style.position = 'absolute';
     style.inset = {
-      left: rng.chance(0.6) ? lengthPercentage(rng) : 'auto',
-      right: rng.chance(0.6) ? lengthPercentage(rng) : 'auto',
-      top: rng.chance(0.6) ? lengthPercentage(rng) : 'auto',
-      bottom: rng.chance(0.6) ? lengthPercentage(rng) : 'auto',
+      left: rng.chance(0.6) ? lengthPercentage(rng, ctx.wDef) : 'auto',
+      right: rng.chance(0.6) ? lengthPercentage(rng, ctx.wDef) : 'auto',
+      top: rng.chance(0.6) ? lengthPercentage(rng, ctx.hDef) : 'auto',
+      bottom: rng.chance(0.6) ? lengthPercentage(rng, ctx.hDef) : 'auto',
     };
   } else if (!isRoot && rng.chance(0.03)) {
     // Relative inset (offset without affecting siblings)
     style.inset = {
-      left: rng.chance(0.5) ? lengthPercentage(rng) : 'auto',
+      left: rng.chance(0.5) ? lengthPercentage(rng, ctx.wDef) : 'auto',
       right: 'auto',
-      top: rng.chance(0.5) ? lengthPercentage(rng) : 'auto',
+      top: rng.chance(0.5) ? lengthPercentage(rng, ctx.hDef) : 'auto',
       bottom: 'auto',
     };
   }
@@ -316,7 +329,7 @@ function genCommonStyle(rng: Rng, style: Partial<Style>, isRoot: boolean): void 
   if (rng.chance(0.05)) style.direction = rng.pick(['ltr', 'rtl'] as const);
 }
 
-function genContainerStyle(rng: Rng, style: Partial<Style>, display: Style['display']): void {
+function genContainerStyle(rng: Rng, style: Partial<Style>, display: Style['display'], ownWDef: boolean, ownHDef: boolean): void {
   if (display === 'flex') {
     if (rng.chance(0.6)) {
       style.flexDirection = rng.pick(['row', 'column', 'row-reverse', 'column-reverse'] as const);
@@ -325,28 +338,28 @@ function genContainerStyle(rng: Rng, style: Partial<Style>, display: Style['disp
     if (rng.chance(0.3)) style.alignItems = alignItems(rng);
     if (style.flexWrap !== undefined && rng.chance(0.4)) style.alignContent = alignContent(rng);
     if (rng.chance(0.35)) style.justifyContent = alignContent(rng);
-    if (rng.chance(0.35)) style.gap = { width: lengthPercentage(rng), height: lengthPercentage(rng) };
+    if (rng.chance(0.35)) style.gap = { width: lengthPercentage(rng, ownWDef), height: lengthPercentage(rng, ownHDef) };
   } else if (display === 'grid') {
-    if (rng.chance(0.85)) style.gridTemplateColumns = gridTemplate(rng);
-    if (rng.chance(0.85)) style.gridTemplateRows = gridTemplate(rng);
-    if (rng.chance(0.25)) style.gridAutoColumns = [trackSizingFunction(rng)];
-    if (rng.chance(0.25)) style.gridAutoRows = [trackSizingFunction(rng)];
+    if (rng.chance(0.85)) style.gridTemplateColumns = gridTemplate(rng, ownWDef);
+    if (rng.chance(0.85)) style.gridTemplateRows = gridTemplate(rng, ownHDef);
+    if (rng.chance(0.25)) style.gridAutoColumns = [trackSizingFunction(rng, ownWDef)];
+    if (rng.chance(0.25)) style.gridAutoRows = [trackSizingFunction(rng, ownHDef)];
     if (rng.chance(0.3)) style.gridAutoFlow = rng.pick(['row', 'column', 'row-dense', 'column-dense'] as const);
     if (rng.chance(0.2)) style.alignItems = alignItems(rng);
     if (rng.chance(0.2)) style.justifyItems = alignItems(rng);
     if (rng.chance(0.25)) style.alignContent = alignContent(rng);
     if (rng.chance(0.25)) style.justifyContent = alignContent(rng);
-    if (rng.chance(0.4)) style.gap = { width: lengthPercentage(rng), height: lengthPercentage(rng) };
+    if (rng.chance(0.4)) style.gap = { width: lengthPercentage(rng, ownWDef), height: lengthPercentage(rng, ownHDef) };
   } else if (display === 'block') {
     if (rng.chance(0.15)) style.textAlign = rng.pick(['legacy-left', 'legacy-right', 'legacy-center'] as const);
   }
 }
 
-function genChildStyle(rng: Rng, style: Partial<Style>, parentDisplay: Style['display']): void {
+function genChildStyle(rng: Rng, style: Partial<Style>, parentDisplay: Style['display'], ctx: GenContext): void {
   if (parentDisplay === 'flex') {
     if (rng.chance(0.35)) style.flexGrow = rng.pick(GROW);
     if (rng.chance(0.2)) style.flexShrink = rng.pick(SHRINK);
-    if (rng.chance(0.25)) style.flexBasis = dimension(rng, 0.1);
+    if (rng.chance(0.25)) style.flexBasis = dimension(rng, ctx.wDef && ctx.hDef, 0.1);
     if (rng.chance(0.15)) style.alignSelf = alignItems(rng);
   } else if (parentDisplay === 'grid') {
     if (rng.chance(0.5)) style.gridColumn = { start: gridPlacement(rng), end: gridPlacement(rng) };
@@ -354,6 +367,18 @@ function genChildStyle(rng: Rng, style: Partial<Style>, parentDisplay: Style['di
     if (rng.chance(0.15)) style.alignSelf = alignItems(rng);
     if (rng.chance(0.15)) style.justifySelf = alignItems(rng);
   }
+}
+
+/**
+ * A node's own size is definite in an axis if it is a px length, or a
+ * percentage of an already-definite containing block. Conservative: auto
+ * (which stretch-resolves for some display/axis combos) counts as indefinite,
+ * so the generator under-uses percentages rather than generating cyclic ones.
+ */
+function axisDefinite(v: Dimension | undefined, ctxDef: boolean): boolean {
+  if (typeof v === 'number') return true;
+  if (typeof v === 'object' && v !== null && 'percent' in v) return ctxDef;
+  return false;
 }
 
 function genNode(rng: Rng, ctx: GenContext): FuzzNode {
@@ -366,8 +391,8 @@ function genNode(rng: Rng, ctx: GenContext): FuzzNode {
   const style: Partial<Style> = {};
 
   if (isLeaf) {
-    genCommonStyle(rng, style, isRoot);
-    genChildStyle(rng, style, ctx.parentDisplay);
+    genCommonStyle(rng, style, isRoot, ctx);
+    genChildStyle(rng, style, ctx.parentDisplay, ctx);
     if (!isRoot && rng.chance(0.02)) style.display = 'none';
     const node: FuzzNode = { style, children: [] };
     if (rng.chance(0.3)) node.text = ahemText(rng);
@@ -376,15 +401,19 @@ function genNode(rng: Rng, ctx: GenContext): FuzzNode {
 
   const display = containerDisplay(rng, ctx.mode);
   style.display = display;
-  genCommonStyle(rng, style, isRoot);
-  genContainerStyle(rng, style, display);
-  if (!isRoot) genChildStyle(rng, style, ctx.parentDisplay);
+  genCommonStyle(rng, style, isRoot, ctx);
+  const ownWDef = axisDefinite(style.size?.width, ctx.wDef);
+  const ownHDef = axisDefinite(style.size?.height, ctx.hDef);
+  genContainerStyle(rng, style, display, ownWDef, ownHDef);
+  if (!isRoot) genChildStyle(rng, style, ctx.parentDisplay, ctx);
   if (!isRoot && rng.chance(0.02)) style.display = 'none';
 
   const childCount = display === 'grid' ? rng.int(1, 6) : rng.int(1, 5);
   const children: FuzzNode[] = [];
   for (let i = 0; i < childCount && ctx.budget.remaining > 0; i++) {
-    children.push(genNode(rng, { ...ctx, parentDisplay: display, depth: ctx.depth + 1 }));
+    children.push(
+      genNode(rng, { ...ctx, parentDisplay: display, depth: ctx.depth + 1, wDef: ownWDef, hDef: ownHDef }),
+    );
   }
   return { style, children };
 }
@@ -396,6 +425,10 @@ export function generateTree(seed: number, mode: FuzzMode, maxNodes = 40): FuzzT
     parentDisplay: 'block',
     depth: 0,
     budget: { remaining: maxNodes },
+    // The root itself is px-only (fixture-model contract), so these only
+    // matter for its children and are derived from the root's actual size.
+    wDef: false,
+    hDef: false,
   });
   // No viewport wrapper in v1: a definite-size `.viewport` makes the root a
   // flex item of the wrapper in Chrome (grow/stretch interactions the engine's
@@ -407,4 +440,42 @@ export function generateTree(seed: number, mode: FuzzMode, maxNodes = 40): FuzzT
 
 export function countNodes(node: FuzzNode): number {
   return 1 + node.children.reduce((sum, c) => sum + countNodes(c), 0);
+}
+
+// --- Invariants ---------------------------------------------------------------
+
+const hasPct = (v: unknown): boolean => typeof v === 'object' && v !== null && 'percent' in (v as object);
+
+function stylePctAxes(style: Partial<Style>): { w: boolean; h: boolean } {
+  const w =
+    hasPct(style.size?.width) || hasPct(style.minSize?.width) || hasPct(style.maxSize?.width) ||
+    hasPct(style.margin?.left) || hasPct(style.margin?.right) || hasPct(style.margin?.top) || hasPct(style.margin?.bottom) ||
+    hasPct(style.padding?.left) || hasPct(style.padding?.right) || hasPct(style.padding?.top) || hasPct(style.padding?.bottom) ||
+    hasPct(style.inset?.left) || hasPct(style.inset?.right) || hasPct(style.flexBasis);
+  const h = hasPct(style.size?.height) || hasPct(style.minSize?.height) || hasPct(style.maxSize?.height) ||
+    hasPct(style.inset?.top) || hasPct(style.inset?.bottom);
+  return { w, h };
+}
+
+/**
+ * The generator only places percentages where the containing block is definite
+ * (see GenContext). The shrinker must respect the same invariant, or node
+ * removal can migrate a reproduction into the cyclic-percentage divergence
+ * class (KNOWN_DIVERGENCES.md) by deleting the ancestor that made a percentage
+ * legal. Container-level percentages (gap, %-tracks) are gated on the node's
+ * own definiteness and survive removal of ancestors, so only
+ * containing-block-relative properties are checked here.
+ */
+export function treeRespectsPercentInvariant(tree: FuzzTree): boolean {
+  const walk = (node: FuzzNode, wDef: boolean, hDef: boolean): boolean => {
+    const used = stylePctAxes(node.style);
+    if ((used.w && !wDef) || (used.h && !hDef)) return false;
+    const ownW = axisDefinite(node.style.size?.width, wDef);
+    const ownH = axisDefinite(node.style.size?.height, hDef);
+    return node.children.every((c) => walk(c, ownW, ownH));
+  };
+  // Root definiteness comes from its own (px-only) size.
+  const rootW = typeof tree.root.style.size?.width === 'number';
+  const rootH = typeof tree.root.style.size?.height === 'number';
+  return tree.root.children.every((c) => walk(c, rootW, rootH));
 }

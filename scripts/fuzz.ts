@@ -24,7 +24,7 @@ import type { Node } from '../src/index.js';
 import { parseFixture } from '../tests/harness/fixture.js';
 import type { ExpectedNode } from '../tests/harness/fixture.js';
 import { generateTestXml } from './gentest.js';
-import { countNodes, generateTree } from './fuzz/generate.js';
+import { countNodes, generateTree, treeRespectsPercentInvariant } from './fuzz/generate.js';
 import type { FuzzMode, FuzzTree } from './fuzz/generate.js';
 import { deriveSeed } from './fuzz/prng.js';
 import { signatureHash, treeSignature } from './fuzz/signature.js';
@@ -196,7 +196,12 @@ async function main(): Promise<void> {
 
     console.log(`\ntree ${index} (seed ${treeSeed}, ${countNodes(tree.root)} nodes): ${recheck.length} mismatch(es)`);
 
-    const shrunk = await shrinkTree(tree, async (candidate) => (await checkTree(exec, candidate)).length > 0, 250);
+    const shrunk = await shrinkTree(
+      tree,
+      async (candidate) => (await checkTree(exec, candidate)).length > 0,
+      250,
+      treeRespectsPercentInvariant,
+    );
     const minimal = shrunk.tree;
     const finalMismatches = await checkTree(exec, minimal);
     console.log(
