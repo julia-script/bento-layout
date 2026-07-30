@@ -35,7 +35,7 @@
 
 ## 5. Republish and close out
 
-- [ ] 5.1 Re-run the full benchmark suite on the optimized engine in a clean process and update `BENCHMARKS.md` with final figures, reporting every scenario including any that regressed.
-- [ ] 5.2 Re-profile the deep-tree workload and record the post-optimization hot spots, so the next perf effort starts from current evidence rather than this change's starting point.
-- [ ] 5.3 Confirm the delta spec's scenarios hold: cache lookups/hits allocate nothing, scavenges are strictly lower than the allocating baseline, full suite identical, and published deep-tree ratios use taffy's shape with alternating-axis labeled engine-only.
-- [ ] 5.4 Update `README.md` if it cites any performance figure or the superseded deep-tree claim.
+- [x] 5.1 Re-run the full benchmark suite on the optimized engine in a clean process and update `BENCHMARKS.md` with final figures, reporting every scenario including any that regressed.
+- [x] 5.2 Re-profile the deep-tree workload and record the post-optimization hot spots, so the next perf effort starts from current evidence rather than this change's starting point.
+- [x] 5.3 Confirm the delta spec's scenarios hold: cache lookups/hits allocate nothing, scavenges are strictly lower than the allocating baseline, full suite identical, and published deep-tree ratios use taffy's shape with alternating-axis labeled engine-only.
+- [x] 5.4 Update `README.md` if it cites any performance figure or the superseded deep-tree claim. **No change needed — README cites no performance figures.**
