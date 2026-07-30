@@ -4,7 +4,7 @@
     <div display="grid" direction="rtl" grid-template-rows="40px" grid-template-columns="min-content auto">
       <div direction="rtl"/>
       <div direction="rtl"/>
-      <text direction="rtl" overflow-x="hidden" overflow-y="hidden" scrollbar-width="15" grid-column-start="1" grid-column-end="span 2">
+      <text direction="rtl" overflow-x="hidden" overflow-y="hidden" scrollbar-width="0" grid-column-start="1" grid-column-end="span 2">
         HHHH​HHHH
       </text>
     </div>

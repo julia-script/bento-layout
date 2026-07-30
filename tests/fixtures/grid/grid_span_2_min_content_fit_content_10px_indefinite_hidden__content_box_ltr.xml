@@ -4,7 +4,7 @@
     <div display="grid" box-sizing="content-box" direction="ltr" grid-template-rows="40px" grid-template-columns="min-content fit-content(10px)">
       <div box-sizing="content-box" direction="ltr" grid-row-start="1" grid-column-start="1"/>
       <div box-sizing="content-box" direction="ltr" grid-row-start="1" grid-column-start="2"/>
-      <text box-sizing="content-box" direction="ltr" overflow-x="hidden" overflow-y="hidden" scrollbar-width="15" grid-row-start="1" grid-column-start="1" grid-column-end="span 2">
+      <text box-sizing="content-box" direction="ltr" overflow-x="hidden" overflow-y="hidden" scrollbar-width="0" grid-row-start="1" grid-column-start="1" grid-column-end="span 2">
         HHHH​HHHH
       </text>
     </div>

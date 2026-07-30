@@ -2,7 +2,7 @@
   <viewport width="max-content" height="max-content"/>
   <input>
     <div display="block" direction="ltr" width="50px">
-      <div display="block" direction="ltr" overflow-x="hidden" scrollbar-width="15" margin-bottom="10px">
+      <div display="block" direction="ltr" overflow-x="hidden" scrollbar-width="0" margin-bottom="10px">
         <div display="block" direction="ltr" margin-bottom="10px">
           <div direction="ltr" height="10px"/>
         </div>

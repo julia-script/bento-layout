@@ -2,7 +2,7 @@
   <viewport width="max-content" height="max-content"/>
   <input>
     <div display="grid" direction="rtl" grid-template-rows="40px" grid-template-columns="fit-content(30px)">
-      <text direction="rtl" overflow-x="hidden" overflow-y="hidden" scrollbar-width="15">
+      <text direction="rtl" overflow-x="hidden" overflow-y="hidden" scrollbar-width="0">
         HHHH​HH
       </text>
     </div>
