@@ -336,7 +336,11 @@ function generateNode(w: XmlWriter, node: JsonObject): void {
   }
 
   if (textContent !== null) {
-    w.writeText(textContent.trim());
+    // Trim only the collapsible whitespace that HTML source indentation adds.
+    // U+00A0 (`&nbsp;`) is a rendered character with real advance width, but
+    // JS `trim()` treats it as whitespace — a `&nbsp;`-only node would become
+    // the empty string and measure 0 where Chrome measures a full glyph.
+    w.writeText(textContent.replace(/^[ \t\n\r\f]+|[ \t\n\r\f]+$/g, ''));
   }
 
   w.endElement();

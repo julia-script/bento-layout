@@ -110,11 +110,14 @@ function buildNode(el: XmlNode, displays: Set<string>): Node {
   }
 
   // Leaf: text content (if any) measured with the Ahem font
+  // Trim only collapsible whitespace: U+00A0 (`&nbsp;`) is a rendered glyph
+  // with real advance width, and JS `trim()` would strip it — a `&nbsp;`-only
+  // node then measures 0 where Chrome measures a full character.
   const textContent = kids
     .filter((k) => '#text' in k)
     .map((k) => String(k['#text']))
     .join('')
-    .trim();
+    .replace(/^[ \t\n\r\f]+|[ \t\n\r\f]+$/g, '');
   if (textContent.length > 0) {
     const writingMode: WritingMode = (attrs['writing-mode'] ?? '').includes('vertical') ? 'vertical' : 'horizontal';
     return createNode({ style, measure: ahemTextMeasure(textContent, writingMode) });

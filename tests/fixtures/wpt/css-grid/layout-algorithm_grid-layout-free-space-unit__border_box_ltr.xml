@@ -4,10 +4,10 @@
     <div display="block" direction="ltr">
       <div display="grid" direction="ltr" width="150px" grid-template-columns="1fr 50px">
         <text display="block" direction="ltr" grid-row-start="1" grid-column-start="1">
-          
+           
         </text>
         <text display="block" direction="ltr" grid-row-start="1" grid-column-start="2">
-          
+           
         </text>
       </div>
     </div>
