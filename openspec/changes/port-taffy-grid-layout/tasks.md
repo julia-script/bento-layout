@@ -7,9 +7,9 @@
 
 ## 2. Grid structure
 
-- [ ] 2.1 Port grid types: `GridTrack`, `GridItem`, `CellOccupancyMatrix`, origin-zero coordinate helpers (`src/compute/grid/types.ts`)
-- [ ] 2.2 Port `explicit_grid.rs` (template resolution incl. repeat/auto-fill/auto-fit) and `implicit_grid.rs` (grid size estimation)
-- [ ] 2.3 Port `placement.rs` (definite placement, auto-placement, dense packing, column flow) with direct unit tests for placement coordinates
+- [x] 2.1 Port grid types: `GridTrack`, `GridItem`, `CellOccupancyMatrix`, origin-zero coordinate helpers (`src/compute/grid/types.ts`)
+- [x] 2.2 Port `explicit_grid.rs` (template resolution incl. repeat/auto-fill/auto-fit) and `implicit_grid.rs` (grid size estimation)
+- [x] 2.3 Port `placement.rs` (definite placement, auto-placement, dense packing, column flow) with direct unit tests for placement coordinates
 
 ## 3. Track sizing & layout
 
