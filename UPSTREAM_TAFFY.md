@@ -379,8 +379,8 @@ cross size exists, and `min(content, specified)` otherwise — in both cases the
 capped by the max size and floored by the padding+border sum.
 
 **Fix applied here:** compute the transferred suggestion explicitly from the
-raw (pre-ratio) style cross size rather than reading it back out of
-`child.size`. See `src/compute/flexbox.ts`; regression fixture
+used cross size rather than reading it back out of `child.size`. See
+`src/compute/flexbox.ts`; regression fixture
 `tests/html/fuzz-found/fuzz_dcdf4012.html`.
 
 **Note:** the `min-width: 0` row matters for upstreaming — an explicit minimum
@@ -389,16 +389,64 @@ the general min-size resolution.
 
 ---
 
+## 8. Flex base size ignores a cross size that is definite by *stretching*
+
+**Verified in Taffy:** suspected (source read: `src/compute/flexbox.rs`, the
+flex-base-size determination — its case B likewise reads `child.size`)
+
+Closely related to entry 7 and found immediately after it, but a distinct
+defect: entry 7 is about the automatic *minimum*, this one about the flex *base
+size*. Both stem from treating "definite cross size" as "cross size written in
+the item's own style".
+
+css-flexbox-1 §9.2 step 3B: an item with an aspect ratio and a definite cross
+size uses the cross size transferred through the ratio as its flex base size. A
+cross size established by **stretching** is definite for this purpose, but the
+implementation only consults the style-derived size, so a stretched item falls
+through to a content measurement (0 for an empty item).
+
+**Reproduction:** a flex item whose *only* declared property is `aspect-ratio`:
+
+```html
+<div style="display: flex; width: 20px; height: 40px">
+  <div style="aspect-ratio: 0.5"></div>
+</div>
+```
+
+| | item width |
+|---|--:|
+| Chrome | **20** (stretched cross 40, transferred 40 x 0.5) |
+| Engine (pre-fix) | **0** (content measurement) |
+
+**Behaviour matrix:**
+
+| setup | Chrome | note |
+|---|--:|---|
+| row 20x40, `aspect-ratio: .5` | 20x40 | transfers the stretched cross size |
+| column 20x40, `aspect-ratio: .5` | 20x40 | same, other axis |
+| row 20x40, `align-items: flex-start` | 0x0 | no stretch, so no definite cross: correctly 0 |
+| row 20x40, `aspect-ratio: .5; min-width: 0` | 20x40 | unlike entry 7, an explicit min does *not* defeat this — it is the base size, not the minimum |
+| row 7x7, `aspect-ratio: 1.5` | 11x7 | transferred 10.5 also floors the shrink |
+
+The `align-items: flex-start` row is the control that keeps the fix honest: the
+transfer must apply only when stretching actually made the cross size definite.
+
+The last row shows entries 7 and 8 compose — the stretched cross size has to
+reach *both* the base size and the automatic minimum, or the item transfers
+correctly and is then shrunk back to the container.
+
+**Fix applied here:** read the used cross size from the already-computed
+"known dimensions" (which the stretch branch fills in) at both sites. See
+`src/compute/flexbox.ts`; regression fixture
+`tests/html/fuzz-found/fuzz_555803f9.html`.
+
+---
+
 ## Not yet triaged
 
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they
 are not lost; each needs the same treatment before it can move up:
 
-- **`fuzz_555803f9`** — flex item with `aspect-ratio: 1.5` and no size in a
-  7x7 container: Chrome gives the item width 11, the engine 0. RTL variants also
-  disagree on x (chrome -3 vs engine 7). Likely the same automatic-minimum area
-  as entry 7 but with *no* definite cross size, so the transferred suggestion
-  does not apply and something else establishes Chrome's 11.
 - **`fuzz_408e514f`** — percentage padding on an aspect-ratio flex item under a
   `height: auto` root, **content-box only**: Chrome collapses the root and item
   to height 8, the engine to 100. Percentage padding against an indefinite
@@ -406,6 +454,6 @@ are not lost; each needs the same treatment before it can move up:
   against the KNOWN_DIVERGENCES cyclic-percentage class before treating it as a
   bug.
 
-Both are persisted as HTML in the fuzz corpus but their XML fixtures are not
+It is persisted as HTML in the fuzz corpus but its XML fixtures are not
 committed yet (they would fail the suite); regenerate with
-`pnpm gentest <name>` once fixed.
+`pnpm gentest fuzz_408e514f` once fixed.

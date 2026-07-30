@@ -615,10 +615,23 @@ function determineFlexBaseSize(
 
     child.flexBasis = ((): number => {
       // A. If the item has a definite used flex basis, that's the flex base size.
-      // B. (aspect-ratio + content basis + definite cross size) — handled via child.size which
-      //    has already been resolved against aspect_ratio in generate_anonymous_flex_items.
+      // B. aspect-ratio + content basis + definite cross size: transfer the cross
+      //    size through the ratio (css-flexbox-1 §9.2 step 3B). `child.size` covers
+      //    this when the cross size came from the item's own style, but the cross
+      //    size can also be *definite by stretching* — that value only lands in
+      //    childKnownDimensions above, so read it back from there. Without this an
+      //    item whose sole style is `aspect-ratio` measures its content (0) instead
+      //    of transferring, e.g. `aspect-ratio: .5` in a 20x40 row is 20 wide in
+      //    Chrome and was 0 here.
       const mainSize = main(child.size, dir);
-      const definiteFlexBasis = flexBasis ?? mainSize;
+      const crossKnown = cross(childKnownDimensions, dir);
+      const transferredMain =
+        mainSize === null && child.aspectRatio !== null && crossKnown !== null
+          ? constants.isRow
+            ? crossKnown * child.aspectRatio
+            : crossKnown / child.aspectRatio
+          : null;
+      const definiteFlexBasis = flexBasis ?? mainSize ?? transferredMain;
       if (definiteFlexBasis !== null) return definiteFlexBasis;
 
       // C/E. Otherwise, size the item into the available space using its used flex basis
@@ -694,11 +707,18 @@ function determineFlexBaseSize(
         //   no ratio, width 50               -> shrinks to 20 (a specified main
         //     size is not a floor by itself; only the ratio creates one)
         //
+        // The cross size counts as definite when it comes from *stretching* as
+        // well as from the item's own style, so this reads childKnownDimensions
+        // (which the stretch branch above fills in) rather than the style size:
+        // `aspect-ratio: 1.5` alone in a 7x7 row is 11 wide in Chrome, i.e. the
+        // transferred 10.5 floors the shrink instead of collapsing to the 7px
+        // container.
+        //
         // Taffy min's the content suggestion against `child.size` unconditionally
         // (flexbox.rs:812-813). Because `child.size` already carries the
         // ratio-derived value, a 0 content size erases the transferred
         // suggestion entirely and the item shrinks past its ratio.
-        const definiteCross = cross(rawStyleSize, dir) !== null ? cross(child.size, dir) : null;
+        const definiteCross = cross(childKnownDimensions, dir);
         const transferredMain =
           child.aspectRatio !== null && definiteCross !== null
             ? constants.isRow
