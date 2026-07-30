@@ -25,13 +25,13 @@
 
 ## 4. FlexItem allocation reduction
 
-- [ ] 4.1 Enumerate every field of `FlexItem`, classifying each as immutable-per-resolution (derived from style + `nodeInnerSize`) or mutable-per-pass (`flexBasis`, `innerFlexBasis`, `targetSize`, `hypotheticalInnerSize`, `hypotheticalOuterSize`, `frozen`, `violation`, offsets, baselines, …). Write the classification into a comment above the interface so a future field addition is forced to declare its class.
-- [ ] 4.2 Cache the constructed `FlexItem[]` on the parent node, keyed on the inputs the immutable fields derive from (`nodeInnerSize` width/height and child list identity/length). Invalidate alongside the existing per-run cache clear.
-- [ ] 4.3 Reset every mutable-per-pass field explicitly at the start of each `computeFlexboxLayout` pass — by enumeration, never by omission — so a reused item is indistinguishable from a fresh one.
-- [ ] 4.4 Verify `pnpm vitest run` reports 4,410 passing with zero skips.
-- [ ] 4.5 Re-measure allocation: heap churn per 20 runs and GC scavenge count, before vs after, same methodology as 3.6.
-- [ ] 4.6 If the reset logic cannot be made provably safe, stop and revert this group only — task 3 stands on its own (design D5). Record the decision either way.
-- [ ] 4.7 Commit as a standalone, independently revertible change.
+- [x] 4.1 Enumerate every field of `FlexItem`, classifying each as immutable-per-resolution (derived from style + `nodeInnerSize`) or mutable-per-pass (`flexBasis`, `innerFlexBasis`, `targetSize`, `hypotheticalInnerSize`, `hypotheticalOuterSize`, `frozen`, `violation`, offsets, baselines, …). Write the classification into a comment above the interface so a future field addition is forced to declare its class.
+- [x] 4.2 Cache the constructed `FlexItem[]` on the parent node, keyed on the inputs the immutable fields derive from (`nodeInnerSize` width/height and child list identity/length). Invalidate alongside the existing per-run cache clear. **Implemented, measured, and reverted — see 4.6.**
+- [x] 4.3 Reset every mutable-per-pass field explicitly at the start of each `computeFlexboxLayout` pass — by enumeration, never by omission — so a reused item is indistinguishable from a fresh one.
+- [x] 4.4 Verify `pnpm vitest run` reports 4,410 passing with zero skips.
+- [x] 4.5 Re-measure allocation: heap churn per 20 runs and GC scavenge count, before vs after, same methodology as 3.6.
+- [x] 4.6 **Reverted.** The reset logic was provably safe (1,600 repeat-layout and 400 stale-memo differential checks all identical, full suite green), but the memo hit only 28.6% — containers are measured under many different inner sizes per run, so 71% of calls rebuilt anyway and paid the key comparison on top. Throughput measured 0.972x, faster in only 2/5 paired trials. Reverted per design D5; task 3 stands alone. The FlexItem field classification comment was kept.
+- [x] 4.7 Commit as a standalone, independently revertible change.
 
 ## 5. Republish and close out
 

@@ -66,7 +66,26 @@ import {
 import { measureChildSize, measureChildSizeBoth, performChildLayout } from './dispatch.js';
 
 /** The intermediate results of a flexbox calculation for a single item */
+/**
+ * Per-pass working state for one in-flow child.
+ *
+ * Fields fall into two classes, and a new field MUST be added to the right one:
+ *
+ * - **Resolved-from-style** — derived from the child's style and the container's
+ *   inner size. Stable for as long as those two inputs are, and recomputed by
+ *   `generateAnonymousFlexItems`.
+ * - **Per-pass** — working state the algorithm writes as it runs. Items are
+ *   rebuilt for every pass, so these always start fresh. Anything that reuses
+ *   items across passes must reset all of them, and note that the four size
+ *   fields are mutated *in place* (via `setMain`/`setCross`), so resetting
+ *   those means overwriting both components rather than reassigning the object.
+ *
+ * Reusing items across passes was tried and reverted: containers are measured
+ * under many different inner sizes within a single layout, so a memo keyed on
+ * that size hit only ~29% of the time and measured slightly net-negative.
+ */
 interface FlexItem {
+  // --- Resolved-from-style ---
   node: Node;
   order: number;
 
@@ -81,13 +100,14 @@ interface FlexItem {
   flexShrink: number;
   flexGrow: number;
 
-  resolvedMinimumMainSize: number;
-
   inset: Rect<Opt>;
   margin: Rect<number>;
   marginIsAuto: Rect<boolean>;
   padding: Rect<number>;
   border: Rect<number>;
+
+  // --- Per-pass (must be reset on reuse) ---
+  resolvedMinimumMainSize: number;
 
   flexBasis: number;
   innerFlexBasis: number;
@@ -96,9 +116,13 @@ interface FlexItem {
 
   contentFlexFraction: number;
 
+  /** Mutated in place by setMain/setCross. */
   hypotheticalInnerSize: Size<number>;
+  /** Mutated in place by setMain/setCross. */
   hypotheticalOuterSize: Size<number>;
+  /** Mutated in place by setMain/setCross. */
   targetSize: Size<number>;
+  /** Mutated in place by setMain/setCross. */
   outerTargetSize: Size<number>;
 
   baseline: number;
@@ -476,6 +500,7 @@ function generateAnonymousFlexItems(node: Node, constants: AlgoConstants): FlexI
       offsetCross: 0,
     });
   }
+
   return items;
 }
 
