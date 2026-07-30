@@ -965,6 +965,45 @@ Verified in Taffy: suspected (source-read, not executed).
 
 ---
 
+## 18. Percentage margins resolve against available space when computing a content-based width
+
+`determine_content_based_container_width` resolves each item's horizontal
+margins against `available_space.width` before subtracting them from the space
+offered to the child. But the value being computed *is* the container width, so
+the percentage basis is indefinite at that point and a percentage margin must
+resolve to zero (css-sizing-3 §5.2). Resolving it against the available space
+lets a child's `margin-left: -50%` shrink the very box that defines the 50%.
+
+**Behaviour matrix** (Chrome 151.0.7922.47; 100x100 relative parent, abspos
+auto-sized child, grandchild 100x100 with the margin below; measuring the
+abspos box's width):
+
+| child margin-left | Chrome | Taffy / pre-fix |
+|---|---|---|
+| `-50%` | **100** | **50** |
+| `50%` | **100** | **150** |
+| `-50px` | 50 | 50 (control — px margins do contribute) |
+| none | 100 | 100 (control) |
+
+The two percentage rows are the tell: Chrome gives the same width for both
+signs, because the percentage contributes nothing either way.
+
+**Taffy source:** `src/compute/block.rs:367-370` —
+`item.margin.resolve_or_zero(available_space.width.into_option(), ...)`.
+Passing `None` as the basis is the fix; `resolve_or_zero` already yields 0 for
+an indefinite basis.
+
+**Fix applied here:** `src/compute/block.ts` resolves those margins against
+`null`. Regression fixture
+`tests/html/block/block_percentage_margin_intrinsic_width.html` covers all four
+rows above. Found via the imported WPT corpus (css-sizing
+`abspos-auto-sizing-fit-content-percentage-001/002`), which this fix promotes
+along with the rest of css-sizing (60% → 100%).
+
+Verified in Taffy: suspected (source-read, not executed).
+
+---
+
 ## Not yet triaged
 
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they

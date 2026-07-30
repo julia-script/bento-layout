@@ -474,9 +474,13 @@ function determineContentBasedContainerWidth(items: BlockItem[], availableWidth:
     if (item.position === 'absolute') continue;
     const knownDimensions = sizeMaybeClamp(item.size, item.minSize, item.maxSize);
 
-    const availableWidthOpt = typeof availableSpace.width === 'number' ? availableSpace.width : null;
-    const itemXMarginSum =
-      resolveOrZero(item.margin.left, availableWidthOpt) + resolveOrZero(item.margin.right, availableWidthOpt);
+    // Percentage margins resolve against the width being computed here, so the
+    // basis is indefinite and they contribute zero (css-sizing-3 §5.2). Passing
+    // the available width instead lets a `margin-left: -50%` shrink the
+    // container that defines it — Chrome sizes such a box to 100 for both
+    // `-50%` and `+50%`, where this resolved to 50 and 150. Pixel margins do
+    // still contribute.
+    const itemXMarginSum = resolveOrZero(item.margin.left, null) + resolveOrZero(item.margin.right, null);
     let width =
       knownDimensions.width ??
       measureChildSize(

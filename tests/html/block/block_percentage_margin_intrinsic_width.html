@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<!--
+  Found via the imported WPT corpus (css-sizing
+  abspos-auto-sizing-fit-content-percentage-001/002), minimized by hand.
+  date: 2026-07-30
+  chrome: Chrome/151.0.7922.47
+
+  Engine bug: a percentage margin on a child was resolved against the available
+  width while computing the container's *content-based* width. That basis is
+  the width being computed, so it is indefinite and the percentage must
+  contribute zero (css-sizing-3 5.2) -- otherwise a child's `margin-left: -50%`
+  shrinks the very box that defines the 50%.
+
+  Chrome gives the same 100px width for both signs of the percentage; only a
+  px margin actually contributes:
+    #a  margin-left: -50%  -> 100 (engine gave 50)
+    #b  margin-left:  50%  -> 100 (engine gave 150)
+    #c  margin-left: -50px ->  50 (control: px margins still count)
+    #d  no margin          -> 100 (control)
+
+  NOTE: test_base_style.css sets `div { display: flex }`, so every element here
+  states `display: block` explicitly.
+  Regenerate the XML fixtures with: pnpm gentest block_percentage_margin_intrinsic_width
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Percentage margins contribute zero to a content-based width (block_percentage_margin_intrinsic_width)
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+  <div style="display: block; position: relative; width: 100px; height: 100px;">
+    <div style="display: block; position: absolute;">
+      <div style="display: block; width: 100px; height: 100px; margin-left: -50%;"></div>
+    </div>
+  </div>
+  <div style="display: block; position: relative; width: 100px; height: 100px;">
+    <div style="display: block; position: absolute;">
+      <div style="display: block; width: 100px; height: 100px; margin-left: 50%;"></div>
+    </div>
+  </div>
+  <div style="display: block; position: relative; width: 100px; height: 100px;">
+    <div style="display: block; position: absolute;">
+      <div style="display: block; width: 100px; height: 100px; margin-left: -50px;"></div>
+    </div>
+  </div>
+  <div style="display: block; position: relative; width: 100px; height: 100px;">
+    <div style="display: block; position: absolute;">
+      <div style="display: block; width: 100px; height: 100px;"></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

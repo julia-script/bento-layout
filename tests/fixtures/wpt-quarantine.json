@@ -1,13 +1,5 @@
 {
  "quarantined": [
-  "abspos-auto-sizing-fit-content-percentage-001__border_box_ltr",
-  "abspos-auto-sizing-fit-content-percentage-001__border_box_rtl",
-  "abspos-auto-sizing-fit-content-percentage-001__content_box_ltr",
-  "abspos-auto-sizing-fit-content-percentage-001__content_box_rtl",
-  "abspos-auto-sizing-fit-content-percentage-002__border_box_ltr",
-  "abspos-auto-sizing-fit-content-percentage-002__border_box_rtl",
-  "abspos-auto-sizing-fit-content-percentage-002__content_box_ltr",
-  "abspos-auto-sizing-fit-content-percentage-002__content_box_rtl",
   "abspos_positioned-grid-items-022__border_box_rtl",
   "abspos_positioned-grid-items-022__content_box_rtl",
   "abspos_positioned-grid-items-026__border_box_rtl",
