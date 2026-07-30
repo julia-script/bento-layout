@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<!--
+  Found via the imported WPT corpus (css-flexbox
+  flex-aspect-ratio-cross-size-002), minimized by hand.
+  date: 2026-07-30
+  chrome: Chrome/151.0.7922.47
+
+  Engine bug: a flex container whose width is definite only because its PARENT
+  said so (both style axes `auto`) never transferred that width through
+  `aspect-ratio` into its height. The container-size setup can only transfer
+  between *style* sizes, so the height fell back to the content height --
+  collapsing the container to 0 as soon as it had any child at all. Block
+  layout already had this transfer; flexbox did not.
+
+    #a  ar:4, no children          -> 200x50 (already passed: early-return path)
+    #b  ar:4, child flex no ar     -> 200x50 (engine gave 200x0)
+    #c  ar:4, child block with ar  -> 200x50 (engine gave 200x0)
+    #d  no ar, child flex with ar  -> 200x0  (control: no ratio, no height)
+
+  NOTE: test_base_style.css sets `div { display: flex }`, so every element here
+  states its display explicitly.
+  Regenerate the XML fixtures with: pnpm gentest flex_aspect_ratio_from_known_width
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    A parent-supplied width transfers through aspect-ratio (flex_aspect_ratio_from_known_width)
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+  <div style="display: block; width: 200px;">
+    <div style="display: flex; aspect-ratio: 4;"></div>
+  </div>
+  <div style="display: block; width: 200px;">
+    <div style="display: flex; aspect-ratio: 4;"><div style="display: flex;"></div></div>
+  </div>
+  <div style="display: block; width: 200px;">
+    <div style="display: flex; aspect-ratio: 4;"><div style="display: block; aspect-ratio: 1;"></div></div>
+  </div>
+  <div style="display: block; width: 200px;">
+    <div style="display: flex;"><div style="display: flex; aspect-ratio: 1;"></div></div>
+  </div>
+</div>
+
+</body>
+</html>

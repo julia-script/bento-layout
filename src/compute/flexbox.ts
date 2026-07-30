@@ -203,12 +203,22 @@ export function computeFlexboxLayout(node: Node, inputs: LayoutInput): LayoutOut
       minSize.height !== null && maxSize.height !== null && maxSize.height <= minSize.height ? minSize.height : null,
   };
 
+  // css-sizing-4: a definite size in one axis transfers through `aspect-ratio`.
+  // `clampedStyleSize` above can only transfer between *style* sizes, so a
+  // container whose width is definite solely because the parent said so (both
+  // style axes `auto`) never got its ratio-derived height and fell back to the
+  // content height — collapsing an `aspect-ratio` flex container to 0 as soon
+  // as it had any child. Block layout already does this (block.ts).
+  const derivedFromKnown = sizeMaybeClamp(maybeApplyAspectRatio(knownDimensions, aspectRatio), minSize, maxSize);
+
   // The size of the container should be floored by the padding and border
   const styledBasedKnownDimensions: Size<Opt> = {
     width:
-      knownDimensions.width ?? mMax(minMaxDefiniteSize.width ?? clampedStyleSize.width, paddingBorderSum.width),
+      knownDimensions.width ??
+      mMax(minMaxDefiniteSize.width ?? clampedStyleSize.width ?? derivedFromKnown.width, paddingBorderSum.width),
     height:
-      knownDimensions.height ?? mMax(minMaxDefiniteSize.height ?? clampedStyleSize.height, paddingBorderSum.height),
+      knownDimensions.height ??
+      mMax(minMaxDefiniteSize.height ?? clampedStyleSize.height ?? derivedFromKnown.height, paddingBorderSum.height),
   };
 
   // Short-circuit layout if the container's size is fully determined by the container's size and the run mode

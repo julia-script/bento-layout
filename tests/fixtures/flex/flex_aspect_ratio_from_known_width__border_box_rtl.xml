@@ -1,0 +1,47 @@
+<test name="flex_aspect_ratio_from_known_width__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" direction="rtl">
+      <div display="block" direction="rtl" width="200px">
+        <div display="flex" direction="rtl" aspect-ratio="4"/>
+      </div>
+      <div display="block" direction="rtl" width="200px">
+        <div display="flex" direction="rtl" aspect-ratio="4">
+          <div display="flex" direction="rtl"/>
+        </div>
+      </div>
+      <div display="block" direction="rtl" width="200px">
+        <div display="flex" direction="rtl" aspect-ratio="4">
+          <div display="block" direction="rtl" aspect-ratio="1"/>
+        </div>
+      </div>
+      <div display="block" direction="rtl" width="200px">
+        <div display="flex" direction="rtl">
+          <div display="flex" direction="rtl" aspect-ratio="1"/>
+        </div>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="200" height="150">
+      <node x="0" y="0" width="200" height="50">
+        <node x="0" y="0" width="200" height="50"/>
+      </node>
+      <node x="0" y="50" width="200" height="50">
+        <node x="0" y="0" width="200" height="50">
+          <node x="200" y="0" width="0" height="50"/>
+        </node>
+      </node>
+      <node x="0" y="100" width="200" height="50">
+        <node x="0" y="0" width="200" height="50">
+          <node x="150" y="0" width="50" height="50"/>
+        </node>
+      </node>
+      <node x="0" y="150" width="200" height="0">
+        <node x="0" y="0" width="200" height="0">
+          <node x="200" y="0" width="0" height="0"/>
+        </node>
+      </node>
+    </node>
+  </expectations>
+</test>

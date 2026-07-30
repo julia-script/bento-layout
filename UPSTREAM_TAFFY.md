@@ -1004,6 +1004,51 @@ Verified in Taffy: suspected (source-read, not executed).
 
 ---
 
+## 19. Flexbox never transfers a parent-supplied size through `aspect-ratio`
+
+`compute_preliminary`'s container-size setup applies `maybe_apply_aspect_ratio`
+to `min_size`, `max_size`, and the *style* size — but never to
+`known_dimensions`. A flex container whose width is definite only because its
+parent resolved it (both style axes `auto`) therefore never gets a
+ratio-derived height, and falls back to the content height. The container
+collapses to 0 the moment it has any child.
+
+`block.rs` already performs exactly this transfer, so the two layout modes
+disagree on the same input — a container that sizes correctly as a block
+collapses when switched to flex.
+
+**Behaviour matrix** (Chrome 151.0.7922.47; outer block `width: 200px`,
+inner container `aspect-ratio: 4`):
+
+| inner container | Chrome | Taffy / pre-fix |
+|---|---|---|
+| `display: flex`, no children | 200x50 | 200x50 (early-return path, unaffected) |
+| `display: flex`, one flex child | 200x**50** | 200x**0** |
+| `display: flex`, one block child with `aspect-ratio: 1` | 200x**50** | 200x**0** |
+| `display: flex`, **no** aspect-ratio, child has one | 200x0 | 200x0 (control) |
+
+The empty case passing is what disguises this: the ratio appears to work until
+a child exists.
+
+**Taffy source:** `src/compute/flexbox.rs:180-196` — the three
+`maybe_apply_aspect_ratio` calls cover min/max/style size only. Compare
+`src/compute/block.rs`, which derives from `known_dimensions` and adopts only
+the newly-filled axis.
+
+**Fix applied here:** `src/compute/flexbox.ts` derives
+`maybeApplyAspectRatio(knownDimensions, aspectRatio)`, clamps it, and uses it
+as the last fallback for each axis — matching block layout's rule that an
+incoming known size is left as the parent resolved it and only a newly-filled
+axis is adopted. Regression fixture
+`tests/html/flex/flex_aspect_ratio_from_known_width.html` covers all four rows.
+
+Found via the imported WPT corpus (css-flexbox
+`flex-aspect-ratio-cross-size-002`).
+
+Verified in Taffy: suspected (source-read, not executed).
+
+---
+
 ## Not yet triaged
 
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they
