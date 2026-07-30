@@ -633,6 +633,64 @@ exact markup above.
 
 ---
 
+## 12. Grid minimum contribution is not clamped by the item's min/max size
+
+**Verified in Taffy:** suspected (source read:
+`src/compute/grid/types/grid_item.rs:459-520`, `minimum_contribution`)
+
+**Taffy source (abridged):**
+
+```rust
+let size = self.size.maybe_resolve(...).maybe_apply_aspect_ratio(...).maybe_add(box_sizing_adjustment)
+    .get(axis)
+    .or_else(|| self.min_size.maybe_resolve(...)...)
+    .or_else(|| self.overflow.get(axis).maybe_into_automatic_min_size())
+    .unwrap_or_else(|| /* content-based minimum */);
+// ...then clamped only by the spanned fixed-track limit
+```
+
+The specified size suggestion is used directly — it is never clamped by the
+item's own `max-size` (or floored by `min-size`) in that axis. css-grid-1 §6.6
+/ css-sizing-3 §5.2.1: the size suggestions feeding the content-based minimum
+are clamped by the min/max size properties, with the usual min-beats-max
+precedence.
+
+**Reproduction:** an auto-track grid whose item has a specified width above its
+max-width:
+
+```html
+<div style="display: grid">
+  <div style="width: 40px; height: 20px; max-width: 10px"></div>
+</div>
+```
+
+| | container width |
+|---|--:|
+| Chrome | **10** |
+| Engine (pre-fix) | **40** |
+
+The *item* renders at the clamped 10px in both engines — only its contribution
+to track sizing (and therefore the track and container) diverged.
+
+**Behaviour matrix** (verified against Chrome):
+
+| item style | Chrome track |
+|---|--:|
+| `width: 40; max-width: 10` | 10 (max clamps) |
+| `width: 40; max-width: 10; min-width: 20` | 20 (min beats max) |
+| `width: 1; max-width: 0` | 0 |
+| Ahem text `HHHH`, `max-width: 10` | 10 (content path was already correct) |
+| `width: 40; max-width: 100` | 40 (control) |
+
+**Fix applied here:** clamp the suggestion by the resolved min/max size (with
+min-beats-max `vClamp` semantics) before the fixed-track limit. The
+content-based branch measures with the clamp already applied, so re-clamping is
+a no-op there. See `itemMinimumContribution` in `src/compute/grid/types.ts`;
+regression fixture
+`tests/html/fuzz-found/fuzz_grid_min_contribution_clamp.html`.
+
+---
+
 ## Not yet triaged
 
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they

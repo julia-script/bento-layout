@@ -8,7 +8,7 @@
 
 import type { AbsoluteAxis, Point, Rect, Size } from '../../geometry.js';
 import { maybeApplyAspectRatio, rectAdd, sumAxes } from '../../geometry.js';
-import { mAdd, mClamp, mMin, mSub } from '../../math.js';
+import { mAdd, mClamp, mMin, mSub, vClamp } from '../../math.js';
 import type { Opt } from '../../math.js';
 import {
   maybeResolveSize,
@@ -821,6 +821,23 @@ export function itemMinimumContribution(
 
     size = useContentBasedMinimum ? itemMinContentContributionCached(item, axis, gridAreaSize, gridAreaSize) : 0;
   }
+
+  // The size suggestions are clamped by the item's own min/max size in the
+  // affected axis (css-grid-1 §6.6 / css-sizing-3 §5.2.1), with the usual
+  // min-beats-max precedence. Taffy omits this clamp, so `width: 40px;
+  // max-width: 10px` contributed 40 to the track where Chrome contributes 10
+  // (and 20 when a `min-width: 20px` overrides the max). The content-based
+  // branch above measures with the clamp already applied, so re-clamping it
+  // here is a no-op for that path.
+  const minSize = absGet(
+    maybeAddSize(maybeApplyAspectRatio(maybeResolveSize(item.minSize, gridAreaSize), item.aspectRatio), boxSizingAdjustment),
+    axis,
+  );
+  const maxSize = absGet(
+    maybeAddSize(maybeApplyAspectRatio(maybeResolveSize(item.maxSize, gridAreaSize), item.aspectRatio), boxSizingAdjustment),
+    axis,
+  );
+  size = vClamp(size, minSize, maxSize);
 
   // The size suggestion is additionally clamped by the maximum size in the affected axis.
   const limit = itemSpannedFixedTrackLimit(item, axis, axisTracks, absGet(innerNodeSize, axis));

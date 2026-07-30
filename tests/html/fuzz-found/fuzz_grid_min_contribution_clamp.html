@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: campaign seed=20260731 (mode=grid), minimized by hand
+  date: 2026-07-30
+  chrome: Chrome/151.0.7922.47
+  Engine bug (taffy-inherited): an item's minimum contribution to track sizing
+  took the specified size directly, with no clamp by the item's own
+  min/max size (css-grid-1 6.6). `width: 40px; max-width: 10px` contributed 40
+  to the auto track where Chrome contributes 10; with `min-width: 20px` the min
+  overrides the max and Chrome contributes 20. The item itself rendered at the
+  clamped size in every case -- only the track (and so the container) diverged.
+  Regenerate the XML fixtures with: pnpm gentest fuzz_grid_min_contribution_clamp
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: grid minimum contribution is clamped by the item's min/max size (fuzz_grid_min_contribution_clamp)
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+  <div style="display: grid;">
+    <div style="width: 40px; height: 20px; max-width: 10px;"></div>
+  </div>
+  <div style="display: grid;">
+    <div style="width: 40px; height: 20px; max-width: 10px; min-width: 20px;"></div>
+  </div>
+  <div style="display: grid;">
+    <div style="width: 1px; height: 40px; max-width: 0px;"></div>
+  </div>
+</div>
+
+</body>
+</html>
