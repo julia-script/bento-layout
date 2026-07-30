@@ -924,6 +924,47 @@ Verified in Taffy: suspected (source-read, not executed).
 
 ---
 
+## 17. `self-start` / `self-end` are not modelled by `AlignItems`
+
+`AlignItems`/`AlignSelf` (and the justify equivalents) offer Start, End,
+FlexStart, FlexEnd, Center, Baseline, Stretch — but not `self-start` /
+`self-end`. Both are valid CSS in every layout mode Taffy implements.
+
+With no orthogonal writing modes they coincide with `start` / `end`
+(css-align-3 §4.1), so supporting them is a parse-time normalization rather
+than new layout code.
+
+**Behaviour** (Chrome 151.0.7922.47; 100x100 grid, `border: 1px`, abspos child
+50x50 with no insets, `align-items: self-end`):
+
+| | result |
+|---|---|
+| Chrome (LTR) | child at (1, 49) |
+| Chrome (RTL) | child at (49, 49) |
+| Taffy | no way to express the input |
+
+**Severity differs by language.** In Rust an unsupported value cannot be
+constructed, so this is a missing feature and callers simply cannot express it.
+In this TypeScript port the equivalent parser cast the string
+(`parts[0] as AlignItemsKeyword`), so `self-end` became a keyword that matched
+no alignment branch and produced a **NaN** offset and size — silently, since
+every comparison against NaN is false. That is the third NaN-shaped defect
+found in this port (see also #12 and the `min-content` element-size hang), and
+the pattern is always the same: a value accepted at the boundary that the
+type system claims cannot exist.
+
+**Taffy source:** `src/style/alignment.rs:10-31` (`enum AlignItems`).
+
+**Fix applied here:** `toAlignItemsKeyword()` in `src/style.ts` maps
+`self-start`/`self-end` onto `start`/`end`, maps `normal` onto `stretch`
+(verified against Chrome for both flex and grid), and **throws** on anything
+else rather than casting. Covered by the imported WPT tests
+`abspos_grid-abspos-staticpos-align-{items,self}-self-end*`.
+
+Verified in Taffy: suspected (source-read, not executed).
+
+---
+
 ## Not yet triaged
 
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they

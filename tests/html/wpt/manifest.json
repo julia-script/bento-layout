@@ -1929,10 +1929,11 @@
   },
   "css/css-flexbox/flex-order-wrap-reverse-baseline.html": {
    "class": "skip",
-   "reason": "value:font-size:30px"
+   "reason": "value:order:1"
   },
   "css/css-flexbox/flex-order.html": {
-   "class": "import"
+   "class": "skip",
+   "reason": "value:order:3"
   },
   "css/css-flexbox/flex-outer-flexbox-column-recalculate-height-on-resize-001.html": {
    "class": "skip",
@@ -2034,7 +2035,8 @@
    "class": "import"
   },
   "css/css-flexbox/flexbox-anonymous-items-001.html": {
-   "class": "import"
+   "class": "skip",
+   "reason": "value:order:1"
   },
   "css/css-flexbox/flexbox-baseline-align-self-baseline-horiz-001.html": {
    "class": "skip",
@@ -2357,7 +2359,7 @@
   },
   "css/css-flexbox/flexbox-order-from-lowest.html": {
    "class": "skip",
-   "reason": "degenerate"
+   "reason": "value:order:-1"
   },
   "css/css-flexbox/flexbox-order-only-flexitems.html": {
    "class": "skip",
@@ -2409,7 +2411,7 @@
   },
   "css/css-flexbox/flexbox-paint-ordering-003.html": {
    "class": "skip",
-   "reason": "degenerate"
+   "reason": "value:order:5"
   },
   "css/css-flexbox/flexbox-root-node-001a.html": {
    "class": "skip",
@@ -4447,21 +4449,24 @@
    "reason": "script:inline"
   },
   "css/css-flexbox/order/order-abs-children-painting-order-different-container.html": {
-   "class": "import"
+   "class": "skip",
+   "reason": "value:order:1"
   },
   "css/css-flexbox/order/order-abs-children-painting-order.html": {
-   "class": "import"
+   "class": "skip",
+   "reason": "value:order:1"
   },
   "css/css-flexbox/order/order-with-column-reverse.html": {
    "class": "skip",
-   "reason": "degenerate"
+   "reason": "value:order:3"
   },
   "css/css-flexbox/order/order-with-row-reverse.html": {
    "class": "skip",
-   "reason": "degenerate"
+   "reason": "value:order:1"
   },
   "css/css-flexbox/order-painting.html": {
-   "class": "import"
+   "class": "skip",
+   "reason": "value:order:2"
   },
   "css/css-flexbox/order_value.html": {
    "class": "skip",
@@ -7782,7 +7787,7 @@
   },
   "css/css-grid/firefox-bug-1958131-crash.html": {
    "class": "skip",
-   "reason": "degenerate"
+   "reason": "value:order:-17014118346"
   },
   "css/css-grid/grid-calc-margin.html": {
    "class": "skip",

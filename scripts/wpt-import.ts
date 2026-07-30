@@ -130,7 +130,12 @@ export const ALLOWLIST: Record<string, PropRule> = {
   'flex-shrink': { check: number },
   'flex-basis': { check: dimension },
   'flex': { check: rx(String.raw`none|initial|${NUM}(?:\s+${NUM})?(?:\s+${SIZE_DIM})?|${SIZE_DIM}`) },
-  'order': { check: rx(String.raw`-?\d+`) },
+  // `order` is NOT modelled: the engine has no such style field and
+  // test_helper.js never extracts it, so a test that reorders items records
+  // DOM order while Chrome lays out visual order. Unpassable by construction,
+  // so it must not enter the corpus (it would sit in quarantine forever and
+  // understate the score). `order: 0` is the initial value and harmless.
+  'order': { check: rx('0') },
 
   // Alignment
   'align-items': { check: alignValue },
