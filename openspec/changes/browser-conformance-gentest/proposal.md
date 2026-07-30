@@ -9,7 +9,7 @@ The project's ground truth is currently a snapshot of Taffy's generated XML fixt
 - Regenerate all XML fixtures from our own Chrome and reconcile against the vendored Taffy XML. Divergence policy: **the browser wins** — where fresh Chrome disagrees with Taffy's old snapshot, adopt the browser expectation and fix the engine if it then fails. Record the Chrome version as fixture provenance (replacing the Taffy commit pin as the authority).
 - Establish the authoring loop away from Taffy: write HTML → `pnpm gentest` → committed XML → `pnpm test`, documented in the README; prove it with a first batch of new HTML fixtures covering spec cases absent from Taffy's corpus.
 - The test suite stays hermetic: generated XML is committed and `pnpm test` never launches a browser; Puppeteer runs only at fixture-generation time.
-- Out of scope: WPT (Web Platform Tests) integration, cross-browser generation (Firefox/Safari), fuzzing, visual/screenshot testing. Single pinned Chrome is the reference for now.
+- Out of scope: WPT (Web Platform Tests) integration, cross-browser generation (Firefox/Safari), visual/screenshot testing. Single pinned Chrome is the reference for now. Differential fuzzing against Chrome is planned as the follow-up change `chrome-differential-fuzzing`, built on this pipeline.
 
 ## Capabilities
 
