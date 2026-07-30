@@ -91,6 +91,16 @@ entry in `KNOWN_DIVERGENCES.md` with a spec citation. (This policy has already
 paid off: the first authored fixture exposed an aspect-ratio constraint bug
 inherited from Taffy, now fixed to match Chrome.)
 
+**If a fixed bug also exists upstream, log it.** This engine is a port of
+[Taffy](https://github.com/DioxusLabs/taffy), so a bug found here is often a bug
+there. Whenever a fix lands for a defect that Taffy also has, add an entry to
+`UPSTREAM_TAFFY.md` in the same commit — with the Taffy source location, the
+minimized reproduction, engine-vs-Chrome numbers, the spec citation, and an
+explicit `Verified in Taffy: confirmed | suspected`. Reading Taffy's source
+makes a finding *suspected*; only running Taffy makes it *confirmed*, and
+nothing should be filed upstream while still suspected. That file is kept
+standalone so the upstreaming effort does not depend on this repo's history.
+
 ## Scope
 
 Flexbox, CSS Grid, CSS block layout, and the full box model. Not implemented:

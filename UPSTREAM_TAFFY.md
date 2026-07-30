@@ -1,0 +1,178 @@
+# Upstream candidates for Taffy
+
+Bugs fixed in this engine that appear to exist in upstream
+[Taffy](https://github.com/DioxusLabs/taffy) as well, recorded for separate
+upstreaming. This file is maintained for Taffy's benefit and stands alone —
+it does not assume any knowledge of this port.
+
+Taffy reference: commit `57c230de` (the vendored checkout these line numbers
+refer to). Reference browser: `Chrome/151.0.7922.47`, headless, DPR 1.
+
+**Verification levels** — every entry states one:
+
+- **confirmed** — reproduced by *running* Taffy and observing the wrong output.
+- **suspected** — the defect was identified by *reading* Taffy's source. The
+  logic matches ours pre-fix, but no Rust reproduction has been run, so the
+  possibility remains that surrounding code compensates.
+
+Nothing here should be filed upstream while still marked *suspected* — build
+the Rust reproduction first. All repros are 2–3 nodes, so this is cheap.
+
+Findings come from differential fuzzing against Chrome (`pnpm fuzz`); none of
+these cases exist in Taffy's own fixture corpus, which is why its suite passes.
+
+---
+
+## 1. Leaf aspect-ratio floor overrides a definite height
+
+**Verified in Taffy:** suspected (source read: `src/compute/leaf.rs:147-150`)
+
+**Taffy source:**
+
+```rust
+let size = Size {
+    width: clamped_size.width,
+    height: f32_max(clamped_size.height, aspect_ratio.map(|ratio| clamped_size.width / ratio).unwrap_or(0.0)),
+};
+```
+
+The aspect-ratio floor is applied unconditionally, with no check that the
+height is automatic.
+
+**Reproduction:** a childless leaf with `aspect-ratio` and *both* dimensions
+definite, inside any parent:
+
+```html
+<div style="display: block">
+  <div style="aspect-ratio: 2; width: 120px; height: 10px"></div>
+</div>
+```
+
+| | width | height |
+|---|--:|--:|
+| Chrome | 120 | **10** |
+| Engine (pre-fix) | 120 | **60** |
+
+**Spec:** css-sizing-4 §5 — `aspect-ratio` supplies the *automatic* size. A
+definite height (from the parent or an explicit style height) wins over the
+ratio.
+
+**Fix applied here:** gate the floor on the height being automatic —
+`knownDimensions.height === null && style height is not definite`. See
+`src/compute/leaf.ts`; regression fixture `tests/html/fuzz-found/fuzz_93430f7c.html`.
+
+**Note:** this is a *different* case from the transferred-min/max-constraints
+issue in flexbox (css-sizing-4 §5.2.2), which was fixed separately and may also
+be worth checking upstream.
+
+---
+
+## 2. Childless grid containers discard their explicit tracks
+
+**Verified in Taffy:** suspected (source read: `src/tree/taffy_tree.rs:373-391`)
+
+**Taffy source:**
+
+```rust
+match (display_mode, has_children) {
+    (Display::None, _) => compute_hidden_layout(tree, node),
+    (Display::Block, true) => compute_block_layout(tree, node, inputs),
+    (Display::Flex, true) => compute_flexbox_layout(tree, node, inputs),
+    (Display::Grid, true) => compute_grid_layout(tree, node, inputs),
+    (_, false) => { /* ... */ compute_leaf_layout(inputs, style, |_, _| 0.0, measure_function) }
+}
+```
+
+A childless grid falls into the `(_, false)` arm and is laid out as a leaf, so
+`grid-template-rows`/`-columns` never contribute to its size.
+
+**Reproduction:**
+
+```html
+<div style="display: grid; grid-template-rows: 120px"></div>
+```
+
+| | height |
+|---|--:|
+| Chrome | **120** |
+| Engine (pre-fix) | **0** |
+
+Also applies to columns, and to multi-track templates such as
+`grid-template-rows: 1fr 120px`.
+
+**Spec:** css-grid-1 §5.1 — the explicit grid is defined by the
+`grid-template-*` properties and exists independently of any grid items.
+
+**Fix applied here:** route `display: grid` to grid layout when it has children
+*or* has no measure function; text/measure leaves stay on the leaf path. See
+`src/compute/dispatch.ts`.
+
+**Note for upstream:** the equivalent fix in Taffy needs care around
+`(_, false)` also covering measure-function leaves. Empty *flex* and *block*
+containers do correctly size like leaves, so only the grid arm is affected.
+
+---
+
+## 3. Phantom implicit tracks in template-less axes with negative line placement
+
+**Verified in Taffy:** suspected — and weaker than the entries above.
+See the caveat at the end of this section.
+
+**Where we found it:** `compute_grid_size_estimate`
+(`src/compute/grid/implicit_grid.rs`) has no coalescing rule: negative implicit
+tracks are modeled as contiguous from the placement line down to the explicit
+grid origin.
+
+**Reproduction:** a grid with *no* explicit tracks in an axis, whose items are
+all line-anchored strictly before the origin:
+
+```html
+<div style="display: grid; width: 100px; height: 60px">
+  <div style="grid-row: -3 / auto"></div>
+</div>
+```
+
+| | item y | item height |
+|---|--:|--:|
+| Chrome | 0 | **60** |
+| Engine (pre-fix) | 0 | **30** |
+
+Chrome materializes **one** row; the engine materialized two (the occupied row
+plus an empty trailing one down to the origin). Also reproduces with
+`grid-row: span 2 / -2`, with both items present, and on the column axis.
+
+Controls that already matched Chrome, and which any fix must not regress:
+negative lines *with* an explicit track present, and positive lines without
+templates (which do keep their leading empty tracks).
+
+**Spec:** css-grid-1 §8.3 (implicit grid line resolution).
+
+**Fix applied here:** a per-axis translation of origin-zero line placements,
+active only when the axis has zero explicit tracks and every child is
+line-anchored negative, applied at oz-conversion time for in-flow and
+absolutely-positioned children alike. See `src/compute/grid/implicit.ts`;
+regression fixture `tests/html/fuzz-found/fuzz_80d9ba4b.html`.
+
+**Caveat — read before filing.** Taffy's own header comment on
+`compute_grid_size_estimate` says it "is not required for spec compliance, but
+is used as a performance optimisation to reduce the number of allocations,"
+with final counts coming out of placement and the `CellOccupancyMatrix`. Our
+port fixes it *at* the estimate. The Chrome-divergent behavior is likely
+present upstream too, but the defect may not live in the same function there.
+Trace where Taffy's final track counts actually settle before filing this one.
+
+---
+
+## Not yet triaged
+
+Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they
+are not lost; each needs the same treatment before it can move up:
+
+- `aspect-ratio` combined with asymmetric padding/border on auto-sized leaves
+  (pure px values) — suspected to be in the same leaf-sizing area as entry 1.
+- `grid-column: auto / -3` under template-less columns — may be a refinement
+  needed in entry 3's fix (auto-start placements arguably should not engage the
+  coalescing offset) rather than an upstream issue.
+- Percentage size plus large padding under a fully *definite* block root — not
+  the cyclic-percentage class (see `KNOWN_DIVERGENCES.md`); suspected genuine
+  block sizing bug.

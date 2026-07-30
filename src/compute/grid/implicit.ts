@@ -27,9 +27,12 @@ export interface OzOffsets {
  * would-be implicit tracks between the occupied range and the explicit grid
  * origin are not materialized — the lines coalesce. (E.g. `grid-row: -3/auto`
  * in a template-less grid yields ONE row, not a row plus an empty trailing
- * one.) Taffy models negative implicit tracks as contiguous down to the
- * origin, which produces phantom empty tracks here; found by differential
- * fuzzing. The offset translates all line placements forward so the maximum
+ * one.) Modeling negative implicit tracks as contiguous down to the origin —
+ * as this function did, following taffy — produces phantom empty tracks;
+ * found by differential fuzzing. Note taffy documents this estimate as a
+ * pre-sizing optimisation with final counts coming from placement, so the
+ * upstream defect may not live in the equivalent function (see
+ * UPSTREAM_TAFFY.md). The offset translates all line placements forward so the maximum
  * occupied end line is 0, which removes the phantom while keeping the
  * line→track-index arithmetic unchanged. Offsets are computed in raw
  * (pre-RTL-mirror) coordinates so track counts stay direction-independent.
