@@ -1,0 +1,23 @@
+<test name="fuzz_leaf_ar_pb_transfer__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" direction="ltr">
+      <div display="block" direction="ltr">
+        <div direction="ltr" aspect-ratio="1" border-top="20px" border-left="10px" border-bottom="7px" border-right="7px"/>
+      </div>
+      <div display="block" direction="ltr">
+        <div direction="ltr" aspect-ratio="2" border-top="20px" border-left="10px" border-bottom="7px" border-right="7px"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="54" height="81">
+      <node x="0" y="0" width="54" height="54">
+        <node x="0" y="0" width="54" height="54"/>
+      </node>
+      <node x="0" y="54" width="54" height="27">
+        <node x="0" y="0" width="54" height="27"/>
+      </node>
+    </node>
+  </expectations>
+</test>

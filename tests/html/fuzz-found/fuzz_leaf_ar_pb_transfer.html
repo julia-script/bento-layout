@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: campaign seed=20260731 (mode=grid), minimized by hand
+  date: 2026-07-30
+  chrome: Chrome/151.0.7922.47
+  Engine bug (taffy-inherited): the padding+border floor never transferred
+  through aspect-ratio into the *width*. A leaf whose vertical border sum
+  exceeds its horizontal one, with aspect-ratio and both axes auto, must be as
+  wide as the transferred height floor under border-box sizing: border sums
+  17w/27h with ratio 1 are 27x27 in Chrome (54x27 with ratio 2), while the
+  engine gave 17x27. The transfer must run in the child's *contribution*
+  (content-size measurement), not just at final layout. Under content-box the
+  ratio relates the 0x0 content box, so the floors stay independent there --
+  only the border_box_* variants diverge.
+  Regenerate the XML fixtures with: pnpm gentest fuzz_leaf_ar_pb_transfer
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: padding+border floor transfers through aspect-ratio into the width (fuzz_leaf_ar_pb_transfer)
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+  <div style="display: block;">
+    <div style="aspect-ratio: 1; border-width: 20px 7px 7px 10px; border-style: solid;"></div>
+  </div>
+  <div style="display: block;">
+    <div style="aspect-ratio: 2; border-width: 20px 7px 7px 10px; border-style: solid;"></div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -691,6 +691,65 @@ regression fixture
 
 ---
 
+## 13. Leaf padding+border floor never transfers through aspect-ratio into the width
+
+**Verified in Taffy:** suspected (source read: `src/compute/leaf.rs:147-150` —
+the floor runs in one direction only, and `SizingMode::ContentSize` nulls the
+aspect ratio so no floor runs during intrinsic measurement at all)
+
+Third member of the leaf aspect-ratio family (entries 1 and 6), and
+independent of both: entry 1 is the missing automatic-height gate, entry 6 the
+missing box-sizing term, this one the missing *direction* — the floor only ever
+derives height from width, never width from height.
+
+**Reproduction:** a leaf whose vertical border sum exceeds its horizontal one,
+with `aspect-ratio` and both axes automatic:
+
+```html
+<div style="display: block">
+  <div style="aspect-ratio: 1; border-width: 20px 7px 7px 10px;
+              border-style: solid"></div>
+</div>
+```
+
+Border sums: 17 horizontal, 27 vertical.
+
+| | item size |
+|---|--:|
+| Chrome (border-box) | **27x27** |
+| Engine (pre-fix) | **17x27** |
+
+With `aspect-ratio: 2` Chrome gives **54x27**. Under `content-box` both engines
+agree on 17x27 — the ratio relates the 0x0 content box there, so the floors are
+independent, which is why only the border_box variants diverge (the mirror
+image of entry 6's signature).
+
+**Two distinct omissions must both be fixed:**
+
+1. The floor is one-directional. The width needs the symmetric
+   `max(width, transfer(flooredHeight))`, gated on the width being automatic.
+   The two directions have a closed-form fixed point (substituting one floor
+   into the other collapses to a single `max`), so no iteration is needed.
+2. The transfer must run during **intrinsic measurement** (content-size mode),
+   where the sizing-mode protocol nulls the aspect ratio. The pb floor is a
+   property of the box itself, not one of the styles the parent has already
+   accounted for, so the floor-transfer has to read the ratio from the style
+   directly. Without this the fix is invisible: the parent stretches the child
+   to a container width computed from the un-transferred contribution, and by
+   final layout the width is a known dimension the floor correctly refuses to
+   touch. (The first fix attempt here failed exactly this way — output
+   identical to pre-fix.)
+
+In content-size mode only the pb floor itself transfers (style sizes are the
+parent's responsibility in that mode); in inherent-size mode the full
+pb-floored size of the other axis does.
+
+**Fix applied here:** see `src/compute/leaf.ts`; regression fixture
+`tests/html/fuzz-found/fuzz_leaf_ar_pb_transfer.html` (ratio 1 and ratio 2
+cases; the border_box variants fail without the fix).
+
+---
+
 ## Not yet triaged
 
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they

@@ -26,6 +26,7 @@ export function computeLeafLayout(inputs: LayoutInput, style: Style, measureFunc
   let nodeMaxSize: Size<Opt>;
   let aspectRatio: number | null;
   let styleHeightIsDefinite = false;
+  let styleWidthIsDefinite = false;
   if (sizingMode === 'content-size') {
     nodeSize = { ...knownDimensions };
     nodeMinSize = { width: null, height: null };
@@ -35,6 +36,7 @@ export function computeLeafLayout(inputs: LayoutInput, style: Style, measureFunc
     aspectRatio = style.aspectRatio;
     const rawStyleSize = maybeResolveSize(style.size, parentSize);
     styleHeightIsDefinite = rawStyleSize.height !== null;
+    styleWidthIsDefinite = rawStyleSize.width !== null;
     const styleSize = maybeAdd(maybeApplyAspectRatio(rawStyleSize, aspectRatio), boxSizingAdjustment);
     const styleMinSize = maybeAdd(
       maybeApplyAspectRatio(maybeResolveSize(style.minSize, parentSize), aspectRatio),
@@ -143,19 +145,42 @@ export function computeLeafLayout(inputs: LayoutInput, style: Style, measureFunc
   // with aspect-ratio plus both dimensions definite; found by differential
   // fuzzing (tests/html/fuzz-found).
   const heightIsAutomatic = knownDimensions.height === null && !styleHeightIsDefinite;
+  const widthIsAutomatic = knownDimensions.width === null && !styleWidthIsDefinite;
+  // The padding+border floor transfers through `aspect-ratio` even in
+  // content-size mode (where `aspectRatio` above is nulled by protocol): the
+  // floor is a property of the box itself, not of the styles the parent has
+  // already accounted for. Chrome: a leaf with `aspect-ratio: 1` and a 27px
+  // vertical border sum is 27 wide under border-box — its width *contribution*
+  // already carries the transferred floor.
+  const floorAspectRatio = style.aspectRatio;
   // `aspect-ratio` relates the two axes of the box named by `box-sizing`, so
-  // under content-box the ratio applies to the *content* box: strip the
-  // horizontal padding+border before dividing, then add the vertical back.
-  // Under border-box `clampedSize.width` already is the ratio's box.
-  const arHeight =
-    heightIsAutomatic && aspectRatio !== null
-      ? (style.boxSizing === 'content-box'
-          ? Math.max(clampedSize.width - pbSum.width, 0) / aspectRatio + pbSum.height
-          : clampedSize.width / aspectRatio)
-      : 0;
+  // under content-box the ratio applies to the *content* box: strip the source
+  // axis's padding+border before applying the ratio and add the target's back.
+  // Under content-box the pb floors therefore stay independent (the content box
+  // is 0x0 either way) and these transfers are no-ops on them.
+  const transferToHeight = (w: number): number =>
+    style.boxSizing === 'content-box'
+      ? Math.max(w - pbSum.width, 0) / floorAspectRatio! + pbSum.height
+      : w / floorAspectRatio!;
+  const transferToWidth = (h: number): number =>
+    style.boxSizing === 'content-box'
+      ? Math.max(h - pbSum.height, 0) * floorAspectRatio! + pbSum.width
+      : h * floorAspectRatio!;
+  // The ratio floors run in both directions, but only into automatic axes. In
+  // inherent-size mode the full pb-floored size of the other axis transfers; in
+  // content-size mode only the pb floor itself does (style sizes are the
+  // parent's responsibility there). The two directions have a closed-form fixed
+  // point — substituting one floor into the other collapses to a single max —
+  // so each is computed once from the other axis's pre-transfer value.
+  const flooredWidth = Math.max(clampedSize.width, pbSum.width);
+  const flooredHeight = Math.max(clampedSize.height, pbSum.height);
+  const arSourceWidth = sizingMode === 'content-size' ? pbSum.width : flooredWidth;
+  const arSourceHeight = sizingMode === 'content-size' ? pbSum.height : flooredHeight;
+  const arHeight = heightIsAutomatic && floorAspectRatio !== null ? transferToHeight(arSourceWidth) : 0;
+  const arWidth = widthIsAutomatic && floorAspectRatio !== null ? transferToWidth(arSourceHeight) : 0;
   const size = {
-    width: Math.max(clampedSize.width, pbSum.width),
-    height: Math.max(Math.max(clampedSize.height, arHeight), pbSum.height),
+    width: Math.max(flooredWidth, arWidth),
+    height: Math.max(flooredHeight, arHeight),
   };
 
   return {
