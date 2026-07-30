@@ -215,6 +215,56 @@ coalescing question, so it is the cleaner of the two grid entries to file.
 
 ---
 
+## 5. Vertical padding/border percentages resolve against the block size
+
+**Verified in Taffy:** suspected (source read: `src/compute/block.rs:312-313`,
+and the equivalent flexbox site)
+
+**Taffy source:**
+
+```rust
+let padding = child_style.padding().resolve_or_zero(node_inner_size, |val, basis| tree.calc(val, basis));
+let border = child_style.border().resolve_or_zero(node_inner_size, |val, basis| tree.calc(val, basis));
+```
+
+`node_inner_size` is a `Size`, so `resolve_or_zero` resolves `top`/`bottom`
+against the container's **height**. Elsewhere Taffy correctly passes
+`parent_size.width` for the same properties (e.g. `block.rs:74-75`), so the two
+paths disagree with each other.
+
+**Reproduction:** a child with a vertical percentage padding in a container that
+is taller than it is wide:
+
+```html
+<div style="display: block; box-sizing: content-box; width: 55px; height: 320px">
+  <div style="width: 5%; height: 50%; padding: 1px 7px 40% 40px"></div>
+</div>
+```
+
+| | child height |
+|---|--:|
+| Chrome | **183** (160 content + 1 top + 0.4×55 bottom) |
+| Engine (pre-fix) | **289** (160 + 1 + 0.4×**320**) |
+
+Only visible when the container's width and height differ, which is why the
+border-box variants of this case happened to pass.
+
+**Spec:** css-box-3 §4 — percentage padding and margin resolve against the
+*inline size* of the containing block, on all four sides, vertical included.
+
+**Fix applied here:** resolve child padding/border against
+`nodeInnerSize.width` in both block and flexbox item generation. See
+`src/compute/block.ts` and `src/compute/flexbox.ts`. The per-axis helper this
+replaced (`resolveRectOrZeroPerAxis`) now has no callers.
+
+**Note for upstream:** worth auditing every `resolve_or_zero` call that takes a
+`Size` rather than a width for padding/margin/border. Two sites were affected
+here (block and flexbox item generation); the equivalent audit of this port's
+grid path found it already width-based, so the grid arm may be fine upstream
+too.
+
+---
+
 ## Not yet triaged
 
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they
@@ -222,6 +272,3 @@ are not lost; each needs the same treatment before it can move up:
 
 - `aspect-ratio` combined with asymmetric padding/border on auto-sized leaves
   (pure px values) — suspected to be in the same leaf-sizing area as entry 1.
-- Percentage size plus large padding under a fully *definite* block root — not
-  the cyclic-percentage class (see `KNOWN_DIVERGENCES.md`); suspected genuine
-  block sizing bug.

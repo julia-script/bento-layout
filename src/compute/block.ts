@@ -13,7 +13,6 @@ import {
   maybeResolveSize,
   resolveOrZero,
   resolveRectOrZero,
-  resolveRectOrZeroPerAxis,
 } from '../style.js';
 import type { AvailableSpace, Direction, Overflow, Position, Style, TextAlign } from '../style.js';
 import type { CollapsibleMarginSet, Layout, LayoutInput, LayoutOutput, Line, Node } from '../tree.js';
@@ -393,8 +392,13 @@ function generateItemList(node: Node, nodeInnerSize: Size<Opt>): BlockItem[] {
     if (childStyle.display === 'none') continue;
 
     const aspectRatio = childStyle.aspectRatio;
-    const padding = resolveRectOrZeroPerAxis(childStyle.padding, nodeInnerSize);
-    const border = resolveRectOrZeroPerAxis(childStyle.border, nodeInnerSize);
+    // Padding and border percentages resolve against the containing block's
+    // INLINE size on all four sides — vertical ones included (css-box-3 §4).
+    // Resolving top/bottom against the block size (as taffy does by passing the
+    // full Size here) inflates vertical padding whenever the container is
+    // taller than it is wide; found by differential fuzzing.
+    const padding = resolveRectOrZero(childStyle.padding, nodeInnerSize.width);
+    const border = resolveRectOrZero(childStyle.border, nodeInnerSize.width);
     const pbSum = sumAxes(rectAdd(padding, border));
     const boxSizingAdjustment = childStyle.boxSizing === 'content-box' ? pbSum : sizeZero();
 

@@ -1,0 +1,13 @@
+<test name="fuzz_19faf7e5__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" box-sizing="content-box" direction="ltr" width="55px" height="320px">
+      <div box-sizing="content-box" direction="ltr" width="5%" height="50%" padding-top="1px" padding-left="40px" padding-bottom="40%" padding-right="7px"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="55" height="320">
+      <node x="0" y="0" width="50" height="183"/>
+    </node>
+  </expectations>
+</test>

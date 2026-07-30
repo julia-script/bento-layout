@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: seed=1 index=4 (mode=mixed)
+  date: 2026-07-30
+  chrome: Chrome/151.0.7922.47
+  Engine bug: percentage padding on top/bottom resolved against the container
+  HEIGHT; css-box-3 s4 resolves all four sides against the inline size.
+  Only visible when width != height, so border-box variants passed.
+  Regenerate the XML fixtures with: pnpm gentest fuzz_19faf7e5
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: vertical padding % resolves against inline size (fuzz_19faf7e5)
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: block; width: 55px; height: 320px;">
+  <div style="width: 5%; height: 50%; padding-top: 1px; padding-left: 40px; padding-bottom: 40%; padding-right: 7px;"></div>
+</div>
+
+</body>
+</html>

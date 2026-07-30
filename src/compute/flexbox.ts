@@ -43,7 +43,6 @@ import {
   maybeResolveSize,
   overflowAutoMinSize,
   resolveRectOrZero,
-  resolveRectOrZeroPerAxis,
   resolveSizeOrZero,
 } from '../style.js';
 import type {
@@ -1307,8 +1306,10 @@ function determineUsedCrossSize(flexLines: FlexLine[], constants: AlgoConstants)
       ) {
         // For this particular usage, max_size does NOT transfer through the aspect_ratio —
         // matching Chrome and Firefox.
-        const padding = resolveRectOrZeroPerAxis(childStyle.padding, constants.nodeInnerSize);
-        const border = resolveRectOrZeroPerAxis(childStyle.border, constants.nodeInnerSize);
+        // Width-relative on all four sides (css-box-3 §4) — see the note in
+        // block.ts generateItemList.
+        const padding = resolveRectOrZero(childStyle.padding, constants.nodeInnerSize.width);
+        const border = resolveRectOrZero(childStyle.border, constants.nodeInnerSize.width);
         const pbSum = sumAxes(rectAdd(padding, border));
         const boxSizingAdjustment = childStyle.boxSizing === 'content-box' ? pbSum : sizeZero();
 

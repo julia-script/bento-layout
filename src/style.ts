@@ -154,7 +154,14 @@ export function resolveRectOrZero(r: Rect<LengthPercentageAuto>, context: Opt): 
   };
 }
 
-/** left/right resolved against width, top/bottom against height. */
+/**
+ * left/right resolved against width, top/bottom against height.
+ *
+ * NOTE: correct for `inset`, wrong for padding/margin/border — those resolve
+ * against the inline size on all four sides (css-box-3 §4). Using it for
+ * padding was a real bug (see UPSTREAM_TAFFY.md entry 5). Currently unused;
+ * a candidate for removal in the pre-publish API review.
+ */
 export function resolveRectOrZeroPerAxis(r: Rect<LengthPercentageAuto>, context: Size<Opt>): Rect<number> {
   return {
     left: resolveOrZero(r.left, context.width),
