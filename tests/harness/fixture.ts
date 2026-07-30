@@ -1,0 +1,229 @@
+// Fixture XML parser + tree builder — port of taffy/tests/xml.rs (flexbox subset).
+
+import { XMLParser } from 'fast-xml-parser';
+import { createNode } from '../../src/index.js';
+import type { AvailableSpace, Dimension, LengthPercentage, LengthPercentageAuto, Node, Size, Style } from '../../src/index.js';
+import { parseAlignContent, parseAlignItems } from '../../src/index.js';
+import { ahemTextMeasure } from './measure.js';
+import type { WritingMode } from './measure.js';
+
+export interface ExpectedNode {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  children: ExpectedNode[];
+}
+
+export interface FixtureTest {
+  name: string;
+  useRounding: boolean;
+  viewport: Size<AvailableSpace>;
+  root: Node;
+  expected: ExpectedNode;
+  /** display values seen in the input tree (to detect block/grid fixtures) */
+  displays: Set<string>;
+}
+
+type XmlNode = Record<string, unknown> & { ':@'?: Record<string, string> };
+
+const parser = new XMLParser({
+  preserveOrder: true,
+  ignoreAttributes: false,
+  attributeNamePrefix: '',
+  trimValues: false,
+  parseTagValue: false,
+  parseAttributeValue: false,
+});
+
+export function parseFixture(xml: string): FixtureTest {
+  const doc = parser.parse(xml) as XmlNode[];
+  const testEl = doc.find((el) => 'test' in el);
+  if (!testEl) throw new Error('fixture has no <test> element');
+  const testAttrs = testEl[':@'] ?? {};
+  const children = testEl['test'] as XmlNode[];
+
+  const viewportEl = children.find((el) => 'viewport' in el);
+  const inputEl = children.find((el) => 'input' in el);
+  const expectationsEl = children.find((el) => 'expectations' in el);
+  if (!inputEl || !expectationsEl) throw new Error('fixture missing <input> or <expectations>');
+
+  const viewportAttrs = viewportEl?.[':@'] ?? {};
+  const viewport: Size<AvailableSpace> = {
+    width: parseAvailableSpace(viewportAttrs['width']),
+    height: parseAvailableSpace(viewportAttrs['height']),
+  };
+
+  const inputChildren = (inputEl['input'] as XmlNode[]).filter(isElement);
+  const expectationChildren = (expectationsEl['expectations'] as XmlNode[]).filter(isElement);
+  if (inputChildren.length !== 1 || expectationChildren.length !== 1) {
+    throw new Error('fixture must have exactly one root input/expectation node');
+  }
+
+  const displays = new Set<string>();
+  const root = buildNode(inputChildren[0]!, displays);
+  const expected = buildExpected(expectationChildren[0]!);
+
+  return {
+    name: testAttrs['name'] ?? 'unnamed',
+    useRounding: (testAttrs['use-rounding'] ?? 'true') !== 'false',
+    viewport,
+    root,
+    expected,
+    displays,
+  };
+}
+
+function isElement(el: XmlNode): boolean {
+  return !('#text' in el);
+}
+
+function elementTag(el: XmlNode): string {
+  const key = Object.keys(el).find((k) => k !== ':@' && k !== '#text');
+  if (!key) throw new Error('element has no tag');
+  return key;
+}
+
+function buildNode(el: XmlNode, displays: Set<string>): Node {
+  const tag = elementTag(el);
+  const attrs = el[':@'] ?? {};
+  const kids = (el[tag] as XmlNode[]) ?? [];
+  const elementChildren = kids.filter(isElement);
+  const style = buildStyle(attrs);
+  if (attrs['display'] !== undefined) displays.add(attrs['display']);
+
+  if (elementChildren.length > 0) {
+    return createNode({ style, children: elementChildren.map((child) => buildNode(child, displays)) });
+  }
+
+  // Leaf: text content (if any) measured with the Ahem font
+  const textContent = kids
+    .filter((k) => '#text' in k)
+    .map((k) => String(k['#text']))
+    .join('')
+    .trim();
+  if (textContent.length > 0) {
+    const writingMode: WritingMode = (attrs['writing-mode'] ?? '').includes('vertical') ? 'vertical' : 'horizontal';
+    return createNode({ style, measure: ahemTextMeasure(textContent, writingMode) });
+  }
+  return createNode({ style });
+}
+
+function buildExpected(el: XmlNode): ExpectedNode {
+  const tag = elementTag(el);
+  const attrs = el[':@'] ?? {};
+  const kids = ((el[tag] as XmlNode[]) ?? []).filter(isElement);
+  return {
+    x: parseFloat(attrs['x'] ?? '0'),
+    y: parseFloat(attrs['y'] ?? '0'),
+    width: parseFloat(attrs['width'] ?? '0'),
+    height: parseFloat(attrs['height'] ?? '0'),
+    children: kids.map(buildExpected),
+  };
+}
+
+function buildStyle(attrs: Record<string, string>): Partial<Style> {
+  const style: Partial<Style> = {
+    display: (attrs['display'] as Style['display']) ?? 'flex',
+    direction: (attrs['direction'] as Style['direction']) ?? 'ltr',
+    boxSizing: (attrs['box-sizing'] as Style['boxSizing']) ?? 'border-box',
+    overflow: {
+      x: (attrs['overflow-x'] as Style['overflow']['x']) ?? 'visible',
+      y: (attrs['overflow-y'] as Style['overflow']['y']) ?? 'visible',
+    },
+    scrollbarWidth: attrs['scrollbar-width'] !== undefined ? parseFloat(attrs['scrollbar-width']) : 0,
+    position: (attrs['position'] as Style['position']) ?? 'relative',
+    size: {
+      width: parseDimension(attrs['width'], 'auto'),
+      height: parseDimension(attrs['height'], 'auto'),
+    },
+    minSize: {
+      width: parseDimension(attrs['min-width'], 'auto'),
+      height: parseDimension(attrs['min-height'], 'auto'),
+    },
+    maxSize: {
+      width: parseDimension(attrs['max-width'], 'auto'),
+      height: parseDimension(attrs['max-height'], 'auto'),
+    },
+    inset: {
+      top: parseDimension(attrs['top'], 'auto'),
+      left: parseDimension(attrs['left'], 'auto'),
+      bottom: parseDimension(attrs['bottom'], 'auto'),
+      right: parseDimension(attrs['right'], 'auto'),
+    },
+    margin: {
+      top: parseDimension(attrs['margin-top'], 0),
+      left: parseDimension(attrs['margin-left'], 0),
+      bottom: parseDimension(attrs['margin-bottom'], 0),
+      right: parseDimension(attrs['margin-right'], 0),
+    },
+    padding: {
+      top: parseLengthPercentage(attrs['padding-top']),
+      left: parseLengthPercentage(attrs['padding-left']),
+      bottom: parseLengthPercentage(attrs['padding-bottom']),
+      right: parseLengthPercentage(attrs['padding-right']),
+    },
+    border: {
+      top: parseLengthPercentage(attrs['border-top']),
+      left: parseLengthPercentage(attrs['border-left']),
+      bottom: parseLengthPercentage(attrs['border-bottom']),
+      right: parseLengthPercentage(attrs['border-right']),
+    },
+    gap: {
+      width: parseLengthPercentage(attrs['column-gap']),
+      height: parseLengthPercentage(attrs['row-gap']),
+    },
+    aspectRatio: attrs['aspect-ratio'] !== undefined ? parseFloat(attrs['aspect-ratio']) : null,
+    textAlign: parseTextAlign(attrs['text-align']),
+    flexDirection: (attrs['flex-direction'] as Style['flexDirection']) ?? 'row',
+    flexWrap: (attrs['flex-wrap'] as Style['flexWrap']) ?? 'nowrap',
+    flexGrow: attrs['flex-grow'] !== undefined ? parseFloat(attrs['flex-grow']) : 0,
+    flexShrink: attrs['flex-shrink'] !== undefined ? parseFloat(attrs['flex-shrink']) : 1,
+    flexBasis: parseDimension(attrs['flex-basis'], 'auto'),
+  };
+
+  if (attrs['align-items'] !== undefined) style.alignItems = parseAlignItems(attrs['align-items']);
+  if (attrs['align-self'] !== undefined) style.alignSelf = parseAlignItems(attrs['align-self']);
+  if (attrs['align-content'] !== undefined) style.alignContent = parseAlignContent(attrs['align-content']);
+  if (attrs['justify-content'] !== undefined) style.justifyContent = parseAlignContent(attrs['justify-content']);
+
+  return style;
+}
+
+function parseDimension(input: string | undefined, fallback: Dimension): Dimension {
+  if (input === undefined) return fallback;
+  if (input === 'auto') return 'auto';
+  return parseLength(input);
+}
+
+function parseLengthPercentage(input: string | undefined): LengthPercentage {
+  if (input === undefined) return 0;
+  return parseLength(input);
+}
+
+function parseLength(input: string): LengthPercentage {
+  if (input.endsWith('%')) return { percent: parseFloat(input) / 100 };
+  return parseFloat(input);
+}
+
+function parseTextAlign(input: string | undefined): Style['textAlign'] {
+  switch (input) {
+    case '-webkit-left':
+      return 'legacy-left';
+    case '-webkit-right':
+      return 'legacy-right';
+    case '-webkit-center':
+      return 'legacy-center';
+    default:
+      return 'auto';
+  }
+}
+
+function parseAvailableSpace(input: string | undefined): AvailableSpace {
+  if (input === undefined || input === 'max-content') return 'max-content';
+  if (input === 'min-content') return 'min-content';
+  return parseFloat(input);
+}
+
+// Type-only re-export so tsc treats these as used
+export type { LengthPercentageAuto };

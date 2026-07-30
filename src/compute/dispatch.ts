@@ -1,0 +1,121 @@
+// Port of the layout dispatch in taffy/src/tree/taffy_tree.rs (compute_child_layout)
+// plus compute_cached_layout and compute_hidden_layout from compute/mod.rs.
+
+import type { Size } from '../geometry.js';
+import { sizeGetAbs } from '../geometry.js';
+import type { AbsoluteAxis } from '../geometry.js';
+import type { Opt } from '../math.js';
+import type { AvailableSpace } from '../style.js';
+import type { LayoutInput, LayoutOutput, Line, Node, SizingMode } from '../tree.js';
+import { LINE_FALSE, layoutOutputHidden, layoutWithOrder } from '../tree.js';
+import { computeBlockLayout } from './block.js';
+import type { BlockContext } from './block.js';
+import { computeFlexboxLayout } from './flexbox.js';
+import { computeLeafLayout } from './leaf.js';
+
+const HIDDEN_INPUT: LayoutInput = {
+  runMode: 'perform-hidden-layout',
+  sizingMode: 'inherent-size',
+  axis: 'both',
+  knownDimensions: { width: null, height: null },
+  parentSize: { width: null, height: null },
+  availableSpace: { width: 'max-content', height: 'max-content' },
+  verticalMarginsAreCollapsible: LINE_FALSE,
+};
+
+export function computeChildLayout(node: Node, inputs: LayoutInput, blockCtx?: BlockContext): LayoutOutput {
+  // If RunMode is PerformHiddenLayout then an ancestor node is display:none.
+  if (inputs.runMode === 'perform-hidden-layout') {
+    return computeHiddenLayout(node);
+  }
+
+  const cached = node.cache.get(inputs);
+  if (cached) return cached;
+
+  let output: LayoutOutput;
+  if (node.style.display === 'none') {
+    output = computeHiddenLayout(node);
+  } else if (node.style.display === 'block' && node.children.length > 0) {
+    output = computeBlockLayout(node, inputs, blockCtx);
+  } else if (node.children.length > 0) {
+    // ponytail: display:grid falls through to the flexbox algorithm — grid
+    // is not implemented in this package.
+    output = computeFlexboxLayout(node, inputs);
+  } else {
+    const measure = node.measure ?? (() => ({ width: 0, height: 0 }));
+    output = computeLeafLayout(inputs, node.style, measure);
+  }
+
+  node.cache.store(inputs, output);
+  return output;
+}
+
+export function computeHiddenLayout(node: Node): LayoutOutput {
+  node.cache.clear();
+  node.unroundedLayout = layoutWithOrder(0);
+  for (const child of node.children) {
+    computeChildLayout(child, HIDDEN_INPUT);
+  }
+  return layoutOutputHidden();
+}
+
+export function measureChildSize(
+  node: Node,
+  knownDimensions: Size<Opt>,
+  parentSize: Size<Opt>,
+  availableSpace: Size<AvailableSpace>,
+  sizingMode: SizingMode,
+  axis: AbsoluteAxis,
+  verticalMarginsAreCollapsible: Line<boolean> = LINE_FALSE,
+): number {
+  return sizeGetAbs(
+    computeChildLayout(node, {
+      knownDimensions,
+      parentSize,
+      availableSpace,
+      sizingMode,
+      axis,
+      runMode: 'compute-size',
+      verticalMarginsAreCollapsible,
+    }).size,
+    axis,
+  );
+}
+
+export function measureChildSizeBoth(
+  node: Node,
+  knownDimensions: Size<Opt>,
+  parentSize: Size<Opt>,
+  availableSpace: Size<AvailableSpace>,
+  sizingMode: SizingMode,
+  verticalMarginsAreCollapsible: Line<boolean> = LINE_FALSE,
+): Size<number> {
+  return computeChildLayout(node, {
+    knownDimensions,
+    parentSize,
+    availableSpace,
+    sizingMode,
+    axis: 'both',
+    runMode: 'compute-size',
+    verticalMarginsAreCollapsible,
+  }).size;
+}
+
+export function performChildLayout(
+  node: Node,
+  knownDimensions: Size<Opt>,
+  parentSize: Size<Opt>,
+  availableSpace: Size<AvailableSpace>,
+  sizingMode: SizingMode,
+  verticalMarginsAreCollapsible: Line<boolean> = LINE_FALSE,
+): LayoutOutput {
+  return computeChildLayout(node, {
+    knownDimensions,
+    parentSize,
+    availableSpace,
+    sizingMode,
+    axis: 'both',
+    runMode: 'perform-layout',
+    verticalMarginsAreCollapsible,
+  });
+}
