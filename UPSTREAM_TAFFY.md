@@ -1099,6 +1099,48 @@ Verified in Taffy: suspected (source-read, not executed).
 
 ---
 
+## 21. Auto margins do not reduce the free space handed to `justify-content`
+
+Main-axis `auto` margins absorb the line's positive free space, but the
+*original* `free_space` is then passed to both `apply_alignment_fallback` and
+`compute_alignment_offset`. The same space is therefore distributed twice —
+once into the margins and again by `justify-content` — and items are pushed
+past the end of the container.
+
+Per css-flexbox-1 §8.1 auto margins absorb free space *before* alignment, so
+once any auto margin has taken it, `justify-content` has nothing left to
+distribute.
+
+**Behaviour matrix** (Chrome 151.0.7922.47). Both rows: 200px wrap container,
+`justify-content: space-around`, `gap: 10px 20px`, six 30px items (lines of
+4 + 2), one item carrying `margin-left: auto`:
+
+| auto margin on | Chrome | Taffy / pre-fix |
+|---|---|---|
+| item 5 — first of the partial last line | line 2 at **120, 170** | **150, 260** |
+| item 2 — middle of the *full* first line | line 1 at **0, 70, 120, 170** | **3, 78, 133, 188** |
+
+The second row is the important one: this is not a partial-line bug. *Any*
+line holding an auto margin was mis-positioned, because `justify-content`
+re-distributed space the margin had already consumed. Note 260 in row 1 is
+past the 200px container.
+
+**Taffy source:** `src/compute/flexbox.rs:1666-1697` — `free_space` is computed
+once at the top of the loop, decremented nowhere, and reused at both
+`apply_alignment_fallback` and `compute_alignment_offset`.
+
+**Fix applied here:** `src/compute/flexbox.ts` tracks
+`freeSpaceAfterAutoMargins`, set to 0 when auto margins consume the space, and
+passes that to the alignment fallback and offset. Regression fixture
+`tests/html/flex/flex_auto_margins_absorb_free_space.html` covers both rows.
+
+Found via the imported WPT corpus (css-flexbox
+`flexbox-column-row-gap-003`).
+
+Verified in Taffy: suspected (source-read, not executed).
+
+---
+
 ## Not yet triaged
 
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they

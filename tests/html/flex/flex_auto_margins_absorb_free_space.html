@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<!--
+  Found via the imported WPT corpus (css-flexbox
+  flexbox-column-row-gap-003), minimized by hand.
+  date: 2026-07-30
+  chrome: Chrome/151.0.7922.47
+
+  Engine bug: auto margins absorbed the line's positive free space, but the
+  ORIGINAL free space was still handed to `justify-content` -- so the same
+  space was distributed twice and items were pushed past the container.
+  Per css-flexbox-1 8.1 auto margins absorb free space *before* alignment,
+  leaving justify-content nothing to distribute.
+
+  Both rows: 200px wrap container, `justify-content: space-around`,
+  `gap: 10px 20px`, six 30px items (so lines of 4 + 2). One item carries
+  `margin-left: auto`.
+    #a  auto margin on item 5 (first of the partial last line)
+        -> line 2 at x=120,170; engine gave 150,260 (260 is past the 200px box)
+    #b  auto margin on item 2 (middle of the FULL first line)
+        -> line 1 at x=0,70,120,170; engine gave 3,78,133,188
+  #b is the tell that this is not about partial lines: any line holding an
+  auto margin was wrong, because justify-content re-distributed space the
+  margin had already consumed.
+
+  NOTE: test_base_style.css sets `div { display: flex }`, so every element here
+  states its display explicitly.
+  Regenerate the XML fixtures with: pnpm gentest flex_auto_margins_absorb_free_space
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Auto margins absorb free space before justify-content (flex_auto_margins_absorb_free_space)
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+  <div style="display: flex; flex-wrap: wrap; width: 200px; justify-content: space-around; gap: 10px 20px;">
+    <div style="display: block; width: 30px; height: 30px;"></div>
+    <div style="display: block; width: 30px; height: 30px;"></div>
+    <div style="display: block; width: 30px; height: 30px;"></div>
+    <div style="display: block; width: 30px; height: 30px;"></div>
+    <div style="display: block; width: 30px; height: 30px; margin-left: auto;"></div>
+    <div style="display: block; width: 30px; height: 30px;"></div>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; width: 200px; justify-content: space-around; gap: 10px 20px;">
+    <div style="display: block; width: 30px; height: 30px;"></div>
+    <div style="display: block; width: 30px; height: 30px; margin-left: auto;"></div>
+    <div style="display: block; width: 30px; height: 30px;"></div>
+    <div style="display: block; width: 30px; height: 30px;"></div>
+    <div style="display: block; width: 30px; height: 30px;"></div>
+    <div style="display: block; width: 30px; height: 30px;"></div>
+  </div>
+</div>
+
+</body>
+</html>

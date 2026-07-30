@@ -1474,8 +1474,14 @@ function distributeRemainingFreeSpace(flexLines: FlexLine[], constants: AlgoCons
       if (rectMainEnd(child.marginIsAuto, constants.dir)) numAutoMargins++;
     }
 
+    // Auto margins absorb the line's positive free space *before* alignment, so
+    // `justify-content` then has nothing left to distribute (css-flexbox-1
+    // §8.1). Handing the pre-absorption free space to the alignment below
+    // distributes the same space twice and pushes items past the container.
+    let freeSpaceAfterAutoMargins = freeSpace;
     if (freeSpace > 0 && numAutoMargins > 0) {
       const margin = freeSpace / numAutoMargins;
+      freeSpaceAfterAutoMargins = 0;
 
       for (const child of line.items) {
         if (rectMainStart(child.marginIsAuto, constants.dir)) {
@@ -1493,10 +1499,17 @@ function distributeRemainingFreeSpace(flexLines: FlexLine[], constants: AlgoCons
     const layoutReverse = isReverse(constants.dir);
     const gap = main(constants.gap, constants.dir);
     const rawJustifyContentMode = constants.justifyContent ?? { keyword: 'flex-start', safe: false };
-    const justifyContentMode = applyAlignmentFallback(freeSpace, numItems, rawJustifyContentMode);
+    const justifyContentMode = applyAlignmentFallback(freeSpaceAfterAutoMargins, numItems, rawJustifyContentMode);
 
     const justifyItem = (child: FlexItem, i: number): void => {
-      child.offsetMain = computeAlignmentOffset(freeSpace, numItems, gap, justifyContentMode, layoutReverse, i === 0);
+      child.offsetMain = computeAlignmentOffset(
+        freeSpaceAfterAutoMargins,
+        numItems,
+        gap,
+        justifyContentMode,
+        layoutReverse,
+        i === 0,
+      );
     };
 
     if (layoutReverse) {
