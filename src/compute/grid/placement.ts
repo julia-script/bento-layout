@@ -320,11 +320,26 @@ function placeIndefinitelyPositionedItem(
       explicitColCount,
     );
 
-    // Compute secondary axis starting position for search
+    // Compute secondary axis starting position for search.
+    //
+    // The non-dense branch advances to the next secondary track when this
+    // item's primary start lies *behind* the flow cursor — i.e. placement
+    // wrapped backwards, so the item cannot share a track with what came
+    // before. That test must be relative to where the cursor could have
+    // legitimately reached: an item anchored to a negative line (in an axis
+    // whose implicit grid starts below zero) sits behind the *initial* cursor
+    // without anything having been placed yet, and must not skip a track.
+    // Comparing against the grid's own start line, rather than the raw cursor,
+    // keeps the wrap heuristic while excluding that case. Taffy compares the
+    // raw cursor (placement.rs `primary_span.start < primary_idx`), which
+    // leaves the first item a track too far along; found by differential
+    // fuzzing — see UPSTREAM_TAFFY.md.
     if (gridAutoFlowIsDense(autoFlow)) {
       secondaryIdx = secondaryStartPosition;
     } else {
-      const shouldAdvanceSecondary = primaryAxisIsReversed ? primarySpan.start > primaryIdx : primarySpan.start < primaryIdx;
+      const cursorHasMoved = primaryIdx !== primaryStartPosition;
+      const shouldAdvanceSecondary =
+        cursorHasMoved && (primaryAxisIsReversed ? primarySpan.start > primaryIdx : primarySpan.start < primaryIdx);
       if (shouldAdvanceSecondary) {
         secondaryIdx = advancePosition(secondaryIdx, secondaryAxisIsReversed);
       }

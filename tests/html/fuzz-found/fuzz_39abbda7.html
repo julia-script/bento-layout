@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: seed=1 index=1 (mode=mixed), triaged from the auto/-N class
+  date: 2026-07-30
+  chrome: Chrome/151.0.7922.47
+  Two engine bugs: (a) auto-placement cursor wrongly advanced a secondary
+  track for an item anchored behind the initial cursor; (b) the implicit
+  coalescing offset was derived from end lines, leaving auto-start items
+  one track below the origin.
+  Regenerate the XML fixtures with: pnpm gentest fuzz_39abbda7
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: auto-start negative end line, row axis (fuzz_39abbda7)
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; width: 100px; height: 60px;">
+  <div style="grid-row-start: auto; grid-row-end: -3;"></div>
+</div>
+
+</body>
+</html>

@@ -163,6 +163,58 @@ Trace where Taffy's final track counts actually settle before filing this one.
 
 ---
 
+## 4. Auto-placement skips a track for an item anchored behind the flow cursor
+
+**Verified in Taffy:** suspected (source read: `src/compute/grid/placement.rs:243-257`)
+
+**Taffy source:**
+
+```rust
+secondary_idx = match auto_flow.is_dense() {
+    true => secondary_axis_grid_start_line,
+    false => {
+        if primary_span.start < primary_idx {
+            secondary_idx + 1
+        } else {
+            secondary_idx
+        }
+    }
+};
+```
+
+The `primary_span.start < primary_idx` test means "placement wrapped backwards,
+so move to the next secondary track." But it compares against the raw cursor,
+which on the *first* item still sits at the grid start line. An item whose
+primary start is negative (an axis whose implicit grid extends below zero) is
+therefore treated as having wrapped when nothing has been placed yet, and skips
+a track.
+
+**Reproduction:**
+
+```html
+<div style="display: grid; width: 100px; height: 60px">
+  <div style="grid-column: auto / -3"></div>
+</div>
+```
+
+| | item y | item height |
+|---|--:|--:|
+| Chrome | 0 | **60** |
+| Engine (pre-fix) | 30 | **30** (placed in a second row) |
+
+**Spec:** css-grid-1 §8.5 — the auto-placement cursor starts at the
+start-most row; nothing licenses skipping it for the first item.
+
+**Fix applied here:** guard the advance on the cursor having actually moved
+(`primaryIdx !== primaryStartPosition`). See `src/compute/grid/placement.ts`;
+regression fixtures `tests/html/fuzz-found/fuzz_d3b5d30d.html` and
+`fuzz_39abbda7.html`.
+
+**Note:** this one is independent of entry 3 and reproduces regardless of the
+coalescing question, so it is the cleaner of the two grid entries to file.
+
+---
+
 ## Not yet triaged
 
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they
@@ -170,9 +222,6 @@ are not lost; each needs the same treatment before it can move up:
 
 - `aspect-ratio` combined with asymmetric padding/border on auto-sized leaves
   (pure px values) — suspected to be in the same leaf-sizing area as entry 1.
-- `grid-column: auto / -3` under template-less columns — may be a refinement
-  needed in entry 3's fix (auto-start placements arguably should not engage the
-  coalescing offset) rather than an upstream issue.
 - Percentage size plus large padding under a fully *definite* block root — not
   the cyclic-percentage class (see `KNOWN_DIVERGENCES.md`); suspected genuine
   block sizing bug.

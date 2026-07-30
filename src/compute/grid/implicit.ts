@@ -44,19 +44,25 @@ export function computeGridSizeEstimate(
   childStyles: Style[],
 ): [TrackCounts, TrackCounts, OzOffsets] {
   // Pass 1: raw (unmirrored, unshifted) aggregates to derive the offsets.
-  // Starts at -Infinity so an all-negative aggregate stays negative; a
-  // span-only or auto child contributes max=0, disabling the offset — that is
-  // deliberate: auto-placed items may flow anywhere, so coalescing is only
-  // safe when every child is line-anchored strictly before the origin.
-  let rawColMax = -Infinity;
-  let rawRowMax = -Infinity;
+  //
+  // The offset translates the occupied region so its first track starts at the
+  // origin, so it is derived from the smallest occupied *start* line. Deriving
+  // it from end lines instead leaves the region one track below the origin for
+  // auto-start items, which then forces a spurious negative track.
+  //
+  // Starts at +Infinity so an all-negative aggregate stays negative; a
+  // span-only child contributes 0, disabling the offset — deliberate, since a
+  // fully auto-placed item may flow anywhere and coalescing is only safe when
+  // every child is anchored strictly before the origin.
+  let rawColMin = Infinity;
+  let rawRowMin = Infinity;
   for (const childStyle of childStyles) {
-    rawColMax = Math.max(rawColMax, childMinLineMaxLineSpan(childStyle.gridColumn, explicitColCount)[1]);
-    rawRowMax = Math.max(rawRowMax, childMinLineMaxLineSpan(childStyle.gridRow, explicitRowCount)[1]);
+    rawColMin = Math.min(rawColMin, childOccupiedStartLine(childStyle.gridColumn, explicitColCount));
+    rawRowMin = Math.min(rawRowMin, childOccupiedStartLine(childStyle.gridRow, explicitRowCount));
   }
   const ozOffsets: OzOffsets = {
-    col: explicitColCount === 0 && Number.isFinite(rawColMax) && rawColMax < 0 ? -rawColMax : 0,
-    row: explicitRowCount === 0 && Number.isFinite(rawRowMax) && rawRowMax < 0 ? -rawRowMax : 0,
+    col: explicitColCount === 0 && Number.isFinite(rawColMin) && rawColMin < 0 ? -rawColMin : 0,
+    row: explicitRowCount === 0 && Number.isFinite(rawRowMin) && rawRowMin < 0 ? -rawRowMin : 0,
   };
 
   let colMin = 0;
@@ -124,6 +130,24 @@ export function computeGridSizeEstimate(
     },
     ozOffsets,
   ];
+}
+
+/**
+ * The oz line an item's occupied track *starts* at, or 0 when the item is not
+ * line-anchored (which disables coalescing — see computeGridSizeEstimate).
+ * A lone end line at L means the item occupies L-1 → L, so its start is L-1.
+ */
+function childOccupiedStartLine(
+  line: { start: import('../../style.js').GridPlacement; end: import('../../style.js').GridPlacement },
+  explicitTrackCount: number,
+): number {
+  const { start, end } = placementLineIntoOriginZero(line, explicitTrackCount);
+  if (ozIsLine(start) && ozIsLine(end)) {
+    return start.line === end.line ? start.line : Math.min(start.line, end.line);
+  }
+  if (ozIsLine(start)) return start.line;
+  if (ozIsLine(end)) return ozIsSpan(start) ? end.line - start.span : end.line - 1;
+  return 0;
 }
 
 /**
