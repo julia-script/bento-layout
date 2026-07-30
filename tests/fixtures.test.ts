@@ -13,19 +13,9 @@ import type { ExpectedNode } from './harness/fixture.js';
 const FIXTURES_ROOT = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
 const TOLERANCE = 0.1;
 
-const allBoxVariants = (names: string[]): string[] =>
-  names.flatMap((name) => [
-    `${name}__border_box_ltr`,
-    `${name}__border_box_rtl`,
-    `${name}__content_box_ltr`,
-    `${name}__content_box_rtl`,
-  ]);
-
-// Fixtures whose expectations require layout algorithms this package does not
-// implement: trees containing display:grid containers (grid templates).
+// All vendored fixtures run — flexbox, block, and grid are all implemented.
 const SKIP_BY_DIR: Record<string, ReadonlySet<string>> = {
-  // Grid-rooted skips removed once the grid port lands (port-taffy-grid-layout 4.1)
-  flex: new Set(allBoxVariants(['bevy_issue_10343_grid', 'bevy_issue_21240'])),
+  flex: new Set(),
   block: new Set(),
   blockflex: new Set(),
   grid: new Set(),

@@ -1,11 +1,12 @@
 # flexboxjs
 
-A TypeScript-only port of [Taffy](https://github.com/DioxusLabs/taffy)'s CSS flexbox
-and block layout algorithms. Zero runtime dependencies, no WASM — plain objects in,
-pixel positions out.
+A TypeScript-only port of [Taffy](https://github.com/DioxusLabs/taffy)'s CSS
+flexbox, CSS Grid, and block layout algorithms. Zero runtime dependencies, no
+WASM — plain objects in, pixel positions out.
 
-Verified against **3,140 Chrome-derived conformance fixtures** from Taffy's test
-suite (see [Conformance](#conformance)).
+Verified against **4,368 Chrome-derived conformance fixtures** from Taffy's test
+suite — every fixture Taffy ships for these layout modes, none skipped (see
+[Conformance](#conformance)).
 
 ## Usage
 
@@ -30,11 +31,17 @@ child2.layout; // { location: { x: 205, y: 0 }, size: { width: 195, height: 300 
 Styles mirror CSS, as plain data:
 
 - Lengths: `100` (px), `{ percent: 0.5 }` (fraction, not 0–100), `'auto'`
-- `display` (`'flex'` or `'block'`), `position` (`relative`/`absolute` with `inset`), `boxSizing`, `direction` (`ltr`/`rtl`)
+- `display` (`'flex'`, `'grid'`, or `'block'`), `position` (`relative`/`absolute` with `inset`), `boxSizing`, `direction` (`ltr`/`rtl`)
 - `size` / `minSize` / `maxSize`, `aspectRatio`
 - `margin` (supports `'auto'`; vertical block margins collapse per CSS 2.2), `padding`, `border`, `gap`
 - `flexDirection`, `flexWrap`, `flexGrow`, `flexShrink`, `flexBasis`
-- `alignItems` / `alignSelf` / `alignContent` / `justifyContent`
+- `gridTemplateRows` / `gridTemplateColumns` — arrays of track sizes: `40`,
+  `{ percent: 0.1 }`, `'auto'`, `'min-content'`, `'max-content'`, `{ fr: 1 }`,
+  `{ fitContent: 30 }`, `{ min, max }` (minmax), and
+  `{ repeat: 3 | 'auto-fill' | 'auto-fit', tracks: [...] }`
+- `gridAutoRows` / `gridAutoColumns`, `gridAutoFlow` (`'row'`/`'column'`, `-dense`),
+  `gridRow` / `gridColumn` placements (`{ line: n }` incl. negative, `{ span: n }`, `'auto'`)
+- `alignItems` / `alignSelf` / `alignContent` / `justifyContent` / `justifyItems` / `justifySelf`
   (e.g. `{ keyword: 'center', safe: true }`, or parse from CSS strings with
   `parseAlignItems('safe center')`)
 - `textAlign` for block containers (`legacy-left`/`legacy-right`/`legacy-center`)
@@ -63,19 +70,18 @@ as `node.layout` and `node.unroundedLayout`.
 input trees plus layout expectations generated from real Chrome renders. The
 pinned upstream commit is recorded in `tests/fixtures/TAFFY_COMMIT`.
 
-- 3,140 fixtures pass: 2,244 `flex`, 868 `block`, 28 `blockflex`
-  (0.1px tolerance, both `box-sizing` modes, ltr and rtl)
-- 8 fixtures are skipped because their trees require CSS Grid, which this
-  package deliberately does not implement (see the skip list in
-  `tests/fixtures.test.ts`)
+All 4,368 fixtures pass, none skipped: 2,252 `flex`, 868 `block`, 28
+`blockflex`, 1,140 `grid`, 56 `blockgrid`, 24 `gridflex` (0.1px tolerance,
+both `box-sizing` modes, ltr and rtl).
 
 ## Scope
 
-Flexbox, CSS block layout, and the full box model. Not implemented: CSS Grid,
-floats, `calc()`, inline layout. The port follows Taffy's algorithm structure
-closely (`src/compute/flexbox.ts` and `src/compute/block.ts` map
-section-by-section to Taffy's `compute/flexbox.rs` and `compute/block.rs`), so
-future upstream fixes are easy to carry over.
+Flexbox, CSS Grid, CSS block layout, and the full box model. Not implemented:
+named grid lines / `grid-template-areas`, floats, `calc()`, inline layout,
+subgrid. The port follows Taffy's algorithm structure closely
+(`src/compute/flexbox.ts`, `src/compute/block.ts`, and `src/compute/grid/*` map
+module-by-module to Taffy's `compute/`), so future upstream fixes are easy to
+carry over.
 
 ## Development
 

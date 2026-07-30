@@ -326,7 +326,10 @@ export function trackResolvedPercentageSize(
 }
 
 export function trackUsesPercentage(v: MinTrackSizingFunction | MaxTrackSizingFunction): boolean {
-  return typeof v === 'object' && 'percent' in v;
+  if (typeof v !== 'object') return false;
+  if ('percent' in v) return true;
+  // fit-content(<percent>) also counts as using a percentage
+  return 'fitContent' in v && typeof v.fitContent === 'object';
 }
 
 export function maxHasDefiniteValue(max: MaxTrackSizingFunction, parentSize: Opt): boolean {

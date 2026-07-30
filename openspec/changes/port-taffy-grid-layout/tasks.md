@@ -13,13 +13,13 @@
 
 ## 3. Track sizing & layout
 
-- [ ] 3.1 Port `mod.rs` orchestration (compute_grid_layout: available space, track resolution, item generation)
-- [ ] 3.2 Port `track_sizing.rs` (intrinsic contributions, spanned-item distribution, fr resolution, minmax clamping, stretch)
-- [ ] 3.3 Port `alignment.rs` (item alignment in areas, content alignment of tracks) and final item layout
-- [ ] 3.4 Port absolute positioning of grid children; wire `display: 'grid'` dispatch and delete the fall-through
-- [ ] 3.5 Drive `grid` fixture pass rate to 1,140/1,140
+- [x] 3.1 Port `mod.rs` orchestration (compute_grid_layout: available space, track resolution, item generation)
+- [x] 3.2 Port `track_sizing.rs` (intrinsic contributions, spanned-item distribution, fr resolution, minmax clamping, stretch)
+- [x] 3.3 Port `alignment.rs` (item alignment in areas, content alignment of tracks) and final item layout
+- [x] 3.4 Port absolute positioning of grid children; wire `display: 'grid'` dispatch and delete the fall-through
+- [x] 3.5 Drive `grid` fixture pass rate to 1,140/1,140
 
 ## 4. Interop & finish
 
-- [ ] 4.1 Drive `blockgrid` (56) and `gridflex` (24) to green; empty the flex skip list (8 grid-rooted fixtures pass); full suite green with zero skips
-- [ ] 4.2 Update README (scope, conformance counts, grid style docs); `pnpm build` + `pnpm test` green
+- [x] 4.1 Drive `blockgrid` (56) and `gridflex` (24) to green; empty the flex skip list (8 grid-rooted fixtures pass); full suite green with zero skips
+- [x] 4.2 Update README (scope, conformance counts, grid style docs); `pnpm build` + `pnpm test` green

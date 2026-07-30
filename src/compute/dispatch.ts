@@ -11,6 +11,7 @@ import { LINE_FALSE, layoutOutputHidden, layoutWithOrder } from '../tree.js';
 import { computeBlockLayout } from './block.js';
 import type { BlockContext } from './block.js';
 import { computeFlexboxLayout } from './flexbox.js';
+import { computeGridLayout } from './grid/mod.js';
 import { computeLeafLayout } from './leaf.js';
 
 const HIDDEN_INPUT: LayoutInput = {
@@ -37,9 +38,9 @@ export function computeChildLayout(node: Node, inputs: LayoutInput, blockCtx?: B
     output = computeHiddenLayout(node);
   } else if (node.style.display === 'block' && node.children.length > 0) {
     output = computeBlockLayout(node, inputs, blockCtx);
+  } else if (node.style.display === 'grid' && node.children.length > 0) {
+    output = computeGridLayout(node, inputs);
   } else if (node.children.length > 0) {
-    // ponytail: display:grid falls through to the flexbox algorithm — grid
-    // is not implemented in this package.
     output = computeFlexboxLayout(node, inputs);
   } else {
     const measure = node.measure ?? (() => ({ width: 0, height: 0 }));
