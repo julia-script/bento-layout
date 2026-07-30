@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: campaign seed=20260731 (mode=flex), minimized by hand
+  date: 2026-07-30
+  chrome: Chrome/151.0.7922.47
+  Engine bug (taffy-inherited): the cross-to-main half of the aspect-ratio
+  transfer ignored box-sizing. In a column container the width is the input and
+  the height is derived, and that direction divided the border box. Both the
+  flex base size and the automatic minimum size need the box-sizing-aware
+  transfer -- with only the base size fixed the item transferred correctly and
+  was then shrunk back to the container's main size.
+  Regenerate the XML fixtures with: pnpm gentest fuzz_flex_ar_contentbox_column
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: flex aspect-ratio cross-to-main respects box-sizing (fuzz_flex_ar_contentbox_column)
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex; flex-direction: column; width: 100px; height: 60px;">
+  <div style="aspect-ratio: 2; border-width: 20px 20px 10px 3px; border-style: solid;"></div>
+</div>
+
+</body>
+</html>

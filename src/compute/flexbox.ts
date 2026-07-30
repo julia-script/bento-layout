@@ -504,6 +504,40 @@ function generateAnonymousFlexItems(node: Node, constants: AlgoConstants): FlexI
 }
 
 /**
+ * Transfer a size between axes through an item's `aspect-ratio`.
+ *
+ * The ratio relates the two axes of the box named by `box-sizing`, so under
+ * `content-box` it must operate on the *content* box: the source axis's
+ * padding+border is stripped before the ratio is applied and the target axis's
+ * is added back. Sizes flowing through the flex algorithm are border-box
+ * values, so applying the ratio to them directly is correct only under
+ * `border-box`.
+ *
+ * `direction` names which way the transfer runs, in flex-relative terms.
+ */
+function transferThroughRatio(
+  sourceSize: number,
+  child: FlexItem,
+  dir: FlexDirection,
+  direction: 'cross-to-main' | 'main-to-cross',
+): number {
+  const ratio = child.aspectRatio as number;
+  const toMain = direction === 'cross-to-main';
+  // Whether the *target* axis is horizontal decides which way the ratio applies:
+  // aspect-ratio is width/height, so producing a width multiplies and producing
+  // a height divides.
+  const targetIsHorizontal = dirIsRow(dir) === toMain;
+  const apply = (v: number): number => (targetIsHorizontal ? v * ratio : v / ratio);
+
+  if (child.node.style.boxSizing !== 'content-box') return apply(sourceSize);
+
+  const pb = rectAdd(child.padding, child.border);
+  const sourcePb = toMain ? rectCrossAxisSum(pb, dir) : rectMainAxisSum(pb, dir);
+  const targetPb = toMain ? rectMainAxisSum(pb, dir) : rectCrossAxisSum(pb, dir);
+  return apply(Math.max(sourceSize - sourcePb, 0)) + targetPb;
+}
+
+/**
  * Determine the available main and cross space for the flex items.
  * # [9.2. Line Length Determination](https://www.w3.org/TR/css-flexbox-1/#line-sizing)
  */
@@ -627,9 +661,7 @@ function determineFlexBaseSize(
       const crossKnown = cross(childKnownDimensions, dir);
       const transferredMain =
         mainSize === null && child.aspectRatio !== null && crossKnown !== null
-          ? constants.isRow
-            ? crossKnown * child.aspectRatio
-            : crossKnown / child.aspectRatio
+          ? transferThroughRatio(crossKnown, child, dir, 'cross-to-main')
           : null;
       const definiteFlexBasis = flexBasis ?? mainSize ?? transferredMain;
       if (definiteFlexBasis !== null) return definiteFlexBasis;
@@ -721,9 +753,7 @@ function determineFlexBaseSize(
         const definiteCross = cross(childKnownDimensions, dir);
         const transferredMain =
           child.aspectRatio !== null && definiteCross !== null
-            ? constants.isRow
-              ? definiteCross * child.aspectRatio
-              : definiteCross / child.aspectRatio
+            ? transferThroughRatio(definiteCross, child, dir, 'cross-to-main')
             : null;
         const sizeSuggestion =
           transferredMain !== null
@@ -1162,17 +1192,10 @@ function determineHypotheticalCrossSize(
     // `targetSize` is always a border-box value, so dividing it directly is
     // correct only under border-box (same defect as the leaf floor in
     // src/compute/leaf.ts).
-    const arDerivedCross = ((): number | null => {
-      if (child.aspectRatio === null) return null;
-      const targetMain = main(child.targetSize, constants.dir);
-      if (child.node.style.boxSizing !== 'content-box') {
-        return constants.isRow ? targetMain / child.aspectRatio : targetMain * child.aspectRatio;
-      }
-      const mainPbSum = rectMainAxisSum(rectAdd(child.padding, child.border), constants.dir);
-      const contentMain = Math.max(targetMain - mainPbSum, 0);
-      const contentCross = constants.isRow ? contentMain / child.aspectRatio : contentMain * child.aspectRatio;
-      return contentCross + paddingBorderSum;
-    })();
+    const arDerivedCross =
+      child.aspectRatio !== null
+        ? transferThroughRatio(main(child.targetSize, constants.dir), child, constants.dir, 'main-to-cross')
+        : null;
 
     const childCross = mMax(
       mClamp(cross(child.size, constants.dir) ?? arDerivedCross, transferredMinCross, transferredMaxCross),

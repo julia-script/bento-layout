@@ -469,14 +469,44 @@ Horizontal border 23, vertical border 30, ratio 0.5:
 | Chrome | **30** (content 0 x 0, plus 30 vertical border) |
 | Engine (pre-fix) | **46** (23 / 0.5, i.e. the border box) |
 
-**Fix applied here:** under `content-box`, strip the main-axis padding+border
-before applying the ratio and add the cross-axis sum back. See
-`src/compute/flexbox.ts`; regression fixture
-`tests/html/fuzz-found/fuzz_flex_ar_contentbox.html`.
+**The cross-to-main direction has the same omission**, and in a column
+container it is the one that runs:
 
-**Note:** this fixes the main-to-cross direction only. The cross-to-main
-direction has the same omission and is still open — see the untriaged list
-below. Anyone fixing this upstream should fix both together.
+```html
+<div style="display: flex; flex-direction: column; box-sizing: content-box;
+            width: 100px; height: 60px">
+  <div style="aspect-ratio: 2; border-width: 20px 20px 10px 3px;
+              border-style: solid"></div>
+</div>
+```
+
+| | item height |
+|---|--:|
+| Chrome | **69** (content width 100−23 = 77, 77/2 = 38.5, plus 30 border) |
+| Engine (pre-fix) | **50** (100 / 2, i.e. the border box) |
+
+There are **three** sites in total, and they must be fixed together:
+
+1. the automatic cross size derived from the used main size (main-to-cross),
+2. the flex base size transferred from a definite cross size (cross-to-main),
+3. the automatic minimum size's transferred suggestion (cross-to-main).
+
+Fixing only 1 and 2 leaves the column case at 60 rather than 50 — the item
+transfers correctly and is then shrunk back to the container's main size,
+because the automatic minimum that should floor it is still computed on the
+border box.
+
+**Fix applied here:** a single `transferThroughRatio(size, item, dir,
+direction)` helper that strips the source axis's padding+border, applies the
+ratio, and adds the target axis's back when `box-sizing` is `content-box`; all
+three sites call it. See `src/compute/flexbox.ts`; regression fixtures
+`tests/html/fuzz-found/fuzz_flex_ar_contentbox.html` (main-to-cross) and
+`fuzz_flex_ar_contentbox_column.html` (cross-to-main).
+
+**Note:** the three sites had three separate copies of the raw
+`size * ratio` / `size / ratio` arithmetic, which is why the omission was
+easy to fix in one place and miss in the others. Worth checking whether the
+same duplication exists upstream before patching.
 
 ---
 
@@ -485,22 +515,6 @@ below. Anyone fixing this upstream should fix both together.
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they
 are not lost; each needs the same treatment before it can move up:
 
-- **Flexbox aspect-ratio *cross-to-main* under content-box** — the other half of
-  entry 9. In a column container the cross (width) size is the input and the
-  main (height) is derived, and that direction still divides the border box:
-
-  ```html
-  <div style="display: flex; flex-direction: column; box-sizing: content-box;
-              width: 100px; height: 60px">
-    <div style="aspect-ratio: 2; border-width: 20px 20px 10px 3px;
-                border-style: solid"></div>
-  </div>
-  ```
-
-  Chrome gives the item height **69** (content width 100−23 = 77, 77/2 = 38.5,
-  plus 30 vertical border = 68.5), the engine **50**. Confirmed pre-existing —
-  it reproduces identically before and after the entry-9 fix, so it is a
-  separate site, not a regression.
 - **`fuzz_408e514f`** — percentage padding on an aspect-ratio flex item under a
   `height: auto` root, **content-box only**: Chrome collapses the root and item
   to height 8, the engine to 100. Percentage padding against an indefinite
