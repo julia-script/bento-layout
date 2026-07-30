@@ -13,6 +13,8 @@ import type { Node, Style, TrackSizingFunction } from '../src/index.js';
 
 const WARMUP = 3;
 const SAMPLES = 10;
+/** Per-scenario fixed measurement window for the iteration-count metric. */
+const FIXED_WINDOW_MS = Number(process.env['BENCH_WINDOW_MS'] ?? 2000);
 
 function countNodes(node: Node): number {
   return 1 + node.children.reduce((sum, c) => sum + countNodes(c), 0);
@@ -35,7 +37,44 @@ function wideFlex(childCount: number): Node {
   });
 }
 
-function deepFlex(depth: number, branch: number): Node {
+/**
+ * Port of taffy's `build_deep_hierarchy` (benches/src/lib.rs) as used by its
+ * `Deep tree (auto size)` benchmark, so ratios against taffy compare like with
+ * like. Every leaf and container gets the same style — `flex_grow: 1` plus a
+ * uniform margin — the root is a default style, and layout runs with
+ * max-content available space in both axes (taffy passes `(None, None)`).
+ *
+ * Note the single (default row) flex direction: alternating it per level, as
+ * `deepFlexAlternating` does, is a much heavier workload and has no counterpart
+ * in taffy's suite.
+ */
+function taffyDeepFlex(maxNodes: number, branch: number): Node {
+  const itemStyle = (): Partial<Style> => ({
+    flexGrow: 1,
+    margin: { left: 10, right: 10, top: 10, bottom: 10 },
+  });
+  // Mirrors taffy's recursion: each level splits `(max_nodes - branch) / branch`
+  // among `branch` children, bottoming out in leaves once the budget is small.
+  const buildForest = (budget: number): Node[] => {
+    if (budget <= branch) {
+      return Array.from({ length: Math.max(budget, 0) }, () => createNode({ style: itemStyle() }));
+    }
+    const childBudget = Math.floor((budget - branch) / branch);
+    return Array.from({ length: branch }, () =>
+      createNode({ style: itemStyle(), children: buildForest(childBudget) }),
+    );
+  };
+  return createNode({ style: {}, children: buildForest(maxNodes) });
+}
+
+/**
+ * Engine-only stress case: alternates flex direction per level, adds padding on
+ * every container and a fixed size on every leaf. The alternation forces
+ * repeated cross-axis measurement and costs roughly 3.8x the compute-size calls
+ * per node that a uniform-direction tree of the same shape does. Taffy has no
+ * equivalent benchmark, so this scenario carries no cross-engine ratio.
+ */
+function deepFlexAlternating(depth: number, branch: number): Node {
   const build = (level: number): Node => {
     if (level === 0) {
       return createNode({ style: { size: { width: 10, height: 10 }, flexGrow: 1 } });
@@ -122,15 +161,31 @@ function mixedPage(sections: number): Node {
 
 // --- Runner ------------------------------------------------------------------
 
+/**
+ * Describes the tree a scenario measures, so a published figure can state its
+ * shape (see BENCHMARKS.md - Methodology). `comparable` marks scenarios whose
+ * shape matches a taffy benchmark and may therefore carry a cross-engine ratio.
+ */
+interface Shape {
+  depth?: number | 'flat';
+  branch?: number;
+  flexDirection?: string;
+  style: string;
+  comparable: boolean;
+}
+
 interface Result {
   name: string;
   nodes: number;
   medianMs: number;
   minMs: number;
   nodesPerSec: number;
+  /** Iterations completed in a fixed window; stabler than the median on heavy trees. */
+  itersPerSec: number;
+  shape: Shape;
 }
 
-function bench(name: string, tree: Node): Result {
+function bench(name: string, tree: Node, shape: Shape): Result {
   const nodes = countNodes(tree);
   const availableSpace = { width: 'max-content', height: 'max-content' } as const;
 
@@ -146,33 +201,64 @@ function bench(name: string, tree: Node): Result {
   times.sort((a, b) => a - b);
   const medianMs = times[Math.floor(times.length / 2)]!;
   const minMs = times[0]!;
-  return { name, nodes, medianMs, minMs, nodesPerSec: Math.round(nodes / (medianMs / 1000)) };
+
+  // Fixed-time throughput. At SAMPLES=10 the median is noise-dominated on the
+  // heavy scenarios, so this is the metric to compare across engine changes.
+  const windowStart = process.hrtime.bigint();
+  let iters = 0;
+  while (Number(process.hrtime.bigint() - windowStart) / 1e6 < FIXED_WINDOW_MS) {
+    computeLayout(tree, availableSpace);
+    iters++;
+  }
+  const elapsedSec = Number(process.hrtime.bigint() - windowStart) / 1e9;
+
+  return {
+    name,
+    nodes,
+    medianMs,
+    minMs,
+    nodesPerSec: Math.round(nodes / (medianMs / 1000)),
+    itersPerSec: iters / elapsedSec,
+    shape,
+  };
 }
 
-const scenarios: [string, () => Node][] = [
-  ['flex: wide (10 children)', () => wideFlex(10)],
-  ['flex: wide (100 children)', () => wideFlex(100)],
-  ['flex: wide (1,000 children)', () => wideFlex(1_000)],
-  ['flex: wide (10,000 children)', () => wideFlex(10_000)],
-  ['flex: deep (depth 10, branch 2 — 2,047 nodes)', () => deepFlex(10, 2)],
-  ['flex: deep (depth 7, branch 3 — 3,280 nodes)', () => deepFlex(7, 3)],
-  ['grid: 10x10', () => gridNxN(10)],
-  ['grid: 32x32', () => gridNxN(32)],
-  ['grid: 100x100', () => gridNxN(100)],
-  ['block: 1,000 stacked (margin collapsing)', () => blockStack(1_000)],
-  ['block: 10,000 stacked (margin collapsing)', () => blockStack(10_000)],
-  ['mixed page: 10 sections', () => mixedPage(10)],
-  ['mixed page: 100 sections', () => mixedPage(100)],
+const FLAT: Shape['depth'] = 'flat';
+
+const scenarios: [string, () => Node, Shape][] = [
+  // Wide/flat trees. Taffy's "Wide tree (2-level hierarchy)" is the comparable case.
+  ['flex: wide (10 children)', () => wideFlex(10), { depth: FLAT, flexDirection: 'row (wrap)', style: 'fixed size, margin 1, gap 2', comparable: true }],
+  ['flex: wide (100 children)', () => wideFlex(100), { depth: FLAT, flexDirection: 'row (wrap)', style: 'fixed size, margin 1, gap 2', comparable: true }],
+  ['flex: wide (1,000 children)', () => wideFlex(1_000), { depth: FLAT, flexDirection: 'row (wrap)', style: 'fixed size, margin 1, gap 2', comparable: true }],
+  ['flex: wide (10,000 children)', () => wideFlex(10_000), { depth: FLAT, flexDirection: 'row (wrap)', style: 'fixed size, margin 1, gap 2', comparable: true }],
+
+  // Deep trees matching taffy's `Deep tree (auto size)` shape.
+  ['flex: deep taffy-shape (~4,000 nodes)', () => taffyDeepFlex(4_000, 2), { branch: 2, flexDirection: 'row (uniform)', style: 'flexGrow 1, margin 10', comparable: true }],
+  ['flex: deep taffy-shape (~10,000 nodes)', () => taffyDeepFlex(10_000, 2), { branch: 2, flexDirection: 'row (uniform)', style: 'flexGrow 1, margin 10', comparable: true }],
+
+  // Engine-only stress cases: no taffy counterpart, so no cross-engine ratio.
+  ['flex: deep alternating-axis (stress, depth 10, branch 2)', () => deepFlexAlternating(10, 2), { depth: 10, branch: 2, flexDirection: 'alternating row/column', style: 'flexGrow 1, padding 1, sized leaves', comparable: false }],
+  ['flex: deep alternating-axis (stress, depth 7, branch 3)', () => deepFlexAlternating(7, 3), { depth: 7, branch: 3, flexDirection: 'alternating row/column', style: 'flexGrow 1, padding 1, sized leaves', comparable: false }],
+
+  ['grid: 10x10', () => gridNxN(10), { depth: FLAT, style: 'auto/1fr tracks, gap 2', comparable: true }],
+  ['grid: 32x32', () => gridNxN(32), { depth: FLAT, style: 'auto/1fr tracks, gap 2', comparable: true }],
+  ['grid: 100x100', () => gridNxN(100), { depth: FLAT, style: 'auto/1fr tracks, gap 2', comparable: true }],
+  ['block: 1,000 stacked (margin collapsing)', () => blockStack(1_000), { depth: FLAT, style: 'display block, collapsing margins', comparable: false }],
+  ['block: 10,000 stacked (margin collapsing)', () => blockStack(10_000), { depth: FLAT, style: 'display block, collapsing margins', comparable: false }],
+  ['mixed page: 10 sections', () => mixedPage(10), { style: 'block > flex rows > grid panels', comparable: false }],
+  ['mixed page: 100 sections', () => mixedPage(100), { style: 'block > flex rows > grid panels', comparable: false }],
 ];
 
 const results: Result[] = [];
-for (const [name, build] of scenarios) {
-  const result = bench(name, build());
+for (const [name, build, shape] of scenarios) {
+  const result = bench(name, build(), shape);
   results.push(result);
   console.log(
-    `${result.name.padEnd(48)} ${String(result.nodes).padStart(7)} nodes  ` +
+    `${result.name.padEnd(56)} ${String(result.nodes).padStart(7)} nodes  ` +
       `${result.medianMs.toFixed(2).padStart(9)} ms median  ` +
-      `${String(result.nodesPerSec.toLocaleString('en-US')).padStart(12)} nodes/s`,
+      `${result.itersPerSec.toFixed(1).padStart(9)} it/s  ` +
+      `${String(result.nodesPerSec.toLocaleString('en-US')).padStart(12)} nodes/s` +
+      `${result.shape.comparable ? '' : '  [engine-only]'}`,
   );
 }
 
