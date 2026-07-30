@@ -725,9 +725,18 @@ function determineFlexBaseSize(
             dir,
             crossAxisAvailableSpace,
           );
+          // The *content* size suggestion must be measured without the cross
+          // size imposed: with it, an item that has an `aspect-ratio` derives
+          // its main size straight from the ratio and never consults its
+          // content, so content wider than the ratio is invisible here. The
+          // ratio's own contribution arrives separately as `transferredMain`
+          // below, and the two are joined — they are distinct suggestions in
+          // css-flexbox-1 §4.5, not alternatives.
+          const contentMeasureKnownDimensions =
+            child.aspectRatio !== null ? withCross(childKnownDimensions, dir, null) : childKnownDimensions;
           return measureChildSize(
             child.node,
-            childKnownDimensions,
+            contentMeasureKnownDimensions,
             childParentSize,
             childAvailableSpace,
             'content-size',
@@ -737,10 +746,11 @@ function determineFlexBaseSize(
 
         // 4.5. Automatic Minimum Size of Flex Items.
         //
-        // The content-based minimum is the *content size suggestion* capped by
-        // the *specified size suggestion* — but an item whose ratio has a
-        // definite cross size also has a *transferred size suggestion*, and
-        // that one replaces the content suggestion rather than joining it.
+        // The content-based minimum is the *content size suggestion*, joined by
+        // the *transferred size suggestion* when the item's ratio has a definite
+        // cross size, and capped by the *specified size suggestion*. The
+        // transferred suggestion adds to the content one rather than replacing
+        // it: content that overflows the ratio still floors the item.
         //
         // Verified against Chrome, all in a 20px-wide row container:
         //   ratio 2, height 320, width auto  -> floors at 640 (transferred)
@@ -748,6 +758,13 @@ function determineFlexBaseSize(
         //   ratio 2, height 320, width 50    -> floors at  50 (specified < transferred)
         //   no ratio, width 50               -> shrinks to 20 (a specified main
         //     size is not a floor by itself; only the ratio creates one)
+        // and, in a 200px block with a `aspect-ratio: 4` flex parent:
+        //   ratio 1 (cross 50 -> transfers 50), content 100 -> floors at 100
+        //   ratio 1, content 20                              -> floors at  50
+        //   ratio 1, content 100, `min-width: 0`             -> floors at  50
+        //   ratio 1, content 100, `overflow: hidden`         -> floors at  50
+        // The last two are the tell that this really is the §4.5 automatic
+        // minimum: both remove it, and both collapse the item back to the ratio.
         //
         // The cross size counts as definite when it comes from *stretching* as
         // well as from the item's own style, so this reads childKnownDimensions
@@ -767,7 +784,7 @@ function determineFlexBaseSize(
             : null;
         const sizeSuggestion =
           transferredMain !== null
-            ? mMin(transferredMain, main(rawStyleSize, dir))
+            ? mMin(Math.max(transferredMain, minContentMainSize), main(rawStyleSize, dir))
             : mMin(minContentMainSize, main(child.size, dir));
         const clampedMinContentSize = mMin(sizeSuggestion, main(transferredMaxSize, dir)) as number;
         return vMax(clampedMinContentSize, main(paddingBorderAxesSums, dir));

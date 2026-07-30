@@ -1049,6 +1049,56 @@ Verified in Taffy: suspected (source-read, not executed).
 
 ---
 
+## 20. The content size suggestion is measured with the cross size imposed
+
+The *content size suggestion* of css-flexbox-1 §4.5 is measured by passing
+`child_known_dimensions` straight through. For an item with an `aspect-ratio`
+that struct already carries a definite cross size (from the item's own style or
+from stretching), so the measurement derives the main size from the ratio and
+never consults the item's content. Content wider than the ratio is therefore
+invisible to the automatic minimum, and the item shrinks below its own
+content.
+
+The ratio's contribution is a *separate* suggestion (the transferred size
+suggestion). §4.5 joins the two; measuring one through the other collapses them
+into a single value and loses whichever is larger.
+
+**Behaviour matrix** (Chrome 151.0.7922.47). All rows: 200px block >
+`aspect-ratio: 4` flex container (so 200x50) > item with `aspect-ratio: 1`
+(its cross of 50 transfers a main of 50) > content of the given width:
+
+| item | Chrome | Taffy / pre-fix |
+|---|---|---|
+| content 100 (wider than ratio) | **100** | **50** |
+| content 20 | 50 | 50 (control) |
+| content 50 | 50 | 50 (control) |
+| content 100, `min-width: 0` | 50 | 50 (control) |
+| content 100, `overflow: hidden` | 50 | 50 (control) |
+| content 100, `width: 70` | 70 | 70 (control) |
+
+Rows 4 and 5 are the diagnostic ones: `min-width: 0` and `overflow: hidden`
+both remove the automatic minimum, and both collapse the item back to the
+ratio-derived 50 — confirming the 100 in row 1 comes from §4.5 and not from
+some other floor.
+
+**Taffy source:** `src/compute/flexbox.rs:795-808` — `measure_child_size(...,
+child_known_dimensions, ...)` inside the `min_content_main_size` block.
+
+**Fix applied here:** `src/compute/flexbox.ts` clears the cross axis of the
+known dimensions for that one measurement when the child has an aspect ratio,
+leaving the transferred suggestion to contribute the ratio's own floor
+separately. Regression fixture
+`tests/html/flex/flex_ar_item_content_exceeds_ratio.html` covers all six rows.
+
+Note this is the same statement family as entry #8 (which established that the
+transferred suggestion must not be *erased* by a zero content size); together
+they say the two suggestions are independent and neither may override the
+other. Entry #8's four-row matrix is retained as a regression control here.
+
+Verified in Taffy: suspected (source-read, not executed).
+
+---
+
 ## Not yet triaged
 
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they

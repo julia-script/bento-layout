@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<!--
+  Found via the imported WPT corpus (css-flexbox
+  flex-aspect-ratio-cross-size-002), minimized by hand.
+  date: 2026-07-30
+  chrome: Chrome/151.0.7922.47
+
+  Engine bug: the *content size suggestion* of css-flexbox-1 4.5 was measured
+  with the item's cross size imposed. An item with an `aspect-ratio` therefore
+  derived its main size straight from the ratio and never consulted its own
+  content, so content wider than the ratio was invisible to the automatic
+  minimum. The ratio's contribution (the *transferred* size suggestion) arrives
+  separately; the two are distinct suggestions that join, not alternatives.
+
+  All rows below: 200px block > `aspect-ratio: 4` flex (so 200x50) > item with
+  `aspect-ratio: 1` (cross 50 transfers a main of 50) > content of varying width.
+    #a  content 100 (> ratio)          -> 100 (engine gave 50)
+    #b  content 20  (< ratio)          ->  50
+    #c  content 50  (= ratio)          ->  50
+    #d  content 100, `min-width: 0`    ->  50
+    #e  content 100, `overflow: hidden`->  50
+    #f  content 100, `width: 70`       ->  70
+
+  #d and #e are the tell that this is really the 4.5 automatic minimum: both
+  remove it, and both collapse the item back to the ratio-derived 50.
+
+  NOTE: test_base_style.css sets `div { display: flex }`, so every element here
+  states its display explicitly.
+  Regenerate the XML fixtures with: pnpm gentest flex_ar_item_content_exceeds_ratio
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Content wider than an item's ratio floors it (flex_ar_item_content_exceeds_ratio)
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+  <div style="display: block; width: 200px;"><div style="display: flex; aspect-ratio: 4;">
+    <div style="display: flex; aspect-ratio: 1;"><div style="display: block; width: 100px;"></div></div>
+  </div></div>
+  <div style="display: block; width: 200px;"><div style="display: flex; aspect-ratio: 4;">
+    <div style="display: flex; aspect-ratio: 1;"><div style="display: block; width: 20px;"></div></div>
+  </div></div>
+  <div style="display: block; width: 200px;"><div style="display: flex; aspect-ratio: 4;">
+    <div style="display: flex; aspect-ratio: 1;"><div style="display: block; width: 50px;"></div></div>
+  </div></div>
+  <div style="display: block; width: 200px;"><div style="display: flex; aspect-ratio: 4;">
+    <div style="display: flex; aspect-ratio: 1; min-width: 0;"><div style="display: block; width: 100px;"></div></div>
+  </div></div>
+  <div style="display: block; width: 200px;"><div style="display: flex; aspect-ratio: 4;">
+    <div style="display: flex; aspect-ratio: 1; overflow: hidden;"><div style="display: block; width: 100px;"></div></div>
+  </div></div>
+  <div style="display: block; width: 200px;"><div style="display: flex; aspect-ratio: 4;">
+    <div style="display: flex; aspect-ratio: 1; width: 70px;"><div style="display: block; width: 100px;"></div></div>
+  </div></div>
+</div>
+
+</body>
+</html>
