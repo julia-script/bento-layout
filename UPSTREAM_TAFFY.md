@@ -755,6 +755,31 @@ cases; the border_box variants fail without the fix).
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they
 are not lost; each needs the same treatment before it can move up:
 
+- **Grid percentage padding basis (open, one fix attempt reverted).** A grid
+  item with a percentage padding contributes the wrong amount to inline track
+  sizing. In a 7px-wide grid container with `padding-left: 10%;
+  padding-right: 20px; overflow-x: scroll`, Chrome makes the item 22 wide and
+  this engine 21; at `padding-left: 100%` it is Chrome 40 vs engine 27.
+
+  Confirmed mechanism: while the inline axis is being sized the item's grid
+  area width is still null, so `resolveOrZero(padding, gridAreaSize.width)`
+  drops the percentage entirely (instrumentation showed `pb.width` = 20 where
+  it should be 20.7).
+
+  **A fix that routes these through `innerNodeSize` — which is what Taffy does
+  (`grid_item.rs:466-467`, and it passes `inner_node_size` as the child's
+  `parent_size` at `:384`) — is NOT correct here and was reverted.** It fixes
+  nothing in the scroll case and *regresses* the non-scroll case: `padding-left:
+  100%; padding-right: 20px` without `overflow` goes from a correct 40 to 47.
+  So the two paths genuinely need different percentage bases, and matching
+  Taffy's parameter wiring one-for-one is not sufficient. Whoever picks this up
+  should build the probe matrix over {percent value} x {scroll, no-scroll} x
+  {with, without a fixed padding on the opposite side} *first* — the scroll flag
+  changes which branch of the automatic minimum size runs, and that interacts
+  with the basis question.
+
+  Probes are saved in the scratchpad as `k1`–`k9`; `k9` (no scroll) is the
+  regression control that must keep passing.
 - **`fuzz_408e514f`** — percentage padding on an aspect-ratio flex item under a
   `height: auto` root, **content-box only**: Chrome collapses the root and item
   to height 8, the engine to 100. Percentage padding against an indefinite
