@@ -841,7 +841,17 @@ export function itemMinimumContribution(
 
   // The size suggestion is additionally clamped by the maximum size in the affected axis.
   const limit = itemSpannedFixedTrackLimit(item, axis, axisTracks, absGet(innerNodeSize, axis));
-  return mMin(size, limit) as number;
+
+  // The minimum contribution is an *outer* size, and a border box is never
+  // smaller than its own padding+border — so the contribution floors at the pb
+  // sum even when `overflow: scroll` makes the automatic minimum size 0.
+  // Without the floor an auto track based on such an item collapses to the
+  // container's free space instead of the pb sum: Chrome sizes the track to 20
+  // for a `padding: 10% 20px` scroll item in a 7px grid (percentages drop to 0
+  // at this stage and re-resolve against the final area later), the engine
+  // sized it to 7. Taffy has no such floor (grid_item.rs minimum_contribution),
+  // though its flexbox §4.5 equivalent does floor by padding_border.
+  return Math.max(mMin(size, limit) as number, absGet(paddingBorderSize, axis));
 }
 
 export function itemMinimumContributionCached(

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: campaign seed=20260731 (mode=grid), minimized by hand
+  date: 2026-07-30
+  chrome: Chrome/151.0.7922.47
+  Engine bug: the grid minimum contribution is an OUTER size, so it floors at
+  the item's padding+border sum -- even when overflow: scroll makes the
+  automatic minimum size 0. Without the floor the auto track collapsed to the
+  container's free space (7) instead of the pb sum (20), and the item's
+  percentage padding then re-resolved against the wrong grid area:
+  padding: 10% 20px in a 7px grid must be 22 wide (track 20, then .1*20+20),
+  the engine gave 21; at 50% it is 30 vs 24.
+  Percentages drop to 0 during the contribution (the area is still null) and
+  re-resolve against the final area at layout -- that part was already correct
+  and is what the second child exercises without scroll.
+  Regenerate the XML fixtures with: pnpm gentest fuzz_grid_min_contribution_pb_floor
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: grid minimum contribution floors at padding+border (fuzz_grid_min_contribution_pb_floor)
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+  <div style="display: grid; width: 7px; height: 10px;">
+    <div style="overflow-x: scroll; padding: 3px 20px 20px 10%;"></div>
+  </div>
+  <div style="display: grid; width: 7px; height: 10px;">
+    <div style="overflow-x: scroll; padding: 3px 20px 20px 50%;"></div>
+  </div>
+  <div style="display: grid; width: 7px; height: 10px;">
+    <div style="padding: 3px 20px 20px 100%;"></div>
+  </div>
+</div>
+
+</body>
+</html>
