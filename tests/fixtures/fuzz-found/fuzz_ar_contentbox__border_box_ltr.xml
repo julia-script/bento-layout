@@ -1,0 +1,13 @@
+<test name="fuzz_ar_contentbox__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" direction="ltr" width="300px" height="400px">
+      <div direction="ltr" aspect-ratio="1.5" padding-top="7px" padding-left="10px" padding-bottom="13px" padding-right="30px" border-top="5px" border-left="2px" border-bottom="9px" border-right="4px"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="300" height="400">
+      <node x="0" y="0" width="300" height="200"/>
+    </node>
+  </expectations>
+</test>

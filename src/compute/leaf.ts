@@ -143,12 +143,19 @@ export function computeLeafLayout(inputs: LayoutInput, style: Style, measureFunc
   // with aspect-ratio plus both dimensions definite; found by differential
   // fuzzing (tests/html/fuzz-found).
   const heightIsAutomatic = knownDimensions.height === null && !styleHeightIsDefinite;
+  // `aspect-ratio` relates the two axes of the box named by `box-sizing`, so
+  // under content-box the ratio applies to the *content* box: strip the
+  // horizontal padding+border before dividing, then add the vertical back.
+  // Under border-box `clampedSize.width` already is the ratio's box.
+  const arHeight =
+    heightIsAutomatic && aspectRatio !== null
+      ? (style.boxSizing === 'content-box'
+          ? Math.max(clampedSize.width - pbSum.width, 0) / aspectRatio + pbSum.height
+          : clampedSize.width / aspectRatio)
+      : 0;
   const size = {
     width: Math.max(clampedSize.width, pbSum.width),
-    height: Math.max(
-      Math.max(clampedSize.height, heightIsAutomatic && aspectRatio !== null ? clampedSize.width / aspectRatio : 0),
-      pbSum.height,
-    ),
+    height: Math.max(Math.max(clampedSize.height, arHeight), pbSum.height),
   };
 
   return {

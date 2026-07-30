@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: campaign seed=20260730 (mode=mixed), minimized by hand
+  date: 2026-07-30
+  chrome: Chrome/151.0.7922.47
+  Engine bug (taffy-inherited): the leaf aspect-ratio floor divided the
+  border-box width regardless of box-sizing. Under content-box the ratio
+  relates the two axes of the *content* box, so the horizontal padding+border
+  must be stripped before dividing and the vertical added back afterwards.
+  Only visible in the content_box_* variants.
+  Regenerate the XML fixtures with: pnpm gentest fuzz_ar_contentbox
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: aspect-ratio applies to the content box under content-box sizing (fuzz_ar_contentbox)
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: block; width: 300px; height: 400px;">
+  <div style="aspect-ratio: 1.5; padding: 7px 30px 13px 10px; border-width: 5px 4px 9px 2px; border-style: solid;"></div>
+</div>
+
+</body>
+</html>

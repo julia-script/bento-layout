@@ -265,18 +265,69 @@ too.
 
 ---
 
+## 6. Leaf aspect-ratio floor ignores `box-sizing`
+
+**Verified in Taffy:** suspected (source read: `src/compute/leaf.rs:147-150`)
+
+Same statement as entry 1, but an independent defect: entry 1 is the missing
+*automatic-height* gate, this one is the missing *box-sizing* term. Fixing
+either alone leaves the other.
+
+**Taffy source:**
+
+```rust
+let size = Size {
+    width: clamped_size.width,
+    height: f32_max(clamped_size.height, aspect_ratio.map(|ratio| clamped_size.width / ratio).unwrap_or(0.0)),
+};
+```
+
+`clamped_size.width` is the **border-box** width. Dividing it by the ratio is
+correct only under `box-sizing: border-box`. Under `content-box` the ratio
+relates the two axes of the *content* box, so the horizontal padding+border
+must be subtracted before dividing and the vertical added back after.
+
+**Reproduction:** an auto-height leaf with `aspect-ratio` and horizontal
+padding/border, under `box-sizing: content-box`:
+
+```html
+<div style="display: block; box-sizing: content-box; width: 300px; height: 400px">
+  <div style="aspect-ratio: 1.5; padding: 7px 30px 13px 10px;
+              border-width: 5px 4px 9px 2px; border-style: solid"></div>
+</div>
+```
+
+| | child height |
+|---|--:|
+| Chrome | **203** ((300−46)/1.5 + 34) |
+| Engine (pre-fix) | **200** (300/1.5, border box) |
+
+The starker form is a leaf whose horizontal border dominates: with
+`aspect-ratio: 2; border-left: 1px; border-right: 120px` in a 300px-wide
+container, Chrome gives height **90** ((300−121)/2) and the engine gave **150**.
+
+**Spec:** css-sizing-4 §5 — `aspect-ratio` applies to the box named by
+`box-sizing`; only under `border-box` is the border box the ratio's box.
+
+**Fix applied here:** under `content-box`, strip `pbSum.width` before dividing
+and add `pbSum.height` back. See `src/compute/leaf.ts`; regression fixture
+`tests/html/fuzz-found/fuzz_ar_contentbox.html` (the `content_box_ltr` and
+`content_box_rtl` variants fail without the fix, the border-box pair passes
+either way).
+
+**Note:** border-box behaviour is unchanged by the fix, so upstreaming this
+cannot regress the common case. Worth checking whether the equivalent
+`maybe_apply_aspect_ratio` call sites elsewhere in Taffy (block, flexbox, grid)
+share the omission — in this port those sites apply the ratio to *style* sizes
+before the box-sizing adjustment is added, which is correct, so only the leaf
+floor was affected.
+
+---
+
 ## Not yet triaged
 
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they
 are not lost; each needs the same treatment before it can move up:
 
-- `aspect-ratio` on an auto-sized leaf with padding/border, **content-box
-  only**. The ratio is applied to the border-box width rather than the content
-  box: `aspect-ratio: 2; border-left: 1px; border-right: 120px` gives Chrome
-  `121x0` under `box-sizing: content-box` (content 0x0 plus 121px of horizontal
-  border) but the engine derives height `121/2 = 61` from the border-box width.
-  Border-box variants already match, which is why single-variant triage missed
-  it. One bidirectional-floor fix was attempted and reverted — it addressed a
-  mis-diagnosed symptom and changed nothing; the actual fix must make the ratio
-  operate on the content box under content-box sizing. Source area:
-  `src/compute/leaf.ts` size computation.
+- _(none currently — the aspect-ratio/content-box class was triaged and became
+  entry 6 above.)_
