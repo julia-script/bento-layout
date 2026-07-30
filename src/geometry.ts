@@ -101,6 +101,56 @@ export function maybeApplyAspectRatio(s: Size<number | null>, aspectRatio: numbe
   return { ...s };
 }
 
+/**
+ * Transfer a min/max constraint through `aspect-ratio` onto the *stretched*
+ * axis only (css-sizing-4 §5.2.2 constrains the ratio-determined size).
+ *
+ * A block child's inline axis is stretched by its parent, so `max-height: 20;
+ * aspect-ratio: 2` caps that width at 40 — the constraint reaches the width
+ * only because the width has no size of its own to hold it. Where the axis
+ * instead takes its size from content or from a specified value, the transfer
+ * must not apply: `max-width: 40; aspect-ratio: 2` around 60px of text is
+ * 40x60, not 40x20, and `width: 80` with `max-height: 20` stays 80 wide.
+ * Taffy transfers unconditionally, so it caps overflowing content too.
+ */
+export function transferConstraintToStretchedAxis(
+  constraint: Size<number | null>,
+  styleSize: Size<number | null>,
+  aspectRatio: number | null,
+  stretched: Size<boolean>,
+): Size<number | null> {
+  if (aspectRatio === null) return { ...constraint };
+  const transferred = maybeApplyAspectRatio(constraint, aspectRatio);
+  return {
+    width: stretched.width && styleSize.width === null ? transferred.width : constraint.width,
+    height: stretched.height && styleSize.height === null ? transferred.height : constraint.height,
+  };
+}
+
+/**
+ * The ratio-derived axis follows the *used* value of the specified one, so each
+ * specified axis is clamped by its own min/max before the ratio fills in the
+ * other (css-sizing-4 §5.2.2). Sizes here are border-box, matching min/max.
+ */
+export function applyAspectRatioClamped(
+  size: Size<number | null>,
+  minSize: Size<number | null>,
+  maxSize: Size<number | null>,
+  aspectRatio: number | null,
+): Size<number | null> {
+  const clamp = (v: number | null, min: number | null, max: number | null): number | null => {
+    if (v === null) return null;
+    let out = v;
+    if (max !== null) out = Math.min(out, max);
+    if (min !== null) out = Math.max(out, min);
+    return out;
+  };
+  return maybeApplyAspectRatio(
+    { width: clamp(size.width, minSize.width, maxSize.width), height: clamp(size.height, minSize.height, maxSize.height) },
+    aspectRatio,
+  );
+}
+
 // --- Rect helpers
 
 export const rect = <T>(left: T, right: T, top: T, bottom: T): Rect<T> => ({ left, right, top, bottom });

@@ -1,0 +1,69 @@
+<test name="fuzz_leaf_ar_minmax_transfer__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" box-sizing="content-box" direction="rtl">
+      <div display="block" box-sizing="content-box" direction="rtl" width="900px">
+        <div display="block" box-sizing="content-box" direction="rtl" height="200px" min-width="900px" aspect-ratio="2"/>
+      </div>
+      <div display="block" box-sizing="content-box" direction="rtl" width="900px">
+        <div display="block" box-sizing="content-box" direction="rtl" width="200px" min-height="900px" aspect-ratio="2"/>
+      </div>
+      <div display="block" box-sizing="content-box" direction="rtl" width="900px">
+        <div display="block" box-sizing="content-box" direction="rtl" height="200px" max-width="3px" aspect-ratio="2"/>
+      </div>
+      <div display="block" box-sizing="content-box" direction="rtl" width="900px">
+        <div display="block" box-sizing="content-box" direction="rtl" width="200px" max-height="3px" aspect-ratio="2"/>
+      </div>
+      <div display="block" box-sizing="content-box" direction="rtl" width="900px">
+        <div display="block" box-sizing="content-box" direction="rtl" width="200px" max-width="3px" aspect-ratio="2"/>
+      </div>
+      <div display="block" box-sizing="content-box" direction="rtl" width="900px">
+        <text display="block" box-sizing="content-box" direction="rtl" max-width="40px" aspect-ratio="2">
+          HH​HH​HH​HH​HH​HH​HH​HH​HH​HH​HH
+        </text>
+      </div>
+      <div display="block" box-sizing="content-box" direction="rtl" width="900px">
+        <div display="block" box-sizing="content-box" direction="rtl" min-width="900px" aspect-ratio="2"/>
+      </div>
+      <div display="block" box-sizing="content-box" direction="rtl" width="100px">
+        <text display="block" box-sizing="content-box" direction="rtl" width="80px" max-height="20px" aspect-ratio="2">
+          HH​HH​HH​HH
+        </text>
+      </div>
+      <div display="block" box-sizing="content-box" direction="rtl" width="100px">
+        <div display="block" box-sizing="content-box" direction="rtl" max-height="20px" aspect-ratio="2"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="900" height="1855">
+      <node x="0" y="0" width="900" height="200">
+        <node x="0" y="0" width="900" height="200"/>
+      </node>
+      <node x="0" y="200" width="900" height="900">
+        <node x="700" y="0" width="200" height="900"/>
+      </node>
+      <node x="0" y="1100" width="900" height="200">
+        <node x="897" y="0" width="3" height="200"/>
+      </node>
+      <node x="0" y="1300" width="900" height="3">
+        <node x="700" y="0" width="200" height="3"/>
+      </node>
+      <node x="0" y="1303" width="900" height="2">
+        <node x="897" y="0" width="3" height="2"/>
+      </node>
+      <node x="0" y="1305" width="900" height="60">
+        <node x="860" y="0" width="40" height="60"/>
+      </node>
+      <node x="0" y="1365" width="900" height="450">
+        <node x="0" y="0" width="900" height="450"/>
+      </node>
+      <node x="800" y="1815" width="100" height="20">
+        <node x="20" y="0" width="80" height="20"/>
+      </node>
+      <node x="800" y="1835" width="100" height="20">
+        <node x="60" y="0" width="40" height="20"/>
+      </node>
+    </node>
+  </expectations>
+</test>

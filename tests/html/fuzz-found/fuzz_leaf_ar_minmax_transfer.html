@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: campaign seed=20260731 (mode=grid, trees 13/23), minimized by hand
+  date: 2026-07-30
+  chrome: Chrome/151.0.7922.47
+  Engine bug: min/max size interacted with `aspect-ratio` two ways, both wrong.
+
+  1. The constraint transferred through the ratio onto the OTHER AXIS's min/max
+     unconditionally. It may only reach an axis that is *stretched* (has no size
+     of its own to hold it) -- css-sizing-4 5.2.2 bounds the ratio-DERIVED size,
+     not the axis. Transferring everywhere both re-derived axes that have a size
+     and capped content that legitimately overflows the ratio:
+       #a height:200 ar:2 min-width:900  -> 900x200 (not 900x450)
+       #b width:200  ar:2 min-height:900 -> 200x900 (not 1800x900)
+       #f max-width:40 ar:2 + 60px of text, auto-width root -> 40x60 (not 40x20)
+       #h width:80 ar:2 max-height:20, stretched root -> 80x20: a specified
+          width takes no transfer
+     ...but it IS needed where the axis really is stretched, which is why
+     removing it outright regressed block_aspect_ratio_fill_max_width:
+       #i ar:2 max-height:20, empty, stretched to a 100px root -> 40x20, the
+          max-height transfers through the ratio to cap the stretched width
+
+  2. The ratio derived the automatic axis from the PRE-CLAMP value of the
+     specified one, and the AR floor then un-clamped an axis its own max-size
+     had already limited.
+       #c height:200 ar:2 max-width:3 -> 3x200   (engine gave 400x200)
+       #d width:200  ar:2 max-height:3 -> 200x3  (engine gave 200x100)
+       #e width:200  ar:2 max-width:3 -> 3x2     (engine gave 3x100)
+
+  #g is the no-constraint control: the transfer itself is correct when the other
+  axis is genuinely being derived (both axes auto -> 900x450).
+
+  Each case gets its own wrapper with a DEFINITE width. Both matter: under one
+  shared root the cases fight over the root's width, and under an auto-width
+  wrapper a stretched child's width still depends on the widest sibling -- #f
+  read 40x20 for that reason in two earlier versions of this file, not because
+  of the rule under test.
+  NOTE: test_base_style.css sets `div { display: flex }`, so every element here
+  states `display: block` explicitly -- without it these become flex containers
+  and exercise a different sizing path than the one under test.
+  Regenerate the XML fixtures with: pnpm gentest fuzz_leaf_ar_minmax_transfer
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: aspect-ratio min/max constraints transfer only into a stretched axis (fuzz_leaf_ar_minmax_transfer)
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+  <div style="display: block; width: 900px;"><div style="display: block; aspect-ratio: 2; height: 200px; min-width: 900px;"></div></div>
+  <div style="display: block; width: 900px;"><div style="display: block; aspect-ratio: 2; width: 200px; min-height: 900px;"></div></div>
+  <div style="display: block; width: 900px;"><div style="display: block; aspect-ratio: 2; height: 200px; max-width: 3px;"></div></div>
+  <div style="display: block; width: 900px;"><div style="display: block; aspect-ratio: 2; width: 200px; max-height: 3px;"></div></div>
+  <div style="display: block; width: 900px;"><div style="display: block; aspect-ratio: 2; width: 200px; max-width: 3px;"></div></div>
+  <div style="display: block; width: 900px;"><div style="display: block; aspect-ratio: 2; max-width: 40px;">HH&ZeroWidthSpace;HH&ZeroWidthSpace;HH&ZeroWidthSpace;HH&ZeroWidthSpace;HH&ZeroWidthSpace;HH&ZeroWidthSpace;HH&ZeroWidthSpace;HH&ZeroWidthSpace;HH&ZeroWidthSpace;HH&ZeroWidthSpace;HH</div></div>
+  <div style="display: block; width: 900px;"><div style="display: block; aspect-ratio: 2; min-width: 900px;"></div></div>
+  <div style="display: block; width: 100px;"><div style="display: block; aspect-ratio: 2; width: 80px; max-height: 20px;">HH&ZeroWidthSpace;HH&ZeroWidthSpace;HH&ZeroWidthSpace;HH</div></div>
+  <div style="display: block; width: 100px;"><div style="display: block; aspect-ratio: 2; max-height: 20px;"></div></div>
+</div>
+
+</body>
+</html>

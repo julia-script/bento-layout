@@ -1,6 +1,12 @@
 // Port of taffy/src/compute/leaf.rs (block-layout margin-collapsing paths dropped).
 
-import { maybeApplyAspectRatio, pointNone, rectAdd, sizeZero, sumAxes } from '../geometry.js';
+import {
+  applyAspectRatioClamped,
+  pointNone,
+  rectAdd,
+  sizeZero,
+  sumAxes,
+} from '../geometry.js';
 import type { Size } from '../geometry.js';
 import { vClamp, vMax } from '../math.js';
 import type { Opt } from '../math.js';
@@ -37,19 +43,34 @@ export function computeLeafLayout(inputs: LayoutInput, style: Style, measureFunc
     const rawStyleSize = maybeResolveSize(style.size, parentSize);
     styleHeightIsDefinite = rawStyleSize.height !== null;
     styleWidthIsDefinite = rawStyleSize.width !== null;
-    const styleSize = maybeAdd(maybeApplyAspectRatio(rawStyleSize, aspectRatio), boxSizingAdjustment);
-    const styleMinSize = maybeAdd(
-      maybeApplyAspectRatio(maybeResolveSize(style.minSize, parentSize), aspectRatio),
-      boxSizingAdjustment,
+    const rawMinSize = maybeAdd(maybeResolveSize(style.minSize, parentSize), boxSizingAdjustment);
+    const rawMaxSize = maybeAdd(maybeResolveSize(style.maxSize, parentSize), boxSizingAdjustment);
+    // The ratio derives the automatic axis from the *used* value of the
+    // specified one, so each specified axis is clamped by its own min/max first:
+    // `width: 200; aspect-ratio: 2; max-width: 3` is 3x2 in Chrome (the height
+    // follows the clamped 3), not 3x100. Taffy applies the ratio to the raw
+    // style size, so the derived axis keeps following the pre-clamp value.
+    const styleSize = applyAspectRatioClamped(
+      maybeAdd(rawStyleSize, boxSizingAdjustment),
+      rawMinSize,
+      rawMaxSize,
+      aspectRatio,
     );
-    const styleMaxSize = maybeAdd(maybeResolveSize(style.maxSize, parentSize), boxSizingAdjustment);
 
     nodeSize = {
       width: knownDimensions.width ?? styleSize.width,
       height: knownDimensions.height ?? styleSize.height,
     };
-    nodeMinSize = styleMinSize;
-    nodeMaxSize = styleMaxSize;
+    // A min/max constraint does NOT transfer through the ratio onto the other
+    // axis's constraint: it bounds the ratio-*derived* size (handled by
+    // `styleSize` above and by the ratio floor below), never the axis itself,
+    // so content that overflows the ratio still wins — `max-width: 40;
+    // aspect-ratio: 2` around 60px of text is 40x60 in Chrome, not 40x20, while
+    // the same box empty is 40x20 either way. Taffy transfers onto
+    // min_size/max_size, so it caps the content and also re-derives axes that
+    // have a size of their own.
+    nodeMinSize = rawMinSize;
+    nodeMaxSize = rawMaxSize;
   }
 
   // Scrollbar gutters are reserved when `overflow` is Scroll (axes transposed).
@@ -178,9 +199,14 @@ export function computeLeafLayout(inputs: LayoutInput, style: Style, measureFunc
   const arSourceHeight = sizingMode === 'content-size' ? pbSum.height : flooredHeight;
   const arHeight = heightIsAutomatic && floorAspectRatio !== null ? transferToHeight(arSourceWidth) : 0;
   const arWidth = widthIsAutomatic && floorAspectRatio !== null ? transferToWidth(arSourceHeight) : 0;
+  // The ratio transfer is a *floor*, but a floor never wins over the box's own
+  // max-size: `height: 200; aspect-ratio: 2; max-width: 3` is 3 wide in Chrome,
+  // not 400. Re-clamp the transferred value so the max survives the max() above
+  // (the pb floor below it is exempt — a border box is never smaller than its
+  // own padding+border, even under a smaller max-size).
   const size = {
-    width: Math.max(flooredWidth, arWidth),
-    height: Math.max(flooredHeight, arHeight),
+    width: Math.max(flooredWidth, vClamp(arWidth, null, nodeMaxSize.width)),
+    height: Math.max(flooredHeight, vClamp(arHeight, null, nodeMaxSize.height)),
   };
 
   return {

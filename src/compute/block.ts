@@ -3,7 +3,14 @@
 // Function names and section comments follow the Rust source for traceability.
 
 import type { Point, Rect, Size } from '../geometry.js';
-import { maybeApplyAspectRatio, rectAdd, sizeZero, sumAxes } from '../geometry.js';
+import {
+  applyAspectRatioClamped,
+  maybeApplyAspectRatio,
+  rectAdd,
+  sizeZero,
+  sumAxes,
+  transferConstraintToStretchedAxis,
+} from '../geometry.js';
 import { mMax, mSub, vClamp, vMax, vSub } from '../math.js';
 import type { Opt } from '../math.js';
 import {
@@ -412,17 +419,28 @@ function generateItemList(node: Node, nodeInnerSize: Size<Opt>): BlockItem[] {
       node: child,
       order: order++,
       isInSameBfc,
-      size: maybeAddSize(
-        maybeApplyAspectRatio(maybeResolveSize(childStyle.size, nodeInnerSize), aspectRatio),
-        boxSizingAdjustment,
+      // The ratio derives from the *clamped* specified size, so an axis with a
+      // size of its own is never re-derived from the other axis's constraint.
+      size: applyAspectRatioClamped(
+        maybeAddSize(maybeResolveSize(childStyle.size, nodeInnerSize), boxSizingAdjustment),
+        maybeAddSize(maybeResolveSize(childStyle.minSize, nodeInnerSize), boxSizingAdjustment),
+        maybeAddSize(maybeResolveSize(childStyle.maxSize, nodeInnerSize), boxSizingAdjustment),
+        aspectRatio,
       ),
-      minSize: maybeAddSize(
-        maybeApplyAspectRatio(maybeResolveSize(childStyle.minSize, nodeInnerSize), aspectRatio),
-        boxSizingAdjustment,
+      // A block child in normal flow stretches its inline axis only, so that is
+      // the one axis a constraint may transfer into. See
+      // transferConstraintToStretchedAxis.
+      minSize: transferConstraintToStretchedAxis(
+        maybeAddSize(maybeResolveSize(childStyle.minSize, nodeInnerSize), boxSizingAdjustment),
+        maybeResolveSize(childStyle.size, nodeInnerSize),
+        aspectRatio,
+        BLOCK_STRETCHES_INLINE_AXIS,
       ),
-      maxSize: maybeAddSize(
-        maybeApplyAspectRatio(maybeResolveSize(childStyle.maxSize, nodeInnerSize), aspectRatio),
-        boxSizingAdjustment,
+      maxSize: transferConstraintToStretchedAxis(
+        maybeAddSize(maybeResolveSize(childStyle.maxSize, nodeInnerSize), boxSizingAdjustment),
+        maybeResolveSize(childStyle.size, nodeInnerSize),
+        aspectRatio,
+        BLOCK_STRETCHES_INLINE_AXIS,
       ),
       overflow: { ...overflow },
       scrollbarWidth: childStyle.scrollbarWidth,
@@ -441,6 +459,11 @@ function generateItemList(node: Node, nodeInnerSize: Size<Opt>): BlockItem[] {
   }
   return items;
 }
+
+// A block child in normal flow fills its containing block's inline axis and is
+// content-sized in the block axis, so only the inline axis is "stretched" for
+// the purposes of transferring an aspect-ratio constraint.
+const BLOCK_STRETCHES_INLINE_AXIS: Size<boolean> = { width: true, height: false };
 
 /** Compute the content-based width in the case that the width of the container is not known */
 function determineContentBasedContainerWidth(items: BlockItem[], availableWidth: AvailableSpace): number {

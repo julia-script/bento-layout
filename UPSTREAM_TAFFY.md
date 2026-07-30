@@ -866,6 +866,64 @@ pbSum)` helper used at all four sites. See `src/compute/grid/types.ts` and
 
 ---
 
+## 16. Aspect-ratio min/max constraints transfer onto the wrong axis
+
+`min-size`/`max-size` are pushed through `aspect_ratio` onto the *other axis's*
+constraint unconditionally. Per css-sizing-4 §5.2.2 a transferred minimum or
+maximum bounds the **ratio-determined** size — it does not become a bound on the
+axis itself. Transferring unconditionally has two visible consequences:
+
+1. it re-derives an axis that has a size of its own, and
+2. it caps content that legitimately overflows the ratio.
+
+It is also needed in the one case it *does* apply — an axis that is stretched
+and so has no size of its own to hold the constraint — which is why simply
+dropping the transfer is not the fix.
+
+Separately, the ratio derives the automatic axis from the **pre-clamp** value of
+the specified one, so an axis clamped by its own max-size still yields the
+unclamped partner (and, in `leaf.rs`, the ratio floor then un-clamps the axis
+itself).
+
+**Behaviour matrix** (Chrome 151.0.7922.47, border-box; `aspect-ratio: 2`):
+
+| # | styles | context | Chrome | Taffy/pre-fix |
+|---|--------|---------|--------|---------------|
+| a | `height:200; min-width:900` | root | 900x200 | 900x**450** |
+| b | `width:200; min-height:900` | root | 200x900 | **1800**x900 |
+| c | `height:200; max-width:3` | root | **3**x200 | **400**x200 |
+| d | `width:200; max-height:3` | root | 200x**3** | 200x**100** |
+| e | `width:200; max-width:3` | root | 3x**2** | 3x**100** |
+| f | `max-width:40` + 60px text | block child | 40x**60** | 40x**20** |
+| g | `min-width:900` (no size) | root | 900x450 | 900x450 (control) |
+| h | `width:80; max-height:20` | stretched child | **80**x20 | 80x20 (control) |
+| i | `max-height:20`, empty | stretched child | **40**x20 | 40x20 (control) |
+
+Rows g/h/i are controls: the transfer is correct where the axis really is
+ratio-derived (g) or stretched (i), and correctly absent where the axis has a
+specified size (h). Row i is what `block_aspect_ratio_fill_max_width` covers —
+it fails if the transfer is removed outright rather than narrowed.
+
+Note `leaf.rs:56` already omits the transfer on `max_size` while `:53` keeps it
+on `min_size`; that asymmetry fixes one direction of (c/d) but leaves (a/b).
+
+**Taffy source:**
+- `src/compute/leaf.rs:49-56` — the ratio is applied to the raw style size, and
+  to `min_size`, before any clamp.
+- `src/compute/block.rs:322-335` — all three of `size`/`min_size`/`max_size`
+  take the transfer for every block child.
+
+**Fix applied here:** the transfer is narrowed to a stretched axis with no size
+of its own (`transferConstraintToStretchedAxis`), and the ratio now derives from
+the clamped size (`applyAspectRatioClamped`); both live in `src/geometry.ts` and
+are used from `src/compute/leaf.ts` and `src/compute/block.ts`. Regression
+fixture `tests/html/fuzz-found/fuzz_leaf_ar_minmax_transfer.html` covers all
+nine rows above.
+
+Verified in Taffy: suspected (source-read, not executed).
+
+---
+
 ## Not yet triaged
 
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they
