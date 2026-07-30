@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: seed=1 index=1 (mode=mixed)
+  date: 2026-07-30
+  chrome: Chrome/151.0.7922.47
+  Engine bug (taffy-inherited): with no explicit tracks and all placements at
+  negative lines, phantom implicit tracks were materialized between the occupied
+  range and the grid origin. Chrome coalesces those lines.
+  Regenerate the XML fixtures with: pnpm gentest fuzz_80d9ba4b
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: template-less grid coalesces trailing negative implicit tracks (fuzz_80d9ba4b)
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; width: 100px; height: 60px;">
+  <div style="grid-row-start: -3; grid-row-end: auto;"></div>
+  <div style="grid-row-start: span 2; grid-row-end: -2;"></div>
+</div>
+
+</body>
+</html>

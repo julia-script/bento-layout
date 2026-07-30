@@ -38,6 +38,17 @@ import {
 } from './types.js';
 import type { GridItem, GridTrack, TrackCounts } from './types.js';
 
+/** Translate an oz line placement by the axis coalescing offset (implicit.ts). */
+function ozLineTranslateAbs(
+  line: { start: import('./types.js').OzGridPlacement; end: import('./types.js').OzGridPlacement },
+  offset: number,
+): { start: import('./types.js').OzGridPlacement; end: import('./types.js').OzGridPlacement } {
+  if (offset === 0) return line;
+  const shift = (p: import('./types.js').OzGridPlacement): import('./types.js').OzGridPlacement =>
+    typeof p === 'object' && 'line' in p ? { line: p.line + offset } : p;
+  return { start: shift(line.start), end: shift(line.end) };
+}
+
 /** Grid layout algorithm entry point */
 export function computeGridLayout(node: Node, inputs: LayoutInput): LayoutOutput {
   const { knownDimensions, parentSize, availableSpace, runMode } = inputs;
@@ -171,7 +182,7 @@ export function computeGridLayout(node: Node, inputs: LayoutInput): LayoutOutput
     if (child.style.display === 'none' || child.style.position === 'absolute') continue;
     inFlowChildren.push({ index, node: child });
   }
-  const [estColCounts, estRowCounts] = computeGridSizeEstimate(
+  const [estColCounts, estRowCounts, ozOffsets] = computeGridSizeEstimate(
     explicitColCount,
     explicitRowCount,
     direction,
@@ -189,6 +200,7 @@ export function computeGridLayout(node: Node, inputs: LayoutInput): LayoutOutput
     style.gridAutoFlow,
     alignItems ?? ALIGN_STRETCH,
     justifyItems ?? ALIGN_STRETCH,
+    ozOffsets,
   );
 
   // Extract track counts from the placement step (auto-placement can expand the grid)
@@ -520,7 +532,12 @@ export function computeGridLayout(node: Node, inputs: LayoutInput): LayoutOutput
     // Absolutely positioned children
     if (childStyle.position === 'absolute') {
       // Convert grid-col placements into (optional) indexes into the columns vector
-      const colPlacementOz = placementLineIntoOriginZero(childStyle.gridColumn, finalColCounts.explicit);
+      // Apply the same coalescing offset the in-flow placement used, so
+      // absolute children resolve against the shifted grid lines.
+      const colPlacementOz = ozLineTranslateAbs(
+        placementLineIntoOriginZero(childStyle.gridColumn, finalColCounts.explicit),
+        ozOffsets.col,
+      );
       const colTracks = ozResolveAbsolutelyPositionedGridTracks(colPlacementOz);
       const mapColLine = (line: Opt): Opt => {
         if (line === null) return null;
@@ -532,7 +549,10 @@ export function computeGridLayout(node: Node, inputs: LayoutInput): LayoutOutput
         maybeColIndexes = { start: maybeColIndexes.end, end: maybeColIndexes.start };
       }
 
-      const rowPlacementOz = placementLineIntoOriginZero(childStyle.gridRow, finalRowCounts.explicit);
+      const rowPlacementOz = ozLineTranslateAbs(
+        placementLineIntoOriginZero(childStyle.gridRow, finalRowCounts.explicit),
+        ozOffsets.row,
+      );
       const rowTracks = ozResolveAbsolutelyPositionedGridTracks(rowPlacementOz);
       const maybeRowIndexes = {
         start: rowTracks.start !== null ? tryIntoTrackVecIndex(rowTracks.start, finalRowCounts) : null,

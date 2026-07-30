@@ -20,7 +20,8 @@
     "typecheck": "tsc --noEmit",
     "gentest": "tsx scripts/gentest.ts",
     "bench": "tsx scripts/bench.ts",
-    "fuzz": "tsx scripts/fuzz.ts"
+    "fuzz": "tsx scripts/fuzz.ts",
+    "fuzz-triage": "tsx scripts/fuzz-triage.ts"
   },
   "devDependencies": {
     "@types/node": "^26.1.2",

@@ -17,6 +17,15 @@ import {
   placementLineIntoOriginZero,
 } from './types.js';
 import type { CellOccupancyState, GridItem, LineOf, OzGridPlacement } from './types.js';
+import type { OzOffsets } from './implicit.js';
+
+/** Translate line placements by an axis coalescing offset (see implicit.ts). */
+function ozLineTranslate(line: LineOf<OzGridPlacement>, offset: number): LineOf<OzGridPlacement> {
+  if (offset === 0) return line;
+  const shift = (p: OzGridPlacement): OzGridPlacement =>
+    typeof p === 'object' && p !== null && 'line' in p ? { line: p.line + offset } : p;
+  return { start: shift(line.start), end: shift(line.end) };
+}
 
 /** Returns whether placement/search should run in reverse for this axis. */
 function axisIsReversed(direction: Direction, axis: AbsoluteAxis): boolean {
@@ -76,6 +85,7 @@ export function placeGridItems(
   gridAutoFlow: GridAutoFlow,
   alignItems: AlignItems,
   justifyItems: AlignItems,
+  ozOffsets: OzOffsets = { col: 0, row: 0 },
 ): void {
   const primaryAxis = gridAutoFlowPrimaryAxis(gridAutoFlow);
   const secondaryAxis = absOther(primaryAxis);
@@ -87,8 +97,8 @@ export function placeGridItems(
     node,
     style: node.style,
     placement: {
-      horizontal: placementLineIntoOriginZero(node.style.gridColumn, explicitColCount),
-      vertical: placementLineIntoOriginZero(node.style.gridRow, explicitRowCount),
+      horizontal: ozLineTranslate(placementLineIntoOriginZero(node.style.gridColumn, explicitColCount), ozOffsets.col),
+      vertical: ozLineTranslate(placementLineIntoOriginZero(node.style.gridRow, explicitRowCount), ozOffsets.row),
     },
   }));
 
