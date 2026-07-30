@@ -680,11 +680,36 @@ function determineFlexBaseSize(
           );
         })();
 
-        // 4.5. Automatic Minimum Size of Flex Items
-        const clampedMinContentSize = mMin(
-          mMin(minContentMainSize, main(child.size, dir)),
-          main(transferredMaxSize, dir),
-        ) as number;
+        // 4.5. Automatic Minimum Size of Flex Items.
+        //
+        // The content-based minimum is the *content size suggestion* capped by
+        // the *specified size suggestion* — but an item whose ratio has a
+        // definite cross size also has a *transferred size suggestion*, and
+        // that one replaces the content suggestion rather than joining it.
+        //
+        // Verified against Chrome, all in a 20px-wide row container:
+        //   ratio 2, height 320, width auto  -> floors at 640 (transferred)
+        //   ratio 2, height 320, width 900   -> floors at 640 (transferred < specified)
+        //   ratio 2, height 320, width 50    -> floors at  50 (specified < transferred)
+        //   no ratio, width 50               -> shrinks to 20 (a specified main
+        //     size is not a floor by itself; only the ratio creates one)
+        //
+        // Taffy min's the content suggestion against `child.size` unconditionally
+        // (flexbox.rs:812-813). Because `child.size` already carries the
+        // ratio-derived value, a 0 content size erases the transferred
+        // suggestion entirely and the item shrinks past its ratio.
+        const definiteCross = cross(rawStyleSize, dir) !== null ? cross(child.size, dir) : null;
+        const transferredMain =
+          child.aspectRatio !== null && definiteCross !== null
+            ? constants.isRow
+              ? definiteCross * child.aspectRatio
+              : definiteCross / child.aspectRatio
+            : null;
+        const sizeSuggestion =
+          transferredMain !== null
+            ? mMin(transferredMain, main(rawStyleSize, dir))
+            : mMin(minContentMainSize, main(child.size, dir));
+        const clampedMinContentSize = mMin(sizeSuggestion, main(transferredMaxSize, dir)) as number;
         return vMax(clampedMinContentSize, main(paddingBorderAxesSums, dir));
       })();
 

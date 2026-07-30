@@ -1,0 +1,13 @@
+<test name="fuzz_dcdf4012__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div box-sizing="content-box" direction="rtl" width="20px">
+      <div box-sizing="content-box" direction="rtl" height="320px" aspect-ratio="2"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="20" height="320">
+      <node x="-620" y="0" width="640" height="320"/>
+    </node>
+  </expectations>
+</test>

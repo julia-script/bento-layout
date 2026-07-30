@@ -324,10 +324,88 @@ floor was affected.
 
 ---
 
+## 7. Automatic minimum size ignores the transferred size suggestion
+
+**Verified in Taffy:** suspected (source read: `src/compute/flexbox.rs:812-813`)
+
+**Taffy source:**
+
+```rust
+let clamped_min_content_size =
+    min_content_main_size.maybe_min(child.size.main(dir)).maybe_min(child.max_size.main(dir));
+clamped_min_content_size.maybe_max(padding_border_axes_sums.main(dir))
+```
+
+css-flexbox-1 §4.5 defines the content-based minimum size as the *content size
+suggestion* capped by the *specified size suggestion*, **or** — when the item
+has an aspect ratio and a definite cross size — by the *transferred size
+suggestion*, which replaces the content suggestion rather than being min'd
+alongside it.
+
+`child.size.main(dir)` has already had the ratio applied, so it carries the
+transferred value. Min'ing it against `min_content_main_size` (0 for an empty
+item) collapses the automatic minimum to 0, and the item shrinks straight past
+its aspect ratio.
+
+**Reproduction:** an empty flex item with a ratio and a definite cross size, in
+a container narrower than the transferred main size:
+
+```html
+<div style="display: flex; width: 20px">
+  <div style="aspect-ratio: 2; height: 320px"></div>
+</div>
+```
+
+| | item width |
+|---|--:|
+| Chrome | **640** (320 x 2, overflowing the container) |
+| Engine (pre-fix) | **20** (shrunk to the container) |
+
+**Behaviour matrix** (all in a 20px-wide row container), which any fix must
+reproduce — the last row is the control showing a specified main size is *not*
+a floor on its own, so the ratio is what creates one:
+
+| item style | Chrome width |
+|---|--:|
+| `aspect-ratio: 2; height: 320px` | 640 (transferred) |
+| `aspect-ratio: 2; height: 320px; width: 900px` | 640 (transferred < specified) |
+| `aspect-ratio: 2; height: 320px; width: 50px` | 50 (specified < transferred) |
+| `aspect-ratio: 2; height: 320px; max-width: 100px` | 100 (max caps it) |
+| `aspect-ratio: 2; height: 320px; min-width: 0` | 20 (explicit min defeats it) |
+| `width: 50px` (no ratio) | 20 (shrinks; not a floor) |
+
+So the suggestion is `min(transferred, specified)` when a ratio with a definite
+cross size exists, and `min(content, specified)` otherwise — in both cases then
+capped by the max size and floored by the padding+border sum.
+
+**Fix applied here:** compute the transferred suggestion explicitly from the
+raw (pre-ratio) style cross size rather than reading it back out of
+`child.size`. See `src/compute/flexbox.ts`; regression fixture
+`tests/html/fuzz-found/fuzz_dcdf4012.html`.
+
+**Note:** the `min-width: 0` row matters for upstreaming — an explicit minimum
+must still win, so the fix belongs in the automatic-minimum branch only, not in
+the general min-size resolution.
+
+---
+
 ## Not yet triaged
 
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they
 are not lost; each needs the same treatment before it can move up:
 
-- _(none currently — the aspect-ratio/content-box class was triaged and became
-  entry 6 above.)_
+- **`fuzz_555803f9`** — flex item with `aspect-ratio: 1.5` and no size in a
+  7x7 container: Chrome gives the item width 11, the engine 0. RTL variants also
+  disagree on x (chrome -3 vs engine 7). Likely the same automatic-minimum area
+  as entry 7 but with *no* definite cross size, so the transferred suggestion
+  does not apply and something else establishes Chrome's 11.
+- **`fuzz_408e514f`** — percentage padding on an aspect-ratio flex item under a
+  `height: auto` root, **content-box only**: Chrome collapses the root and item
+  to height 8, the engine to 100. Percentage padding against an indefinite
+  container plus a ratio; suspect a cyclic-percentage interaction, so check it
+  against the KNOWN_DIVERGENCES cyclic-percentage class before treating it as a
+  bug.
+
+Both are persisted as HTML in the fuzz corpus but their XML fixtures are not
+committed yet (they would fail the suite); regenerate with
+`pnpm gentest <name>` once fixed.
