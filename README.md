@@ -66,13 +66,30 @@ as `node.layout` and `node.unroundedLayout`.
 
 ## Conformance
 
-`tests/fixtures/` vendors Taffy's language-agnostic XML test fixtures —
-input trees plus layout expectations generated from real Chrome renders. The
-pinned upstream commit is recorded in `tests/fixtures/TAFFY_COMMIT`.
+Conformance fixtures are generated **directly from a real, pinned Chrome** by
+the in-repo pipeline: HTML fixture sources live in `tests/html/`, and
+`pnpm gentest` renders each one headless (Ahem font, deterministic viewport),
+extracting expectations for all four box-sizing/direction variants into the
+committed XML under `tests/fixtures/`. The generating Chrome build is recorded
+in `tests/fixtures/CHROME_VERSION`; `pnpm test` never needs a browser.
 
-All 4,368 fixtures pass, none skipped: 2,252 `flex`, 868 `block`, 28
-`blockflex`, 1,140 `grid`, 56 `blockgrid`, 24 `gridflex` (0.1px tolerance,
-both `box-sizing` modes, ltr and rtl).
+All 4,384 fixtures pass, none skipped (0.1px tolerance, both `box-sizing`
+modes, ltr and rtl). The corpus began as Taffy's fixture suite and grows with
+locally authored cases.
+
+### Authoring a new conformance test
+
+1. Write a small HTML page in `tests/html/<category>/my_case.html` (copy an
+   existing fixture; styles go inline on elements under `#test-root`).
+2. `pnpm gentest my_case` — renders it in the pinned Chrome and writes the XML
+   fixtures.
+3. `pnpm test` — the engine must match the browser.
+
+**Divergence policy: the browser wins.** If the engine disagrees with the
+generated expectations, the engine gets fixed; deliberate exceptions require an
+entry in `KNOWN_DIVERGENCES.md` with a spec citation. (This policy has already
+paid off: the first authored fixture exposed an aspect-ratio constraint bug
+inherited from Taffy, now fixed to match Chrome.)
 
 ## Scope
 

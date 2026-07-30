@@ -529,8 +529,20 @@ function determineFlexBaseSize(
     // Available space for child sizing
     // Min/max sizes transferred through the aspect ratio are taken into account here
     const crossAxisMarginSum = rectCrossAxisSum(constants.margin, dir);
+    // Transferred constraints only apply to axes whose preferred size is auto
+    // (css-sizing-4 §5.2.2; matches Chrome). Taffy clamps unconditionally, which
+    // diverges from the browser when an axis has a definite size.
+    const rawStyleSize = maybeResolveSize(childStyle.size, constants.nodeInnerSize);
     const transferredMinSize = maybeApplyAspectRatio(child.minSize, child.aspectRatio);
     const transferredMaxSize = maybeApplyAspectRatio(child.maxSize, child.aspectRatio);
+    if (rawStyleSize.width !== null) {
+      transferredMinSize.width = child.minSize.width;
+      transferredMaxSize.width = child.maxSize.width;
+    }
+    if (rawStyleSize.height !== null) {
+      transferredMinSize.height = child.minSize.height;
+      transferredMaxSize.height = child.maxSize.height;
+    }
     const childMinCross = mAdd(cross(transferredMinSize, dir), crossAxisMarginSum);
     const childMaxCross = mAdd(cross(transferredMaxSize, dir), crossAxisMarginSum);
 
@@ -1054,12 +1066,35 @@ function determineHypotheticalCrossSize(
 
     const childKnownMain: AvailableSpace = main(constants.containerSize, constants.dir);
 
-    // Sizes transferred through the aspect ratio clamp the hypothetical cross size
-    const transferredMinCross = cross(maybeApplyAspectRatio(child.minSize, child.aspectRatio), constants.dir);
-    const transferredMaxCross = cross(maybeApplyAspectRatio(child.maxSize, child.aspectRatio), constants.dir);
+    // Sizes transferred through the aspect ratio clamp the hypothetical cross size —
+    // but only when the cross axis's preferred size is auto (css-sizing-4 §5.2.2).
+    const crossStyleIsAuto =
+      maybeResolve(cross(child.node.style.size, constants.dir), cross(constants.nodeInnerSize, constants.dir)) === null;
+    // A *transferred* minimum (AR-derived, not explicitly specified in this axis)
+    // is capped by the axis's own explicit maximum (css-sizing-4 §5.2.2; matches
+    // Chrome). An explicit minimum still beats the maximum as usual.
+    const rawMinCross = cross(child.minSize, constants.dir);
+    const arMinCross = cross(maybeApplyAspectRatio(child.minSize, child.aspectRatio), constants.dir);
+    const transferredMinCross = !crossStyleIsAuto
+      ? rawMinCross
+      : rawMinCross !== null
+        ? rawMinCross
+        : mMin(arMinCross, cross(child.maxSize, constants.dir));
+    const transferredMaxCross = crossStyleIsAuto
+      ? cross(maybeApplyAspectRatio(child.maxSize, child.aspectRatio), constants.dir)
+      : cross(child.maxSize, constants.dir);
+
+    // An aspect-ratio item with a definite used main size derives its automatic
+    // cross size from the ratio rather than from content (css-sizing-4 §5.1).
+    const arDerivedCross =
+      child.aspectRatio !== null
+        ? constants.isRow
+          ? main(child.targetSize, constants.dir) / child.aspectRatio
+          : main(child.targetSize, constants.dir) * child.aspectRatio
+        : null;
 
     const childCross = mMax(
-      mClamp(cross(child.size, constants.dir), transferredMinCross, transferredMaxCross),
+      mClamp(cross(child.size, constants.dir) ?? arDerivedCross, transferredMinCross, transferredMaxCross),
       paddingBorderSum,
     );
 

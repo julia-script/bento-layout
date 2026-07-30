@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Block root containing a flex row containing a grid — all three algorithms in one tree
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: block; width: 400px;">
+  <div style="display: flex; height: 120px; gap: 10px;">
+    <div style="display: grid; flex-grow: 1; grid-template-columns: 40px 1fr; grid-template-rows: 1fr 1fr; gap: 5px;">
+      <div></div>
+      <div></div>
+      <div style="grid-column: 1 / -1;"></div>
+    </div>
+    <div style="width: 100px;"></div>
+  </div>
+  <div style="display: block; height: 30px; margin-top: 20px;"></div>
+</div>
+
+</body>
+</html>

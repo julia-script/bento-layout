@@ -1,0 +1,19 @@
+<test name="gap_percent_wrap_reverse_space_between__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="flex" box-sizing="content-box" direction="rtl" flex-wrap="wrap-reverse" align-content="space-between" width="200px" height="200px" row-gap="10%" column-gap="5%">
+      <div box-sizing="content-box" direction="rtl" width="90px" height="40px"/>
+      <div box-sizing="content-box" direction="rtl" width="90px" height="40px"/>
+      <div box-sizing="content-box" direction="rtl" width="90px" height="40px"/>
+      <div box-sizing="content-box" direction="rtl" width="90px" height="40px"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="200" height="200">
+      <node x="110" y="160" width="90" height="40"/>
+      <node x="10" y="160" width="90" height="40"/>
+      <node x="110" y="0" width="90" height="40"/>
+      <node x="10" y="0" width="90" height="40"/>
+    </node>
+  </expectations>
+</test>

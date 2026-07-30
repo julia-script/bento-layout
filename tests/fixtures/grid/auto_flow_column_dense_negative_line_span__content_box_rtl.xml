@@ -1,0 +1,23 @@
+<test name="auto_flow_column_dense_negative_line_span__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" box-sizing="content-box" direction="rtl" row-gap="4px" column-gap="4px" grid-auto-flow="column dense" grid-template-rows="40px 40px" grid-template-columns="40px 40px 40px" grid-auto-columns="20px">
+      <div box-sizing="content-box" direction="rtl" grid-row-start="1" grid-column-start="-2"/>
+      <div box-sizing="content-box" direction="rtl" grid-column-start="span 2"/>
+      <div box-sizing="content-box" direction="rtl" grid-row-start="span 2"/>
+      <div box-sizing="content-box" direction="rtl"/>
+      <div box-sizing="content-box" direction="rtl" grid-column-start="4"/>
+      <div box-sizing="content-box" direction="rtl"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="176" height="84">
+      <node x="48" y="0" width="40" height="40"/>
+      <node x="92" y="0" width="84" height="40"/>
+      <node x="0" y="0" width="20" height="84"/>
+      <node x="136" y="44" width="40" height="40"/>
+      <node x="24" y="0" width="20" height="40"/>
+      <node x="92" y="44" width="40" height="40"/>
+    </node>
+  </expectations>
+</test>

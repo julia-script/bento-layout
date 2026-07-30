@@ -18,5 +18,5 @@
 
 ## 4. Authoring loop & docs
 
-- [ ] 4.1 Author a small batch of new HTML fixtures for spec cases absent from the taffy corpus; generate and make them pass
-- [ ] 4.2 Document the workflow in the README (write HTML → `pnpm gentest` → commit XML → `pnpm test`; divergence policy); `pnpm build` + `pnpm test` green from clean checkout without a browser
+- [x] 4.1 Author a small batch of new HTML fixtures for spec cases absent from the taffy corpus; generate and make them pass
+- [x] 4.2 Document the workflow in the README (write HTML → `pnpm gentest` → commit XML → `pnpm test`; divergence policy); `pnpm build` + `pnpm test` green from clean checkout without a browser
