@@ -19,7 +19,7 @@ import puppeteer from 'puppeteer';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const HTML_ROOT = join(ROOT, 'tests', 'html');
 const FIXTURES_ROOT = join(ROOT, 'tests', 'fixtures');
-const DIRS = ['flex', 'block', 'blockflex', 'blockgrid', 'grid', 'gridflex'] as const;
+const DIRS = ['flex', 'block', 'blockflex', 'blockgrid', 'grid', 'gridflex', 'fuzz-found'] as const;
 
 type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
 type JsonObject = { [key: string]: Json };

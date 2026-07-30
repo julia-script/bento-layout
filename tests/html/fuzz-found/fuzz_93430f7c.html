@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: seed=1 index=4 (mode=mixed)
+  date: 2026-07-30
+  chrome: Chrome/151.0.7922.47
+  Engine bug (taffy-inherited): leaf aspect-ratio floor overrode a definite height.
+  Regenerate the XML fixtures with: pnpm gentest fuzz_93430f7c
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: aspect-ratio must not override a definite height (fuzz_93430f7c)
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+  <div style="width: 120px; height: 10px; aspect-ratio: 2;"></div>
+</div>
+
+</body>
+</html>

@@ -14,6 +14,8 @@ const FIXTURES_ROOT = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
 const TOLERANCE = 0.1;
 
 // All vendored fixtures run — flexbox, block, and grid are all implemented.
+// fuzz-found holds regression fixtures persisted by `pnpm fuzz` (differential
+// fuzzing against Chrome); they run exactly like the vendored corpus.
 const SKIP_BY_DIR: Record<string, ReadonlySet<string>> = {
   flex: new Set(),
   block: new Set(),
@@ -21,6 +23,7 @@ const SKIP_BY_DIR: Record<string, ReadonlySet<string>> = {
   grid: new Set(),
   blockgrid: new Set(),
   gridflex: new Set(),
+  'fuzz-found': new Set(),
 };
 
 function assertLayoutMatches(node: Node, expected: ExpectedNode, path: string): void {
@@ -55,8 +58,9 @@ for (const dir of Object.keys(SKIP_BY_DIR)) {
   const fixtureDir = join(FIXTURES_ROOT, dir);
   const skip = SKIP_BY_DIR[dir]!;
   const files = readdirSync(fixtureDir).filter((f) => f.endsWith('.xml'));
+  if (files.length === 0) continue; // fuzz-found starts empty
 
-  describe(`taffy ${dir} fixtures`, () => {
+  describe(`${dir} fixtures`, () => {
     for (const file of files) {
       const name = file.replace(/\.xml$/, '');
       const runner = skip.has(name) ? it.skip : it;

@@ -19,7 +19,8 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "gentest": "tsx scripts/gentest.ts",
-    "bench": "tsx scripts/bench.ts"
+    "bench": "tsx scripts/bench.ts",
+    "fuzz": "tsx scripts/fuzz.ts"
   },
   "devDependencies": {
     "@types/node": "^26.1.2",

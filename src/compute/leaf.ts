@@ -25,6 +25,7 @@ export function computeLeafLayout(inputs: LayoutInput, style: Style, measureFunc
   let nodeMinSize: Size<Opt>;
   let nodeMaxSize: Size<Opt>;
   let aspectRatio: number | null;
+  let styleHeightIsDefinite = false;
   if (sizingMode === 'content-size') {
     nodeSize = { ...knownDimensions };
     nodeMinSize = { width: null, height: null };
@@ -32,10 +33,9 @@ export function computeLeafLayout(inputs: LayoutInput, style: Style, measureFunc
     aspectRatio = null;
   } else {
     aspectRatio = style.aspectRatio;
-    const styleSize = maybeAdd(
-      maybeApplyAspectRatio(maybeResolveSize(style.size, parentSize), aspectRatio),
-      boxSizingAdjustment,
-    );
+    const rawStyleSize = maybeResolveSize(style.size, parentSize);
+    styleHeightIsDefinite = rawStyleSize.height !== null;
+    const styleSize = maybeAdd(maybeApplyAspectRatio(rawStyleSize, aspectRatio), boxSizingAdjustment);
     const styleMinSize = maybeAdd(
       maybeApplyAspectRatio(maybeResolveSize(style.minSize, parentSize), aspectRatio),
       boxSizingAdjustment,
@@ -135,10 +135,18 @@ export function computeLeafLayout(inputs: LayoutInput, style: Style, measureFunc
       nodeMaxSize.height,
     ),
   };
+  // An aspect-ratio floor keeps the height in ratio with the (possibly clamped)
+  // used width — but only when the height is otherwise automatic. A definite
+  // height (from the parent or an explicit style height) wins over the ratio
+  // (css-sizing-4 §5: aspect-ratio produces the automatic size only). Taffy
+  // applies this floor unconditionally, which diverges from Chrome for a leaf
+  // with aspect-ratio plus both dimensions definite; found by differential
+  // fuzzing (tests/html/fuzz-found).
+  const heightIsAutomatic = knownDimensions.height === null && !styleHeightIsDefinite;
   const size = {
     width: Math.max(clampedSize.width, pbSum.width),
     height: Math.max(
-      Math.max(clampedSize.height, aspectRatio !== null ? clampedSize.width / aspectRatio : 0),
+      Math.max(clampedSize.height, heightIsAutomatic && aspectRatio !== null ? clampedSize.width / aspectRatio : 0),
       pbSum.height,
     ),
   };

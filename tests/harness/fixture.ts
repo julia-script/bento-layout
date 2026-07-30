@@ -135,7 +135,8 @@ function buildExpected(el: XmlNode): ExpectedNode {
   };
 }
 
-function buildStyle(attrs: Record<string, string>): Partial<Style> {
+/** Exported for the fuzzer's serializer round-trip test (tests/fuzz.test.ts). */
+export function buildStyle(attrs: Record<string, string>): Partial<Style> {
   const style: Partial<Style> = {
     display: (attrs['display'] as Style['display']) ?? 'flex',
     direction: (attrs['direction'] as Style['direction']) ?? 'ltr',

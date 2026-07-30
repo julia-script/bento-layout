@@ -38,7 +38,13 @@ export function computeChildLayout(node: Node, inputs: LayoutInput, blockCtx?: B
     output = computeHiddenLayout(node);
   } else if (node.style.display === 'block' && node.children.length > 0) {
     output = computeBlockLayout(node, inputs, blockCtx);
-  } else if (node.style.display === 'grid' && node.children.length > 0) {
+  } else if (node.style.display === 'grid' && (node.children.length > 0 || node.measure === undefined)) {
+    // Unlike empty flex/block containers (which size like leaves), an empty
+    // grid still sizes to its explicit tracks — `grid-template-rows: 120px`
+    // makes it 120px tall with no items (css-grid-1 §5.1; matches Chrome).
+    // Taffy routes childless grids to leaf layout, which drops the tracks;
+    // found by differential fuzzing. Text leaves (measure fn) stay on the
+    // leaf path.
     output = computeGridLayout(node, inputs);
   } else if (node.children.length > 0) {
     output = computeFlexboxLayout(node, inputs);
