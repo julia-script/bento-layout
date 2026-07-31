@@ -196,6 +196,9 @@ function reportCorpusCoverage(): void {
 
   const OUT_OF_SCOPE_PREFIX = [
     'script:',
+    // The pinned Chrome contradicts the spec, so no derivable fixture is both
+    // correct and passable. Not an importer gap; see CHROME_DIVERGENT.
+    'chrome-divergent:',
     // `display: grid-lanes` is a distinct (masonry-style) layout mode this
     // engine does not implement; not an importer gap.
     'value:display:grid-lanes',

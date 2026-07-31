@@ -1876,7 +1876,8 @@
    "reason": "element:img"
   },
   "css/css-flexbox/flex-minimum-size-single-axis-scroll-container.html": {
-   "class": "import"
+   "class": "skip",
+   "reason": "chrome-divergent:min-size-auto is per-axis"
   },
   "css/css-flexbox/flex-minimum-width-flex-items-009.html": {
    "class": "skip",
@@ -8364,7 +8365,8 @@
    "reason": "element:strong"
   },
   "css/css-grid/grid-items/grid-item-minimum-size-single-axis-scroll-container.html": {
-   "class": "import"
+   "class": "skip",
+   "reason": "chrome-divergent:min-size-auto is per-axis"
   },
   "css/css-grid/grid-items/grid-item-minmax-img-001.html": {
    "class": "skip",

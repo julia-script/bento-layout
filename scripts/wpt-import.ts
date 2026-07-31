@@ -306,6 +306,26 @@ export interface Classified {
 
 const HARNESS_SCRIPTS = /(?:testharness(?:report)?|check-layout(?:-th)?)\.js/;
 
+/**
+ * Tests where the pinned Chrome disagrees with the spec, so the fixture we
+ * would derive from it encodes the *browser's* bug. Matching Chrome here would
+ * mean being wrong per spec, and quarantining instead leaves an entry that
+ * reads like engine debt forever. Excluded from the corpus outright, with the
+ * divergence recorded — same reasoning as the `order` property in ALLOWLIST.
+ *
+ * Re-check on every Chrome bump: a fixed browser makes these importable again.
+ */
+const CHROME_DIVERGENT = [
+  {
+    path: 'css-flexbox/flex-minimum-size-single-axis-scroll-container.html',
+    why: 'min-size-auto is per-axis',
+  },
+  {
+    path: 'css-grid/grid-items/grid-item-minimum-size-single-axis-scroll-container.html',
+    why: 'min-size-auto is per-axis',
+  },
+];
+
 export function classifyFile(html: string, srcDir?: string, wptRootDir?: string): Classified {
   // NOTE: do *not* reject reftests here. WPT's own expectations are never
   // consumed — the pipeline re-derives every expectation from Chrome — so a
@@ -465,6 +485,11 @@ export function runScan(wptRoot: string, suiteFilter: string | null): { manifest
     for (const path of walk(dir)) {
       const rel = relative(wptRoot, path);
       if (!isTestFile(rel)) continue;
+      const denied = CHROME_DIVERGENT.find((e) => rel.endsWith(e.path));
+      if (denied !== undefined) {
+        files[rel] = { class: 'skip', reason: `chrome-divergent:${denied.why}` };
+        continue;
+      }
       const result = classifyFile(readFileSync(path, 'utf8'), dirname(path), wptRoot);
       files[rel] = result.class === 'import' ? { class: 'import' } : { class: 'skip', reason: result.reason };
       if (result.class === 'import') candidates.set(rel, result);
