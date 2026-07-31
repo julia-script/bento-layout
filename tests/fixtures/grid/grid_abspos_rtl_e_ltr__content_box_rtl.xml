@@ -1,0 +1,13 @@
+<test name="grid_abspos_rtl_e_ltr__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" box-sizing="content-box" direction="rtl" width="500px" height="100px" padding-top="10px" padding-left="10px" padding-bottom="10px" padding-right="10px" grid-template-columns="50px 60px 70px">
+      <div display="block" box-sizing="content-box" direction="rtl" position="absolute" top="0px" left="0px" bottom="0px" right="0px" grid-column-start="2" grid-column-end="4"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="520" height="120">
+      <node x="330" y="0" width="130" height="120"/>
+    </node>
+  </expectations>
+</test>

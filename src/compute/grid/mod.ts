@@ -15,7 +15,7 @@ import {
   trackResolvedPercentageSize,
   trackUsesPercentage,
 } from '../../style.js';
-import type { AvailableSpace } from '../../style.js';
+import type { AvailableSpace, Direction } from '../../style.js';
 import type { LayoutInput, LayoutOutput, Node } from '../../tree.js';
 import { fromOuterSize, fromSizesAndBaselines, layoutWithOrder } from '../../tree.js';
 import { performChildLayout } from '../dispatch.js';
@@ -476,6 +476,61 @@ export function computeGridLayout(node: Node, inputs: LayoutInput): LayoutOutput
     false,
   );
 
+  // Grid placement is flow-relative while the offset properties are physical
+  // (css-grid-1 §9.1), so absolute placement resolves against a flow-ordered
+  // offset table and converts to a physical rect exactly once, in
+  // resolveAbsColumnEdges.
+  //
+  // In LTR the physical offsets already are the flow-ordered ones. In RTL the
+  // track vector was reversed in place before sizing, so walk it back to
+  // recover flow order and re-accumulate. The line->slot arithmetic is then
+  // the plain `2*(line + negativeImplicit)` in-flow items use, with no
+  // direction term anywhere.
+  const columnLogicalOffsets: number[] = new Array(columns.length);
+  // Content-box edges. The first track slot's offset is the flow's physical
+  // start edge; the far edge comes from the container box rather than the last
+  // slot, which coincides with the first when the axis has no tracks.
+  const columnContentLeft = columns[0]?.offset ?? border.left;
+  const columnContentRight = Math.max(
+    columnContentLeft,
+    containerBorderBox.width - border.right - padding.right - scrollbarGutter.x,
+  );
+  if (direction === 'rtl') {
+    // Walk the tracks in flow order (right to left) and accumulate from the
+    // flow's own start edge, so slot 0 lands on the right content edge where
+    // line 1 sits. Reversing the *whole* sequence -- not just the explicit
+    // range that reverseNonGutterTracks touches -- is what keeps this table in
+    // the same frame as `absColCounts` below: mirroring the implicit counts
+    // moves an implicit track from one end of the line numbering to the other,
+    // so the offsets it indexes have to move with it.
+    let running = columnContentRight;
+    for (let i = 0; i < columns.length; i++) {
+      columnLogicalOffsets[i] = running;
+      running -= columns[columns.length - 1 - i]!.baseSize;
+    }
+  } else {
+    for (let i = 0; i < columns.length; i++) columnLogicalOffsets[i] = columns[i]!.offset;
+  }
+  // Placement mirrors the implicit track counts under RTL (an implicit track
+  // added past the flow's end edge lands on the physical left), so the counts
+  // the line numbers are expressed in are the mirrored ones.
+  //
+  // The exception is an axis with no explicit grid whose implicit tracks are
+  // all on the positive side: there is no explicit range for negative lines to
+  // count back from, so positive line numbers address those tracks directly
+  // from the flow's start and mirroring would shift every line one track past
+  // the grid. An all-*negative*-implicit axis (WPT
+  // `positioned-grid-items-negative-indices-003`) still needs the mirror.
+  const mirrorImplicitCounts =
+    direction === 'rtl' && !(finalColCounts.explicit === 0 && finalColCounts.negativeImplicit === 0);
+  const absColCounts: TrackCounts = mirrorImplicitCounts
+    ? {
+        negativeImplicit: finalColCounts.positiveImplicit,
+        explicit: finalColCounts.explicit,
+        positiveImplicit: finalColCounts.negativeImplicit,
+      }
+    : finalColCounts;
+
   // 9. Size, Align, and Position Grid Items
   let itemContentSizeContribution = { width: 0, height: 0 };
 
@@ -540,15 +595,19 @@ export function computeGridLayout(node: Node, inputs: LayoutInput): LayoutOutput
         ozOffsets.col,
       );
       const colTracks = ozResolveAbsolutelyPositionedGridTracks(colPlacementOz);
-      const mapColLine = (line: Opt): Opt => {
+      // Resolve both ends against the flow-ordered offset table built above, so
+      // the arithmetic is the same in either direction and the width comes out
+      // direction-independent by construction. `null` means the end is open: a
+      // line outside the grid "is instead treated as specifying auto"
+      // (css-grid-1 §9.1), which resolveAbsColumnEdges turns into the container
+      // edge the flow leaves open.
+      const logicalColOffset = (line: Opt): Opt => {
         if (line === null) return null;
-        const mirrored = direction === 'rtl' ? finalColCounts.explicit - line : line;
-        return tryIntoTrackVecIndex(mirrored, finalColCounts);
+        const slot = tryIntoTrackVecIndex(line, absColCounts);
+        return slot !== null ? columnLogicalOffsets[slot]! : null;
       };
-      let maybeColIndexes = { start: mapColLine(colTracks.start), end: mapColLine(colTracks.end) };
-      if (direction === 'rtl') {
-        maybeColIndexes = { start: maybeColIndexes.end, end: maybeColIndexes.start };
-      }
+      const logicalColStart = logicalColOffset(colTracks.start);
+      const logicalColEnd = logicalColOffset(colTracks.end);
 
       const rowPlacementOz = ozLineTranslateAbs(
         placementLineIntoOriginZero(childStyle.gridRow, finalRowCounts.explicit),
@@ -566,18 +625,14 @@ export function computeGridLayout(node: Node, inputs: LayoutInput): LayoutOutput
           maybeRowIndexes.end !== null
             ? rows[maybeRowIndexes.end]!.offset
             : containerBorderBox.height - border.bottom - scrollbarGutter.y,
-        left:
-          maybeColIndexes.start !== null
-            ? columns[maybeColIndexes.start]!.offset
-            : direction === 'rtl'
-              ? border.left + scrollbarGutter.x
-              : border.left,
-        right:
-          maybeColIndexes.end !== null
-            ? columns[maybeColIndexes.end]!.offset
-            : direction === 'rtl'
-              ? containerBorderBox.width - border.right
-              : containerBorderBox.width - border.right - scrollbarGutter.x,
+        ...resolveAbsColumnEdges(
+          logicalColStart,
+          logicalColEnd,
+          direction,
+          border,
+          scrollbarGutter,
+          containerBorderBox,
+        ),
       };
 
       const [contribution] = alignAndPositionItem(child, order, gridArea, containerAlignmentStyles, 0, direction);
@@ -607,6 +662,39 @@ export function computeGridLayout(node: Node, inputs: LayoutInput): LayoutOutput
     x: null,
     y: gridContainerBaseline,
   });
+}
+
+/**
+ * Converts a resolved column placement into physical left/right.
+ *
+ * `null` on an end means that end is open and reaches the container edge on the
+ * side the *flow* leaves open -- a different physical side per direction, which
+ * is why the fallback is chosen here rather than baked into the offsets. The
+ * offsets themselves already run in flow order, so this only orders the pair;
+ * the width is direction-independent by construction.
+ */
+function resolveAbsColumnEdges(
+  logicalStart: Opt,
+  logicalEnd: Opt,
+  direction: Direction,
+  border: Rect<number>,
+  scrollbarGutter: { x: number; y: number },
+  containerBorderBox: Size<number>,
+): { left: number; right: number } {
+  // An `auto` (or out-of-grid) line contributes a line at the container's own
+  // edge on that side (css-grid-1 §9.1).
+  const openLeft = border.left;
+  const openRight = containerBorderBox.width - border.right - scrollbarGutter.x;
+  if (direction !== 'rtl') {
+    return { left: logicalStart ?? openLeft, right: logicalEnd ?? openRight };
+  }
+  // RTL: the offsets are already physical (the table runs right-to-left from
+  // the flow's start edge), so the pair only needs ordering. An open end still
+  // reaches the container edge on the side the flow leaves open, which is the
+  // opposite physical side from LTR.
+  const near = logicalStart ?? openRight;
+  const far = logicalEnd ?? openLeft;
+  return { left: Math.min(near, far), right: Math.max(near, far) };
 }
 
 /** Reverses only non-gutter column tracks in-place while preserving line/gutter slots. */

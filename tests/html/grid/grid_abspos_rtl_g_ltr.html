@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  Absolutely-positioned grid child placement under direction:rtl.
+  Shape g (line 2 to span 2, 3 explicit tracks), tree direction: ltr.
+  From the probe matrix that gated openspec/changes/archive/
+  2026-07-30-grid-rtl-abspos-placement; see that change and
+  UPSTREAM_TAFFY.md #26 for why each shape is here.
+  Regenerate the XML fixtures with: pnpm gentest grid_abspos_rtl_g_ltr
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Grid abspos LTR shape g: line 2 to span 2, 3 explicit tracks
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; position: relative; width: 500px; height: 100px; padding-top: 10px; padding-left: 10px; padding-bottom: 10px; padding-right: 10px; grid-template-columns: 50px 60px 70px;">
+  <div style="display: block; position: absolute; top: 0px; left: 0px; bottom: 0px; right: 0px; grid-row-start: auto; grid-row-end: auto; grid-column-start: -3; grid-column-end: span 2;"></div>
+</div>
+
+</body>
+</html>

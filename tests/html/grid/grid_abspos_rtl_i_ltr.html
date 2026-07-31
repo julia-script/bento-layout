@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  Absolutely-positioned grid child placement under direction:rtl.
+  Shape i (negative line to span 6, all negative-implicit), tree direction: ltr.
+  From the probe matrix that gated openspec/changes/archive/
+  2026-07-30-grid-rtl-abspos-placement; see that change and
+  UPSTREAM_TAFFY.md #26 for why each shape is here.
+  Regenerate the XML fixtures with: pnpm gentest grid_abspos_rtl_i_ltr
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Grid abspos LTR shape i: negative line to span 6, all negative-implicit
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; position: relative; width: 500px; height: 130px; padding-top: 10px; padding-left: 10px; padding-bottom: 10px; padding-right: 10px;">
+  <div style="display: block; position: absolute; width: 100%; height: 100%; grid-row-start: 1; grid-row-end: 2; grid-column-start: -3; grid-column-end: span 6;"></div>
+  <div style="display: block; grid-column-start: -5; grid-column-end: span 8;"></div>
+</div>
+
+</body>
+</html>
