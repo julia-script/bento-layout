@@ -1077,11 +1077,20 @@ function determineContainerMainSize(
               //   030: height  70, content 200 -> min(200,  70) =  70
               // 030 needs the cap so the inner container wraps into two
               // columns instead of stacking to 200.
+              // `contentMainSize` already carries the item's margins, so the
+              // basis has to be compared against the margin-*exclusive* size and
+              // the margins re-added afterwards. Comparing it against the
+              // inflated value let any margin swallow the basis outright: a
+              // column item with `flex-basis: 3; margin: 20px ... 200px` came
+              // out 0 tall (container 220) where Chrome keeps the 3 (223).
+              const marginSum = rectMainAxisSum(item.margin, constants.dir);
+              const innerContent = contentMainSize - marginSum;
               const suggested =
                 item.flexBasisIsExplicit && stylePreferred !== null
-                  ? Math.min(contentMainSize, stylePreferred)
-                  : contentMainSize;
-              contentContribution = vClamp(Math.max(suggested, item.flexBasis), styleMin, styleMax);
+                  ? Math.min(innerContent, stylePreferred)
+                  : innerContent;
+              contentContribution =
+                vClamp(Math.max(suggested, item.flexBasis), styleMin, styleMax) + marginSum;
             }
           }
 
