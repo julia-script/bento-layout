@@ -1660,6 +1660,23 @@ after max-width clamps the aspect ratio").
 
 ## Not yet triaged
 
+- **A flex item's used main size ignores its own `flex-basis: 0`.** WPT
+  `css-flexbox/flex-minimum-height-flex-items-029`. A column flex container
+  with `flex: 1 0 0px; height: 500px` should use its §4.5 automatic minimum
+  (100 = the sum of its two items' 50px content) rather than its style height,
+  per the test's own comment `min-height is min(100, 500) = 100`. Chrome gives
+  100 with `flex: 1 0 0`, and 500 without it.
+
+  Already verified *not* to be the §4.5 computation: `resolvedMinimumMainSize`
+  and `hypotheticalInnerSize` both come out at exactly 100, and `flexBasis` is
+  0. The 500 therefore enters after line sizing, during the item's final
+  layout, where the container recomputes its own height from `style.size`.
+
+  Note the control is also wrong and in the *opposite* direction: with
+  `flexGrow: 0` the same tree gives 100 where Chrome gives 500. Both directions
+  are broken, so this is one bug about which size wins rather than a missing
+  clamp — do not "fix" it by flooring, or the control regresses.
+
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they
 are not lost; each needs the same treatment before it can move up:
 
