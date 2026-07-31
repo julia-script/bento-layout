@@ -1,0 +1,23 @@
+
+> flexboxjs@0.1.0 bench
+> tsx scripts/bench.ts
+
+flex: wide (10 children)                                      11 nodes       0.16 ms median    43895.9 it/s        70,777 nodes/s
+flex: wide (100 children)                                    101 nodes       0.19 ms median     4777.9 it/s       538,787 nodes/s
+flex: wide (1,000 children)                                 1001 nodes       2.02 ms median      453.6 it/s       496,148 nodes/s
+flex: wide (10,000 children)                               10001 nodes      52.34 ms median       26.6 it/s       191,091 nodes/s
+flex: deep taffy-shape (~4,000 nodes)                       3071 nodes      33.00 ms median       29.1 it/s        93,074 nodes/s
+flex: deep taffy-shape (~10,000 nodes)                      8191 nodes      89.23 ms median        9.5 it/s        91,800 nodes/s
+flex: deep alternating-axis (stress, depth 10, branch 2)    2047 nodes     328.63 ms median        2.9 it/s         6,229 nodes/s  [engine-only]
+flex: deep alternating-axis (stress, depth 7, branch 3)     3280 nodes     425.55 ms median        2.2 it/s         7,708 nodes/s  [engine-only]
+grid: 10x10                                                  101 nodes       1.48 ms median     1133.4 it/s        68,255 nodes/s
+grid: 32x32                                                 1025 nodes       9.69 ms median       96.4 it/s       105,766 nodes/s
+grid: 100x100                                              10001 nodes     124.96 ms median        8.0 it/s        80,036 nodes/s
+block: 1,000 stacked (margin collapsing)                    1001 nodes       2.05 ms median      517.3 it/s       487,906 nodes/s  [engine-only]
+block: 10,000 stacked (margin collapsing)                  10001 nodes      24.27 ms median       39.8 it/s       411,998 nodes/s  [engine-only]
+mixed page: 10 sections                                      271 nodes       4.99 ms median      259.4 it/s        54,348 nodes/s  [engine-only]
+mixed page: 100 sections                                    2701 nodes      39.15 ms median       25.1 it/s        68,998 nodes/s  [engine-only]
+
+# variance check re-runs (wide-10,000 median was a noise spike in the first run):
+# run2: flex wide (10,000)  36.71 ms | deep ~10k  90.62 ms | block 10,000  26.03 ms
+# run3: flex wide (10,000)  36.32 ms | deep ~10k  90.98 ms | block 10,000  25.57 ms

@@ -1,0 +1,19 @@
+
+> flexboxjs@0.1.0 bench
+> tsx scripts/bench.ts
+
+flex: wide (10 children)                                      11 nodes       0.41 ms median    25798.6 it/s        26,889 nodes/s
+flex: wide (100 children)                                    101 nodes       0.21 ms median     4484.6 it/s       486,651 nodes/s
+flex: wide (1,000 children)                                 1001 nodes       2.04 ms median      459.8 it/s       489,796 nodes/s
+flex: wide (10,000 children)                               10001 nodes      39.87 ms median       25.0 it/s       250,825 nodes/s
+flex: deep taffy-shape (~4,000 nodes)                       3071 nodes      35.86 ms median       26.6 it/s        85,643 nodes/s
+flex: deep taffy-shape (~10,000 nodes)                      8191 nodes      95.52 ms median       10.7 it/s        85,753 nodes/s
+flex: deep alternating-axis (stress, depth 10, branch 2)    2047 nodes     394.28 ms median        2.5 it/s         5,192 nodes/s  [engine-only]
+flex: deep alternating-axis (stress, depth 7, branch 3)     3280 nodes     501.12 ms median        1.8 it/s         6,545 nodes/s  [engine-only]
+grid: 10x10                                                  101 nodes       1.62 ms median      927.9 it/s        62,513 nodes/s
+grid: 32x32                                                 1025 nodes      10.45 ms median       89.8 it/s        98,063 nodes/s
+grid: 100x100                                              10001 nodes     128.45 ms median        7.5 it/s        77,860 nodes/s
+block: 1,000 stacked (margin collapsing)                    1001 nodes       2.41 ms median      476.4 it/s       415,274 nodes/s  [engine-only]
+block: 10,000 stacked (margin collapsing)                  10001 nodes      33.66 ms median       30.0 it/s       297,094 nodes/s  [engine-only]
+mixed page: 10 sections                                      271 nodes       6.00 ms median      194.2 it/s        45,189 nodes/s  [engine-only]
+mixed page: 100 sections                                    2701 nodes      48.02 ms median       22.3 it/s        56,243 nodes/s  [engine-only]

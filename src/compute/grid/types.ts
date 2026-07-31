@@ -7,6 +7,7 @@
 // - "TrackVec index": even indices are lines/gutters, odd indices are tracks
 
 import type { AbsoluteAxis, Point, Rect, Size } from '../../geometry.js';
+import { InvalidStyleError } from '../../style.js';
 import { maybeApplyAspectRatio, rectAdd, sumAxes } from '../../geometry.js';
 import { mAdd, mClamp, mMin, mSub, vClamp } from '../../math.js';
 import type { Opt } from '../../math.js';
@@ -35,7 +36,7 @@ import type {
   Overflow,
   Style,
 } from '../../style.js';
-import type { Node } from '../../tree.js';
+import type { LayoutNode } from '../../tree.js';
 import { measureChildSize } from '../dispatch.js';
 
 // --- Axis helpers (AbstractAxis Inline≡horizontal, Block≡vertical)
@@ -64,7 +65,7 @@ export interface LineOf<T> {
 export function gridLineIntoOriginZero(line: number, explicitTrackCount: number): number {
   if (line > 0) return line - 1;
   if (line < 0) return line + explicitTrackCount + 1;
-  throw new Error('Grid line of zero is invalid');
+  throw new InvalidStyleError('grid line 0 is invalid (lines are 1-based; negative indices count from the end)');
 }
 
 /** The minimum number of negative implicit tracks if an item starts at this oz line */
@@ -162,7 +163,7 @@ export const trackCountsLen = (c: TrackCounts): number => {
   // A non-finite count silently defeats every `range.end > len` bounds check
   // (comparisons against NaN are false), which turns a sizing bug upstream into
   // an out-of-bounds write in the occupancy matrix. Fail where it originates.
-  if (!Number.isFinite(len)) throw new Error(`grid: non-finite track count (${JSON.stringify(c)})`);
+  if (!Number.isFinite(len)) throw new InvalidStyleError(`grid: non-finite track count (${JSON.stringify(c)})`);
   return len;
 };
 export const implicitStartLine = (c: TrackCounts): number => 0 - c.negativeImplicit + 0; // +0 avoids -0
@@ -422,7 +423,7 @@ export class CellOccupancyMatrix {
 // --- GridItem
 
 export interface GridItem {
-  node: Node;
+  node: LayoutNode;
   sourceOrder: number;
 
   /** Placement in origin-zero coordinates */
@@ -463,7 +464,7 @@ export interface GridItem {
 }
 
 export function newGridItem(
-  node: Node,
+  node: LayoutNode,
   colSpan: LineOf<number>,
   rowSpan: LineOf<number>,
   style: Style,

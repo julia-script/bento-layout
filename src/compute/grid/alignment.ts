@@ -6,7 +6,8 @@ import { mClamp, vMax } from '../../math.js';
 import type { Opt } from '../../math.js';
 import { maybeResolve, maybeResolveSize, resolveOrZero } from '../../style.js';
 import type { AlignContent, AlignContentKeyword, AlignItems, Direction, Position } from '../../style.js';
-import type { Layout, Node } from '../../tree.js';
+import type { LayoutNode, Layout } from '../../tree.js';
+import { internals } from '../../tree.js';
 import {
   applyAlignmentFallback,
   computeAlignmentOffset,
@@ -90,7 +91,7 @@ export function alignTracks(
  * Returns [contentSizeContribution, yPosition, height].
  */
 export function alignAndPositionItem(
-  node: Node,
+  node: LayoutNode,
   order: number,
   gridArea: Rect<number>,
   containerAlignmentStyles: { horizontal: AlignItems | null; vertical: AlignItems | null },
@@ -99,7 +100,8 @@ export function alignAndPositionItem(
 ): [Size<number>, number, number] {
   const gridAreaSize = { width: gridArea.right - gridArea.left, height: gridArea.bottom - gridArea.top };
 
-  const style = node.style;
+  const nd = internals(node);
+  const style = nd.style;
   const overflow = style.overflow;
   const scrollbarWidth = style.scrollbarWidth;
   const aspectRatio = style.aspectRatio;
@@ -283,7 +285,7 @@ export function alignAndPositionItem(
     border,
     margin: resolvedMargin,
   };
-  node.unroundedLayout = layout;
+  nd.unroundedLayout = layout;
 
   const contribution = computeContentSizeContribution(
     { x: x - gridArea.left, y: y - gridArea.top },

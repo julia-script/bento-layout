@@ -12,7 +12,7 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { computeLayout } from '../src/index.js';
-import type { Node } from '../src/index.js';
+import type { LayoutNode } from '../src/index.js';
 import { parseFixture } from '../tests/harness/fixture.js';
 import type { ExpectedNode } from '../tests/harness/fixture.js';
 
@@ -29,7 +29,7 @@ const SUITES = ['css-flexbox', 'css-grid', 'css-sizing', 'css-align'] as const;
 const close = (actual: number, expected: number): boolean =>
   Number.isFinite(actual) && Math.abs(actual - expected) < TOLERANCE;
 
-function matches(node: Node, expected: ExpectedNode): boolean {
+function matches(node: LayoutNode, expected: ExpectedNode): boolean {
   const { location, size } = node.layout;
   if (
     !close(location.x, expected.x) ||

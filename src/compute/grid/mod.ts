@@ -17,8 +17,8 @@ import {
   trackUsesPercentage,
 } from '../../style.js';
 import type { AvailableSpace, Direction } from '../../style.js';
-import type { LayoutInput, LayoutOutput, Node } from '../../tree.js';
-import { fromOuterSize, fromSizesAndBaselines, layoutWithOrder } from '../../tree.js';
+import type { LayoutNode, LayoutInput, LayoutOutput } from '../../tree.js';
+import { fromOuterSize, fromSizesAndBaselines, internals, layoutWithOrder } from '../../tree.js';
 import { performChildLayout } from '../dispatch.js';
 import { alignAndPositionItem, alignTracks } from './alignment.js';
 import { computeExplicitGridSizeInAxis, initializeGridTracks } from './explicit.js';
@@ -51,10 +51,11 @@ function ozLineTranslateAbs(
 }
 
 /** Grid layout algorithm entry point */
-export function computeGridLayout(node: Node, inputs: LayoutInput): LayoutOutput {
+export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): LayoutOutput {
+  const nd = internals(node);
   const { knownDimensions, parentSize, availableSpace, runMode } = inputs;
 
-  const style = node.style;
+  const style = nd.style;
   const direction = style.direction;
 
   // 1. Compute "available grid space" — https://www.w3.org/TR/css-grid-1/#available-grid-space
@@ -179,17 +180,18 @@ export function computeGridLayout(node: Node, inputs: LayoutInput): LayoutOutput
   const explicitRowCount = gridTemplateRowCount;
 
   // 3. Implicit Grid: estimate track counts
-  const inFlowChildren: { index: number; node: Node }[] = [];
-  for (let index = 0; index < node.children.length; index++) {
-    const child = node.children[index]!;
-    if (child.style.display === 'none' || child.style.position === 'absolute') continue;
+  const inFlowChildren: { index: number; node: LayoutNode }[] = [];
+  for (let index = 0; index < nd.children.length; index++) {
+    const child = nd.children[index]!;
+    const childStyle = internals(child).style;
+    if (childStyle.display === 'none' || childStyle.position === 'absolute') continue;
     inFlowChildren.push({ index, node: child });
   }
   const [estColCounts, estRowCounts, ozOffsets] = computeGridSizeEstimate(
     explicitColCount,
     explicitRowCount,
     direction,
-    inFlowChildren.map((c) => c.node.style),
+    inFlowChildren.map((c) => internals(c.node).style),
   );
 
   // 4. Grid Item Placement
@@ -591,13 +593,14 @@ export function computeGridLayout(node: Node, inputs: LayoutInput): LayoutOutput
 
   // Position hidden and absolutely positioned children
   let order = items.length;
-  for (let index = 0; index < node.children.length; index++) {
-    const child = node.children[index]!;
-    const childStyle = child.style;
+  for (let index = 0; index < nd.children.length; index++) {
+    const child = nd.children[index]!;
+    const childNd = internals(child);
+    const childStyle = childNd.style;
 
     // Hidden children
     if (childStyle.display === 'none') {
-      child.unroundedLayout = layoutWithOrder(order);
+      childNd.unroundedLayout = layoutWithOrder(order);
       performChildLayout(
         child,
         { width: null, height: null },

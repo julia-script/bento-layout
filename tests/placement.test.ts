@@ -1,7 +1,7 @@
 // Direct unit tests for grid placement coordinates (mirrors taffy's placement tests).
 
 import { describe, expect, it } from 'vitest';
-import { createNode } from '../src/index.js';
+import { LayoutNode } from '../src/index.js';
 import type { GridPlacement, Style } from '../src/index.js';
 import { computeGridSizeEstimate } from '../src/compute/grid/implicit.js';
 import { placeGridItems } from '../src/compute/grid/placement.js';
@@ -18,12 +18,10 @@ function runPlacement(
 ): GridItem[] {
   const children = childPlacements.map((p, index) => ({
     index,
-    node: createNode({
-      style: {
+    node: new LayoutNode({
         gridColumn: { start: p.col[0], end: p.col[1] },
         gridRow: { start: p.row[0], end: p.row[1] },
-      },
-    }),
+      }),
   }));
   const [colCounts, rowCounts] = computeGridSizeEstimate(
     explicitColCount,

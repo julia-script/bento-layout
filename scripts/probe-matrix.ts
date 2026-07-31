@@ -12,7 +12,7 @@ import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import puppeteer from 'puppeteer';
 import { computeLayout } from '../src/index.js';
-import type { Node } from '../src/index.js';
+import type { LayoutNode } from '../src/index.js';
 import { parseFixture } from '../tests/harness/fixture.js';
 import type { ExpectedNode } from '../tests/harness/fixture.js';
 import { generateTestXml } from './gentest.js';
@@ -31,7 +31,7 @@ const VARIANTS = [
 
 type Mismatch = { path: string; chrome: string; engine: string };
 
-function collect(node: Node, expected: ExpectedNode, path: string, out: Mismatch[]): void {
+function collect(node: LayoutNode, expected: ExpectedNode, path: string, out: Mismatch[]): void {
   const { location, size } = node.layout;
   if (
     Math.abs(location.x - expected.x) >= 0.1 ||

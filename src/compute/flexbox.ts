@@ -55,8 +55,8 @@ import type {
   Overflow,
   Style,
 } from '../style.js';
-import type { LayoutInput, LayoutOutput, Node } from '../tree.js';
-import { fromOuterSize, fromSizesAndBaselines, layoutWithOrder } from '../tree.js';
+import type { LayoutNode, LayoutInput, LayoutOutput } from '../tree.js';
+import { fromOuterSize, fromSizesAndBaselines, internals, layoutWithOrder } from '../tree.js';
 import {
   applyAlignmentFallback,
   computeAlignmentOffset,
@@ -86,7 +86,7 @@ import { measureChildSize, measureChildSizeBoth, performChildLayout } from './di
  */
 interface FlexItem {
   // --- Resolved-from-style ---
-  node: Node;
+  node: LayoutNode;
   order: number;
 
   size: Size<Opt>;
@@ -188,9 +188,9 @@ interface AlgoConstants {
 }
 
 /** Computes the layout of a box according to the flexbox algorithm */
-export function computeFlexboxLayout(node: Node, inputs: LayoutInput): LayoutOutput {
+export function computeFlexboxLayout(node: LayoutNode, inputs: LayoutInput): LayoutOutput {
   const { knownDimensions, parentSize, runMode } = inputs;
-  const style = node.style;
+  const style = internals(node).style;
 
   const aspectRatio = style.aspectRatio;
   const padding = resolveRectOrZero(style.padding, parentSize.width);
@@ -257,11 +257,12 @@ export function computeFlexboxLayout(node: Node, inputs: LayoutInput): LayoutOut
 }
 
 /** Compute a preliminary size for an item */
-function computePreliminary(node: Node, inputs: LayoutInput): LayoutOutput {
+function computePreliminary(node: LayoutNode, inputs: LayoutInput): LayoutOutput {
+  const nd = internals(node);
   const { knownDimensions, parentSize, availableSpace: outerAvailableSpace, runMode } = inputs;
 
   // Define some general constants we will need for the remainder of the algorithm.
-  const constants = computeConstants(node.style, knownDimensions, parentSize);
+  const constants = computeConstants(nd.style, knownDimensions, parentSize);
 
   // 9. Flex Layout Algorithm
 
@@ -301,7 +302,7 @@ function computePreliminary(node: Node, inputs: LayoutInput): LayoutOutput {
 
     // Re-resolve percentage gaps
     const innerContainerSize = main(constants.innerContainerSize, constants.dir);
-    const newGap = maybeResolve(main(node.style.gap, constants.dir), innerContainerSize) ?? 0;
+    const newGap = maybeResolve(main(nd.style.gap, constants.dir), innerContainerSize) ?? 0;
     setMain(constants.gap, constants.dir, newGap);
   }
 
@@ -361,10 +362,11 @@ function computePreliminary(node: Node, inputs: LayoutInput): LayoutOutput {
   const absoluteContentSize = performAbsoluteLayoutOnAbsoluteChildren(node, constants);
 
   // Hidden layout for display:none children
-  for (let order = 0; order < node.children.length; order++) {
-    const child = node.children[order]!;
-    if (child.style.display === 'none') {
-      child.unroundedLayout = layoutWithOrder(order);
+  for (let order = 0; order < nd.children.length; order++) {
+    const child = nd.children[order]!;
+    const childNd = internals(child);
+    if (childNd.style.display === 'none') {
+      childNd.unroundedLayout = layoutWithOrder(order);
       performChildLayout(
         child,
         { width: null, height: null },
@@ -479,11 +481,12 @@ function computeConstants(style: Style, knownDimensions: Size<Opt>, parentSize: 
  * Generate anonymous flex items.
  * # [9.1. Initial Setup](https://www.w3.org/TR/css-flexbox-1/#box-manip)
  */
-function generateAnonymousFlexItems(node: Node, constants: AlgoConstants): FlexItem[] {
+function generateAnonymousFlexItems(node: LayoutNode, constants: AlgoConstants): FlexItem[] {
+  const nd = internals(node);
   const items: FlexItem[] = [];
-  for (let index = 0; index < node.children.length; index++) {
-    const child = node.children[index]!;
-    const childStyle = child.style;
+  for (let index = 0; index < nd.children.length; index++) {
+    const child = nd.children[index]!;
+    const childStyle = internals(child).style;
     if (childStyle.position === 'absolute') continue;
     if (childStyle.display === 'none') continue;
 
@@ -568,7 +571,7 @@ function transferThroughRatio(
   const targetIsHorizontal = dirIsRow(dir) === toMain;
   const apply = (v: number): number => (targetIsHorizontal ? v * ratio : v / ratio);
 
-  if (child.node.style.boxSizing !== 'content-box') return apply(sourceSize);
+  if (internals(child.node).style.boxSizing !== 'content-box') return apply(sourceSize);
 
   const pb = rectAdd(child.padding, child.border);
   const sourcePb = toMain ? rectCrossAxisSum(pb, dir) : rectMainAxisSum(pb, dir);
@@ -617,7 +620,7 @@ function determineFlexBaseSize(
   const dir = constants.dir;
 
   for (const child of flexItems) {
-    const childStyle = child.node.style;
+    const childStyle = internals(child.node).style;
 
     // Parent size for child sizing
     const crossAxisParentSize = cross(constants.nodeInnerSize, dir);
@@ -1305,7 +1308,7 @@ function determineHypotheticalCrossSize(
     // Sizes transferred through the aspect ratio clamp the hypothetical cross size —
     // but only when the cross axis's preferred size is auto (css-sizing-4 §5.2.2).
     const crossStyleIsAuto =
-      maybeResolve(cross(child.node.style.size, constants.dir), cross(constants.nodeInnerSize, constants.dir)) === null;
+      maybeResolve(cross(internals(child.node).style.size, constants.dir), cross(constants.nodeInnerSize, constants.dir)) === null;
     // A *transferred* minimum (AR-derived, not explicitly specified in this axis)
     // is capped by the axis's own explicit maximum (css-sizing-4 §5.2.2; matches
     // Chrome). An explicit minimum still beats the maximum as usual.
@@ -1339,7 +1342,7 @@ function determineHypotheticalCrossSize(
     // specified main size looks like it has a definite cross size here.
     child.crossIsArDerived =
       child.aspectRatio !== null &&
-      cross(maybeResolveSize(child.node.style.size, constants.nodeInnerSize), constants.dir) === null;
+      cross(maybeResolveSize(internals(child.node).style.size, constants.nodeInnerSize), constants.dir) === null;
 
     const childCross = mMax(
       mClamp(cross(child.size, constants.dir) ?? arDerivedCross, transferredMinCross, transferredMaxCross),
@@ -1527,7 +1530,7 @@ function determineUsedCrossSize(flexLines: FlexLine[], constants: AlgoConstants)
     const lineCrossSize = line.crossSize;
 
     for (const child of line.items) {
-      const childStyle = child.node.style;
+      const childStyle = internals(child.node).style;
       if (
         child.alignSelf.keyword === 'stretch' &&
         !child.alignSelf.safe &&
@@ -1857,7 +1860,7 @@ function calculateFlexItem(
     height: item.overflow.x === 'scroll' ? item.scrollbarWidth : 0,
   };
 
-  item.node.unroundedLayout = {
+  internals(item.node).unroundedLayout = {
     order: item.order,
     size,
     contentSize,
@@ -1970,7 +1973,8 @@ function finalLayoutPass(flexLines: FlexLine[], constants: AlgoConstants): Size<
 }
 
 /** Perform absolute layout on all absolutely positioned children. */
-function performAbsoluteLayoutOnAbsoluteChildren(node: Node, constants: AlgoConstants): Size<number> {
+function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: AlgoConstants): Size<number> {
+  const nd = internals(node);
   const containerWidth = constants.containerSize.width;
   const containerHeight = constants.containerSize.height;
   const insetRelativeSize = {
@@ -1980,9 +1984,10 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: Node, constants: AlgoCons
 
   const contentSize = sizeZero();
 
-  for (let order = 0; order < node.children.length; order++) {
-    const child = node.children[order]!;
-    const childStyle = child.style;
+  for (let order = 0; order < nd.children.length; order++) {
+    const child = nd.children[order]!;
+    const childNd = internals(child);
+    const childStyle = childNd.style;
 
     // Skip items that are display:none or are not position:absolute
     if (childStyle.display === 'none' || childStyle.position !== 'absolute') continue;
@@ -2239,7 +2244,7 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: Node, constants: AlgoCons
       width: overflow.y === 'scroll' ? scrollbarWidth : 0,
       height: overflow.x === 'scroll' ? scrollbarWidth : 0,
     };
-    child.unroundedLayout = {
+    childNd.unroundedLayout = {
       order,
       size: finalSize,
       contentSize: layoutOutput.contentSize,

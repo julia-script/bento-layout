@@ -1,14 +1,13 @@
 // Public API smoke tests + cache perf sanity.
 
 import { describe, expect, it } from 'vitest';
-import { computeLayout, createNode } from '../src/index.js';
-import type { Node } from '../src/index.js';
+import { computeLayout, LayoutNode } from '../src/index.js';
 
 describe('public API', () => {
   it('lays out a simple grow row', () => {
-    const a = createNode({ style: { flexGrow: 1 } });
-    const b = createNode({ style: { flexGrow: 1 } });
-    const root = createNode({ style: { size: { width: 400, height: 300 } }, children: [a, b] });
+    const a = new LayoutNode({ flexGrow: 1 });
+    const b = new LayoutNode({ flexGrow: 1 });
+    const root = new LayoutNode({ size: { width: 400, height: 300 } }, [a, b]);
 
     computeLayout(root, { width: 'max-content', height: 'max-content' });
 
@@ -18,20 +17,15 @@ describe('public API', () => {
   });
 
   it('percent sizes and content-box sizing', () => {
-    const child = createNode({
-      style: {
+    const child = new LayoutNode({
         size: { width: { percent: 0.5 }, height: 100 },
         padding: { left: 10, right: 10, top: 0, bottom: 0 },
-      },
-    });
-    const root = createNode({
-      style: {
+      });
+    const root = new LayoutNode({
         size: { width: 200, height: 200 },
         boxSizing: 'content-box',
         padding: { left: 10, right: 10, top: 10, bottom: 10 },
-      },
-      children: [child],
-    });
+      }, [child]);
 
     computeLayout(root, { width: 'max-content', height: 'max-content' });
 
@@ -42,20 +36,18 @@ describe('public API', () => {
   });
 
   it('measure functions drive leaf sizing', () => {
-    const leaf = createNode({
-      measure: (known, available) => ({
+    const leaf = new LayoutNode().setMeasure((known, available) => ({
         width: known.width ?? (typeof available.width === 'number' ? Math.min(available.width, 100) : 100),
         height: known.height ?? 20,
-      }),
-    });
-    const root = createNode({ style: {}, children: [leaf] });
+      }));
+    const root = new LayoutNode({}, [leaf]);
     computeLayout(root, { width: 'max-content', height: 'max-content' });
     expect(leaf.layout.size).toEqual({ width: 100, height: 20 });
   });
 
   it('recomputes after style changes', () => {
-    const child = createNode({ style: { flexGrow: 1 } });
-    const root = createNode({ style: { size: { width: 100, height: 10 } }, children: [child] });
+    const child = new LayoutNode({ flexGrow: 1 });
+    const root = new LayoutNode({ size: { width: 100, height: 10 } }, [child]);
     computeLayout(root, { width: 'max-content', height: 'max-content' });
     expect(child.layout.size.width).toBe(100);
 
@@ -66,13 +58,22 @@ describe('public API', () => {
 
   it('deeply nested tree completes quickly (layout cache works)', () => {
     // Without the measurement cache this is exponential in depth.
-    let node: Node = createNode({ style: {} });
+    let node: LayoutNode = new LayoutNode();
     for (let i = 0; i < 50; i++) {
-      node = createNode({ style: { padding: { left: 1, right: 1, top: 1, bottom: 1 } }, children: [node] });
+      node = new LayoutNode({ padding: { left: 1, right: 1, top: 1, bottom: 1 } }, [node]);
     }
     const start = performance.now();
     computeLayout(node, { width: 800, height: 600 });
     const elapsed = performance.now() - start;
     expect(elapsed).toBeLessThan(1000);
+  });
+});
+
+describe('public surface', () => {
+  it('root exports exactly the curated value surface', async () => {
+    const mod = await import('../src/index.js');
+    // Types are erased; this snapshots the runtime surface. Growing it is a
+    // deliberate, reviewed decision — update this list in the same commit.
+    expect(Object.keys(mod).sort()).toEqual(['InvalidStyleError', 'LayoutNode', 'computeLayout']);
   });
 });

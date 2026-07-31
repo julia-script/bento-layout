@@ -11,7 +11,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import puppeteer from 'puppeteer';
 import { computeLayout } from '../src/index.js';
-import type { Node } from '../src/index.js';
+import type { LayoutNode } from '../src/index.js';
 import { parseFixture } from '../tests/harness/fixture.js';
 import type { ExpectedNode } from '../tests/harness/fixture.js';
 import { generateTestXml } from './gentest.js';
@@ -28,7 +28,7 @@ const VARIANTS = [
   ['contentBoxRtlData', 'content_box_rtl'],
 ] as const;
 
-function report(node: Node, expected: ExpectedNode, path: string, lines: string[]): void {
+function report(node: LayoutNode, expected: ExpectedNode, path: string, lines: string[]): void {
   const { location, size } = node.layout;
   const differs =
     Math.abs(location.x - expected.x) >= 0.1 ||

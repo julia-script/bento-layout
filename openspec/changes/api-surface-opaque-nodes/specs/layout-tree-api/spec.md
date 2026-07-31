@@ -1,10 +1,6 @@
-# layout-tree-api Specification
+# layout-tree-api Delta
 
-## Purpose
-
-The public TypeScript API for building styled node trees, computing layout, and reading results — opaque nodes constructed from plain style data, no WASM, no runtime dependencies, and no memory-management obligations.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Opaque node trees
 
@@ -20,23 +16,21 @@ The library SHALL let consumers build a layout tree of opaque nodes constructed 
 - **WHEN** a consumer updates a node's style via the style-setting method and recomputes layout
 - **THEN** the new layout reflects the change, and no public property exists through which the style could have been assigned directly
 
-### Requirement: Layout entry point
+### Requirement: Publishable package
 
-The library SHALL expose a `computeLayout(root, availableSpace)` function where each axis of available space is a definite pixel value, `min-content`, or `max-content`. Results are stored on the nodes and remain readable until the next computation.
+The package SHALL be publishable to npm as ESM with TypeScript declarations, zero runtime dependencies, and a curated root surface: the node class, the layout entry point, its options, the measure-function type, and the style/geometry/layout type vocabulary. Internal engine helpers (axis math, style resolvers, track predicates) SHALL NOT be exported from the package root.
 
-#### Scenario: Max-content viewport
+#### Scenario: Consumer install
 
-- **WHEN** layout is computed with `max-content` available space on both axes
-- **THEN** the root sizes to its content's max-content size
+- **WHEN** a TypeScript project installs and imports the package
+- **THEN** the node class, `computeLayout`, and all style/layout types typecheck and run under Node and bundlers without extra configuration
 
-### Requirement: Measure functions for leaf content
+#### Scenario: Curated surface
 
-The library SHALL support an optional measure callback on leaf nodes, invoked with known dimensions and available space, returning content size — sufficient to implement text measurement. Nodes with a measure callback and no children are treated as content leaves.
+- **WHEN** a consumer inspects the package root's exports
+- **THEN** every exported value is either the node class, the layout entry point and its options, or a documented type — no internal helper functions
 
-#### Scenario: Text-like leaf
-
-- **WHEN** a leaf's measure callback returns width based on available space (word-wrapping behavior)
-- **THEN** the flex algorithm uses that size for the leaf's content sizing and final layout
+## ADDED Requirements
 
 ### Requirement: Tree manipulation with GC-native lifetime
 
@@ -65,26 +59,3 @@ The library SHALL report user-supplied style input that would poison layout math
 
 - **WHEN** a consumer supplies a grid placement with line number 0 and computes layout
 - **THEN** the placement behaves as `auto` (no throw), matching browser handling of invalid placements
-
-### Requirement: Publishable package
-
-The package SHALL be publishable to npm as ESM with TypeScript declarations, zero runtime dependencies, and a curated root surface: the node class, the layout entry point, its options, the measure-function type, and the style/geometry/layout type vocabulary. Internal engine helpers (axis math, style resolvers, track predicates) SHALL NOT be exported from the package root.
-
-#### Scenario: Consumer install
-
-- **WHEN** a TypeScript project installs and imports the package
-- **THEN** the node class, `computeLayout`, and all style/layout types typecheck and run under Node and bundlers without extra configuration
-
-#### Scenario: Curated surface
-
-- **WHEN** a consumer inspects the package root's exports
-- **THEN** every exported value is either the node class, the layout entry point and its options, or a documented type — no internal helper functions
-
-### Requirement: Grid style properties
-
-The library SHALL accept grid styling as plain data on the style object: `gridTemplateRows`/`gridTemplateColumns` and `gridAutoRows`/`gridAutoColumns` as arrays of track sizing values (length, percent, `fr`, `auto`, min/max-content, `fit-content()`, `minmax()`, `repeat()`), `gridAutoFlow`, `gridRow`/`gridColumn` placements (line number, `span n`, auto), and `justifyItems`/`justifySelf` — all optional with CSS-conformant defaults, exported as TypeScript types from the package root.
-
-#### Scenario: Typed grid style input
-
-- **WHEN** a consumer constructs a node with `gridTemplateColumns` mixing a fixed length, an `fr` value, and a `minmax()` entry
-- **THEN** the style typechecks against exported types and `computeLayout` lays the grid out accordingly

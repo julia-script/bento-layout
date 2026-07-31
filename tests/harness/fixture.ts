@@ -1,7 +1,7 @@
 // Fixture XML parser + tree builder — port of taffy/tests/xml.rs (flexbox subset).
 
 import { XMLParser } from 'fast-xml-parser';
-import { createNode } from '../../src/index.js';
+import { LayoutNode } from '../../src/index.js';
 import type {
   AlignContent,
   AlignContentKeyword,
@@ -15,7 +15,6 @@ import type {
   LengthPercentageAuto,
   MaxTrackSizingFunction,
   MinTrackSizingFunction,
-  Node,
   Size,
   Style,
   TrackSizingFunction,
@@ -35,7 +34,7 @@ export interface FixtureTest {
   name: string;
   useRounding: boolean;
   viewport: Size<AvailableSpace>;
-  root: Node;
+  root: LayoutNode;
   expected: ExpectedNode;
   /** display values seen in the input tree (to detect block/grid fixtures) */
   displays: Set<string>;
@@ -100,7 +99,7 @@ function elementTag(el: XmlNode): string {
   return key;
 }
 
-function buildNode(el: XmlNode, displays: Set<string>): Node {
+function buildNode(el: XmlNode, displays: Set<string>): LayoutNode {
   const tag = elementTag(el);
   const attrs = el[':@'] ?? {};
   const kids = (el[tag] as XmlNode[]) ?? [];
@@ -109,7 +108,7 @@ function buildNode(el: XmlNode, displays: Set<string>): Node {
   if (attrs['display'] !== undefined) displays.add(attrs['display']);
 
   if (elementChildren.length > 0) {
-    return createNode({ style, children: elementChildren.map((child) => buildNode(child, displays)) });
+    return new LayoutNode(style, elementChildren.map((child) => buildNode(child, displays)));
   }
 
   // Leaf: text content (if any) measured with the Ahem font
@@ -123,9 +122,9 @@ function buildNode(el: XmlNode, displays: Set<string>): Node {
     .replace(/^[ \t\n\r\f]+|[ \t\n\r\f]+$/g, '');
   if (textContent.length > 0) {
     const writingMode: WritingMode = (attrs['writing-mode'] ?? '').includes('vertical') ? 'vertical' : 'horizontal';
-    return createNode({ style, measure: ahemTextMeasure(textContent, writingMode) });
+    return new LayoutNode(style).setMeasure(ahemTextMeasure(textContent, writingMode));
   }
-  return createNode({ style });
+  return new LayoutNode(style);
 }
 
 function buildExpected(el: XmlNode): ExpectedNode {

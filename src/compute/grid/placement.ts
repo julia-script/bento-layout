@@ -4,7 +4,8 @@
 import type { AbsoluteAxis } from '../../geometry.js';
 import type { AlignItems, Direction, GridAutoFlow, Style } from '../../style.js';
 import { gridAutoFlowIsDense, gridAutoFlowPrimaryAxis } from '../../style.js';
-import type { Node } from '../../tree.js';
+import type { LayoutNode } from '../../tree.js';
+import { internals } from '../../tree.js';
 import {
   CellOccupancyMatrix,
   absOther,
@@ -64,7 +65,7 @@ function maybeMirrorSpan(
 
 interface PlacedChild {
   index: number;
-  node: Node;
+  node: LayoutNode;
   style: Style;
   placement: { horizontal: LineOf<OzGridPlacement>; vertical: LineOf<OzGridPlacement> };
 }
@@ -80,7 +81,7 @@ function placementGet(p: PlacedChild['placement'], axis: AbsoluteAxis): LineOf<O
 export function placeGridItems(
   cellOccupancyMatrix: CellOccupancyMatrix,
   items: GridItem[],
-  children: { index: number; node: Node }[],
+  children: { index: number; node: LayoutNode }[],
   direction: Direction,
   gridAutoFlow: GridAutoFlow,
   alignItems: AlignItems,
@@ -92,15 +93,18 @@ export function placeGridItems(
   const explicitColCount = cellOccupancyMatrix.trackCounts('horizontal').explicit;
   const explicitRowCount = cellOccupancyMatrix.trackCounts('vertical').explicit;
 
-  const mapped: PlacedChild[] = children.map(({ index, node }) => ({
-    index,
-    node,
-    style: node.style,
-    placement: {
-      horizontal: ozLineTranslate(placementLineIntoOriginZero(node.style.gridColumn, explicitColCount), ozOffsets.col),
-      vertical: ozLineTranslate(placementLineIntoOriginZero(node.style.gridRow, explicitRowCount), ozOffsets.row),
-    },
-  }));
+  const mapped: PlacedChild[] = children.map(({ index, node }) => {
+    const style = internals(node).style;
+    return {
+      index,
+      node,
+      style,
+      placement: {
+        horizontal: ozLineTranslate(placementLineIntoOriginZero(style.gridColumn, explicitColCount), ozOffsets.col),
+        vertical: ozLineTranslate(placementLineIntoOriginZero(style.gridRow, explicitRowCount), ozOffsets.row),
+      },
+    };
+  });
 
   // 1. Place children with definite positions
   for (const child of mapped) {

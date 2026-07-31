@@ -8,33 +8,28 @@
 //
 // Usage: pnpm bench [--json]
 
-import { computeLayout, createNode } from '../src/index.js';
-import type { Node, Style, TrackSizingFunction } from '../src/index.js';
+import { computeLayout, LayoutNode } from '../src/index.js';
+import type { Style, TrackSizingFunction } from '../src/index.js';
 
 const WARMUP = 3;
 const SAMPLES = 10;
 /** Per-scenario fixed measurement window for the iteration-count metric. */
 const FIXED_WINDOW_MS = Number(process.env['BENCH_WINDOW_MS'] ?? 2000);
 
-function countNodes(node: Node): number {
+function countNodes(node: LayoutNode): number {
   return 1 + node.children.reduce((sum, c) => sum + countNodes(c), 0);
 }
 
 // --- Tree builders -----------------------------------------------------------
 
-function wideFlex(childCount: number): Node {
+function wideFlex(childCount: number): LayoutNode {
   const children = Array.from({ length: childCount }, (_, i) =>
-    createNode({
-      style: {
+    new LayoutNode({
         size: { width: 20 + (i % 5), height: 20 + (i % 7) },
         margin: { left: 1, right: 1, top: 1, bottom: 1 },
-      },
-    }),
+      }),
   );
-  return createNode({
-    style: { flexWrap: 'wrap', size: { width: 800, height: 'auto' }, gap: { width: 2, height: 2 } },
-    children,
-  });
+  return new LayoutNode({ flexWrap: 'wrap', size: { width: 800, height: 'auto' }, gap: { width: 2, height: 2 } }, children);
 }
 
 /**
@@ -48,23 +43,23 @@ function wideFlex(childCount: number): Node {
  * `deepFlexAlternating` does, is a much heavier workload and has no counterpart
  * in taffy's suite.
  */
-function taffyDeepFlex(maxNodes: number, branch: number): Node {
+function taffyDeepFlex(maxNodes: number, branch: number): LayoutNode {
   const itemStyle = (): Partial<Style> => ({
     flexGrow: 1,
     margin: { left: 10, right: 10, top: 10, bottom: 10 },
   });
   // Mirrors taffy's recursion: each level splits `(max_nodes - branch) / branch`
   // among `branch` children, bottoming out in leaves once the budget is small.
-  const buildForest = (budget: number): Node[] => {
+  const buildForest = (budget: number): LayoutNode[] => {
     if (budget <= branch) {
-      return Array.from({ length: Math.max(budget, 0) }, () => createNode({ style: itemStyle() }));
+      return Array.from({ length: Math.max(budget, 0) }, () => new LayoutNode(itemStyle()));
     }
     const childBudget = Math.floor((budget - branch) / branch);
     return Array.from({ length: branch }, () =>
-      createNode({ style: itemStyle(), children: buildForest(childBudget) }),
+      new LayoutNode(itemStyle(), buildForest(childBudget)),
     );
   };
-  return createNode({ style: {}, children: buildForest(maxNodes) });
+  return new LayoutNode({}, buildForest(maxNodes));
 }
 
 /**
@@ -74,60 +69,51 @@ function taffyDeepFlex(maxNodes: number, branch: number): Node {
  * per node that a uniform-direction tree of the same shape does. Taffy has no
  * equivalent benchmark, so this scenario carries no cross-engine ratio.
  */
-function deepFlexAlternating(depth: number, branch: number): Node {
-  const build = (level: number): Node => {
+function deepFlexAlternating(depth: number, branch: number): LayoutNode {
+  const build = (level: number): LayoutNode => {
     if (level === 0) {
-      return createNode({ style: { size: { width: 10, height: 10 }, flexGrow: 1 } });
+      return new LayoutNode({ size: { width: 10, height: 10 }, flexGrow: 1 });
     }
-    return createNode({
-      style: {
+    return new LayoutNode({
         flexDirection: level % 2 === 0 ? 'row' : 'column',
         flexGrow: 1,
         padding: { left: 1, right: 1, top: 1, bottom: 1 },
-      },
-      children: Array.from({ length: branch }, () => build(level - 1)),
-    });
+      }, Array.from({ length: branch }, () => build(level - 1)));
   };
   const root = build(depth);
   root.style.size = { width: 1000, height: 1000 };
   return root;
 }
 
-function gridNxN(n: number): Node {
+function gridNxN(n: number): LayoutNode {
   const track: TrackSizingFunction = { min: 'auto', max: { fr: 1 } };
   const children = Array.from({ length: n * n }, (_, i) =>
-    createNode({ style: { size: { width: 'auto', height: 10 + (i % 3) } } }),
+    new LayoutNode({ size: { width: 'auto', height: 10 + (i % 3) } }),
   );
-  return createNode({
-    style: {
+  return new LayoutNode({
       display: 'grid',
       size: { width: 1000, height: 1000 },
       gridTemplateColumns: Array.from({ length: n }, () => track),
       gridTemplateRows: Array.from({ length: n }, () => track),
       gap: { width: 2, height: 2 },
-    },
-    children,
-  });
+    }, children);
 }
 
-function blockStack(count: number): Node {
+function blockStack(count: number): LayoutNode {
   const children = Array.from({ length: count }, (_, i) =>
-    createNode({
-      style: {
+    new LayoutNode({
         display: 'block',
         size: { width: 'auto', height: 12 },
         margin: { left: 0, right: 0, top: 8, bottom: 8 + (i % 3) },
-      } satisfies Partial<Style>,
-    }),
+      } satisfies Partial<Style>),
   );
-  return createNode({ style: { display: 'block', size: { width: 600, height: 'auto' } }, children });
+  return new LayoutNode({ display: 'block', size: { width: 600, height: 'auto' } }, children);
 }
 
 /** A page-like mixed tree: block root > header/content/footer, flex rows, grid panels */
-function mixedPage(sections: number): Node {
-  const gridPanel = (): Node =>
-    createNode({
-      style: {
+function mixedPage(sections: number): LayoutNode {
+  const gridPanel = (): LayoutNode =>
+    new LayoutNode({
         display: 'grid',
         flexGrow: 1,
         gridTemplateColumns: [
@@ -136,27 +122,16 @@ function mixedPage(sections: number): Node {
           { min: 'auto', max: 'auto' },
         ],
         gap: { width: 4, height: 4 },
-      },
-      children: Array.from({ length: 9 }, () => createNode({ style: { size: { width: 'auto', height: 24 } } })),
-    });
-  const flexRow = (): Node =>
-    createNode({
-      style: { display: 'flex', gap: { width: 8, height: 0 }, padding: { left: 8, right: 8, top: 8, bottom: 8 } },
-      children: [
-        createNode({ style: { size: { width: 120, height: 'auto' } } }),
+      }, Array.from({ length: 9 }, () => new LayoutNode({ size: { width: 'auto', height: 24 } })));
+  const flexRow = (): LayoutNode =>
+    new LayoutNode({ display: 'flex', gap: { width: 8, height: 0 }, padding: { left: 8, right: 8, top: 8, bottom: 8 } }, [
+        new LayoutNode({ size: { width: 120, height: 'auto' } }),
         gridPanel(),
-        createNode({ style: { flexGrow: 1, aspectRatio: 1.5 } }),
-      ],
-    });
-  const section = (): Node =>
-    createNode({
-      style: { display: 'block', margin: { left: 0, right: 0, top: 12, bottom: 12 } },
-      children: [flexRow(), flexRow()],
-    });
-  return createNode({
-    style: { display: 'block', size: { width: 1024, height: 'auto' } },
-    children: Array.from({ length: sections }, section),
-  });
+        new LayoutNode({ flexGrow: 1, aspectRatio: 1.5 }),
+      ]);
+  const section = (): LayoutNode =>
+    new LayoutNode({ display: 'block', margin: { left: 0, right: 0, top: 12, bottom: 12 } }, [flexRow(), flexRow()]);
+  return new LayoutNode({ display: 'block', size: { width: 1024, height: 'auto' } }, Array.from({ length: sections }, section));
 }
 
 // --- Runner ------------------------------------------------------------------
@@ -185,7 +160,7 @@ interface Result {
   shape: Shape;
 }
 
-function bench(name: string, tree: Node, shape: Shape): Result {
+function bench(name: string, tree: LayoutNode, shape: Shape): Result {
   const nodes = countNodes(tree);
   const availableSpace = { width: 'max-content', height: 'max-content' } as const;
 

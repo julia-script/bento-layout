@@ -3,7 +3,7 @@
 // attribute parser, the shrinker, and divergence signatures.
 
 import { describe, expect, it } from 'vitest';
-import { resolveStyle } from '../src/index.js';
+import { resolveStyle } from '../src/style.js';
 import type { Style } from '../src/index.js';
 import { generateTree, countNodes, STYLE_COVERAGE } from '../scripts/fuzz/generate.js';
 import type { FuzzMode, FuzzNode, FuzzTree } from '../scripts/fuzz/generate.js';

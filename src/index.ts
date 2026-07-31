@@ -6,33 +6,54 @@ import type { Size } from './geometry.js';
 import { applyAspectRatioClamped } from './geometry.js';
 import { mClamp, mMax, round } from './math.js';
 import type { Opt } from './math.js';
-import { asIntoOption, maybeResolveSize, resolveRectOrZero, resolveStyle } from './style.js';
+import { asIntoOption, maybeResolveSize, resolveRectOrZero } from './style.js';
 import type { AvailableSpace, Style } from './style.js';
-import { Cache, layoutWithOrder, resolveMarginSet } from './tree.js';
-import type { Layout, Line, MeasureFunction, Node } from './tree.js';
+import { LayoutNode, internals, resolveMarginSet } from './tree.js';
+import type { Layout, Line } from './tree.js';
 import { measureChildSize, performChildLayout } from './compute/dispatch.js';
 
-export * from './geometry.js';
-export * from './style.js';
-export type { Layout, LayoutInput, LayoutOutput, MeasureFunction, Node, RunMode, SizingMode } from './tree.js';
+// --- Public surface (curated; see tests/api.test.ts export snapshot) --------
+// Values: the node class, the layout entry point, the validation error.
+// Types: the style/geometry/layout vocabulary needed to construct styles and
+// read results. Engine helpers stay module-internal (import from src modules
+// directly in tests/scripts; they are not part of the npm surface).
 
-export interface NodeOptions {
-  style?: Partial<Style>;
-  children?: Node[];
-  measure?: MeasureFunction;
-}
-
-/** Create a layout node from a partial style and optional children/measure function. */
-export function createNode(options: NodeOptions = {}): Node {
-  return {
-    style: resolveStyle(options.style),
-    children: options.children ?? [],
-    measure: options.measure,
-    unroundedLayout: layoutWithOrder(0),
-    layout: layoutWithOrder(0),
-    cache: new Cache(),
-  };
-}
+export { LayoutNode } from './tree.js';
+export type { Layout, MeasureFunction } from './tree.js';
+export { InvalidStyleError } from './style.js';
+export type {
+  // core style vocabulary
+  Style,
+  Dimension,
+  LengthPercentage,
+  LengthPercentageAuto,
+  AvailableSpace,
+  Display,
+  BoxSizing,
+  Direction,
+  Position,
+  Overflow,
+  FlexWrap,
+  TextAlign,
+  // alignment
+  AlignItems,
+  AlignItemsKeyword,
+  AlignContent,
+  AlignContentKeyword,
+  AlignSelf,
+  JustifyContent,
+  // grid
+  MinTrackSizingFunction,
+  MaxTrackSizingFunction,
+  TrackSizingFunction,
+  RepetitionCount,
+  GridTemplateComponent,
+  GridAutoFlow,
+  GridPlacement,
+  GridPlacementLine,
+} from './style.js';
+export type { Size, Rect, Point, FlexDirection } from './geometry.js';
+export type { Opt } from './math.js';
 
 export interface ComputeLayoutOptions {
   /** Snap the final layout to whole pixels (defaults to true, like browsers). */
@@ -44,7 +65,7 @@ export interface ComputeLayoutOptions {
  * `layout` property (and `unroundedLayout` for the pre-rounding values).
  */
 export function computeLayout(
-  root: Node,
+  root: LayoutNode,
   availableSpace: Size<AvailableSpace>,
   options: ComputeLayoutOptions = {},
 ): void {
@@ -57,13 +78,15 @@ export function computeLayout(
   }
 }
 
-function clearCaches(node: Node): void {
-  node.cache.clear();
-  for (const child of node.children) clearCaches(child);
+function clearCaches(node: LayoutNode): void {
+  const nd = internals(node);
+  nd.cache.clear();
+  for (const child of nd.children) clearCaches(child);
 }
 
 /** Port of compute_root_layout. */
-function computeRootLayout(root: Node, availableSpace: Size<AvailableSpace>): void {
+function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace>): void {
+  const rootInternal = internals(root);
   let knownDimensions: Size<Opt> = { width: null, height: null };
   const parentSize: Size<Opt> = {
     width: asIntoOption(availableSpace.width),
@@ -71,8 +94,8 @@ function computeRootLayout(root: Node, availableSpace: Size<AvailableSpace>): vo
   };
 
   // Block roots automatically stretch-fit their width to definite available space
-  if (root.style.display === 'block') {
-    knownDimensions = blockRootKnownDimensions(root.style, parentSize, availableSpace);
+  if (rootInternal.style.display === 'block') {
+    knownDimensions = blockRootKnownDimensions(rootInternal.style, parentSize, availableSpace);
   }
 
   // A root block in normal flow is an ordinary in-flow box, so its own margins
@@ -112,9 +135,9 @@ function computeRootLayout(root: Node, availableSpace: Size<AvailableSpace>): vo
   // Inline axis only: for a content-sized root Chrome resolves the width first
   // and derives the height, never the reverse — a tall narrow child keeps its
   // content height rather than widening the root.
-  const rootSpecified = maybeResolveSize(root.style.size, parentSize);
+  const rootSpecified = maybeResolveSize(rootInternal.style.size, parentSize);
   if (
-    root.style.aspectRatio !== null &&
+    rootInternal.style.aspectRatio !== null &&
     rootSpecified.width === null &&
     rootSpecified.height === null &&
     knownDimensions.width === null &&
@@ -135,7 +158,7 @@ function computeRootLayout(root: Node, availableSpace: Size<AvailableSpace>): vo
     // height the first pass measured.
     if (rerun.size.height >= output.size.height) output = rerun;
   } else if (
-    root.style.aspectRatio !== null &&
+    rootInternal.style.aspectRatio !== null &&
     rootSpecified.width === null &&
     output.size.width > 0
   ) {
@@ -165,7 +188,7 @@ function computeRootLayout(root: Node, availableSpace: Size<AvailableSpace>): vo
     }
   }
 
-  const style = root.style;
+  const style = rootInternal.style;
   const padding = resolveRectOrZero(style.padding, parentSize.width);
   const border = resolveRectOrZero(style.border, parentSize.width);
   const margin = resolveRectOrZero(style.margin, parentSize.width);
@@ -189,7 +212,7 @@ function computeRootLayout(root: Node, availableSpace: Size<AvailableSpace>): vo
     y: rootMarginsCollapse.start ? resolveMarginSet(output.topMargin) : 0,
   };
 
-  root.unroundedLayout = {
+  rootInternal.unroundedLayout = {
     order: 0,
     location,
     size: output.size,
@@ -222,8 +245,9 @@ function snapLU(v: number, towardPositive: boolean): number {
  * Port of round_layout: rounds based on cumulative viewport-relative coordinates
  * and derives sizes from rounded edges so no gaps are introduced.
  */
-function roundLayout(node: Node, cumulativeX: number, cumulativeY: number, parentIsRtl = false): void {
-  const u = node.unroundedLayout;
+function roundLayout(node: LayoutNode, cumulativeX: number, cumulativeY: number, parentIsRtl = false): void {
+  const nd = internals(node);
+  const u = nd.unroundedLayout;
   const cx = cumulativeX + u.location.x;
   const cy = cumulativeY + u.location.y;
 
@@ -262,10 +286,10 @@ function roundLayout(node: Node, cumulativeX: number, cumulativeY: number, paren
     margin: { ...u.margin },
   };
 
-  node.layout = layout;
+  nd.layout = layout;
 
-  const childrenAreRtl = node.style.direction === 'rtl';
-  for (const child of node.children) {
+  const childrenAreRtl = nd.style.direction === 'rtl';
+  for (const child of nd.children) {
     roundLayout(child, cx, cy, childrenAreRtl);
   }
 }
@@ -349,11 +373,12 @@ function blockRootKnownDimensions(
   };
 }
 
-function copyUnroundedLayout(node: Node): void {
-  node.layout = {
-    ...node.unroundedLayout,
-    location: { ...node.unroundedLayout.location },
-    size: { ...node.unroundedLayout.size },
+function copyUnroundedLayout(node: LayoutNode): void {
+  const nd = internals(node);
+  nd.layout = {
+    ...nd.unroundedLayout,
+    location: { ...nd.unroundedLayout.location },
+    size: { ...nd.unroundedLayout.size },
   };
-  for (const child of node.children) copyUnroundedLayout(child);
+  for (const child of nd.children) copyUnroundedLayout(child);
 }

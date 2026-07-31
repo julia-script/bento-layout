@@ -6,8 +6,8 @@ import { sizeGetAbs } from '../geometry.js';
 import type { AbsoluteAxis } from '../geometry.js';
 import type { Opt } from '../math.js';
 import type { AvailableSpace } from '../style.js';
-import type { LayoutInput, LayoutOutput, Line, Node, SizingMode } from '../tree.js';
-import { LINE_FALSE, layoutOutputHidden, layoutWithOrder } from '../tree.js';
+import type { LayoutNode, LayoutInput, LayoutOutput, Line, SizingMode } from '../tree.js';
+import { LINE_FALSE, internals, layoutOutputHidden, layoutWithOrder } from '../tree.js';
 import { computeBlockLayout } from './block.js';
 import type { BlockContext } from './block.js';
 import { computeFlexboxLayout } from './flexbox.js';
@@ -24,21 +24,22 @@ const HIDDEN_INPUT: LayoutInput = {
   verticalMarginsAreCollapsible: LINE_FALSE,
 };
 
-export function computeChildLayout(node: Node, inputs: LayoutInput, blockCtx?: BlockContext): LayoutOutput {
+export function computeChildLayout(node: LayoutNode, inputs: LayoutInput, blockCtx?: BlockContext): LayoutOutput {
   // If RunMode is PerformHiddenLayout then an ancestor node is display:none.
   if (inputs.runMode === 'perform-hidden-layout') {
     return computeHiddenLayout(node);
   }
 
-  const cached = node.cache.get(inputs);
+  const nd = internals(node);
+  const cached = nd.cache.get(inputs);
   if (cached) return cached;
 
   let output: LayoutOutput;
-  if (node.style.display === 'none') {
+  if (nd.style.display === 'none') {
     output = computeHiddenLayout(node);
-  } else if (node.style.display === 'block' && node.children.length > 0) {
+  } else if (nd.style.display === 'block' && nd.children.length > 0) {
     output = computeBlockLayout(node, inputs, blockCtx);
-  } else if (node.style.display === 'grid' && (node.children.length > 0 || node.measure === undefined)) {
+  } else if (nd.style.display === 'grid' && (nd.children.length > 0 || nd.measure === undefined)) {
     // Unlike empty flex/block containers (which size like leaves), an empty
     // grid still sizes to its explicit tracks — `grid-template-rows: 120px`
     // makes it 120px tall with no items (css-grid-1 §5.1; matches Chrome).
@@ -46,28 +47,29 @@ export function computeChildLayout(node: Node, inputs: LayoutInput, blockCtx?: B
     // found by differential fuzzing. Text leaves (measure fn) stay on the
     // leaf path.
     output = computeGridLayout(node, inputs);
-  } else if (node.children.length > 0) {
+  } else if (nd.children.length > 0) {
     output = computeFlexboxLayout(node, inputs);
   } else {
-    const measure = node.measure ?? (() => ({ width: 0, height: 0 }));
-    output = computeLeafLayout(inputs, node.style, measure);
+    const measure = nd.measure ?? (() => ({ width: 0, height: 0 }));
+    output = computeLeafLayout(inputs, nd.style, measure);
   }
 
-  node.cache.store(inputs, output);
+  nd.cache.store(inputs, output);
   return output;
 }
 
-export function computeHiddenLayout(node: Node): LayoutOutput {
-  node.cache.clear();
-  node.unroundedLayout = layoutWithOrder(0);
-  for (const child of node.children) {
+export function computeHiddenLayout(node: LayoutNode): LayoutOutput {
+  const nd = internals(node);
+  nd.cache.clear();
+  nd.unroundedLayout = layoutWithOrder(0);
+  for (const child of nd.children) {
     computeChildLayout(child, HIDDEN_INPUT);
   }
   return layoutOutputHidden();
 }
 
 export function measureChildSize(
-  node: Node,
+  node: LayoutNode,
   knownDimensions: Size<Opt>,
   parentSize: Size<Opt>,
   availableSpace: Size<AvailableSpace>,
@@ -90,7 +92,7 @@ export function measureChildSize(
 }
 
 export function measureChildSizeBoth(
-  node: Node,
+  node: LayoutNode,
   knownDimensions: Size<Opt>,
   parentSize: Size<Opt>,
   availableSpace: Size<AvailableSpace>,
@@ -109,7 +111,7 @@ export function measureChildSizeBoth(
 }
 
 export function performChildLayout(
-  node: Node,
+  node: LayoutNode,
   knownDimensions: Size<Opt>,
   parentSize: Size<Opt>,
   availableSpace: Size<AvailableSpace>,

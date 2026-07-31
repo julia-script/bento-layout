@@ -22,9 +22,10 @@ import {
   resolveRectOrZero,
 } from '../style.js';
 import type { AvailableSpace, Direction, Overflow, Position, Style, TextAlign } from '../style.js';
-import type { CollapsibleMarginSet, Layout, LayoutInput, LayoutOutput, Line, Node } from '../tree.js';
+import type { LayoutNode, CollapsibleMarginSet, Layout, LayoutInput, LayoutOutput, Line } from '../tree.js';
 import {
   LINE_FALSE,
+  internals,
   collapseWithMargin,
   collapseWithSet,
   collapsibleMarginZero,
@@ -49,7 +50,7 @@ export interface BlockContext {
 
 /** Per-child data accumulated over the course of the layout algorithm */
 interface BlockItem {
-  node: Node;
+  node: LayoutNode;
   order: number;
 
   /** Whether the child is a non-independent block node (same BFC as parent) */
@@ -89,9 +90,9 @@ interface BlockItem {
 }
 
 /** Computes the layout of a node according to the block layout algorithm */
-export function computeBlockLayout(node: Node, inputs: LayoutInput, blockCtx?: BlockContext): LayoutOutput {
+export function computeBlockLayout(node: LayoutNode, inputs: LayoutInput, blockCtx?: BlockContext): LayoutOutput {
   const { knownDimensions, parentSize, runMode } = inputs;
-  const style = node.style;
+  const style = internals(node).style;
 
   const overflow = style.overflow;
   const isScroll = isScrollContainer(overflow.x) || isScrollContainer(overflow.y);
@@ -156,7 +157,8 @@ export function computeBlockLayout(node: Node, inputs: LayoutInput, blockCtx?: B
 }
 
 /** Computes the layout of a block container according to the block layout algorithm */
-function computeInner(node: Node, inputs: LayoutInput, blockCtx: BlockContext): LayoutOutput {
+function computeInner(node: LayoutNode, inputs: LayoutInput, blockCtx: BlockContext): LayoutOutput {
+  const nd = internals(node);
   const { knownDimensions: knownDimensionsIn, parentSize, availableSpace, runMode, verticalMarginsAreCollapsible } =
     inputs;
 
@@ -379,7 +381,7 @@ function computeInner(node: Node, inputs: LayoutInput, blockCtx: BlockContext): 
   // Commit deferred in-flow layouts to the tree
   for (const item of items) {
     if (item.finalLayout !== null) {
-      item.node.unroundedLayout = item.finalLayout;
+      internals(item.node).unroundedLayout = item.finalLayout;
     }
   }
 
@@ -403,10 +405,11 @@ function computeInner(node: Node, inputs: LayoutInput, blockCtx: BlockContext): 
   };
 
   // 5. Perform hidden layout on hidden children
-  for (let order = 0; order < node.children.length; order++) {
-    const child = node.children[order]!;
-    if (child.style.display === 'none') {
-      child.unroundedLayout = layoutWithOrder(order);
+  for (let order = 0; order < nd.children.length; order++) {
+    const child = nd.children[order]!;
+    const childNd = internals(child);
+    if (childNd.style.display === 'none') {
+      childNd.unroundedLayout = layoutWithOrder(order);
       performChildLayout(
         child,
         { width: null, height: null },
@@ -421,11 +424,11 @@ function computeInner(node: Node, inputs: LayoutInput, blockCtx: BlockContext): 
 }
 
 /** Create a BlockItem for each flow-participating child of the current node */
-function generateItemList(node: Node, nodeInnerSize: Size<Opt>): BlockItem[] {
+function generateItemList(node: LayoutNode, nodeInnerSize: Size<Opt>): BlockItem[] {
   const items: BlockItem[] = [];
   let order = 0;
-  for (const child of node.children) {
-    const childStyle = child.style;
+  for (const child of internals(node).children) {
+    const childStyle = internals(child).style;
     if (childStyle.display === 'none') continue;
 
     const aspectRatio = childStyle.aspectRatio;
@@ -841,7 +844,7 @@ function performAbsoluteLayoutOnAbsoluteChildren(
 
   for (const item of items) {
     if (item.position !== 'absolute') continue;
-    const childStyle = item.node.style;
+    const childStyle = internals(item.node).style;
     if (childStyle.display === 'none' || childStyle.position !== 'absolute') continue;
 
     const aspectRatio = childStyle.aspectRatio;
@@ -1001,7 +1004,7 @@ function performAbsoluteLayoutOnAbsoluteChildren(
       height: item.overflow.x === 'scroll' ? item.scrollbarWidth : 0,
     };
 
-    item.node.unroundedLayout = {
+    internals(item.node).unroundedLayout = {
       order: item.order,
       size: finalSize,
       contentSize: layoutOutput.contentSize,

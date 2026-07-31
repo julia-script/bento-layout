@@ -5,73 +5,58 @@
 // pre-regeneration Taffy fixtures that were generated with 15px scrollbars.
 
 import { describe, expect, it } from 'vitest';
-import { computeLayout, createNode } from '../src/index.js';
+import { computeLayout, LayoutNode } from '../src/index.js';
 
 const SCROLL = { x: 'scroll', y: 'scroll' } as const;
 
 describe('scrollbar gutter reservation', () => {
   it('flex: scroll container reserves gutters for its content', () => {
     // Mirrors flex/overflow_scrollbars_take_up_space_both_axis (scrollbar-width 15)
-    const child = createNode({ style: { size: { width: { percent: 1 }, height: { percent: 1 } } } });
-    const root = createNode({
-      style: { size: { width: 100, height: 100 }, overflow: SCROLL, scrollbarWidth: 15 },
-      children: [child],
-    });
+    const child = new LayoutNode({ size: { width: { percent: 1 }, height: { percent: 1 } } });
+    const root = new LayoutNode({ size: { width: 100, height: 100 }, overflow: SCROLL, scrollbarWidth: 15 }, [child]);
     computeLayout(root, { width: 'max-content', height: 'max-content' });
     // Percentage sizes resolve against the content box, which excludes the 15px gutters
     expect(child.layout.size).toEqual({ width: 85, height: 85 });
   });
 
   it('flex: vertical scrollbar consumes inline space in a row', () => {
-    const a = createNode({ style: { flexGrow: 1 } });
-    const root = createNode({
-      style: { size: { width: 100, height: 50 }, overflow: { x: 'visible', y: 'scroll' }, scrollbarWidth: 15 },
-      children: [a],
-    });
+    const a = new LayoutNode({ flexGrow: 1 });
+    const root = new LayoutNode({ size: { width: 100, height: 50 }, overflow: { x: 'visible', y: 'scroll' }, scrollbarWidth: 15 }, [a]);
     computeLayout(root, { width: 'max-content', height: 'max-content' });
     expect(a.layout.size.width).toBe(85);
     expect(a.layout.size.height).toBe(50);
   });
 
   it('flex rtl: vertical scrollbar gutter is reserved on the left', () => {
-    const a = createNode({ style: { flexGrow: 1 } });
-    const root = createNode({
-      style: {
+    const a = new LayoutNode({ flexGrow: 1 });
+    const root = new LayoutNode({
         direction: 'rtl',
         size: { width: 100, height: 50 },
         overflow: { x: 'visible', y: 'scroll' },
         scrollbarWidth: 15,
-      },
-      children: [a],
-    });
+      }, [a]);
     computeLayout(root, { width: 'max-content', height: 'max-content' });
     expect(a.layout.size.width).toBe(85);
     expect(a.layout.location.x).toBe(15);
   });
 
   it('block: scroll container reserves gutters', () => {
-    const child = createNode({ style: { display: 'block', size: { width: 'auto', height: 20 } } });
-    const root = createNode({
-      style: { display: 'block', size: { width: 100, height: 100 }, overflow: SCROLL, scrollbarWidth: 15 },
-      children: [child],
-    });
+    const child = new LayoutNode({ display: 'block', size: { width: 'auto', height: 20 } });
+    const root = new LayoutNode({ display: 'block', size: { width: 100, height: 100 }, overflow: SCROLL, scrollbarWidth: 15 }, [child]);
     computeLayout(root, { width: 'max-content', height: 'max-content' });
     expect(child.layout.size.width).toBe(85);
   });
 
   it('grid: scroll container reserves gutters for track sizing', () => {
-    const child = createNode({ style: {} });
-    const root = createNode({
-      style: {
+    const child = new LayoutNode();
+    const root = new LayoutNode({
         display: 'grid',
         size: { width: 100, height: 100 },
         gridTemplateColumns: [{ min: 'auto', max: { fr: 1 } }],
         gridTemplateRows: [{ min: 'auto', max: { fr: 1 } }],
         overflow: SCROLL,
         scrollbarWidth: 15,
-      },
-      children: [child],
-    });
+      }, [child]);
     computeLayout(root, { width: 'max-content', height: 'max-content' });
     expect(child.layout.size).toEqual({ width: 85, height: 85 });
   });

@@ -217,6 +217,17 @@ export function asMaybeClamp(avs: AvailableSpace, min: Opt, max: Opt): Available
 export const ALIGN_STRETCH: AlignItems = { keyword: 'stretch', safe: false };
 export const ALIGN_CONTENT_STRETCH: AlignContent = { keyword: 'stretch', safe: false };
 
+/**
+ * Thrown by `computeLayout` when a user-supplied style value is invalid —
+ * e.g. a grid placement line of 0, or a non-finite `repeat()` track count.
+ */
+export class InvalidStyleError extends Error {
+  override readonly name = 'InvalidStyleError';
+  constructor(message: string, options?: { cause?: unknown }) {
+    super(message, options);
+  }
+}
+
 // --- Grid style types (port of style/grid.rs, unnamed-track subset)
 
 /** Min track sizing function: length/percent, auto, or min/max-content */

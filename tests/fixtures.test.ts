@@ -6,7 +6,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { computeLayout } from '../src/index.js';
-import type { Node } from '../src/index.js';
+import type { LayoutNode } from '../src/index.js';
 import { parseFixture } from './harness/fixture.js';
 import type { ExpectedNode } from './harness/fixture.js';
 
@@ -38,7 +38,7 @@ const SKIP_BY_DIR: Record<string, ReadonlySet<string>> = {
   'wpt/css-align': WPT_QUARANTINE,
 };
 
-function assertLayoutMatches(node: Node, expected: ExpectedNode, path: string): void {
+function assertLayoutMatches(node: LayoutNode, expected: ExpectedNode, path: string): void {
   const { location, size } = node.layout;
   expect.soft(location.x, `${path} x`).toBeCloseToTolerance(expected.x, TOLERANCE);
   expect.soft(location.y, `${path} y`).toBeCloseToTolerance(expected.y, TOLERANCE);

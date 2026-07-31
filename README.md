@@ -2,7 +2,7 @@
 
 A TypeScript-only port of [Taffy](https://github.com/DioxusLabs/taffy)'s CSS
 flexbox, CSS Grid, and block layout algorithms. Zero runtime dependencies, no
-WASM — plain objects in, pixel positions out.
+WASM — plain style data in, pixel positions out.
 
 Verified against **4,368 Chrome-derived conformance fixtures** from Taffy's test
 suite — every fixture Taffy ships for these layout modes, none skipped (see
@@ -11,20 +11,28 @@ suite — every fixture Taffy ships for these layout modes, none skipped (see
 ## Usage
 
 ```ts
-import { computeLayout, createNode } from 'flexboxjs';
+import { LayoutNode, computeLayout } from 'flexboxjs';
 
-const child1 = createNode({ style: { flexGrow: 1 } });
-const child2 = createNode({ style: { flexGrow: 1 } });
-const root = createNode({
-  style: { size: { width: 400, height: 300 }, gap: { width: 10, height: 0 } },
-  children: [child1, child2],
-});
+const child1 = new LayoutNode({ flexGrow: 1 });
+const child2 = new LayoutNode({ flexGrow: 1 });
+const root = new LayoutNode(
+  { size: { width: 400, height: 300 }, gap: { width: 10, height: 0 } },
+  [child1, child2],
+);
 
 computeLayout(root, { width: 'max-content', height: 'max-content' });
 
 child1.layout; // { location: { x: 0, y: 0 }, size: { width: 195, height: 300 }, ... }
 child2.layout; // { location: { x: 205, y: 0 }, size: { width: 195, height: 300 }, ... }
 ```
+
+Nodes are opaque: styles change through `node.setStyle({...})` (a shallow merge —
+nested objects like `size` are replaced whole), structure through
+`appendChild` / `insertChild` / `removeChild`, and results are read from the
+`layout` getter. A subtree removed from its parent is a live tree of its own —
+lay it out, re-attach it anywhere, or just drop it and let the garbage collector
+take it. There is no `free()`/`destroy()`: nodes have ordinary JS object
+lifetimes.
 
 ### Styles
 
@@ -42,8 +50,7 @@ Styles mirror CSS, as plain data:
 - `gridAutoRows` / `gridAutoColumns`, `gridAutoFlow` (`'row'`/`'column'`, `-dense`),
   `gridRow` / `gridColumn` placements (`{ line: n }` incl. negative, `{ span: n }`, `'auto'`)
 - `alignItems` / `alignSelf` / `alignContent` / `justifyContent` / `justifyItems` / `justifySelf`
-  (e.g. `{ keyword: 'center', safe: true }`, or parse from CSS strings with
-  `parseAlignItems('safe center')`)
+  (structured values, e.g. `{ keyword: 'center', safe: true }`)
 - `textAlign` for block containers (`legacy-left`/`legacy-right`/`legacy-center`)
 - `overflow` + `scrollbarWidth` (scrollbar gutters and automatic-min-size behavior)
 
@@ -52,9 +59,9 @@ Styles mirror CSS, as plain data:
 Leaf nodes take a `measure` callback so content (text, images) can report its size:
 
 ```ts
-const text = createNode({
-  measure: (knownDimensions, availableSpace) => measureMyText(knownDimensions, availableSpace),
-});
+const text = new LayoutNode().setMeasure(
+  (knownDimensions, availableSpace) => measureMyText(knownDimensions, availableSpace),
+);
 ```
 
 ### Rounding

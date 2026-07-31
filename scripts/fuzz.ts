@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url';
 import puppeteer from 'puppeteer';
 import type { Page } from 'puppeteer';
 import { computeLayout } from '../src/index.js';
-import type { Node } from '../src/index.js';
+import type { LayoutNode } from '../src/index.js';
 import { parseFixture } from '../tests/harness/fixture.js';
 import type { ExpectedNode } from '../tests/harness/fixture.js';
 import { generateTestXml } from './gentest.js';
@@ -54,7 +54,7 @@ export interface Mismatch {
   actual: number;
 }
 
-function collectMismatches(node: Node, expected: ExpectedNode, path: string, variant: string, out: Mismatch[]): void {
+function collectMismatches(node: LayoutNode, expected: ExpectedNode, path: string, variant: string, out: Mismatch[]): void {
   // A display:none node has no box, so Chrome's getBoundingClientRect returns
   // all zeros and the extractor reports x/y as `0 - parentOrigin` — a negative
   // offset that tracks the parent's position rather than any layout decision.

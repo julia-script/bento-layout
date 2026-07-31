@@ -4,6 +4,7 @@
 import type { Point, Rect, Size } from './geometry.js';
 import { pointNone, pointZero, rectZero, sizeZero } from './geometry.js';
 import type { AvailableSpace, Style } from './style.js';
+import { resolveStyle } from './style.js';
 import type { Opt } from './math.js';
 
 export type RunMode = 'perform-layout' | 'compute-size' | 'perform-hidden-layout';
@@ -130,16 +131,157 @@ export const layoutWithOrder = (order: number): Layout => ({
 
 export type MeasureFunction = (knownDimensions: Size<Opt>, availableSpace: Size<AvailableSpace>) => Size<number>;
 
-export interface Node {
+/**
+ * Engine-side view of a node's state; `LayoutNode` holds one as its private
+ * record.
+ * @internal
+ */
+export interface NodeInternal {
   style: Style;
-  children: Node[];
+  children: LayoutNode[];
   measure?: MeasureFunction | undefined;
-  /** Filled in by computeLayout */
+  parent: LayoutNode | null;
   unroundedLayout: Layout;
-  /** Final layout (rounded when rounding is enabled, else a copy of unrounded) */
   layout: Layout;
-  /** @internal per-layout-run measurement cache */
   cache: Cache;
+}
+
+// Friend accessor: assigned inside LayoutNode's static block so it can reach
+// the #internal field; exported via internals() below, which the compute
+// engine uses and the package root never re-exports.
+let internalOf!: (node: LayoutNode) => NodeInternal;
+
+/**
+ * A node in a layout tree. Internals are runtime-private: styles change only
+ * through {@link setStyle}, structure only through the child methods, so the
+ * engine observes every mutation. Computed results are read through the
+ * {@link layout} / {@link unroundedLayout} getters.
+ *
+ * A node detached from its parent is a live standalone tree — lay it out,
+ * re-attach it, or drop it; there is nothing to free.
+ */
+export class LayoutNode {
+  #internal: NodeInternal;
+
+  constructor(style: Partial<Style> = {}, children: readonly LayoutNode[] = []) {
+    this.#internal = {
+      style: resolveStyle(style),
+      children: [],
+      measure: undefined,
+      parent: null,
+      unroundedLayout: layoutWithOrder(0),
+      layout: layoutWithOrder(0),
+      cache: new Cache(),
+    };
+    for (const child of children) this.appendChild(child);
+  }
+
+  static {
+    internalOf = (node) => node.#internal;
+  }
+
+  /** The resolved style. Read-only by type; mutate via {@link setStyle}. */
+  get style(): Readonly<Style> {
+    return this.#internal.style;
+  }
+
+  get children(): readonly LayoutNode[] {
+    return this.#internal.children;
+  }
+
+  get parentNode(): LayoutNode | null {
+    return this.#internal.parent ?? null;
+  }
+
+  /** Final layout (rounded unless rounding was disabled). Filled in by computeLayout. */
+  get layout(): Readonly<Layout> {
+    return this.#internal.layout;
+  }
+
+  /** Pre-rounding layout, for embedders that do their own rounding. */
+  get unroundedLayout(): Readonly<Layout> {
+    return this.#internal.unroundedLayout;
+  }
+
+  /**
+   * Shallow-merge `style` into the node's resolved style. Nested objects
+   * (`size`, `margin`, `padding`, …) are replaced whole, not deep-merged:
+   * `setStyle({ size: { width: 10, height: 'auto' } })` — always supply the
+   * full object.
+   */
+  setStyle(style: Partial<Style>): this {
+    this.#internal.style = { ...this.#internal.style, ...style };
+    this.#markDirty();
+    return this;
+  }
+
+  /** Set or clear the measure callback used to size this node's content. */
+  setMeasure(measure: MeasureFunction | null): this {
+    this.#internal.measure = measure ?? undefined;
+    this.#markDirty();
+    return this;
+  }
+
+  /**
+   * Append `child`, detaching it from its current parent first (a node has at
+   * most one parent). Throws if `child` is this node or one of its ancestors.
+   */
+  appendChild(child: LayoutNode): this {
+    return this.insertChild(this.#internal.children.length, child);
+  }
+
+  /** Insert `child` at `index` (0 ≤ index ≤ children.length); otherwise like appendChild. */
+  insertChild(index: number, child: LayoutNode): this {
+    const internal = this.#internal;
+    if (index < 0 || index > internal.children.length || !Number.isInteger(index)) {
+      throw new RangeError(`insertChild: index ${index} out of bounds (0..${internal.children.length})`);
+    }
+    for (let p: LayoutNode | null = this; p !== null; p = p.parentNode) {
+      if (p === child) throw new Error('appendChild/insertChild would create a cycle');
+    }
+    const childInternal = internalOf(child);
+    const oldParent = childInternal.parent;
+    if (oldParent) {
+      const siblings = internalOf(oldParent).children;
+      const i = siblings.indexOf(child);
+      // Removing an earlier sibling shifts the target index within the same parent.
+      if (oldParent === this && i < index) index--;
+      siblings.splice(i, 1);
+      oldParent.#markDirty();
+    }
+    internal.children.splice(index, 0, child);
+    childInternal.parent = this;
+    this.#markDirty();
+    return this;
+  }
+
+  /**
+   * Detach `child`. The removed subtree stays alive and reusable — re-attach
+   * it anywhere or drop it and let it be garbage collected.
+   */
+  removeChild(child: LayoutNode): LayoutNode {
+    const children = this.#internal.children;
+    const i = children.indexOf(child);
+    if (i === -1) throw new Error('removeChild: node is not a child of this node');
+    children.splice(i, 1);
+    internalOf(child).parent = null;
+    this.#markDirty();
+    return child;
+  }
+
+  // Every mutation funnels through here. Currently a no-op — computeLayout
+  // still clears all caches per run — but this is the contract incremental
+  // relayout builds on later (mark this node + ancestor chain dirty) without
+  // any public API change.
+  #markDirty(): void {}
+}
+
+/**
+ * Engine access to a node's mutable internals.
+ * @internal — exported for src/compute/*, never from the package root.
+ */
+export function internals(node: LayoutNode): NodeInternal {
+  return internalOf(node);
 }
 
 // --- Cache (port of tree/cache.rs)
