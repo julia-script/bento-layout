@@ -109,20 +109,42 @@ function computeRootLayout(root: Node, availableSpace: Size<AvailableSpace>): vo
 }
 
 /**
+ * Chrome stores layout coordinates as `LayoutUnit` — fixed point in 1/64 px —
+ * so a position is quantized to 1/64 *before* being rounded to a device pixel.
+ * That second quantization is visible whenever the exact position lands within
+ * 1/64 of a .5 boundary: it snaps onto the tie and the rounding then goes the
+ * other way. (WPT `grid-flexible-track-free-space-distribution`: 99 `1fr`
+ * tracks in 100px put two boundaries at exactly x.5 after snapping.)
+ *
+ * The truncation is toward the *flow's* start edge, not toward zero, so under
+ * RTL it rounds the physical coordinate up. Truncating toward zero in both
+ * directions puts those two boundaries a pixel off in RTL only.
+ */
+const LAYOUT_UNIT = 64;
+function snapLU(v: number, towardPositive: boolean): number {
+  return (towardPositive ? Math.ceil(v * LAYOUT_UNIT) : Math.floor(v * LAYOUT_UNIT)) / LAYOUT_UNIT;
+}
+
+/**
  * Port of round_layout: rounds based on cumulative viewport-relative coordinates
  * and derives sizes from rounded edges so no gaps are introduced.
  */
-function roundLayout(node: Node, cumulativeX: number, cumulativeY: number): void {
+function roundLayout(node: Node, cumulativeX: number, cumulativeY: number, parentIsRtl = false): void {
   const u = node.unroundedLayout;
   const cx = cumulativeX + u.location.x;
   const cy = cumulativeY + u.location.y;
 
+  // The x snap follows the flow of the box's *containing* block, which is what
+  // positioned it; y always flows downward.
+  const roundX = (v: number): number => Math.round(snapLU(v, parentIsRtl));
+  const roundY = (v: number): number => Math.round(snapLU(v, false));
+
   const layout: Layout = {
     order: u.order,
-    location: { x: round(u.location.x), y: round(u.location.y) },
+    location: { x: roundX(u.location.x), y: roundY(u.location.y) },
     size: {
-      width: round(cx + u.size.width) - round(cx),
-      height: round(cy + u.size.height) - round(cy),
+      width: roundX(cx + u.size.width) - roundX(cx),
+      height: roundY(cy + u.size.height) - roundY(cy),
     },
     contentSize: {
       width: round(cx + u.contentSize.width) - round(cx),
@@ -149,8 +171,9 @@ function roundLayout(node: Node, cumulativeX: number, cumulativeY: number): void
 
   node.layout = layout;
 
+  const childrenAreRtl = node.style.direction === 'rtl';
   for (const child of node.children) {
-    roundLayout(child, cx, cy);
+    roundLayout(child, cx, cy, childrenAreRtl);
   }
 }
 

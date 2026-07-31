@@ -1,7 +1,5 @@
 {
  "quarantined": [
-  "grid-flexible-track-free-space-distribution__border_box_rtl",
-  "grid-flexible-track-free-space-distribution__content_box_rtl",
   "layout-algorithm_auto-margins-ignored-during-track-sizing-001__border_box_ltr",
   "layout-algorithm_auto-margins-ignored-during-track-sizing-001__border_box_rtl",
   "layout-algorithm_auto-margins-ignored-during-track-sizing-001__content_box_ltr",
