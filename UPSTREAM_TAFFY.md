@@ -1660,6 +1660,37 @@ after max-width clamps the aspect ratio").
 
 ## Not yet triaged
 
+- **A root block does not collapse margins with its children.** Chrome, a
+  1280px block whose only child is `margin: 1px 2px 3px 4px`: the root is
+  `1280x400` at `y=1` — the child's top margin collapses *through* it. This
+  engine gives `1280x404` at `y=0`. `computeRootLayout` passes `LINE_FALSE`
+  for `verticalMarginsAreCollapsible`, so `ownMarginsCollapseWithChildren` is
+  never true at the root.
+
+  **Do not fix this in isolation.** It is one corner of a three-way coupling
+  with the WPT viewport, and each leg breaks the other two:
+  1. The last 4 quarantined fixtures
+     (`auto-margins-ignored-during-track-sizing-001`) need the fixture viewport
+     recorded as `1280px` rather than `max-content` — verified: hand-editing
+     that single line makes all four pass exactly.
+  2. Recording it requires a `.viewport` wrapper on emitted WPT pages, because
+     `parseViewportConstraint` keys off that class. `display: contents` is the
+     only wrapper that is layout-transparent (a `block` one lets a first
+     child's margin collapse through the root; the stock `.viewport` flex
+     shrink-wraps it).
+  3. But *any* wrapper takes over `body > *`'s `position: absolute`, so
+     `#test-root` re-enters normal flow — which surfaces this margin-collapsing
+     bug in 132 previously-passing WPT fixtures.
+  4. And passing `LINE_TRUE` at the root to fix the bug breaks 288 fixtures,
+     because the hand-written corpus was generated with `body > *` making the
+     root absolute, so its expectations assume no collapsing.
+
+  The order that likely works: fix root margin collapsing *and* regenerate the
+  whole corpus in one change, so every expectation is re-derived under the new
+  semantics; then add the `display: contents` wrapper. Both steps move
+  expectations, so verify each against Chrome directly rather than against the
+  suite — a green suite after regeneration proves nothing here.
+
 - **A flex item's used main size ignores its own `flex-basis: 0`.** WPT
   `css-flexbox/flex-minimum-height-flex-items-029`. A column flex container
   with `flex: 1 0 0px; height: 500px` should use its §4.5 automatic minimum
