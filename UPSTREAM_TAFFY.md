@@ -1465,6 +1465,72 @@ quantization anywhere, so the same divergence should reproduce.
 
 ---
 
+## 28. A root's `aspect-ratio` never sees a content-resolved inline size
+
+A root box with `aspect-ratio` and both style axes `auto` does not get its
+ratio-derived block size. Every *nested* aspect-ratio container is correct —
+the parent hands it a definite size, which transfers through the ratio — but a
+root has no parent, so its inline size only becomes definite once content
+resolves it, which is *after* the single layout pass has run.
+
+**Reproduction** (identical in flex and block):
+
+```html
+<div style="aspect-ratio: 0.5">
+  <div style="width: 97px; height: 10px"></div>
+</div>
+```
+
+| | root size |
+|---|---|
+| Chrome | **97 x 194** (194 = 97 / 0.5) |
+| Engine (pre-fix) | 97 x 10 (the child's height; ratio ignored) |
+
+**Taffy source:** `src/compute/mod.rs:68-139` (`compute_root_layout`).
+`aspect_ratio` is consulted only inside the `#[cfg(feature = "block_layout")]`
+block that builds `known_dimensions` from *style* sizes; the value returned by
+`perform_child_layout` is then stored unmodified:
+
+```rust
+tree.set_unrounded_layout(root, &Layout { order: 0, location, size: output.size, ... })
+```
+
+So the ratio is applied when deciding the inputs, never to the content-derived
+result. A flex root does not even reach that block.
+
+**Spec:** css-sizing-4 §4.2 — "the resolved preferred size in the
+ratio-determining axis (before applying min/max) gets transferred thru the
+ratio". *Resolved*, not specified: a width that became definite via content is
+just as eligible as one written in the style.
+
+**Fix applied here:** after the first pass, if the root has a ratio and neither
+axis was known, re-run layout with the resolved width as a known dimension and
+let the existing transfer produce the height. Re-running rather than patching
+`output.size` matters — children must be laid out against the height they
+actually get.
+
+Two constraints the probe matrix pinned down, both of which fall out of
+re-running through the normal path rather than needing special cases:
+
+- **Inline axis only.** For a content-sized root Chrome resolves the width
+  first and derives the height, never the reverse: `aspect-ratio: 2` with a
+  10x97 child stays 10x97 in Chrome — the root does not widen to 194.
+- **The ratio supplies an *automatic* size, so content may exceed it.** A
+  97x400 child under `aspect-ratio: 0.5` keeps height 400, not the ratio's 194.
+  Hence the fix only accepts the re-run when it does not shrink the height.
+
+A `max-height` that clamps the ratio-derived height then re-derives the *width*
+through the ratio (`aspect-ratio: 0.5; max-height: 50` with a 97-wide child is
+25x50 in Chrome). That works without extra code once the re-run goes through
+the normal path.
+
+Regression fixture: `tests/html/fuzz-found/fuzz_root_ar_content_width.html`
+(all four variants fail without the fix).
+
+Verified in Taffy: suspected (source-read, not executed).
+
+---
+
 ## Not yet triaged
 
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they

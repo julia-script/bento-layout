@@ -76,7 +76,32 @@ function computeRootLayout(root: Node, availableSpace: Size<AvailableSpace>): vo
   }
 
   // Recursively compute node layout
-  const output = performChildLayout(root, knownDimensions, parentSize, availableSpace, 'inherent-size');
+  let output = performChildLayout(root, knownDimensions, parentSize, availableSpace, 'inherent-size');
+
+  // A root has no parent to hand it a size, so when both style axes are `auto`
+  // its inline size only becomes definite once content resolves it — after the
+  // pass above. css-sizing-4 §4.2 transfers the *resolved* preferred size in
+  // the ratio-determining axis through the ratio, so re-run with that width
+  // known and let the normal transfer produce the block size. Re-running
+  // (rather than patching `output.size`) keeps children laid out against the
+  // height they actually get.
+  //
+  // Inline axis only: for a content-sized root Chrome resolves the width first
+  // and derives the height, never the reverse — a tall narrow child keeps its
+  // content height rather than widening the root.
+  if (
+    root.style.aspectRatio !== null &&
+    knownDimensions.width === null &&
+    knownDimensions.height === null &&
+    output.size.width > 0
+  ) {
+    const withResolvedWidth = { width: output.size.width, height: null };
+    const rerun = performChildLayout(root, withResolvedWidth, parentSize, availableSpace, 'inherent-size');
+    // Content that overflows the ratio-derived height still wins (the ratio
+    // supplies an *automatic* size, not a cap), so never shrink below the
+    // height the first pass measured.
+    if (rerun.size.height >= output.size.height) output = rerun;
+  }
 
   const style = root.style;
   const padding = resolveRectOrZero(style.padding, parentSize.width);

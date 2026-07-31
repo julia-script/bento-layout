@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found (seed 20260731, mode flex/block — both failed).
+  A root has no parent to give it a size, so with both style axes auto its
+  inline size only becomes definite after content resolves it. css-sizing-4
+  §4.2 transfers the *resolved* size in the ratio-determining axis, so the
+  height must come from the ratio: Chrome 97x194, engine gave 97x10.
+  Nested aspect-ratio containers were already correct; this was root-only.
+  Regenerate the XML fixtures with: pnpm gentest fuzz_root_ar_content_width
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: root aspect-ratio derives height from a content-resolved width
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="aspect-ratio: 0.5;">
+  <div style="min-width: 97px; min-height: 10px;"></div>
+</div>
+
+</body>
+</html>
