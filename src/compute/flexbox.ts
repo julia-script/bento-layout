@@ -862,8 +862,20 @@ function collectFlexLines(
     return [{ items: flexItems, crossSize: 0, offsetCross: 0 }];
   }
   if (mainAxisAvailableSpace === 'min-content') {
-    // Sizing under a min-content constraint: every item is in its own line
-    return flexItems.map((item) => ({ items: [item], crossSize: 0, offsetCross: 0 }));
+    // Sizing under a min-content constraint: take every wrapping opportunity,
+    // so each item lands in its own line.
+    //
+    // Row containers only. A *column* container's min-content height is the
+    // sum of its items, not the tallest one — Chrome, three items under
+    // `flex-wrap: wrap` and a min-content main axis:
+    //   row    (40x10 each) -> 40x30   three lines
+    //   column (10x40 each) -> ...x120 one line
+    // Taffy applies the split in both axes (flexbox.rs:877), which reports a
+    // column container's min-content height as one item's height.
+    if (constants.isRow) {
+      return flexItems.map((item) => ({ items: [item], crossSize: 0, offsetCross: 0 }));
+    }
+    return [{ items: flexItems, crossSize: 0, offsetCross: 0 }];
   }
 
   const lines: FlexLine[] = [];
