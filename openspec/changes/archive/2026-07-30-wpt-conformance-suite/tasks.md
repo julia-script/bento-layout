@@ -37,9 +37,16 @@
 
 ## 4. Stabilization loop (open-ended, exits to fuzzing)
 
-- [ ] 4.1 Work the largest section clusters: probe matrix → fix →
+- [~] 4.1 Work the largest section clusters: probe matrix → fix →
       promote fixtures out of quarantine → UPSTREAM_TAFFY.md entry when Taffy
       shares the defect. Repeat while clusters remain tractable.
+      **Stopped deliberately at 418/428 (97.7%).** Eight clusters closed
+      (upstream entries 17–22 plus two harness bugs). The last cluster —
+      RTL absolutely-positioned grid placement, 6 fixtures — resisted five
+      attempts and needs a restructure of the abspos placement block rather
+      than another formula tweak; see `tests/probes/grid-abspos-rtl/README.md`
+      for the constraints already established. The remaining 4 fixtures need
+      viewport-relative text wrapping the harness cannot express.
 - [x] 4.2 Document the wpt-import/score workflow in README alongside the fuzz
       workflow; state the resume criterion for the parked fuzzing burn-in
       (scoreboard plateau).
