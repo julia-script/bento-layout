@@ -1051,8 +1051,23 @@ function determineContainerMainSize(
                 mainAxis(dir),
               ) + rectMainAxisSum(item.margin, constants.dir);
 
+            // NOT floored by `mainContentBoxInset`. That is the *container's*
+            // padding+border, and flooring a single *item's* contribution by it
+            // double-counts: the same inset is added to the total below, and the
+            // total is already floored by it. A container whose only styling is
+            // `border-left: 55; border-right: 17` around a `flex-basis: 3` item
+            // came out 144 (2x72) where Chrome gives 72; a column with 60px of
+            // vertical border came out 120 where Chrome gives 63.
+            //
+            // Taffy has the same `.max(main_content_box_inset)` on both branches
+            // (flexbox.rs:1076-1083) and its comment calls the row/column
+            // asymmetry "somewhat bizarre... not found by reading the spec, but
+            // by trial and error". The asymmetry that *is* real is the
+            // `max(item.flex_basis)` in the column branch; the inset floor is
+            // not, and removing it leaves `flex_basis_unconstraint_row`/
+            // `_column` — the gentests that comment cites — passing.
             if (constants.isRow) {
-              contentContribution = Math.max(vClamp(contentMainSize, styleMin, styleMax), mainContentBoxInset);
+              contentContribution = vClamp(contentMainSize, styleMin, styleMax);
             } else {
               // With an explicit `flex-basis`, the style main size is the §4.5
               // *specified size suggestion*: it caps the content-based minimum
@@ -1066,10 +1081,7 @@ function determineContainerMainSize(
                 item.flexBasisIsExplicit && stylePreferred !== null
                   ? Math.min(contentMainSize, stylePreferred)
                   : contentMainSize;
-              contentContribution = Math.max(
-                vClamp(Math.max(suggested, item.flexBasis), styleMin, styleMax),
-                mainContentBoxInset,
-              );
+              contentContribution = vClamp(Math.max(suggested, item.flexBasis), styleMin, styleMax);
             }
           }
 
