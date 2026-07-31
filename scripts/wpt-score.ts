@@ -187,6 +187,13 @@ function reportCorpusCoverage(): void {
     'harness-conflict',
     'degenerate',
   ]);
+  // Whole feature trees this engine does not implement. These must be matched
+  // by path, not by skip reason: a masonry test is rejected for whatever it
+  // happens to trip first (`element:item`, `element:grid`, ...), so counting by
+  // reason scattered ~1000 non-goal pages across the "reachable" bucket and
+  // made the importer gap look far larger than it is.
+  const OUT_OF_SCOPE_PATH = /(?:^|\/)(?:grid-lanes|masonry|subgrid)(?:\/|-)/;
+
   const OUT_OF_SCOPE_PREFIX = [
     'script:',
     // `display: grid-lanes` is a distinct (masonry-style) layout mode this
@@ -220,14 +227,16 @@ function reportCorpusCoverage(): void {
   let outOfScope = 0;
   let reachable = 0;
   const reachableReasons = new Map<string, number>();
-  for (const entry of Object.values(manifest.files)) {
+  for (const [path, entry] of Object.entries(manifest.files)) {
     if (entry.class === 'import') {
       imported += 1;
       continue;
     }
     const reason = entry.reason ?? '';
     const out =
-      OUT_OF_SCOPE_EXACT.has(reason) || OUT_OF_SCOPE_PREFIX.some((prefix) => reason.startsWith(prefix));
+      OUT_OF_SCOPE_PATH.test(path) ||
+      OUT_OF_SCOPE_EXACT.has(reason) ||
+      OUT_OF_SCOPE_PREFIX.some((prefix) => reason.startsWith(prefix));
     if (out) outOfScope += 1;
     else {
       reachable += 1;
