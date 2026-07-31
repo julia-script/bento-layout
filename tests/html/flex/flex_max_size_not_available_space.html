@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: campaign seed=20260731, minimized by the shrinker to 2 nodes.
+  date: 2026-07-30
+  chrome: Chrome/151.0.7922.47
+
+  Engine bug: when the cross-axis available space was the `max-content` keyword,
+  a flex item's max-size REPLACED it. That turns a ceiling into a size, and the
+  item is then measured against a space its own max invented -- so a max-size
+  could make a container grow instead of only capping it.
+
+    #a  ar:1 max-width:10                 -> 0x0   (engine gave 10x10)
+    #b  ar:1 max-height:20                -> 0x0   (engine gave 20x20)
+    #c  ar:1 max-width:10 max-height:20   -> 0x0   (engine gave 10x10)
+    #d  ar:1 (no max)                     -> 0x0   (control)
+    #e  ar:1 min-width:10                 -> 10x10 (control: a *min* legitimately
+        floors, and must keep doing so)
+    #f  max-width:10, no aspect-ratio     -> 0x0   (control: both ingredients
+        are required -- the ratio is what carries the invented cross size back
+        into the main axis)
+    #g  max-height:10 over 50px content   -> 30x10 (control: the max still CAPS)
+    #h  max-height:40 over 5px content    -> 30x5  (control: and must not inflate)
+
+  #g and #h are the pair that pins the rule: a max-size bounds a measured
+  content size in both directions, but never supplies one.
+
+  NOTE: test_base_style.css sets `div { display: flex }`, so every element here
+  states its display explicitly.
+  Regenerate the XML fixtures with: pnpm gentest flex_max_size_not_available_space
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    A max-size caps the cross space but never becomes it (flex_max_size_not_available_space)
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+  <div style="display: flex;"><div style="display: flex; aspect-ratio: 1; max-width: 10px;"></div></div>
+  <div style="display: flex;"><div style="display: flex; aspect-ratio: 1; max-height: 20px;"></div></div>
+  <div style="display: flex;"><div style="display: flex; aspect-ratio: 1; max-width: 10px; max-height: 20px;"></div></div>
+  <div style="display: flex;"><div style="display: flex; aspect-ratio: 1;"></div></div>
+  <div style="display: flex;"><div style="display: flex; aspect-ratio: 1; min-width: 10px;"></div></div>
+  <div style="display: flex;"><div style="display: flex; max-width: 10px;"></div></div>
+  <div style="display: flex;"><div style="display: flex; max-height: 10px;"><div style="display: block; width: 30px; height: 50px;"></div></div></div>
+  <div style="display: flex;"><div style="display: flex; max-height: 40px;"><div style="display: block; width: 30px; height: 5px;"></div></div></div>
+</div>
+
+</body>
+</html>

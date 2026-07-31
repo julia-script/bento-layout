@@ -1239,6 +1239,50 @@ Verified in Taffy: suspected (source-read, not executed).
 
 ---
 
+## 24. A flex item's max-size replaces `MaxContent` available space
+
+When the cross-axis available space is the `MaxContent` keyword,
+`cross_axis_available_space` substitutes the item's `child_max_cross` for it.
+That turns a *ceiling* into a *size*: the item is then measured against a space
+its own max-size invented, so a max-size can make the container **grow** rather
+than only capping it.
+
+The `MinContent` arm above it has the mirror-image code with `child_min_cross`,
+but that one is defensible — a min genuinely floors the space. Only the max arm
+is wrong.
+
+**Behaviour matrix** (Chrome 151.0.7922.47; outer `display: flex` wrapper,
+inner item with the listed styles):
+
+| item styles | Chrome | Taffy / pre-fix |
+|---|---|---|
+| `aspect-ratio: 1; max-width: 10` | **0x0** | **10x10** |
+| `aspect-ratio: 1; max-height: 20` | **0x0** | **20x20** |
+| `aspect-ratio: 1; max-width: 10; max-height: 20` | **0x0** | **10x10** |
+| `aspect-ratio: 1` | 0x0 | 0x0 (control) |
+| `aspect-ratio: 1; min-width: 10` | 10x10 | 10x10 (control — a min legitimately floors) |
+| `max-width: 10`, no ratio | 0x0 | 0x0 (control) |
+| `max-height: 10` wrapping 30x50 content | 30x10 | 30x10 (control — the max still caps) |
+| `max-height: 40` wrapping 30x5 content | 30x5 | 30x5 (control — and does not inflate) |
+
+Both ingredients are required. Without the ratio the invented cross size never
+reaches the main axis, and without a max there is nothing to substitute — which
+is why the last three control rows pass either way. The final two rows are what
+pin the rule: a max-size bounds a *measured* content size in both directions,
+but never supplies one.
+
+**Taffy source:** `src/compute/flexbox.rs:670-673` — the `AvailableSpace::MaxContent`
+arm returns `AvailableSpace::Definite(max)`.
+
+**Fix applied here:** that arm keeps `max-content`, so the measure returns the
+true content size; the max still clamps the used size afterwards via
+`transferredMaxSize`. `src/compute/flexbox.ts`; regression fixture
+`tests/html/flex/flex_max_size_not_available_space.html` covers all eight rows.
+
+Verified in Taffy: suspected (source-read, not executed).
+
+---
+
 ## Not yet triaged
 
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they

@@ -622,7 +622,16 @@ function determineFlexBaseSize(
     } else if (crossAvs === 'min-content') {
       crossAxisAvailableSpace = childMinCross !== null ? childMinCross : 'min-content';
     } else {
-      crossAxisAvailableSpace = childMaxCross !== null ? childMaxCross : 'max-content';
+      // A max-size caps the cross space but must not *become* it: substituting
+      // it for the `max-content` keyword turns a ceiling into a size, and the
+      // item is then measured against a space its own max invented. An item
+      // whose only styles are `aspect-ratio: 1` and `max-width: 10` is 0x0 in
+      // Chrome (no content, so nothing to size) but was 10x10 here — the
+      // transferred max-height of 10 became the available cross space, and the
+      // ratio carried it back into the main axis. Keeping `max-content` lets
+      // the measure return the true content size; the max still clamps it
+      // afterwards (`transferredMaxSize` is applied to the used size below).
+      crossAxisAvailableSpace = 'max-content';
     }
 
     // Known dimensions for child sizing
