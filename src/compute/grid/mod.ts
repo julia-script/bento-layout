@@ -717,7 +717,16 @@ function resolveAbsColumnEdges(
   // opposite physical side from LTR.
   const near = logicalStart ?? openRight;
   const far = logicalEnd ?? openLeft;
-  return { left: Math.min(near, far), right: Math.max(near, far) };
+  // The flow runs leftward, so the end lies at or before the start. An *open*
+  // end extends only as far as the container edge actually reaches in that
+  // direction — it never doubles back past the explicit line. WPT
+  // positioned-grid-items-025 places `grid-column-start: -1` at x=-80 (the
+  // tracks overflow a 150px container padded 50/80); the left padding edge sits
+  // at 0, to the *right* of the start, so Chrome gives that item width 0 rather
+  // than the 80 that ordering the pair would produce.
+  const left = logicalEnd ?? Math.min(near, openLeft);
+  const right = logicalStart ?? Math.max(far, openRight);
+  return { left: Math.min(left, right), right: Math.max(left, right) };
 }
 
 /** Reverses only non-gutter column tracks in-place while preserving line/gutter slots. */

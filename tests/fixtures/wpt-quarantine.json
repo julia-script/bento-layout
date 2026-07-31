@@ -1,7 +1,5 @@
 {
  "quarantined": [
-  "abspos_positioned-grid-items-025__border_box_ltr",
-  "abspos_positioned-grid-items-025__border_box_rtl",
   "layout-algorithm_auto-margins-ignored-during-track-sizing-001__border_box_ltr",
   "layout-algorithm_auto-margins-ignored-during-track-sizing-001__border_box_rtl",
   "layout-algorithm_auto-margins-ignored-during-track-sizing-001__content_box_ltr",
