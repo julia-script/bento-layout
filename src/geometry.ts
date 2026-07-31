@@ -139,6 +139,13 @@ export function transferConstraintToStretchedAxis(
  * `content-box; width: 120; aspect-ratio: 1` with 60px of horizontal border and
  * 55px of vertical border is 180x175 in Chrome (content 120x120), not 180x180.
  * Omit for border-box, where the ratio already relates the border boxes.
+ *
+ * Taffy has no equivalent parameter because it never needs one: it applies the
+ * ratio to the resolved *content-box* size and adds the box-sizing adjustment
+ * afterwards (`leaf.rs:47-50`, `block.rs:90-96`). This port reordered those
+ * steps to clamp before deriving (entry 23 — min/max must stay on their own
+ * axis), which silently moved the ratio onto border-box values. Keep both
+ * properties: clamp first, but relate the content boxes.
  */
 export function applyAspectRatioClamped(
   size: Size<number | null>,
