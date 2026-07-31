@@ -905,13 +905,18 @@ function determineContainerMainSize(
           const lineMainAxisGap = sumAxisGaps(main(constants.gap, constants.dir), line.items.length);
           const totalTargetSize = line.items.reduce((sum, child) => {
             const paddingBorderSum = rectMainAxisSum(rectAdd(child.padding, child.border), constants.dir);
+            // Floor by the *resolved* minimum, not the style `min-*`: with
+            // `flex: 1 0 0` and no explicit min, the style min is null and the
+            // basis is 0, so a wrapping container reported a min-content main
+            // size of 0 and its items' content never contributed. The general
+            // path below already uses resolvedMinimumMainSize, which carries
+            // the §4.5 automatic minimum.
+            const childMin = vMax(
+              vMax(child.flexBasis, main(child.minSize, constants.dir)),
+              child.resolvedMinimumMainSize,
+            );
             return (
-              sum +
-              Math.max(
-                vMax(child.flexBasis, main(child.minSize, constants.dir)) +
-                  rectMainAxisSum(child.margin, constants.dir),
-                paddingBorderSum,
-              )
+              sum + Math.max(childMin + rectMainAxisSum(child.margin, constants.dir), paddingBorderSum)
             );
           }, 0);
           return Math.max(acc, totalTargetSize + lineMainAxisGap);
