@@ -3,6 +3,10 @@
 import { XMLParser } from 'fast-xml-parser';
 import { createNode } from '../../src/index.js';
 import type {
+  AlignContent,
+  AlignContentKeyword,
+  AlignItems,
+  AlignItemsKeyword,
   AvailableSpace,
   Dimension,
   GridPlacement,
@@ -16,7 +20,6 @@ import type {
   Style,
   TrackSizingFunction,
 } from '../../src/index.js';
-import { parseAlignContent, parseAlignItems } from '../../src/index.js';
 import { ahemTextMeasure } from './measure.js';
 import type { WritingMode } from './measure.js';
 
@@ -362,3 +365,77 @@ function parseAvailableSpace(input: string | undefined): AvailableSpace {
 
 // Type-only re-export so tsc treats these as used
 export type { LengthPercentageAuto };
+
+// --- Alignment keyword parsing (test-harness only) ---------------------------
+// Fixture XML carries CSS-ish keyword strings, so the harness maps them to the
+// engine's structured AlignItems/AlignContent. This deliberately does NOT live
+// in src/: the engine's contract is fully-resolved structured styles, and a
+// consumer is expected to have resolved the cascade before calling it. Keeping
+// keyword handling here stops a CSS parser from creeping into the public API.
+
+/**
+ * `self-start`/`self-end` resolve against the *item's* own axis. With no
+ * orthogonal writing modes they coincide with `start`/`end` (css-align-3 §4.1),
+ * so they are normalized here rather than threaded through every consumer.
+ * An unrecognized keyword must not be cast blindly: it would fall through every
+ * alignment branch and yield a NaN offset (found via WPT `self-end` tests).
+ */
+function toAlignItemsKeyword(input: string | undefined): AlignItemsKeyword {
+  switch (input) {
+    case 'self-start':
+      return 'start';
+    case 'self-end':
+      return 'end';
+    case 'start':
+    case 'end':
+    case 'flex-start':
+    case 'flex-end':
+    case 'center':
+    case 'baseline':
+    case 'stretch':
+      return input;
+    // `normal` behaves as `stretch` for the layout modes this engine supports.
+    case 'normal':
+    case undefined:
+      return 'stretch';
+    default:
+      throw new Error(`unsupported align/justify value: "${input}"`);
+  }
+}
+
+function parseAlignItems(input: string): AlignItems {
+  const parts = input.trim().split(/\s+/);
+  if (parts[0] === 'safe') return { keyword: toAlignItemsKeyword(parts[1]), safe: true };
+  if (parts[0] === 'unsafe') return { keyword: toAlignItemsKeyword(parts[1]), safe: false };
+  return { keyword: toAlignItemsKeyword(parts[0]), safe: false };
+}
+
+/** Same reasoning as toAlignItemsKeyword: an unrecognized keyword must throw
+ *  rather than be cast, or it falls through every alignment branch as a NaN
+ *  offset and the fixture fails with an unrelated-looking number. */
+function toAlignContentKeyword(input: string | undefined): AlignContentKeyword {
+  switch (input) {
+    case 'start':
+    case 'end':
+    case 'flex-start':
+    case 'flex-end':
+    case 'center':
+    case 'stretch':
+    case 'space-between':
+    case 'space-evenly':
+    case 'space-around':
+      return input;
+    case 'normal':
+    case undefined:
+      return 'stretch';
+    default:
+      throw new Error(`unsupported align/justify-content value: "${input}"`);
+  }
+}
+
+function parseAlignContent(input: string): AlignContent {
+  const parts = input.trim().split(/\s+/);
+  if (parts[0] === 'safe') return { keyword: toAlignContentKeyword(parts[1]), safe: true };
+  if (parts[0] === 'unsafe') return { keyword: toAlignContentKeyword(parts[1]), safe: false };
+  return { keyword: toAlignContentKeyword(parts[0]), safe: false };
+}

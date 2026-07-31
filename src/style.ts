@@ -217,50 +217,6 @@ export function asMaybeClamp(avs: AvailableSpace, min: Opt, max: Opt): Available
 export const ALIGN_STRETCH: AlignItems = { keyword: 'stretch', safe: false };
 export const ALIGN_CONTENT_STRETCH: AlignContent = { keyword: 'stretch', safe: false };
 
-/**
- * `self-start`/`self-end` resolve against the *item's* own axis. With no
- * orthogonal writing modes they coincide with `start`/`end` (css-align-3 §4.1),
- * so they are normalized here rather than threaded through every consumer.
- * An unrecognized keyword must not be cast blindly: it would fall through every
- * alignment branch and yield a NaN offset (found via WPT `self-end` tests).
- */
-function toAlignItemsKeyword(input: string | undefined): AlignItemsKeyword {
-  switch (input) {
-    case 'self-start':
-      return 'start';
-    case 'self-end':
-      return 'end';
-    case 'start':
-    case 'end':
-    case 'flex-start':
-    case 'flex-end':
-    case 'center':
-    case 'baseline':
-    case 'stretch':
-      return input;
-    // `normal` behaves as `stretch` for the layout modes this engine supports.
-    case 'normal':
-    case undefined:
-      return 'stretch';
-    default:
-      throw new Error(`unsupported align/justify value: "${input}"`);
-  }
-}
-
-export function parseAlignItems(input: string): AlignItems {
-  const parts = input.trim().split(/\s+/);
-  if (parts[0] === 'safe') return { keyword: toAlignItemsKeyword(parts[1]), safe: true };
-  if (parts[0] === 'unsafe') return { keyword: toAlignItemsKeyword(parts[1]), safe: false };
-  return { keyword: toAlignItemsKeyword(parts[0]), safe: false };
-}
-
-export function parseAlignContent(input: string): AlignContent {
-  const parts = input.trim().split(/\s+/);
-  if (parts[0] === 'safe') return { keyword: parts[1] as AlignContentKeyword, safe: true };
-  if (parts[0] === 'unsafe') return { keyword: parts[1] as AlignContentKeyword, safe: false };
-  return { keyword: parts[0] as AlignContentKeyword, safe: false };
-}
-
 // --- Grid style types (port of style/grid.rs, unnamed-track subset)
 
 /** Min track sizing function: length/percent, auto, or min/max-content */
