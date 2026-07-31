@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: campaign seed=20260731, minimized by the shrinker to ONE node.
+  date: 2026-07-30
+  chrome: Chrome/151.0.7922.47
+
+  Engine bug: min/max sizes were pushed through `aspect-ratio` onto the other
+  axis, inventing a bound there -- and a size specified on that axis was then
+  clamped by the invented bound. `max-width: 3` became a max-height of 1.5,
+  which crushed a specified `height: 200` down to 2.
+
+  The ratio must instead derive from the *clamped specified size*, which still
+  re-derives the partner axis for a SAME-axis clamp:
+    #a  height:200 ar:2 max-width:3   -> 3x200  (engine gave 3x2)
+    #b  width:200  ar:2 max-height:3  -> 200x3  (engine gave 6x3)
+    #c  width:200  ar:2 max-width:3   -> 3x2    (control: same axis, re-derives)
+    #d  height:200 ar:2               -> 400x200 (control: no constraint)
+
+  FOUR copies of this defect existed, and flex had none of them -- flex was
+  already correct on all four rows, which is what made the split visible:
+    src/index.ts blockRootKnownDimensions, src/compute/block.ts (both
+    computeBlockLayout and computeInner), src/compute/grid/mod.ts.
+  Each row below is repeated for block and grid because they were separate
+  copies; a fix to one did not fix the others.
+
+  NOTE: test_base_style.css sets `div { display: flex }`, so every element here
+  states its display explicitly.
+  Regenerate the XML fixtures with: pnpm gentest block_ar_maxsize_cross_axis
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Aspect-ratio min/max stay on their own axis (block_ar_maxsize_cross_axis)
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+  <div style="display: block; aspect-ratio: 2; height: 200px; max-width: 3px;"></div>
+  <div style="display: block; aspect-ratio: 2; width: 200px; max-height: 3px;"></div>
+  <div style="display: block; aspect-ratio: 2; width: 200px; max-width: 3px;"></div>
+  <div style="display: block; aspect-ratio: 2; height: 200px;"></div>
+  <div style="display: grid; aspect-ratio: 2; height: 200px; max-width: 3px;"></div>
+  <div style="display: grid; aspect-ratio: 2; width: 200px; max-height: 3px;"></div>
+  <div style="display: grid; aspect-ratio: 2; width: 200px; max-width: 3px;"></div>
+  <div style="display: grid; aspect-ratio: 2; height: 200px;"></div>
+  <div style="display: flex; aspect-ratio: 2; height: 200px; max-width: 3px;"></div>
+  <div style="display: flex; aspect-ratio: 2; width: 200px; max-height: 3px;"></div>
+</div>
+
+</body>
+</html>

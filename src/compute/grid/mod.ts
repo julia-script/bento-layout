@@ -2,7 +2,7 @@
 // Phases: resolve explicit grid → place items → size tracks → align & position.
 
 import type { Rect, Size } from '../../geometry.js';
-import { maybeApplyAspectRatio, rectAdd, sumAxes } from '../../geometry.js';
+import { applyAspectRatioClamped, maybeApplyAspectRatio, rectAdd, sumAxes } from '../../geometry.js';
 import { mClamp, mSub, vClamp } from '../../math.js';
 import type { Opt } from '../../math.js';
 import {
@@ -64,17 +64,18 @@ export function computeGridLayout(node: Node, inputs: LayoutInput): LayoutOutput
   const paddingBorderSize = sumAxes(paddingBorder);
   const boxSizingAdjustment = style.boxSizing === 'content-box' ? paddingBorderSize : { width: 0, height: 0 };
 
-  const minSize = maybeAddSize(
-    maybeApplyAspectRatio(maybeResolveSize(style.minSize, parentSize), aspectRatio),
-    boxSizingAdjustment,
-  );
-  const maxSize = maybeAddSize(
-    maybeApplyAspectRatio(maybeResolveSize(style.maxSize, parentSize), aspectRatio),
-    boxSizingAdjustment,
-  );
+  // See the matching note in block.ts: pushing min/max through the ratio
+  // invents a bound on the other axis, which then clamps a size specified there.
+  const minSize = maybeAddSize(maybeResolveSize(style.minSize, parentSize), boxSizingAdjustment);
+  const maxSize = maybeAddSize(maybeResolveSize(style.maxSize, parentSize), boxSizingAdjustment);
   const preferredSize: Size<Opt> =
     inputs.sizingMode === 'inherent-size'
-      ? maybeAddSize(maybeApplyAspectRatio(maybeResolveSize(style.size, parentSize), aspectRatio), boxSizingAdjustment)
+      ? applyAspectRatioClamped(
+          maybeAddSize(maybeResolveSize(style.size, parentSize), boxSizingAdjustment),
+          minSize,
+          maxSize,
+          aspectRatio,
+        )
       : { width: null, height: null };
 
   // Scrollbar gutters (axes transposed)

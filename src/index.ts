@@ -3,7 +3,7 @@
 // from taffy/src/compute/mod.rs.
 
 import type { Size } from './geometry.js';
-import { maybeApplyAspectRatio } from './geometry.js';
+import { applyAspectRatioClamped } from './geometry.js';
 import { mClamp, mMax, round } from './math.js';
 import type { Opt } from './math.js';
 import { asIntoOption, maybeResolveSize, resolveRectOrZero, resolveStyle } from './style.js';
@@ -172,23 +172,32 @@ function blockRootKnownDimensions(
     style.boxSizing === 'content-box' ? paddingBorderSize : { width: 0, height: 0 };
 
   const resolveAxis = (v: Opt, adj: number): Opt => (v !== null ? v + adj : null);
-  const applyAR = (s: Size<Opt>): Size<Opt> => maybeApplyAspectRatio(s, aspectRatio);
 
-  const minSize = applyAR(maybeResolveSize(style.minSize, parentSize));
+  // Min/max stay on their own axis: pushing them through the ratio invents a
+  // bound on the other axis that then clamps a size specified there
+  // (`height: 200; aspect-ratio: 2; max-width: 3` is 3x200, not 3x2). The ratio
+  // derives from the clamped specified size instead — which still re-derives
+  // the partner for a same-axis clamp (`width: 200; max-width: 3` -> 3x2).
+  const minSize = maybeResolveSize(style.minSize, parentSize);
   const minSizeAdj: Size<Opt> = {
     width: resolveAxis(minSize.width, boxSizingAdjustment.width),
     height: resolveAxis(minSize.height, boxSizingAdjustment.height),
   };
-  const maxSize = applyAR(maybeResolveSize(style.maxSize, parentSize));
+  const maxSize = maybeResolveSize(style.maxSize, parentSize);
   const maxSizeAdj: Size<Opt> = {
     width: resolveAxis(maxSize.width, boxSizingAdjustment.width),
     height: resolveAxis(maxSize.height, boxSizingAdjustment.height),
   };
-  const styleSize = applyAR(maybeResolveSize(style.size, parentSize));
-  const clampedStyleSize: Size<Opt> = {
-    width: mClamp(resolveAxis(styleSize.width, boxSizingAdjustment.width), minSizeAdj.width, maxSizeAdj.width),
-    height: mClamp(resolveAxis(styleSize.height, boxSizingAdjustment.height), minSizeAdj.height, maxSizeAdj.height),
-  };
+  const rawStyleSize = maybeResolveSize(style.size, parentSize);
+  const clampedStyleSize: Size<Opt> = applyAspectRatioClamped(
+    {
+      width: resolveAxis(rawStyleSize.width, boxSizingAdjustment.width),
+      height: resolveAxis(rawStyleSize.height, boxSizingAdjustment.height),
+    },
+    minSizeAdj,
+    maxSizeAdj,
+    aspectRatio,
+  );
 
   // If both min and max in a given axis are set and max <= min then this determines the size
   const minMaxDefiniteSize: Size<Opt> = {

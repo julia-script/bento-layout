@@ -1192,6 +1192,53 @@ Verified in Taffy: suspected (source-read, not executed).
 
 ---
 
+## 23. `min_size`/`max_size` are pushed through `aspect-ratio` onto the other axis
+
+Container sizing resolves `min_size` and `max_size` and then calls
+`maybe_apply_aspect_ratio` on each. That *invents* a bound on the axis the
+author did not constrain — and a size specified on that axis is then clamped by
+the invented bound. `max-width: 3` with `aspect-ratio: 2` becomes a max-height
+of 1.5, which crushes a specified `height: 200` down to 2.
+
+The ratio should derive from the **clamped specified size** instead. That still
+re-derives the partner axis for a *same-axis* clamp, which is the behaviour the
+transfer was presumably reaching for.
+
+**Behaviour matrix** (Chrome 151.0.7922.47, `aspect-ratio: 2`, one node):
+
+| styles | Chrome | Taffy / pre-fix |
+|---|---|---|
+| `height: 200; max-width: 3` | **3x200** | **3x2** |
+| `width: 200; max-height: 3` | **200x3** | **6x3** |
+| `width: 200; max-width: 3` | 3x2 | 3x2 (control — same axis, re-derives) |
+| `height: 200` | 400x200 | 400x200 (control) |
+
+**Four independent copies** of this exist in the port, and **flexbox has none
+of them** — flex was already correct on all four rows, which is what made the
+split visible at all. Taffy's grid carries the same code:
+
+- `src/compute/grid/mod.rs:63-72` — `min_size` and `max_size` both take
+  `.maybe_apply_aspect_ratio(aspect_ratio)`.
+
+In this port the equivalents were `src/index.ts` (`blockRootKnownDimensions`),
+`src/compute/block.ts` (both `computeBlockLayout` and `computeInner`), and
+`src/compute/grid/mod.ts`. Fixing any one of them left the others broken, since
+each recomputes the sizes independently — worth checking every container-sizing
+entry point rather than the first one that reproduces.
+
+**Fix applied here:** min/max resolve on their own axis, and the specified size
+goes through `applyAspectRatioClamped()` (`src/geometry.ts`), which clamps each
+axis by its own bounds before the ratio fills in the missing one. Regression
+fixture `tests/html/block/block_ar_maxsize_cross_axis.html` covers all four rows
+in block, grid *and* flex.
+
+Note this is the container-level twin of entry #16, which fixed the same
+statement inside `leaf.rs`.
+
+Verified in Taffy: suspected (source-read, not executed).
+
+---
+
 ## Not yet triaged
 
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they

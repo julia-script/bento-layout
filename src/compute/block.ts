@@ -92,20 +92,22 @@ export function computeBlockLayout(node: Node, inputs: LayoutInput, blockCtx?: B
   const paddingBorderSize = sumAxes(rectAdd(padding, border));
   const boxSizingAdjustment = style.boxSizing === 'content-box' ? paddingBorderSize : sizeZero();
 
-  const minSize = maybeAddSize(
-    maybeApplyAspectRatio(maybeResolveSize(style.minSize, parentSize), aspectRatio),
-    boxSizingAdjustment,
-  );
-  const maxSize = maybeAddSize(
-    maybeApplyAspectRatio(maybeResolveSize(style.maxSize, parentSize), aspectRatio),
-    boxSizingAdjustment,
-  );
+  // Min/max must NOT be pushed through the ratio here: that invents a bound on
+  // the other axis, and a specified size on that axis then gets clamped by it.
+  // `height: 200; aspect-ratio: 2; max-width: 3` is 3x200 in Chrome — the
+  // max-width clamps only the width — but a transferred max-height of 1.5
+  // shrank the height to 2. The ratio instead derives from the *clamped*
+  // specified size (applyAspectRatioClamped), which still re-derives the
+  // partner axis for a same-axis clamp: `width: 200; max-width: 3` is 3x2.
+  const minSize = maybeAddSize(maybeResolveSize(style.minSize, parentSize), boxSizingAdjustment);
+  const maxSize = maybeAddSize(maybeResolveSize(style.maxSize, parentSize), boxSizingAdjustment);
   const clampedStyleSize: Size<Opt> =
     inputs.sizingMode === 'inherent-size'
-      ? sizeMaybeClamp(
-          maybeAddSize(maybeApplyAspectRatio(maybeResolveSize(style.size, parentSize), aspectRatio), boxSizingAdjustment),
+      ? applyAspectRatioClamped(
+          maybeAddSize(maybeResolveSize(style.size, parentSize), boxSizingAdjustment),
           minSize,
           maxSize,
+          aspectRatio,
         )
       : { width: null, height: null };
 
@@ -170,17 +172,15 @@ function computeInner(node: Node, inputs: LayoutInput, blockCtx: BlockContext): 
   const contentBoxInset = rectAdd(paddingBorder, scrollbarGutter);
 
   const boxSizingAdjustment = style.boxSizing === 'content-box' ? paddingBorderSize : sizeZero();
-  const size = maybeAddSize(
-    maybeApplyAspectRatio(maybeResolveSize(style.size, parentSize), aspectRatio),
-    boxSizingAdjustment,
-  );
-  const minSize = maybeAddSize(
-    maybeApplyAspectRatio(maybeResolveSize(style.minSize, parentSize), aspectRatio),
-    boxSizingAdjustment,
-  );
-  const maxSize = maybeAddSize(
-    maybeApplyAspectRatio(maybeResolveSize(style.maxSize, parentSize), aspectRatio),
-    boxSizingAdjustment,
+  // Same rule as computeBlockLayout above: min/max stay on their own axis and
+  // the ratio derives from the clamped specified size.
+  const minSize = maybeAddSize(maybeResolveSize(style.minSize, parentSize), boxSizingAdjustment);
+  const maxSize = maybeAddSize(maybeResolveSize(style.maxSize, parentSize), boxSizingAdjustment);
+  const size = applyAspectRatioClamped(
+    maybeAddSize(maybeResolveSize(style.size, parentSize), boxSizingAdjustment),
+    minSize,
+    maxSize,
+    aspectRatio,
   );
 
   // css-sizing-4: a definite size in one axis transfers through `aspect-ratio`.
