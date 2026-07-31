@@ -228,8 +228,10 @@ export type JustifyContent = AlignContent;
  *
  * Properties mirror CSS names and meanings, with two systematic differences:
  * values are structured data rather than strings (`10` not `'10px'`,
- * `{ percent: 0.5 }` not `'50%'`), and the shorthands are absent — set the
- * longhand object instead of `margin: '0 auto'`.
+ * `{ percent: 0.5 }` not `'50%'`), and this resolved form holds only longhands,
+ * grouped into `Rect`/`Size`/`Point` objects. {@link StyleInput} additionally
+ * accepts uniform shorthands such as `padding: 16`, which expand into these
+ * fields on the way in.
  *
  * Which properties apply depends on `display` and on whether a node is a
  * container or an item. `flexGrow` on a grid item, or `gridRow` on a flex item,
@@ -533,10 +535,16 @@ type ScalarStyleKey =
  * `columnGap`. Every property is optional, and anything omitted keeps its
  * default.
  *
- * Only longhands are accepted. There is no `padding: 10` shorthand setting four
- * sides, and no `margin: '0 auto'` string — write the sides you mean.
  * Values stay structured data rather than CSS strings: `10` for pixels,
- * `{ percent: 0.5 }` for 50%, `'auto'` for the keyword.
+ * `{ percent: 0.5 }` for 50%, `'auto'` for the keyword. There is no CSS parser
+ * here, so the multi-value shorthand strings do not exist — no `margin:
+ * '0 auto'`, no `padding: '10px 20px'`.
+ *
+ * The uniform shorthands do: `padding`, `margin`, `border`, `inset`, `gap`, and
+ * `overflow` each set their longhands from one value, or from an object naming
+ * the sides or axes you want. Input is read in order, so a longhand after a
+ * shorthand overrides it — `{ padding: 16, paddingTop: 0 }` is 16 on three
+ * sides and 0 on top.
  *
  * A few names differ from the CSS property they correspond to, following CSS
  * itself rather than the engine's internals: box offsets are `top`/`left`/
@@ -625,6 +633,57 @@ export interface StyleInput extends Partial<Pick<Style, ScalarStyleKey>> {
   gridColumnStart?: GridPlacement;
   /** CSS `grid-column-end`. @defaultValue `'auto'` */
   gridColumnEnd?: GridPlacement;
+
+  // --- Shorthands ---------------------------------------------------------
+  // Each sets its longhands and nothing else, so a longhand written after one
+  // overrides it. Values are data, not CSS strings: there is no `'10px 20px'`
+  // two-value form — use the object to vary a side, as in
+  // `{ top: 10, bottom: 10 }`.
+
+  /**
+   * All four paddings at once, or the named sides.
+   *
+   * @remarks
+   * A single value applies to every side. An object sets only the sides it
+   * names, leaving the rest untouched.
+   *
+   * @example
+   * ```typescript
+   * LayoutNode.make({ padding: 16 });                  // all four
+   * LayoutNode.make({ padding: { top: 8, bottom: 8 } }); // top and bottom only
+   * LayoutNode.make({ padding: 16, paddingTop: 0 });   // 16, except the top
+   * ```
+   */
+  padding?: LengthPercentage | EdgesInput<LengthPercentage>;
+
+  /**
+   * All four margins at once, or the named sides. `'auto'` is a legal value and
+   * absorbs free space, so `{ margin: 'auto' }` centres a box on both axes.
+   */
+  margin?: LengthPercentageAuto | EdgesInput<LengthPercentageAuto>;
+
+  /** All four border widths at once, or the named sides. */
+  border?: LengthPercentage | EdgesInput<LengthPercentage>;
+
+  /**
+   * All four box offsets at once, or the named sides — CSS `inset`. Applies
+   * when `position` is `'absolute'`.
+   */
+  inset?: LengthPercentageAuto | EdgesInput<LengthPercentageAuto>;
+
+  /**
+   * Both gutters at once, or one axis.
+   *
+   * @example
+   * ```typescript
+   * LayoutNode.make({ gap: 8 });                  // rows and columns
+   * LayoutNode.make({ gap: { column: 8 } });      // columns only
+   * ```
+   */
+  gap?: LengthPercentage | GapInput;
+
+  /** Both overflow axes at once, or one of them. */
+  overflow?: Overflow | OverflowInput;
 }
 
 /**
@@ -666,6 +725,96 @@ const FLAT_TO_NESTED = {
 } as const satisfies Record<string, readonly [keyof Style, string]>;
 
 /**
+ * Shorthand key → the longhand keys it sets, in the order CSS writes them.
+ *
+ * @remarks
+ * Every shorthand here is *uniform*: it applies one value to each longhand it
+ * names. The multi-value CSS forms (`padding: '10px 20px'`, `flex: '1 1 auto'`)
+ * are string syntax, which this library does not parse — pass the longhands, or
+ * a per-edge object.
+ *
+ * Expansion happens in {@link mergeStyle}, which walks input in insertion
+ * order, so a longhand written after a shorthand overrides it exactly as the
+ * cascade does.
+ */
+const SHORTHAND_TO_LONGHANDS = {
+  padding: ['paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft'],
+  margin: ['marginTop', 'marginRight', 'marginBottom', 'marginLeft'],
+  border: ['borderTop', 'borderRight', 'borderBottom', 'borderLeft'],
+  inset: ['top', 'right', 'bottom', 'left'],
+  gap: ['rowGap', 'columnGap'],
+  overflow: ['overflowX', 'overflowY'],
+} as const satisfies Record<string, readonly (keyof StyleInput)[]>;
+
+/**
+ * Per-edge object form of a box shorthand, as an alternative to four longhands.
+ *
+ * @remarks
+ * Every side is optional and anything omitted is left as it was, so this sets
+ * only the edges it names — `{ top: 8 }` does not zero the other three.
+ */
+export interface EdgesInput<T> {
+  top?: T;
+  right?: T;
+  bottom?: T;
+  left?: T;
+}
+
+/**
+ * Axis object form of `gap`.
+ *
+ * @remarks
+ * Accepts either CSS's naming (`row`/`column`) or the resolved {@link Style}
+ * shape (`width`/`height`, where `width` is the column gutter). The second form
+ * exists so a resolved style can be passed straight back in as input.
+ */
+export interface GapInput {
+  row?: LengthPercentage;
+  column?: LengthPercentage;
+  /** Column gutter, matching {@link Style.gap}. */
+  width?: LengthPercentage;
+  /** Row gutter, matching {@link Style.gap}. */
+  height?: LengthPercentage;
+}
+
+/** Per-axis object form of `overflow`, matching {@link Style.overflow}. */
+export interface OverflowInput {
+  x?: Overflow;
+  y?: Overflow;
+}
+
+/** Maps an edges/axis object onto the longhand keys of its shorthand. */
+const OBJECT_FORM_KEYS: Record<string, Record<string, keyof StyleInput>> = {
+  padding: { top: 'paddingTop', right: 'paddingRight', bottom: 'paddingBottom', left: 'paddingLeft' },
+  margin: { top: 'marginTop', right: 'marginRight', bottom: 'marginBottom', left: 'marginLeft' },
+  border: { top: 'borderTop', right: 'borderRight', bottom: 'borderBottom', left: 'borderLeft' },
+  inset: { top: 'top', right: 'right', bottom: 'bottom', left: 'left' },
+  // `width`/`height` are Style's own spelling of the gap axes, accepted so a
+  // resolved style round-trips as input.
+  gap: { row: 'rowGap', column: 'columnGap', width: 'columnGap', height: 'rowGap' },
+  overflow: { x: 'overflowX', y: 'overflowY' },
+};
+
+/**
+ * Expand one shorthand into `[longhandKey, value]` pairs.
+ *
+ * A plain value applies to every longhand; an object sets only the sides or
+ * axes it names.
+ */
+function expandShorthand(key: string, value: unknown): Array<[string, unknown]> {
+  const objectKeys = OBJECT_FORM_KEYS[key];
+  // `'auto'` is a legal uniform margin/inset value and is not an edges object,
+  // so only a non-null plain object takes the per-edge path.
+  if (objectKeys !== undefined && typeof value === 'object' && value !== null && !('percent' in value)) {
+    return Object.entries(value)
+      .filter(([side]) => objectKeys[side] !== undefined)
+      .map(([side, v]) => [objectKeys[side] as string, v]);
+  }
+  const longhands = SHORTHAND_TO_LONGHANDS[key as keyof typeof SHORTHAND_TO_LONGHANDS];
+  return longhands.map((longhand) => [longhand as string, value]);
+}
+
+/**
  * Expand a flat {@link StyleInput} into the engine's resolved {@link Style},
  * filling in defaults for everything omitted.
  *
@@ -703,7 +852,19 @@ export function mergeStyle(base: Style, input: StyleInput): Style {
   const style: Style = { ...base };
   const rebuilt = new Set<string>();
 
-  for (const [flatKey, value] of Object.entries(input)) {
+  // A shorthand stands in for its longhands, so expand it in place: later keys
+  // still overwrite earlier ones, which is what makes `{ padding: 8,
+  // paddingTop: 0 }` behave the way the cascade would.
+  const entries: Array<[string, unknown]> = [];
+  for (const [key, value] of Object.entries(input)) {
+    if (key in SHORTHAND_TO_LONGHANDS) {
+      entries.push(...expandShorthand(key, value));
+    } else {
+      entries.push([key, value]);
+    }
+  }
+
+  for (const [flatKey, value] of entries) {
     const mapping = (FLAT_TO_NESTED as Record<string, readonly [keyof Style, string] | undefined>)[flatKey];
     if (mapping === undefined) {
       // Scalar (or already-structured) property: copy arrays/objects so the

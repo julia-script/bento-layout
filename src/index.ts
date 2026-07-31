@@ -25,6 +25,9 @@ export type {
   // core style vocabulary
   Style,
   StyleInput,
+  EdgesInput,
+  GapInput,
+  OverflowInput,
   Dimension,
   LengthPercentage,
   LengthPercentageAuto,
