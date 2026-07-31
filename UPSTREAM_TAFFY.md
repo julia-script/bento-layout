@@ -1283,6 +1283,47 @@ Verified in Taffy: suspected (source-read, not executed).
 
 ---
 
+## 25. Cross-axis `auto` margins are not floored at zero
+
+`resolve_cross_axis_auto_margins` assigns the line's `free_space` straight into
+the auto margin. When the item overflows its line that value is negative, so the
+margin itself becomes negative and drags the item outside the container. Auto
+margins absorb only *positive* free space (css-flexbox-1 §8.1).
+
+**Behaviour matrix** (Chrome 151.0.7922.47; 55x1 flex row, empty item,
+`margin-left: 3px`):
+
+| item margins | Chrome | Taffy / pre-fix |
+|---|---|---|
+| `margin-top: auto; margin-bottom: 17px` | y = **0** | y = **-16** |
+| `margin-top: auto; margin-bottom: 40%` | y = **0** | y = **-21** |
+| `margin-top: auto; margin-bottom: 0` | y = 1 | y = 1 (control — positive space is absorbed) |
+| `margin-top: 0; margin-bottom: 17px` | y = 0 | y = 0 (control — no auto margin) |
+| `margin-top: auto; margin-bottom: auto` | y = 1 | y = 1 (control — both auto) |
+
+The percentage in row 2 is incidental; row 1 shows a px margin does it too. The
+trigger is negative free space, not percentages.
+
+**Taffy source:** `src/compute/flexbox.rs:1727-1745` — `free_space` is computed
+once and written into `child.margin.*` unclamped in all three auto-margin arms.
+
+**Fix applied here:** a separate `autoMarginSpace = max(freeSpace, 0)` feeds the
+auto-margin arms only. **The shared `freeSpace` must stay unclamped**: it is
+also passed to cross-axis alignment, which needs the true negative value for
+overflow. Flooring it there regressed 43 fixtures in this port
+(`align_items_center_child_without_margin_bigger_than_parent` and the baseline
+family), so a fix that clamps the variable rather than the branch is wrong.
+
+Regression fixture `tests/html/flex/flex_cross_auto_margin_negative_space.html`
+covers all five rows and records that caution.
+
+Note this is the cross-axis twin of entry #21, which floored the *main*-axis
+auto margins against `justify-content`.
+
+Verified in Taffy: suspected (source-read, not executed).
+
+---
+
 ## Not yet triaged
 
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they

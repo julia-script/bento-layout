@@ -1541,21 +1541,28 @@ function resolveCrossAxisAutoMargins(flexLines: FlexLine[], constants: AlgoConst
 
     for (const child of line.items) {
       const freeSpace = lineCrossSize - cross(child.outerTargetSize, constants.dir);
+      // Auto margins absorb only *positive* free space (css-flexbox-1 §8.1).
+      // A negative value would make the margin itself negative and drag the
+      // item outside the container: `margin-top: auto` with a 17px bottom
+      // margin in a 1px-tall line put the item at y=-16 instead of y=0.
+      // The alignment branch below is deliberately NOT floored — overflow
+      // alignment needs the true negative value.
+      const autoMarginSpace = Math.max(freeSpace, 0);
 
       if (rectCrossStart(child.marginIsAuto, constants.dir) && rectCrossEnd(child.marginIsAuto, constants.dir)) {
         if (constants.isRow) {
-          child.margin.top = freeSpace / 2;
-          child.margin.bottom = freeSpace / 2;
+          child.margin.top = autoMarginSpace / 2;
+          child.margin.bottom = autoMarginSpace / 2;
         } else {
-          child.margin.left = freeSpace / 2;
-          child.margin.right = freeSpace / 2;
+          child.margin.left = autoMarginSpace / 2;
+          child.margin.right = autoMarginSpace / 2;
         }
       } else if (rectCrossStart(child.marginIsAuto, constants.dir)) {
-        if (constants.isRow) child.margin.top = freeSpace;
-        else child.margin.left = freeSpace;
+        if (constants.isRow) child.margin.top = autoMarginSpace;
+        else child.margin.left = autoMarginSpace;
       } else if (rectCrossEnd(child.marginIsAuto, constants.dir)) {
-        if (constants.isRow) child.margin.bottom = freeSpace;
-        else child.margin.right = freeSpace;
+        if (constants.isRow) child.margin.bottom = autoMarginSpace;
+        else child.margin.right = autoMarginSpace;
       } else {
         // 14. Align all flex items along the cross-axis.
         child.offsetCross = alignFlexItemsAlongCrossAxis(child, freeSpace, maxBaseline, constants);

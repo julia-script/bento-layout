@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: campaign seed=20260731, minimized by the shrinker to 2 nodes.
+  date: 2026-07-30
+  chrome: Chrome/151.0.7922.47
+
+  Engine bug: a cross-axis `auto` margin was assigned the line's free space
+  without flooring it at zero. When the item overflowed the line the free space
+  was negative, so the margin itself went negative and dragged the item outside
+  the container. Auto margins absorb only POSITIVE free space (css-flexbox-1
+  8.1).
+
+  All rows: 55x1 flex row, empty item, `margin-left: 3px`:
+    #a  margin-top:auto, margin-bottom:17px  -> y=0 (engine gave y=-16)
+    #b  margin-top:auto, margin-bottom:40%   -> y=0 (engine gave y=-21)
+    #c  margin-top:auto, margin-bottom:0     -> y=1 (control: positive space,
+        the auto margin legitimately absorbs it)
+    #d  margin-top:0,    margin-bottom:17px  -> y=0 (control: no auto margin)
+    #e  margin-top:auto, margin-bottom:auto  -> y=1 (control: both auto)
+
+  The percentage in #b is incidental -- #a shows a px margin does it too. The
+  trigger is negative free space, not percentages.
+
+  CAUTION: the floor belongs ONLY on the auto-margin branches. Flooring the
+  shared `freeSpace` variable also clamps what is handed to cross-axis
+  alignment, which needs the true negative value for overflow -- that regressed
+  43 fixtures (align_items_center_child_without_margin_bigger_than_parent and
+  the baseline family).
+
+  NOTE: test_base_style.css sets `div { display: flex }`, so every element here
+  states its display explicitly.
+  Regenerate the XML fixtures with: pnpm gentest flex_cross_auto_margin_negative_space
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Cross-axis auto margins absorb only positive free space (flex_cross_auto_margin_negative_space)
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+  <div style="display: flex; width: 55px; height: 1px;"><div style="display: block; margin-left: 3px; margin-top: auto; margin-bottom: 17px;"></div></div>
+  <div style="display: flex; width: 55px; height: 1px;"><div style="display: block; margin-left: 3px; margin-top: auto; margin-bottom: 40%;"></div></div>
+  <div style="display: flex; width: 55px; height: 1px;"><div style="display: block; margin-left: 3px; margin-top: auto; margin-bottom: 0;"></div></div>
+  <div style="display: flex; width: 55px; height: 1px;"><div style="display: block; margin-left: 3px; margin-top: 0; margin-bottom: 17px;"></div></div>
+  <div style="display: flex; width: 55px; height: 1px;"><div style="display: block; margin-left: 3px; margin-top: auto; margin-bottom: auto;"></div></div>
+</div>
+
+</body>
+</html>
