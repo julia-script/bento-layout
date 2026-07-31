@@ -1,9 +1,5 @@
 {
  "quarantined": [
-  "alignment_grid-content-distribution-029__border_box_ltr",
-  "alignment_grid-content-distribution-029__border_box_rtl",
-  "alignment_grid-content-distribution-029__content_box_ltr",
-  "alignment_grid-content-distribution-029__content_box_rtl",
   "flex-minimum-height-flex-items-029__border_box_ltr",
   "flex-minimum-height-flex-items-029__border_box_rtl",
   "flex-minimum-height-flex-items-029__content_box_ltr",

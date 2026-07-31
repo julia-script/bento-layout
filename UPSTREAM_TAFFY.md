@@ -1596,6 +1596,53 @@ Verified in Taffy: suspected (source-read, not executed).
 
 ---
 
+## 30. A ratio-derived cross size is treated as definite, not as a floor
+
+**Verified in Taffy:** suspected (source read: `src/compute/grid/mod.rs:293-305`,
+`src/compute/block.rs` container-height branch)
+
+A size that comes from `aspect-ratio` rather than from a specified size in that
+axis is an **automatic** size (css-sizing-4 §4.2): content larger than it grows
+the box. Both engines treat it as definite, so the content overflows instead.
+
+Taffy's grid short-circuits the row sum whenever `resolved_style_size` has a
+height, without asking where that height came from:
+
+```rust
+height: resolved_style_size
+    .get(AbstractAxis::Block)
+    .unwrap_or_else(|| initial_row_sum + content_box_inset.vertical_axis_sum())
+```
+
+Chrome, `width: 100px; aspect-ratio: 2` wrapped around a 100px-tall child —
+the last two rows are the controls that show this really is automatic sizing:
+
+| style | Chrome | note |
+|---|---|---|
+| (as above) | 100x100 | ratio's 50 is only a floor |
+| `max-width: 50` | 50x100 | width clamps; height stays content-driven |
+| `+ overflow: hidden` | 100x50 | scroll container: ratio height holds |
+| `height: 50` specified | 100x50 | definite: content overflows |
+
+The scroll-container carve-out is the same discriminator css-flexbox §4.5 uses
+for automatic minimum sizes.
+
+The fix tracks *provenance* — whether the axis was specified or derived — rather
+than reading the resolved number, exactly as entry #29 does for the inline axis.
+This entry is the block axis and is reached via a max-clamp as well as directly.
+
+Fixed here in `block.ts` (`heightIsRatioDerived`) and `grid/mod.ts`
+(`rowFloor`). **Flexbox still has the bug**: by the time
+`determineContainerCrossSize` runs, the flex line has already been sized against
+the ratio-derived cross size, so the content size it sums is 25 rather than 100.
+Fixing that means restoring the pre-clamp line cross size, which is a larger
+change than the other two modes needed.
+
+WPT: `css-grid/alignment/grid-content-distribution-029` ("alignment must work
+after max-width clamps the aspect ratio").
+
+---
+
 ## Not yet triaged
 
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they
@@ -1609,6 +1656,15 @@ are not lost; each needs the same treatment before it can move up:
   — Chrome 97x194, engine 97x10. #28's re-run in `computeRootLayout` is
   display-agnostic, so the reason grid still escapes it needs tracing before
   fixing; do not assume it is the same guard.
+
+- **Flexbox half of entry #30.** `display: flex; width: 100px;
+  aspect-ratio: 2; max-width: 50px` around a 100px-tall item is 50x100 in
+  Chrome, 50x25 here. Block and grid are fixed; flex is not. A
+  `crossIsRatioDerived` flag on `AlgoConstants` computes correctly, but
+  flooring at `determineContainerCrossSize` is too late — the line's
+  `crossSize` has already been clamped to the ratio height, so the content
+  size to floor against is 25, not 100. Needs the un-clamped line cross size,
+  so it is a real change rather than a one-line guard.
 
 - **`fuzz_408e514f`** — percentage padding on an aspect-ratio flex item under a
   `height: auto` root, **content-box only**: Chrome collapses the root and item

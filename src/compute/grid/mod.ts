@@ -2,13 +2,14 @@
 // Phases: resolve explicit grid → place items → size tracks → align & position.
 
 import type { Rect, Size } from '../../geometry.js';
-import { applyAspectRatioClamped, maybeApplyAspectRatio, rectAdd, sumAxes } from '../../geometry.js';
+import { applyAspectRatioClamped, rectAdd, sumAxes } from '../../geometry.js';
 import { mClamp, mSub, vClamp } from '../../math.js';
 import type { Opt } from '../../math.js';
 import {
   ALIGN_CONTENT_STRETCH,
   ALIGN_STRETCH,
   asMaybeClamp,
+  isScrollContainer,
   maybeResolveSize,
   resolveRectOrZero,
   trackDefiniteValue,
@@ -277,13 +278,31 @@ export function computeGridLayout(node: Node, inputs: LayoutInput): LayoutOutput
     width: knownDimensions.width ?? preferredSize.width,
     height: knownDimensions.height ?? preferredSize.height,
   };
+
+  // See the matching note in block.ts: a height that came from `aspect-ratio`
+  // rather than from a specified height is an *automatic* size, so the row sum
+  // floors it instead of being discarded. `max-width` clamping the width and
+  // the ratio then halving the height is the case WPT
+  // grid-content-distribution-029 pins ("alignment must work after max-width
+  // clamps the aspect ratio"): 50x100, not 50x25.
+  const heightIsRatioDerived =
+    aspectRatio !== null &&
+    resolvedStyleSize.height !== null &&
+    maybeResolveSize(style.size, parentSize).height === null &&
+    !isScrollContainer(style.overflow.y);
+  const rowFloor = (rowSum: number): Opt =>
+    heightIsRatioDerived ? Math.max(resolvedStyleSize.height as number, rowSum) : resolvedStyleSize.height;
   const containerBorderBox = {
     width: Math.max(
       vClamp(resolvedStyleSize.width ?? initialColumnSum + horizontalSum(contentBoxInset), minSize.width, maxSize.width),
       paddingBorderSize.width,
     ),
     height: Math.max(
-      vClamp(resolvedStyleSize.height ?? initialRowSum + verticalSum(contentBoxInset), minSize.height, maxSize.height),
+      vClamp(
+        rowFloor(initialRowSum + verticalSum(contentBoxInset)) ?? initialRowSum + verticalSum(contentBoxInset),
+        minSize.height,
+        maxSize.height,
+      ),
       paddingBorderSize.height,
     ),
   };
@@ -446,7 +465,11 @@ export function computeGridLayout(node: Node, inputs: LayoutInput): LayoutOutput
 
     if (intrinsicRowContributionChanged && !hasPercentageRow) {
       containerBorderBox.height = Math.max(
-        vClamp(resolvedStyleSize.height ?? finalRowSum + verticalSum(contentBoxInset), minSize.height, maxSize.height),
+        vClamp(
+          rowFloor(finalRowSum + verticalSum(contentBoxInset)) ?? finalRowSum + verticalSum(contentBoxInset),
+          minSize.height,
+          maxSize.height,
+        ),
         paddingBorderSize.height,
       );
       containerContentBox.height = Math.max(0, containerBorderBox.height - verticalSum(contentBoxInset));

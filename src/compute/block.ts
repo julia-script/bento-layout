@@ -135,6 +135,7 @@ export function computeBlockLayout(node: Node, inputs: LayoutInput, blockCtx?: B
     ),
   };
 
+
   // Short-circuit layout if the container's size is fully determined and the run mode is ComputeSize
   if (runMode === 'compute-size') {
     if (styledBasedKnownDimensions.width !== null && styledBasedKnownDimensions.height !== null) {
@@ -204,6 +205,21 @@ function computeInner(node: Node, inputs: LayoutInput, blockCtx: BlockContext): 
     width: mSub(knownDimensions.width, contentBoxInset.left + contentBoxInset.right),
     height: mSub(knownDimensions.height, contentBoxInset.top + contentBoxInset.bottom),
   };
+
+  // A height that came from `aspect-ratio` rather than from a specified height
+  // is an *automatic* size (css-sizing-4 §4.2): content taller than it grows
+  // the box, where a specified height of the same value would be overflowed.
+  // Chrome, `width: 100; aspect-ratio: 2` around a 100px-tall child:
+  //   no max-width          -> 100x100 (ratio's 50 is only a floor)
+  //   max-width: 50         ->  50x100 (clamped width, height still content)
+  //   plus overflow: hidden -> 100x50  (scroll container: ratio height holds)
+  //   height: 50 specified  -> 100x50  (definite: content overflows)
+  // The scroll-container carve-out is the same discriminator §4.5 uses.
+  const heightIsRatioDerived =
+    aspectRatio !== null &&
+    knownDimensions.height !== null &&
+    maybeResolveSize(style.size, parentSize).height === null &&
+    !isScrollContainer(style.overflow.y);
 
   const overflow = style.overflow;
   const isScroll = isScrollContainer(overflow.x) || isScrollContainer(overflow.y);
@@ -285,10 +301,13 @@ function computeInner(node: Node, inputs: LayoutInput, blockCtx: BlockContext): 
   const lastChildBottomMarginSet = finalLayoutResult.lastChildBottomMarginSet;
   let firstBaseline = finalLayoutResult.firstBaseline;
 
-  const containerOuterHeight = vMax(
-    knownDimensions.height ?? vClamp(intrinsicOuterHeight, minSize.height, maxSize.height),
-    paddingBorderSize.height,
-  );
+  // A ratio-derived height floors rather than fixes the box (see
+  // heightIsRatioDerived): take the taller of it and the content height.
+  const resolvedOuterHeight =
+    knownDimensions.height !== null && heightIsRatioDerived
+      ? Math.max(knownDimensions.height, vClamp(intrinsicOuterHeight, minSize.height, maxSize.height))
+      : (knownDimensions.height ?? vClamp(intrinsicOuterHeight, minSize.height, maxSize.height));
+  const containerOuterHeight = vMax(resolvedOuterHeight, paddingBorderSize.height);
   const finalOuterSize = { width: containerOuterWidth, height: containerOuterHeight };
 
   // Apply `align-content` to in-flow items if requested. The entire stack of
