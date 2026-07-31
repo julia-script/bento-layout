@@ -1,0 +1,17 @@
+<test name="percentage-padding-005__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" direction="ltr">
+      <div display="flex" direction="ltr" flex-direction="column" width="100px">
+        <div display="block" direction="ltr" width="100px" padding-bottom="100%"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="100" height="100">
+      <node x="0" y="0" width="100" height="100">
+        <node x="0" y="0" width="100" height="100"/>
+      </node>
+    </node>
+  </expectations>
+</test>

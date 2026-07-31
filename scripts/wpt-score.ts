@@ -107,6 +107,8 @@ function run(): void {
     console.log(`  ${suite.padEnd(14)} ${String(p).padStart(4)}/${String(rows.length).padEnd(5)} ${((p / rows.length) * 100).toFixed(0).padStart(3)}%`);
   }
 
+  reportCorpusCoverage();
+
   const bySection = new Map<string, { pass: number; fail: number }>();
   for (const r of results) {
     const keys = helpUrls(r.suite, r.name).map(sectionKey);
@@ -155,3 +157,98 @@ function run(): void {
 }
 
 run();
+
+/**
+ * Corpus coverage, so `wpt-score`'s headline ratio cannot be mistaken for a
+ * coverage claim. The score's denominator is only the tests we can *express*;
+ * this reports how much of the scanned corpus that is, and — more usefully —
+ * how much of the rest is out of scope by design versus still reachable.
+ *
+ * "Out of scope" is derived from the skip reason recorded at import time, not
+ * from a hand-maintained list, so it cannot drift away from what the importer
+ * actually does. Anything not matching a known non-goal counts as reachable,
+ * which deliberately errs toward overstating the gap rather than hiding it.
+ */
+function reportCorpusCoverage(): void {
+  const manifestPath = join(ROOT, 'tests', 'html', 'wpt', 'manifest.json');
+  if (!existsSync(manifestPath)) return;
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as {
+    files: Record<string, { class: string; reason?: string; kind?: string }>;
+  };
+
+  // Engine non-goals: no inline formatting context, no replaced elements, no
+  // floats, no writing modes, and no tests whose assertions are computed in JS.
+  const OUT_OF_SCOPE_EXACT = new Set([
+    'kind:no-assertions',
+    'no-body',
+    'no-divs',
+    'css-parse',
+    'rewrite-failed',
+    'harness-conflict',
+    'degenerate',
+  ]);
+  const OUT_OF_SCOPE_PREFIX = [
+    'script:',
+    // `display: grid-lanes` is a distinct (masonry-style) layout mode this
+    // engine does not implement; not an importer gap.
+    'value:display:grid-lanes',
+    'value:display:inline grid-lanes',
+    'element:grid-lanes',
+    'property:writing-mode',
+    'property:float',
+    'property:clear',
+    'property:vertical-align',
+    'element:span',
+    'element:strong',
+    'element:b',
+    'element:i',
+    'element:img',
+    'element:canvas',
+    'element:svg',
+    'element:table',
+    'element:pre',
+    'element:hr',
+    'element:input',
+    'element:iframe',
+    'element:video',
+    'value:display:inline',
+    'value:align-items:last baseline',
+    'value:align-self:last baseline',
+  ];
+
+  let imported = 0;
+  let outOfScope = 0;
+  let reachable = 0;
+  const reachableReasons = new Map<string, number>();
+  for (const entry of Object.values(manifest.files)) {
+    if (entry.class === 'import') {
+      imported += 1;
+      continue;
+    }
+    const reason = entry.reason ?? '';
+    const out =
+      OUT_OF_SCOPE_EXACT.has(reason) || OUT_OF_SCOPE_PREFIX.some((prefix) => reason.startsWith(prefix));
+    if (out) outOfScope += 1;
+    else {
+      reachable += 1;
+      reachableReasons.set(reason, (reachableReasons.get(reason) ?? 0) + 1);
+    }
+  }
+
+  const scanned = imported + outOfScope + reachable;
+  const expressible = imported + reachable;
+  console.log('');
+  console.log('corpus coverage (pages, not fixtures):');
+  console.log(`  scanned            ${String(scanned).padStart(5)}`);
+  console.log(
+    `  out of scope       ${String(outOfScope).padStart(5)}   JS-computed assertions, crash tests, and engine non-goals`,
+  );
+  console.log(
+    `  imported           ${String(imported).padStart(5)}   ${((imported / Math.max(expressible, 1)) * 100).toFixed(0)}% of the ${expressible} pages this engine could express`,
+  );
+  console.log(`  reachable, not yet ${String(reachable).padStart(5)}   importer gaps, not engine limits`);
+  if (reachable > 0) {
+    const top = [...reachableReasons].sort((a, b) => b[1] - a[1]).slice(0, 6);
+    console.log(`  largest gaps: ${top.map(([r, n]) => `${r || '(none)'} x${n}`).join(', ')}`);
+  }
+}

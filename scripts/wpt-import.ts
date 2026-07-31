@@ -302,6 +302,16 @@ export interface Classified {
 const HARNESS_SCRIPTS = /(?:testharness(?:report)?|check-layout(?:-th)?)\.js/;
 
 export function classifyFile(html: string, srcDir?: string, wptRootDir?: string): Classified {
+  // NOTE: do *not* reject reftests here. WPT's own expectations are never
+  // consumed — the pipeline re-derives every expectation from Chrome — so a
+  // reftest's markup is perfectly good *input*, and 94 of the imported pages
+  // are reftests. Rejecting them was tried and dropped the corpus from 159 to
+  // 21. The only genuinely unusable kind is a test carrying no assertion at
+  // all (a crash test), which has no geometry to compare against.
+  if (!/check-layout|data-expected|data-offset|assert_|test\(|rel\s*=\s*["']?(?:match|mismatch)\b/i.test(html)) {
+    return { class: 'skip', reason: 'kind:no-assertions' };
+  }
+
   // Scripts: WPT harness includes are fine (they are stripped at rewrite);
   // anything else can mutate the DOM before measurement.
   for (const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
@@ -382,11 +392,27 @@ export function classifyFile(html: string, srcDir?: string, wptRootDir?: string)
 }
 
 function afterHeadFallback(html: string): string | null {
-  // Some WPT tests omit <body>; treat everything after the last </style>,
-  // </script>, or <link> in the head as body content.
-  const idx = Math.max(html.lastIndexOf('</style>'), html.lastIndexOf('</script>'), html.lastIndexOf('rel="help"'));
-  if (idx < 0) return null;
-  const rest = html.slice(html.indexOf('>', idx) + 1);
+  // Some WPT tests omit <body>; treat everything after the head-ish preamble as
+  // body content.
+  //
+  // This must find where the *preamble ends*, not where the last tag of that
+  // kind sits: these files habitually put their `checkLayout()` <script> at the
+  // very end, *after* the markup, so scanning with lastIndexOf sliced past the
+  // whole test and returned an empty string. 59 in-scope tests were then
+  // skipped as `no-divs` — including plain flex/abspos cases with nothing
+  // unsupported in them at all.
+  //
+  // Walk forward from the start instead, stepping over each leading
+  // <style>/<script>/<link>/<meta>/<title> block, and stop at the first thing
+  // that is not part of the preamble.
+  const PREAMBLE = /^\s*(?:<!DOCTYPE[^>]*>|<\/?(?:html|head)\b[^>]*>|<(?:link|meta)\b[^>]*\/?>|<title\b[^>]*>[\s\S]*?<\/title>|<style\b[^>]*>[\s\S]*?<\/style>|<script\b[^>]*>[\s\S]*?<\/script>|<!--[\s\S]*?-->)/i;
+  let rest = html;
+  for (;;) {
+    const m = PREAMBLE.exec(rest);
+    if (m === null) break;
+    rest = rest.slice(m[0].length);
+  }
+  if (rest.trim() === '') return null;
   return rest.replace(/<\/?(?:html|head|body)\b[^>]*>/gi, '');
 }
 

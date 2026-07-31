@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-align/content-distribution/default-overflow-alignment-single-axis-scroll-container.html @ 6e90070a5b
+  help: https://drafts.csswg.org/css-align-3/#auto-safety-scroll
+  help: https://drafts.csswg.org/css-overflow-3/#overflow-properties
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: CSS Align: default overflow alignment respects single-axis scroll containers</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+<div style="place-content: center; position: relative; width: 100px; height: 100px; display: flex; flex-wrap: wrap; overflow: hidden clip;">
+  <div style="flex: 0 0 auto; width: 200px; height: 200px; display: block;"></div>
+</div>
+
+<div style="place-content: center; position: relative; width: 100px; height: 100px; display: flex; flex-wrap: wrap; overflow: clip hidden;">
+  <div style="flex: 0 0 auto; width: 200px; height: 200px; display: block;"></div>
+</div>
+
+<div style="place-content: center; position: relative; width: 100px; height: 100px; display: grid; grid-template-columns: 200px; grid-template-rows: 200px; overflow: hidden clip;">
+  <div style="flex: 0 0 auto; width: 200px; height: 200px; display: block;"></div>
+</div>
+
+<div style="place-content: center; position: relative; width: 100px; height: 100px; display: grid; grid-template-columns: 200px; grid-template-rows: 200px; overflow: clip hidden;">
+  <div style="flex: 0 0 auto; width: 200px; height: 200px; display: block;"></div>
+</div>
+</div>
+
+</body>
+</html>

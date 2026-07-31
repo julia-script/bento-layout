@@ -268,8 +268,7 @@
    "reason": "script:inline"
   },
   "css/css-flexbox/abspos/position-absolute-015.html": {
-   "class": "skip",
-   "reason": "no-divs"
+   "class": "import"
   },
   "css/css-flexbox/abspos/position-absolute-containing-block-001.html": {
    "class": "skip",
@@ -365,7 +364,7 @@
   },
   "css/css-flexbox/align-items-007.html": {
    "class": "skip",
-   "reason": "element:title"
+   "reason": "element:strong"
   },
   "css/css-flexbox/align-items-008.html": {
    "class": "skip",
@@ -481,7 +480,7 @@
   },
   "css/css-flexbox/align-self-006.html": {
    "class": "skip",
-   "reason": "element:a"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/align-self-007.html": {
    "class": "skip",
@@ -497,7 +496,7 @@
   },
   "css/css-flexbox/align-self-010.html": {
    "class": "skip",
-   "reason": "element:a"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/align-self-011.html": {
    "class": "skip",
@@ -664,31 +663,31 @@
   },
   "css/css-flexbox/animation/discrete-no-interpolation.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/animation/flex-basis-composition.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/animation/flex-basis-content-crash.html": {
    "class": "skip",
-   "reason": "script:inline"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/animation/flex-basis-interpolation.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/animation/flex-grow-interpolation.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/animation/flex-shrink-interpolation.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/animation/order-interpolation.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/anonymous-block.html": {
    "class": "skip",
@@ -700,7 +699,7 @@
   },
   "css/css-flexbox/anonymous-flex-item-002.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:span"
   },
   "css/css-flexbox/anonymous-flex-item-003.html": {
    "class": "skip",
@@ -708,7 +707,7 @@
   },
   "css/css-flexbox/anonymous-flex-item-004.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:span"
   },
   "css/css-flexbox/anonymous-flex-item-005.html": {
    "class": "skip",
@@ -720,7 +719,7 @@
   },
   "css/css-flexbox/anonymous-flex-item-document-white-space-crash.html": {
    "class": "skip",
-   "reason": "degenerate"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/anonymous-flex-item-restyle.html": {
    "class": "skip",
@@ -728,7 +727,7 @@
   },
   "css/css-flexbox/aspect-ratio-intrinsic-size-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:canvas"
   },
   "css/css-flexbox/aspect-ratio-intrinsic-size-002.html": {
    "class": "skip",
@@ -736,7 +735,7 @@
   },
   "css/css-flexbox/aspect-ratio-intrinsic-size-003.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:display:inline-flex"
   },
   "css/css-flexbox/aspect-ratio-intrinsic-size-004.html": {
    "class": "skip",
@@ -748,23 +747,23 @@
   },
   "css/css-flexbox/aspect-ratio-intrinsic-size-006.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:img"
   },
   "css/css-flexbox/aspect-ratio-intrinsic-size-007.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:img"
   },
   "css/css-flexbox/aspect-ratio-intrinsic-size-008.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:display:inline-flex"
   },
   "css/css-flexbox/aspect-ratio-intrinsic-size-009.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:display:inline-flex"
   },
   "css/css-flexbox/aspect-ratio-intrinsic-size-010.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:display:inline-flex"
   },
   "css/css-flexbox/aspect-ratio-intrinsic-size-011.html": {
    "class": "skip",
@@ -783,16 +782,14 @@
    "reason": "script:inline"
   },
   "css/css-flexbox/aspect-ratio-transferred-max-size.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-flexbox/auto-height-column-with-border-and-padding.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:display:-webkit-flex"
   },
   "css/css-flexbox/auto-height-with-flex.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-flexbox/auto-margins-001.html": {
    "class": "skip",
@@ -800,7 +797,7 @@
   },
   "css/css-flexbox/auto-margins-002.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/auto-margins-003.html": {
    "class": "skip",
@@ -872,35 +869,35 @@
   },
   "css/css-flexbox/balance/balance-line-break-crash.html": {
    "class": "skip",
-   "reason": "value:flex-wrap:balance"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/balance/balance-line-count-intrinsic-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/balance/balance-line-count-intrinsic-002.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/balance/balance-line-count-intrinsic-003.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/balance/balance-line-count-intrinsic-004.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/balance/balance-line-count-intrinsic-005.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/balance/balance-line-count-intrinsic-006.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/balance/balance-line-count-intrinsic-007.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/balance/balance-min-line-count-001.html": {
    "class": "skip",
@@ -940,7 +937,7 @@
   },
   "css/css-flexbox/balance/balance-negative-margin-002.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "value:flex-wrap:balance"
   },
   "css/css-flexbox/balance/balance-percentage-size-001.html": {
    "class": "skip",
@@ -968,27 +965,27 @@
   },
   "css/css-flexbox/balance/flex-line-count-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/balance/flex-line-count-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/balance/flex-line-count-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/balance/flex-wrap-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/balance/flex-wrap-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/balance/flex-wrap-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/balance/webkit-box-no-balance.html": {
    "class": "skip",
@@ -996,23 +993,23 @@
   },
   "css/css-flexbox/baseline-outside-flex-item.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/baseline-synthesis-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/baseline-synthesis-002.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/baseline-synthesis-003.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/baseline-synthesis-004.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/baseline-synthesis-vert-lr-line-under.html": {
    "class": "skip",
@@ -1036,11 +1033,11 @@
   },
   "css/css-flexbox/button-column-wrap-crash.html": {
    "class": "skip",
-   "reason": "no-body"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/canvas-contain-size.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:canvas"
   },
   "css/css-flexbox/canvas-dynamic-change-001.html": {
    "class": "skip",
@@ -1056,7 +1053,7 @@
   },
   "css/css-flexbox/column-flex-child-with-max-width.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/column-flex-child-with-overflow-scroll.html": {
    "class": "skip",
@@ -1064,7 +1061,7 @@
   },
   "css/css-flexbox/column-intrinsic-size-aspect-ratio-crash.html": {
    "class": "skip",
-   "reason": "no-body"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/column-reverse-gap.html": {
    "class": "import"
@@ -1075,7 +1072,7 @@
   },
   "css/css-flexbox/contain-size-layout-abspos-flex-container-crash.html": {
    "class": "skip",
-   "reason": "script:inline"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/content-height-with-scrollbars.html": {
    "class": "skip",
@@ -1083,15 +1080,15 @@
   },
   "css/css-flexbox/crashtests/anonymous-block-merge.html": {
    "class": "skip",
-   "reason": "script:inline"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/crashtests/fragmented-anon-box-remove.html": {
    "class": "skip",
-   "reason": "script:inline"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/crashtests/insert-text.html": {
    "class": "skip",
-   "reason": "script:inline"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/cross-axis-scrollbar.html": {
    "class": "skip",
@@ -1158,8 +1155,7 @@
    "reason": "script:inline"
   },
   "css/css-flexbox/dynamic-grid-flex-abspos.html": {
-   "class": "skip",
-   "reason": "no-divs"
+   "class": "import"
   },
   "css/css-flexbox/dynamic-isize-change-001.html": {
    "class": "skip",
@@ -1190,7 +1186,7 @@
   },
   "css/css-flexbox/fieldset-as-container-justify-center.tentative.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "element:fieldset"
   },
   "css/css-flexbox/fieldset-as-item-dynamic.html": {
    "class": "skip",
@@ -1198,11 +1194,11 @@
   },
   "css/css-flexbox/fieldset-as-item-overflow.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:fieldset"
   },
   "css/css-flexbox/fieldset-baseline-alignment.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:fieldset"
   },
   "css/css-flexbox/fit-content-item-001.html": {
    "class": "skip",
@@ -1226,7 +1222,7 @@
   },
   "css/css-flexbox/fixedpos-video-in-abspos-quirk-crash.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/flex-abspos-inset-cross-size-001.html": {
    "class": "skip",
@@ -1316,11 +1312,11 @@
   },
   "css/css-flexbox/flex-aspect-ratio-img-column-012.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:img"
   },
   "css/css-flexbox/flex-aspect-ratio-img-column-013.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:img"
   },
   "css/css-flexbox/flex-aspect-ratio-img-column-014.html": {
    "class": "skip",
@@ -1332,7 +1328,7 @@
   },
   "css/css-flexbox/flex-aspect-ratio-img-column-016.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:img"
   },
   "css/css-flexbox/flex-aspect-ratio-img-column-017.html": {
    "class": "skip",
@@ -1340,7 +1336,7 @@
   },
   "css/css-flexbox/flex-aspect-ratio-img-column-018.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:svg"
   },
   "css/css-flexbox/flex-aspect-ratio-img-row-001.html": {
    "class": "skip",
@@ -1364,15 +1360,15 @@
   },
   "css/css-flexbox/flex-aspect-ratio-img-row-006.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:img"
   },
   "css/css-flexbox/flex-aspect-ratio-img-row-007.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:img"
   },
   "css/css-flexbox/flex-aspect-ratio-img-row-008.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:img"
   },
   "css/css-flexbox/flex-aspect-ratio-img-row-009.html": {
    "class": "skip",
@@ -1388,7 +1384,7 @@
   },
   "css/css-flexbox/flex-aspect-ratio-img-row-012.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:img"
   },
   "css/css-flexbox/flex-aspect-ratio-img-row-013.html": {
    "class": "skip",
@@ -1400,7 +1396,7 @@
   },
   "css/css-flexbox/flex-aspect-ratio-img-row-015.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:svg"
   },
   "css/css-flexbox/flex-aspect-ratio-img-row-016.html": {
    "class": "skip",
@@ -1464,7 +1460,7 @@
   },
   "css/css-flexbox/flex-basis-009.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "element:x-word-v"
   },
   "css/css-flexbox/flex-basis-010.html": {
    "class": "skip",
@@ -1476,7 +1472,7 @@
   },
   "css/css-flexbox/flex-basis-012.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/flex-basis-013.html": {
    "class": "skip",
@@ -1488,7 +1484,7 @@
   },
   "css/css-flexbox/flex-basis-intrinsics-001.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "property:float"
   },
   "css/css-flexbox/flex-basis-item-margins-001.html": {
    "class": "skip",
@@ -1530,7 +1526,7 @@
   },
   "css/css-flexbox/flex-direction-column-001-visual.html": {
    "class": "skip",
-   "reason": "property:text-align"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/flex-direction-column-overlap-001.html": {
    "class": "skip",
@@ -1538,11 +1534,11 @@
   },
   "css/css-flexbox/flex-direction-column-reverse-001-visual.html": {
    "class": "skip",
-   "reason": "property:text-align"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/flex-direction-column-reverse-002-visual.html": {
    "class": "skip",
-   "reason": "element:span"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/flex-direction-column-reverse.html": {
    "class": "skip",
@@ -1558,19 +1554,19 @@
   },
   "css/css-flexbox/flex-direction-row-001-visual.html": {
    "class": "skip",
-   "reason": "property:text-align"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/flex-direction-row-002-visual.html": {
    "class": "skip",
-   "reason": "element:span"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/flex-direction-row-reverse-001-visual.html": {
    "class": "skip",
-   "reason": "property:text-align"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/flex-direction-row-reverse-002-visual.html": {
    "class": "skip",
-   "reason": "element:span"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/flex-direction-row-reverse.html": {
    "class": "skip",
@@ -1682,7 +1678,7 @@
   },
   "css/css-flexbox/flex-item-and-percentage-abspos.html": {
    "class": "skip",
-   "reason": "element:title"
+   "reason": "element:strong"
   },
   "css/css-flexbox/flex-item-compressible-001.html": {
    "class": "skip",
@@ -1710,7 +1706,7 @@
   },
   "css/css-flexbox/flex-item-max-width-min-content-002.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:max-width:min-content"
   },
   "css/css-flexbox/flex-item-max-width-min-content.html": {
    "class": "skip",
@@ -1730,7 +1726,7 @@
   },
   "css/css-flexbox/flex-item-percentage-height-img-001.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "element:canvas"
   },
   "css/css-flexbox/flex-item-percentage-in-nested-flex-bsize-001.html": {
    "class": "skip",
@@ -1823,23 +1819,23 @@
   },
   "css/css-flexbox/flex-minimum-height-flex-items-020.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:img"
   },
   "css/css-flexbox/flex-minimum-height-flex-items-021.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:img"
   },
   "css/css-flexbox/flex-minimum-height-flex-items-022.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/flex-minimum-height-flex-items-023.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:img"
   },
   "css/css-flexbox/flex-minimum-height-flex-items-024.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:min-height:min-content"
   },
   "css/css-flexbox/flex-minimum-height-flex-items-025.html": {
    "class": "skip",
@@ -1847,22 +1843,21 @@
   },
   "css/css-flexbox/flex-minimum-height-flex-items-026.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:display:-webkit-flex"
   },
   "css/css-flexbox/flex-minimum-height-flex-items-027.html": {
-   "class": "import"
+   "class": "skip",
+   "reason": "element:style"
   },
   "css/css-flexbox/flex-minimum-height-flex-items-028.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:display:-webkit-flex"
   },
   "css/css-flexbox/flex-minimum-height-flex-items-029.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-flexbox/flex-minimum-height-flex-items-030.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-flexbox/flex-minimum-height-flex-items-031.html": {
    "class": "skip",
@@ -1881,8 +1876,7 @@
    "reason": "element:img"
   },
   "css/css-flexbox/flex-minimum-size-single-axis-scroll-container.html": {
-   "class": "skip",
-   "reason": "no-divs"
+   "class": "import"
   },
   "css/css-flexbox/flex-minimum-width-flex-items-009.html": {
    "class": "skip",
@@ -1894,11 +1888,11 @@
   },
   "css/css-flexbox/flex-minimum-width-flex-items-011.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:img"
   },
   "css/css-flexbox/flex-minimum-width-flex-items-012.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:img"
   },
   "css/css-flexbox/flex-minimum-width-flex-items-013.html": {
    "class": "skip",
@@ -1910,11 +1904,11 @@
   },
   "css/css-flexbox/flex-minimum-width-flex-items-015.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/flex-minimum-width-flex-items-016.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:img"
   },
   "css/css-flexbox/flex-one-sets-flex-basis-to-zero-px.html": {
    "class": "skip",
@@ -1946,7 +1940,7 @@
   },
   "css/css-flexbox/flex-shorthand-calc.html": {
    "class": "skip",
-   "reason": "script:shorthand-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/flex-shorthand-flex-basis-middle.html": {
    "class": "skip",
@@ -1986,7 +1980,7 @@
   },
   "css/css-flexbox/flex-shrink-large-value-crash.html": {
    "class": "skip",
-   "reason": "element:a"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/flex-svg-no-intrinsic-column-001.html": {
    "class": "skip",
@@ -1998,19 +1992,19 @@
   },
   "css/css-flexbox/flex-wrap-002.html": {
    "class": "skip",
-   "reason": "element:title"
+   "reason": "element:strong"
   },
   "css/css-flexbox/flex-wrap-003.html": {
    "class": "skip",
-   "reason": "element:title"
+   "reason": "element:strong"
   },
   "css/css-flexbox/flex-wrap-004.html": {
    "class": "skip",
-   "reason": "element:title"
+   "reason": "element:strong"
   },
   "css/css-flexbox/flex-wrap-005.html": {
    "class": "skip",
-   "reason": "element:title"
+   "reason": "element:strong"
   },
   "css/css-flexbox/flex-wrap-006.html": {
    "class": "skip",
@@ -2193,8 +2187,7 @@
    "reason": "value:overflow:auto"
   },
   "css/css-flexbox/flexbox-definite-sizes-006.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-flexbox/flexbox-dyn-resize-001.html": {
    "class": "skip",
@@ -2245,12 +2238,11 @@
    "reason": "value:font:10px sans-serif"
   },
   "css/css-flexbox/flexbox-flex-wrap-flexing-002.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-flexbox/flexbox-flex-wrap-flexing-003.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "property:writing-mode"
   },
   "css/css-flexbox/flexbox-flex-wrap-flexing.html": {
    "class": "skip",
@@ -2293,11 +2285,11 @@
   },
   "css/css-flexbox/flexbox-justify-content-wmvert-002.html": {
    "class": "skip",
-   "reason": "property:writing-mode"
+   "reason": "element:style"
   },
   "css/css-flexbox/flexbox-justify-content-wmvert-003.html": {
    "class": "skip",
-   "reason": "property:writing-mode"
+   "reason": "element:style"
   },
   "css/css-flexbox/flexbox-lines-must-be-stretched-by-default.html": {
    "class": "import"
@@ -2360,7 +2352,7 @@
   },
   "css/css-flexbox/flexbox-order-from-lowest.html": {
    "class": "skip",
-   "reason": "value:order:-1"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/flexbox-order-only-flexitems.html": {
    "class": "skip",
@@ -2602,7 +2594,7 @@
   },
   "css/css-flexbox/flexbox_align-items-center-3.html": {
    "class": "skip",
-   "reason": "property:writing-mode"
+   "reason": "element:style"
   },
   "css/css-flexbox/flexbox_align-items-center.html": {
    "class": "skip",
@@ -3174,7 +3166,7 @@
   },
   "css/css-flexbox/flexbox_justifycontent-center-overflow.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "element:style"
   },
   "css/css-flexbox/flexbox_justifycontent-center.html": {
    "class": "skip",
@@ -3253,8 +3245,7 @@
    "reason": "element:span"
   },
   "css/css-flexbox/flexbox_justifycontent-stretch.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-flexbox/flexbox_margin-auto-overflow.html": {
    "class": "skip",
@@ -3434,11 +3425,11 @@
   },
   "css/css-flexbox/frame-flex-item-crash.html": {
    "class": "skip",
-   "reason": "script:inline"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/frameset-crash.html": {
    "class": "skip",
-   "reason": "script:inline"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/gap-001-lr.html": {
    "class": "skip",
@@ -3590,11 +3581,11 @@
   },
   "css/css-flexbox/gap-017.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "element:button"
   },
   "css/css-flexbox/gap-018.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "element:button"
   },
   "css/css-flexbox/gap-019.html": {
    "class": "skip",
@@ -3918,19 +3909,19 @@
   },
   "css/css-flexbox/grid-flex-item-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "property:grid"
   },
   "css/css-flexbox/grid-flex-item-002.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "property:grid"
   },
   "css/css-flexbox/grid-flex-item-003.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/grid-flex-item-004.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/grid-flex-item-005.html": {
    "class": "skip",
@@ -4030,7 +4021,7 @@
   },
   "css/css-flexbox/image-nested-within-definite-column-flexbox.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:img"
   },
   "css/css-flexbox/inheritance.html": {
    "class": "skip",
@@ -4042,15 +4033,15 @@
   },
   "css/css-flexbox/inline-flex-editing-crash.html": {
    "class": "skip",
-   "reason": "script:inline"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/inline-flex-editing-with-updating-text-crash.html": {
    "class": "skip",
-   "reason": "script:inline"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/inline-flex-frameset-main-axis-crash.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/inline-flex-min-content-height.html": {
    "class": "skip",
@@ -4062,7 +4053,7 @@
   },
   "css/css-flexbox/inline-flexbox-absurd-block-size-crash.html": {
    "class": "skip",
-   "reason": "value:display:inline-flex"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/inline-flexbox-vertical-rl-image-flexitem-crash-print.html": {
    "class": "skip",
@@ -4074,87 +4065,87 @@
   },
   "css/css-flexbox/interactive/flexbox_interactive_break-after-column-item.html": {
    "class": "skip",
-   "reason": "element:h4"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/interactive/flexbox_interactive_break-after-column-lastitem.html": {
    "class": "skip",
-   "reason": "element:h4"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/interactive/flexbox_interactive_break-after-container.html": {
    "class": "skip",
-   "reason": "element:h4"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/interactive/flexbox_interactive_break-after-item.html": {
    "class": "skip",
-   "reason": "element:h4"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/interactive/flexbox_interactive_break-after-line-order.html": {
    "class": "skip",
-   "reason": "element:h4"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/interactive/flexbox_interactive_break-after-line.html": {
    "class": "skip",
-   "reason": "element:h4"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/interactive/flexbox_interactive_break-after-multiline.html": {
    "class": "skip",
-   "reason": "element:h4"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/interactive/flexbox_interactive_break-before-column-firstitem.html": {
    "class": "skip",
-   "reason": "element:h4"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/interactive/flexbox_interactive_break-before-column-item.html": {
    "class": "skip",
-   "reason": "element:h4"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/interactive/flexbox_interactive_break-before-container.html": {
    "class": "skip",
-   "reason": "element:h4"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/interactive/flexbox_interactive_break-before-item.html": {
    "class": "skip",
-   "reason": "element:h4"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/interactive/flexbox_interactive_break-before-multiline.html": {
    "class": "skip",
-   "reason": "element:h4"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/interactive/flexbox_interactive_break-natural.html": {
    "class": "skip",
-   "reason": "at-rule:@media"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/interactive/flexbox_interactive_flex-basis-transitions.html": {
    "class": "skip",
-   "reason": "element:span"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/interactive/flexbox_interactive_flex-grow-transitions.html": {
    "class": "skip",
-   "reason": "element:span"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/interactive/flexbox_interactive_flex-shrink-transitions-invalid.html": {
    "class": "skip",
-   "reason": "element:span"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/interactive/flexbox_interactive_flex-shrink-transitions.html": {
    "class": "skip",
-   "reason": "element:span"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/interactive/flexbox_interactive_flex-transitions.html": {
    "class": "skip",
-   "reason": "element:span"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/interactive/flexbox_interactive_order-transitions-2.html": {
    "class": "skip",
-   "reason": "element:span"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/interactive/flexbox_interactive_order-transitions.html": {
    "class": "skip",
-   "reason": "element:span"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/intrinsic-size/auto-min-size-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/intrinsic-size/col-wrap-001.html": {
    "class": "skip",
@@ -4170,11 +4161,11 @@
   },
   "css/css-flexbox/intrinsic-size/col-wrap-004.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "value:width:max-content"
   },
   "css/css-flexbox/intrinsic-size/col-wrap-005.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "property:float"
   },
   "css/css-flexbox/intrinsic-size/col-wrap-006.html": {
    "class": "skip",
@@ -4194,7 +4185,7 @@
   },
   "css/css-flexbox/intrinsic-size/col-wrap-010.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "property:float"
   },
   "css/css-flexbox/intrinsic-size/col-wrap-011.html": {
    "class": "skip",
@@ -4226,11 +4217,11 @@
   },
   "css/css-flexbox/intrinsic-size/col-wrap-018.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "property:float"
   },
   "css/css-flexbox/intrinsic-size/col-wrap-019.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "property:float"
   },
   "css/css-flexbox/intrinsic-size/col-wrap-020.html": {
    "class": "skip",
@@ -4238,7 +4229,7 @@
   },
   "css/css-flexbox/intrinsic-size/col-wrap-crash.html": {
    "class": "skip",
-   "reason": "value:width:min-content"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/intrinsic-size/col-wrap-dynamic.html": {
    "class": "skip",
@@ -4258,7 +4249,7 @@
   },
   "css/css-flexbox/intrinsic-size/row-004.html": {
    "class": "skip",
-   "reason": "element:strong"
+   "reason": "element:style"
   },
   "css/css-flexbox/intrinsic-size/row-005.html": {
    "class": "skip",
@@ -4278,7 +4269,7 @@
   },
   "css/css-flexbox/intrinsic-size/row-compat-001.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "element:section"
   },
   "css/css-flexbox/intrinsic-size/row-use-cases-001.html": {
    "class": "skip",
@@ -4290,27 +4281,24 @@
   },
   "css/css-flexbox/intrinsic-size/row-wrap-002.tentative.html": {
    "class": "skip",
-   "reason": "element:strong"
+   "reason": "element:style"
   },
   "css/css-flexbox/intrinsic-width-orthogonal-writing-mode.html": {
    "class": "skip",
    "reason": "element:span"
   },
   "css/css-flexbox/item-with-max-height-and-scrollbar.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-flexbox/item-with-table-with-infinite-max-intrinsic-width.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:table"
   },
   "css/css-flexbox/justify-content-006.html": {
-   "class": "skip",
-   "reason": "no-divs"
+   "class": "import"
   },
   "css/css-flexbox/justify-content-007.html": {
-   "class": "skip",
-   "reason": "no-divs"
+   "class": "import"
   },
   "css/css-flexbox/justify-content-rounding.html": {
    "class": "skip",
@@ -4322,23 +4310,23 @@
   },
   "css/css-flexbox/justify-content_center.html": {
    "class": "skip",
-   "reason": "property:text-align"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/justify-content_flex-end.html": {
    "class": "skip",
-   "reason": "property:text-align"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/justify-content_flex-start.html": {
    "class": "skip",
-   "reason": "property:text-align"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/justify-content_space-around.html": {
    "class": "skip",
-   "reason": "property:text-align"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/justify-content_space-between-001.html": {
    "class": "skip",
-   "reason": "property:text-align"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/justify-content_space-between-002.html": {
    "class": "import"
@@ -4368,14 +4356,14 @@
   },
   "css/css-flexbox/min-height-min-content-crash.html": {
    "class": "skip",
-   "reason": "value:min-height:min-content"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/min-size-auto-overflow-clip.html": {
    "class": "import"
   },
   "css/css-flexbox/mixed-containing-blocks-crash.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/multiline-column-max-height.html": {
    "class": "skip",
@@ -4403,23 +4391,23 @@
   },
   "css/css-flexbox/negative-available-size-crash.html": {
    "class": "skip",
-   "reason": "rewrite-failed:no-divs"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/negative-flex-margins-crash.html": {
    "class": "skip",
-   "reason": "value:margin-left:-4em"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/negative-flex-rounding-crash.html": {
    "class": "skip",
-   "reason": "value:display:inline-flex"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/negative-item-margins-002-crash.html": {
    "class": "skip",
-   "reason": "degenerate"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/negative-item-margins-crash.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/negative-margins-001.html": {
    "class": "skip",
@@ -4475,11 +4463,11 @@
   },
   "css/css-flexbox/ortho-table-item-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:display:table"
   },
   "css/css-flexbox/orthogonal-flex-item-crash.html": {
    "class": "skip",
-   "reason": "script:inline"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/orthogonal-writing-modes-and-intrinsic-sizing.html": {
    "class": "skip",
@@ -4534,116 +4522,115 @@
    "reason": "value:overflow:auto"
   },
   "css/css-flexbox/padding-overflow.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-flexbox/parsing/flex-basis-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/parsing/flex-basis-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/parsing/flex-basis-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/parsing/flex-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/parsing/flex-direction-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/parsing/flex-direction-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/parsing/flex-direction-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/parsing/flex-flow-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/parsing/flex-flow-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/parsing/flex-flow-shorthand.html": {
    "class": "skip",
-   "reason": "script:shorthand-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/parsing/flex-flow-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/parsing/flex-grow-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/parsing/flex-grow-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/parsing/flex-grow-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/parsing/flex-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/parsing/flex-shorthand.html": {
    "class": "skip",
-   "reason": "script:shorthand-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/parsing/flex-shrink-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/parsing/flex-shrink-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/parsing/flex-shrink-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/parsing/flex-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/parsing/flex-wrap-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/parsing/flex-wrap-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/parsing/flex-wrap-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/parsing/order-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/parsing/order-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/parsing/order-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/parsing/webkit-aliases.html": {
    "class": "skip",
-   "reason": "script:shorthand-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/percent-height-flex-items-cross-sizes-with-mutations.html": {
    "class": "skip",
@@ -4675,7 +4662,7 @@
   },
   "css/css-flexbox/percentage-heights-005.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/percentage-heights-006.html": {
    "class": "skip",
@@ -4695,7 +4682,7 @@
   },
   "css/css-flexbox/percentage-heights-010.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/percentage-heights-011.html": {
    "class": "skip",
@@ -4719,15 +4706,15 @@
   },
   "css/css-flexbox/percentage-heights-016.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/percentage-heights-017.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/percentage-heights-018.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/percentage-heights-019.html": {
    "class": "skip",
@@ -4735,30 +4722,30 @@
   },
   "css/css-flexbox/percentage-heights-020.html": {
    "class": "skip",
-   "reason": "element:strong"
+   "reason": "element:style"
   },
   "css/css-flexbox/percentage-heights-021.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/percentage-heights-022.html": {
    "class": "skip",
-   "reason": "element:strong"
+   "reason": "element:style"
   },
   "css/css-flexbox/percentage-heights-023.html": {
    "class": "skip",
-   "reason": "element:strong"
+   "reason": "element:style"
   },
   "css/css-flexbox/percentage-margins-001.html": {
    "class": "import"
   },
   "css/css-flexbox/percentage-max-height-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/percentage-max-height-002.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:img"
   },
   "css/css-flexbox/percentage-max-height-003.html": {
    "class": "skip",
@@ -4778,7 +4765,7 @@
   },
   "css/css-flexbox/percentage-padding-001.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "element:x-flexbox"
   },
   "css/css-flexbox/percentage-padding-002.html": {
    "class": "skip",
@@ -4793,12 +4780,11 @@
    "reason": "script:inline"
   },
   "css/css-flexbox/percentage-padding-005.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-flexbox/percentage-size-quirks-002.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "css-parse"
   },
   "css/css-flexbox/percentage-size-quirks-003.html": {
    "class": "skip",
@@ -4840,11 +4826,11 @@
   },
   "css/css-flexbox/position-relative-percentage-top-002.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/position-relative-percentage-top-003.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/position-relative-percentage-top-004.html": {
    "class": "skip",
@@ -4860,7 +4846,7 @@
   },
   "css/css-flexbox/position-relative-with-scrollable-with-abspos-crash.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/quirks-auto-block-size-with-percentage-item.html": {
    "class": "skip",
@@ -4884,11 +4870,11 @@
   },
   "css/css-flexbox/relayout-intrinsic-block-size.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:canvas"
   },
   "css/css-flexbox/remove-out-of-flow-child-crash.html": {
    "class": "skip",
-   "reason": "script:inline"
+   "reason": "kind:no-assertions"
   },
   "css/css-flexbox/remove-wrapped-001.html": {
    "class": "skip",
@@ -4924,7 +4910,7 @@
   },
   "css/css-flexbox/select-element-multiple.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:select"
   },
   "css/css-flexbox/select-element-zero-height-001.html": {
    "class": "skip",
@@ -4944,11 +4930,11 @@
   },
   "css/css-flexbox/stretch-flex-item-checkbox-input.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:input"
   },
   "css/css-flexbox/stretch-flex-item-radio-input.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:input"
   },
   "css/css-flexbox/stretch-input-in-column.html": {
    "class": "skip",
@@ -4968,7 +4954,7 @@
   },
   "css/css-flexbox/stretch-requires-computed-auto-size.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/stretched-child-in-nested-flexbox-001.html": {
    "class": "skip",
@@ -4980,7 +4966,7 @@
   },
   "css/css-flexbox/stretched-child-in-nested-flexbox-003.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/stretched-child-shrink-on-relayout.html": {
    "class": "skip",
@@ -4988,11 +4974,11 @@
   },
   "css/css-flexbox/stretching-orthogonal-flows.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:display:-webkit-flex"
   },
   "css/css-flexbox/svg-no-natural-size-grandchild.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/svg-root-as-flex-item-001.html": {
    "class": "skip",
@@ -5004,7 +4990,7 @@
   },
   "css/css-flexbox/svg-root-as-flex-item-003.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:svg"
   },
   "css/css-flexbox/svg-root-as-flex-item-004.html": {
    "class": "skip",
@@ -5016,7 +5002,7 @@
   },
   "css/css-flexbox/svg-root-as-flex-item-006.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "element:svg"
   },
   "css/css-flexbox/synthesize-vrl-baseline.html": {
    "class": "skip",
@@ -5028,7 +5014,7 @@
   },
   "css/css-flexbox/table-as-item-auto-min-width.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/table-as-item-change-cell.html": {
    "class": "skip",
@@ -5040,39 +5026,39 @@
   },
   "css/css-flexbox/table-as-item-fixed-min-width-2.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/table-as-item-fixed-min-width-3.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/table-as-item-fixed-min-width.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/table-as-item-flex-cross-size.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/table-as-item-inflexible-in-column-1.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:display:table"
   },
   "css/css-flexbox/table-as-item-inflexible-in-column-2.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:display:table"
   },
   "css/css-flexbox/table-as-item-inflexible-in-row-1.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:display:table"
   },
   "css/css-flexbox/table-as-item-inflexible-in-row-2.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:display:table"
   },
   "css/css-flexbox/table-as-item-large-intrinsic-size.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/table-as-item-min-content-height-1.tentative.html": {
    "class": "skip",
@@ -5088,11 +5074,11 @@
   },
   "css/css-flexbox/table-as-item-narrow-content-2.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "value:display:table"
   },
   "css/css-flexbox/table-as-item-narrow-content.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "value:display:table"
   },
   "css/css-flexbox/table-as-item-percent-width-cell-001.html": {
    "class": "skip",
@@ -5100,19 +5086,19 @@
   },
   "css/css-flexbox/table-as-item-specified-height.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:display:table"
   },
   "css/css-flexbox/table-as-item-specified-width-vertical.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:display:table"
   },
   "css/css-flexbox/table-as-item-specified-width.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:display:table"
   },
   "css/css-flexbox/table-as-item-stretch-cross-size-2.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/table-as-item-stretch-cross-size-3.html": {
    "class": "skip",
@@ -5128,7 +5114,7 @@
   },
   "css/css-flexbox/table-as-item-stretch-cross-size.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-flexbox/table-as-item-wide-content.html": {
    "class": "skip",
@@ -5144,11 +5130,11 @@
   },
   "css/css-flexbox/table-with-float-paint.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:span"
   },
   "css/css-flexbox/table-with-infinite-max-intrinsic-width.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:table"
   },
   "css/css-flexbox/table-with-percent-intrinsic-width.html": {
    "class": "skip",
@@ -5163,12 +5149,11 @@
    "reason": "element:b"
   },
   "css/css-flexbox/total-min-max-violation-zero.html": {
-   "class": "skip",
-   "reason": "no-divs"
+   "class": "import"
   },
   "css/css-flexbox/webkit-box-vertical-writing-mode.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:display:-webkit-box"
   },
   "css/css-flexbox/whitespace-in-flexitem-001.html": {
    "class": "skip",
@@ -5176,7 +5161,7 @@
   },
   "css/css-flexbox/zero-content-size-with-scrollbar-crash.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/abspos/absolute-positioning-changing-containing-block-001.html": {
    "class": "skip",
@@ -5196,11 +5181,11 @@
   },
   "css/css-grid/abspos/absolute-positioning-grid-container-parent-002.html": {
    "class": "skip",
-   "reason": "value:display:inline-grid"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/abspos/abspos-in-flexbox-in-grid-crash.html": {
    "class": "skip",
-   "reason": "degenerate"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/abspos/descendant-static-position-001.html": {
    "class": "skip",
@@ -5737,68 +5722,52 @@
    "reason": "property:grid"
   },
   "css/css-grid/abspos/positioned-grid-descendant-containing-block-001.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-descendant-containing-block-002.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-descendant-containing-block-003.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-descendant-containing-block-004.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-descendant-containing-block-005.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-descendant-containing-block-006.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-descendant-containing-block-007.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-descendant-containing-block-008.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-descendant-containing-block-009.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-descendant-containing-block-010.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-descendant-containing-block-011.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-descendant-containing-block-012.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-descendant-containing-block-013.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-descendant-containing-block-014.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-descendant-containing-block-015.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-descendant-containing-block-016.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-descendants-001.html": {
    "class": "skip",
@@ -5937,8 +5906,7 @@
    "reason": "property:grid"
   },
   "css/css-grid/abspos/positioned-grid-items-018.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-items-019.html": {
    "class": "skip",
@@ -5972,7 +5940,7 @@
   },
   "css/css-grid/abspos/positioned-grid-items-crash.html": {
    "class": "skip",
-   "reason": "value:display:inline-grid"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/abspos/positioned-grid-items-negative-indices-001.html": {
    "class": "skip",
@@ -6015,7 +5983,7 @@
   },
   "css/css-grid/alignment/grid-align-baseline-005.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-grid/alignment/grid-align-baseline-fieldset-001.html": {
    "class": "skip",
@@ -6667,20 +6635,16 @@
    "reason": "element:strong"
   },
   "css/css-grid/alignment/grid-content-distribution-026.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-grid/alignment/grid-content-distribution-027.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-grid/alignment/grid-content-distribution-028.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-grid/alignment/grid-content-distribution-029.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-grid/alignment/grid-content-distribution-with-collapsed-tracks-001.html": {
    "class": "skip",
@@ -6879,7 +6843,7 @@
   },
   "css/css-grid/alignment/grid-inline-baseline.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "property:writing-mode"
   },
   "css/css-grid/alignment/grid-item-alignment-with-orthogonal-flows-vertical-lr.html": {
    "class": "skip",
@@ -6999,7 +6963,7 @@
   },
   "css/css-grid/alignment/grid-justify-baseline-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "property:writing-mode"
   },
   "css/css-grid/alignment/grid-justify-baseline-002.html": {
    "class": "skip",
@@ -7469,39 +7433,39 @@
   },
   "css/css-grid/alignment/replaced-alignment-with-aspect-ratio-001.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "element:strong"
   },
   "css/css-grid/alignment/replaced-alignment-with-aspect-ratio-002.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "element:strong"
   },
   "css/css-grid/alignment/replaced-alignment-with-aspect-ratio-003.tentative.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "element:strong"
   },
   "css/css-grid/alignment/replaced-alignment-with-aspect-ratio-004.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "element:strong"
   },
   "css/css-grid/alignment/replaced-alignment-with-aspect-ratio-005.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "element:strong"
   },
   "css/css-grid/alignment/replaced-alignment-with-aspect-ratio-006.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "element:strong"
   },
   "css/css-grid/alignment/replaced-alignment-with-aspect-ratio-007.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "element:strong"
   },
   "css/css-grid/alignment/replaced-alignment-with-aspect-ratio-008.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "element:strong"
   },
   "css/css-grid/alignment/replaced-alignment-with-aspect-ratio-009.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "element:strong"
   },
   "css/css-grid/alignment/self-baseline/grid-self-baseline-001.html": {
    "class": "skip",
@@ -7677,7 +7641,7 @@
   },
   "css/css-grid/animation/grid-no-interpolation.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/animation/grid-template-columns-001.html": {
    "class": "skip",
@@ -7685,11 +7649,11 @@
   },
   "css/css-grid/animation/grid-template-columns-composition.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/animation/grid-template-columns-interpolation.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/animation/grid-template-columns-neutral-keyframe-001.html": {
    "class": "skip",
@@ -7713,11 +7677,11 @@
   },
   "css/css-grid/animation/grid-template-rows-composition.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/animation/grid-template-rows-interpolation.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/animation/grid-template-rows-neutral-keyframe-001.html": {
    "class": "skip",
@@ -7752,7 +7716,7 @@
   },
   "css/css-grid/chrome-521184744-crash.html": {
    "class": "skip",
-   "reason": "element:span"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/chrome-bug-001.html": {
    "class": "skip",
@@ -7780,7 +7744,7 @@
   },
   "css/css-grid/fieldset-first-line-crash.html": {
    "class": "skip",
-   "reason": "element:fieldset"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/firefox-bug-1881495.html": {
    "class": "skip",
@@ -7788,7 +7752,7 @@
   },
   "css/css-grid/firefox-bug-1958131-crash.html": {
    "class": "skip",
-   "reason": "value:order:-17014118346"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-calc-margin.html": {
    "class": "skip",
@@ -7873,15 +7837,15 @@
   },
   "css/css-grid/grid-definition/grid-add-item-with-positioned-items-crash.html": {
    "class": "skip",
-   "reason": "script:inline"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-definition/grid-add-positioned-block-item-after-inline-item-crash.html": {
    "class": "skip",
-   "reason": "script:inline"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-definition/grid-auto-explicit-rows-001.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "property:grid-template-areas"
   },
   "css/css-grid/grid-definition/grid-auto-fill-columns-001.html": {
    "class": "skip",
@@ -7905,11 +7869,11 @@
   },
   "css/css-grid/grid-definition/grid-auto-repeat-aspect-ratio-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:display:inline-grid"
   },
   "css/css-grid/grid-definition/grid-auto-repeat-aspect-ratio-002.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:width:min-content"
   },
   "css/css-grid/grid-definition/grid-auto-repeat-dynamic-001.html": {
    "class": "skip",
@@ -7957,7 +7921,7 @@
   },
   "css/css-grid/grid-definition/grid-auto-repeat-minmax.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "property:grid-template"
   },
   "css/css-grid/grid-definition/grid-auto-repeat-multiple-values-001.html": {
    "class": "skip",
@@ -7995,31 +7959,31 @@
   },
   "css/css-grid/grid-definition/grid-inline-auto-repeat-001.html": {
    "class": "skip",
-   "reason": "script:testing-utils.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-definition/grid-inline-support-flexible-lengths-001.html": {
    "class": "skip",
-   "reason": "script:testing-utils.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-definition/grid-inline-support-grid-template-areas-001.html": {
    "class": "skip",
-   "reason": "script:testing-utils.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-definition/grid-inline-support-grid-template-columns-rows-001.html": {
    "class": "skip",
-   "reason": "script:testing-utils.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-definition/grid-inline-support-named-grid-lines-001.html": {
    "class": "skip",
-   "reason": "script:testing-utils.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-definition/grid-inline-support-repeat-001.html": {
    "class": "skip",
-   "reason": "script:testing-utils.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-definition/grid-inline-template-columns-rows-resolved-values-001.html": {
    "class": "skip",
-   "reason": "script:testing-utils.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-definition/grid-inline-template-columns-rows-resolved-values-001.tentative.html": {
    "class": "skip",
@@ -8040,7 +8004,7 @@
   },
   "css/css-grid/grid-definition/grid-minimum-contribution-fixed-size-crash.html": {
    "class": "skip",
-   "reason": "script:inline"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-definition/grid-minimum-contribution-with-percentages.html": {
    "class": "skip",
@@ -8060,7 +8024,7 @@
   },
   "css/css-grid/grid-definition/grid-repeat-out-of-bounds-crash.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-definition/grid-shorthand-001.html": {
    "class": "skip",
@@ -8068,19 +8032,19 @@
   },
   "css/css-grid/grid-definition/grid-support-flexible-lengths-001.html": {
    "class": "skip",
-   "reason": "script:testing-utils.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-definition/grid-support-grid-template-areas-001.html": {
    "class": "skip",
-   "reason": "script:testing-utils.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-definition/grid-support-grid-template-columns-rows-001.html": {
    "class": "skip",
-   "reason": "script:testing-utils.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-definition/grid-support-named-grid-lines-001.html": {
    "class": "skip",
-   "reason": "script:testing-utils.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-definition/grid-support-named-grid-lines-002.html": {
    "class": "skip",
@@ -8092,7 +8056,7 @@
   },
   "css/css-grid/grid-definition/grid-support-repeat-001.html": {
    "class": "skip",
-   "reason": "script:testing-utils.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-definition/grid-support-repeat-002.html": {
    "class": "skip",
@@ -8108,7 +8072,7 @@
   },
   "css/css-grid/grid-definition/grid-template-columns-rows-resolved-values-001.html": {
    "class": "skip",
-   "reason": "script:testing-utils.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-definition/grid-template-columns-rows-resolved-values-001.tentative.html": {
    "class": "skip",
@@ -8134,11 +8098,11 @@
   },
   "css/css-grid/grid-formatting-context-fallback-crash.html": {
    "class": "skip",
-   "reason": "script:inline"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-fragmentation-between-rows-001-print-ref.tentative.html": {
    "class": "skip",
-   "reason": "property:print-color-adjust"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-fragmentation-between-rows-001-print.tentative.html": {
    "class": "skip",
@@ -8177,7 +8141,7 @@
   },
   "css/css-grid/grid-items/anonymous-grid-item-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:span"
   },
   "css/css-grid/grid-items/anonymous-grid-item-002.html": {
    "class": "skip",
@@ -8185,19 +8149,19 @@
   },
   "css/css-grid/grid-items/aspect-ratio-001.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "value:display:inline-grid"
   },
   "css/css-grid/grid-items/aspect-ratio-002.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "value:display:inline-grid"
   },
   "css/css-grid/grid-items/aspect-ratio-003.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "value:display:inline-grid"
   },
   "css/css-grid/grid-items/aspect-ratio-004.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "element:img"
   },
   "css/css-grid/grid-items/aspect-ratio-005.html": {
    "class": "skip",
@@ -8205,7 +8169,7 @@
   },
   "css/css-grid/grid-items/explicitly-sized-grid-item-as-table.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "value:display:table"
   },
   "css/css-grid/grid-items/grid-auto-margin-and-replaced-item-001.html": {
    "class": "skip",
@@ -8217,7 +8181,7 @@
   },
   "css/css-grid/grid-items/grid-img-item-percent-max-height-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:img"
   },
   "css/css-grid/grid-items/grid-inline-items-001.html": {
    "class": "skip",
@@ -8325,15 +8289,15 @@
   },
   "css/css-grid/grid-items/grid-item-block-axis-content-contribution-001.html": {
    "class": "skip",
-   "reason": "property:word-break"
+   "reason": "element:style"
   },
   "css/css-grid/grid-items/grid-item-block-axis-content-contribution-002.html": {
    "class": "skip",
-   "reason": "property:word-break"
+   "reason": "element:style"
   },
   "css/css-grid/grid-items/grid-item-block-axis-content-contribution-003.html": {
    "class": "skip",
-   "reason": "property:word-break"
+   "reason": "element:style"
   },
   "css/css-grid/grid-items/grid-item-border-padding-001.html": {
    "class": "import"
@@ -8376,23 +8340,23 @@
   },
   "css/css-grid/grid-items/grid-item-inline-contribution-001.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "element:strong"
   },
   "css/css-grid/grid-items/grid-item-inline-contribution-002.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "element:strong"
   },
   "css/css-grid/grid-items/grid-item-inline-contribution-003.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "element:strong"
   },
   "css/css-grid/grid-items/grid-item-inline-contribution-004.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-grid/grid-items/grid-item-inline-contribution-005.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "element:strong"
   },
   "css/css-grid/grid-items/grid-item-margins-and-writing-modes-001.html": {
    "class": "skip",
@@ -8412,15 +8376,14 @@
   },
   "css/css-grid/grid-items/grid-item-min-height-overrides-fixed-height-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-grid/grid-items/grid-item-min-width-overrides-fixed-width-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-grid/grid-items/grid-item-minimum-size-single-axis-scroll-container.html": {
-   "class": "skip",
-   "reason": "no-divs"
+   "class": "import"
   },
   "css/css-grid/grid-items/grid-item-minmax-img-001.html": {
    "class": "skip",
@@ -8672,27 +8635,27 @@
   },
   "css/css-grid/grid-items/grid-items-relative-positioned-containing-block-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-grid/grid-items/grid-items-relative-positioned-containing-block-002.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-grid/grid-items/grid-items-relative-positioned-containing-block-003.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-grid/grid-items/grid-items-relative-positioned-containing-block-004.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-grid/grid-items/grid-items-relative-positioned-containing-block-005.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-grid/grid-items/grid-items-relative-positioned-containing-block-006.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-grid/grid-items/grid-items-sizing-alignment-001.html": {
    "class": "skip",
@@ -8907,7 +8870,7 @@
   },
   "css/css-grid/grid-items/item-with-table-with-infinite-max-intrinsic-width.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:table"
   },
   "css/css-grid/grid-items/overflow-hidden-min-content-contribution-in-abs-pos-grid-in-flexbox.html": {
    "class": "skip",
@@ -8919,7 +8882,7 @@
   },
   "css/css-grid/grid-items/percentage-size-indefinite-replaced.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "element:canvas"
   },
   "css/css-grid/grid-items/percentage-size-replaced-subitems-001.html": {
    "class": "skip",
@@ -8930,12 +8893,11 @@
    "reason": "value:display:inline-grid"
   },
   "css/css-grid/grid-items/percentage-size-subitems-002.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-grid/grid-items/ref-filled-green-100px-square-image.html": {
    "class": "skip",
-   "reason": "no-body"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-items/remove-svg-grid-item-001.html": {
    "class": "skip",
@@ -8959,19 +8921,19 @@
   },
   "css/css-grid/grid-items/replaced-element-011.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "element:canvas"
   },
   "css/css-grid/grid-items/replaced-element-012.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "element:canvas"
   },
   "css/css-grid/grid-items/replaced-element-013.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "element:canvas"
   },
   "css/css-grid/grid-items/replaced-element-014.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:img"
   },
   "css/css-grid/grid-items/replaced-element-015.html": {
    "class": "skip",
@@ -8979,15 +8941,15 @@
   },
   "css/css-grid/grid-items/replaced-element-016.tentative.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "element:canvas"
   },
   "css/css-grid/grid-items/replaced-element-017.tentative.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:canvas"
   },
   "css/css-grid/grid-items/table-with-infinite-max-intrinsic-width.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:table"
   },
   "css/css-grid/grid-items/whitespace-in-grid-item-001.html": {
    "class": "skip",
@@ -9543,7 +9505,7 @@
   },
   "css/css-grid/grid-lanes/animation/flow-tolerance-interpolation.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/animation/grid-template-columns-001.html": {
    "class": "skip",
@@ -9551,7 +9513,7 @@
   },
   "css/css-grid/grid-lanes/animation/grid-template-columns-interpolation.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/animation/grid-template-rows-001.html": {
    "class": "skip",
@@ -9559,7 +9521,7 @@
   },
   "css/css-grid/grid-lanes/animation/grid-template-rows-interpolation.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/baseline/column-grid-lanes-container-baseline-001a.html": {
    "class": "skip",
@@ -9763,15 +9725,15 @@
   },
   "css/css-grid/grid-lanes/grid-lanes-container-minimum-size-single-axis-scroll-container.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "value:display:grid-lanes"
   },
   "css/css-grid/grid-lanes/grid-lanes-fieldset-crash.html": {
    "class": "skip",
-   "reason": "element:fieldset"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/grid-lanes-grid-template-columns-computed-withcontent.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/grid-lanes-not-inhibited-001.html": {
    "class": "skip",
@@ -9911,7 +9873,7 @@
   },
   "css/css-grid/grid-lanes/intrinsic-sizing/grid-lanes-contain-intrinsic-size-logical-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:display:grid-lanes"
   },
   "css/css-grid/grid-lanes/intrinsic-sizing/grid-lanes-contain-intrinsic-size-row-001.html": {
    "class": "skip",
@@ -10431,7 +10393,7 @@
   },
   "css/css-grid/grid-lanes/items/column-flex-and-intrinsic-sizes.html": {
    "class": "skip",
-   "reason": "element:strong"
+   "reason": "element:style"
   },
   "css/css-grid/grid-lanes/items/column-flex-spanning-items.html": {
    "class": "skip",
@@ -10439,7 +10401,7 @@
   },
   "css/css-grid/grid-lanes/items/column-flex-track-intrinsic-sizes.html": {
    "class": "skip",
-   "reason": "script:testing-utils.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/items/column-intrinsic-maximums.html": {
    "class": "skip",
@@ -10451,7 +10413,7 @@
   },
   "css/css-grid/grid-lanes/items/column-intrinsic-track-sizes.html": {
    "class": "skip",
-   "reason": "script:testing-utils.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/items/column-item-minmax-img-001.html": {
    "class": "skip",
@@ -10475,11 +10437,11 @@
   },
   "css/css-grid/grid-lanes/items/column-minimum-contribution-baseline-shim-vertical-lr.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "value:display:grid-lanes"
   },
   "css/css-grid/grid-lanes/items/column-minimum-contribution-baseline-shim-vertical-rl.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "value:display:grid-lanes"
   },
   "css/css-grid/grid-lanes/items/column-minimum-contribution-with-percentages.html": {
    "class": "skip",
@@ -10503,7 +10465,7 @@
   },
   "css/css-grid/grid-lanes/items/row-flex-and-intrinsic-sizes.html": {
    "class": "skip",
-   "reason": "element:strong"
+   "reason": "element:style"
   },
   "css/css-grid/grid-lanes/items/row-flex-spanning-items.html": {
    "class": "skip",
@@ -10511,11 +10473,11 @@
   },
   "css/css-grid/grid-lanes/items/row-flex-track-intrinsic-sizes.html": {
    "class": "skip",
-   "reason": "script:testing-utils.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/items/row-intrinsic-track-sizes.html": {
    "class": "skip",
-   "reason": "script:testing-utils.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/items/row-item-minmax-img-001.html": {
    "class": "skip",
@@ -10539,7 +10501,7 @@
   },
   "css/css-grid/grid-lanes/items/row-minimum-contribution-baseline-shim.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "value:display:grid-lanes"
   },
   "css/css-grid/grid-lanes/items/row-minimum-contribution-with-percentages.html": {
    "class": "skip",
@@ -10995,7 +10957,7 @@
   },
   "css/css-grid/grid-lanes/subgrid/grid-subgridded-to-grid-lanes/grid-lanes-subgrid-baseline-crash.html": {
    "class": "skip",
-   "reason": "element:grid-lanes"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/subgrid/grid-subgridded-to-grid-lanes/line-names/column-line-names-001.html": {
    "class": "skip",
@@ -11239,7 +11201,7 @@
   },
   "css/css-grid/grid-lanes/subgrid/grid-subgridded-to-grid-lanes/subgrid-in-wrong-axis-with-atuo-repeat-crash.html": {
    "class": "skip",
-   "reason": "value:display:inline-grid-lanes"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/subgrid/grid-subgridded-to-grid-lanes/subgrid-item-with-margin-left-auto.html": {
    "class": "skip",
@@ -11599,7 +11561,7 @@
   },
   "css/css-grid/grid-lanes/tentative/grid-lanes-direction-style-map-crash.html": {
    "class": "skip",
-   "reason": "script:inline"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/tentative/intrinsic-sizing/grid-lanes-baseline-alignment-affects-intrinsic-size-001.html": {
    "class": "skip",
@@ -11627,7 +11589,7 @@
   },
   "css/css-grid/grid-lanes/tentative/intrinsic-sizing/grid-lanes-baseline-alignment-affects-intrinsic-size-007.html": {
    "class": "skip",
-   "reason": "value:display:grid-lanes"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/tentative/intrinsic-sizing/grid-lanes-baseline-alignment-affects-intrinsic-size-008.html": {
    "class": "skip",
@@ -11795,51 +11757,51 @@
   },
   "css/css-grid/grid-lanes/tentative/parsing/flow-tolerance-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/tentative/parsing/flow-tolerance-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/tentative/parsing/flow-tolerance-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/tentative/parsing/grid-lanes-direction-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/tentative/parsing/grid-lanes-direction-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/tentative/parsing/grid-lanes-direction-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/tentative/parsing/grid-lanes-pack-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/tentative/parsing/grid-lanes-pack-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/tentative/parsing/grid-lanes-pack-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/tentative/parsing/grid-lanes-shorthand-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/tentative/parsing/grid-lanes-shorthand-crash.html": {
    "class": "skip",
-   "reason": "property:--size"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/tentative/parsing/grid-lanes-shorthand-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/tentative/parsing/grid-lanes-shorthand-serialization.html": {
    "class": "skip",
@@ -11851,15 +11813,15 @@
   },
   "css/css-grid/grid-lanes/tentative/parsing/grid-subgridded-to-grid-lanes/grid-lanes-column-subgrid-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/tentative/parsing/grid-subgridded-to-grid-lanes/grid-lanes-row-subgrid-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/track-sizing/auto-repeat/auto-repeat-no-children-crash.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/track-sizing/auto-repeat/column-auto-repeat-001.html": {
    "class": "skip",
@@ -12115,7 +12077,7 @@
   },
   "css/css-grid/grid-lanes/track-sizing/auto-repeat/intrinsic-auto-repeat/column-auto-repeat-auto-no-items-crash.html": {
    "class": "skip",
-   "reason": "value:display:grid-lanes"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/track-sizing/auto-repeat/intrinsic-auto-repeat/column-auto-repeat-fit-content-001.html": {
    "class": "skip",
@@ -12215,7 +12177,7 @@
   },
   "css/css-grid/grid-lanes/track-sizing/auto-repeat/intrinsic-auto-repeat/repeat-auto-fit-auto-crash.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/track-sizing/auto-repeat/intrinsic-auto-repeat/row-auto-repeat-auto-001.html": {
    "class": "skip",
@@ -12347,7 +12309,7 @@
   },
   "css/css-grid/grid-lanes/track-sizing/auto-repeat/intrinsic-auto-repeat/row-auto-repeat-auto-no-items-crash.html": {
    "class": "skip",
-   "reason": "value:display:grid-lanes"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-lanes/track-sizing/auto-repeat/intrinsic-auto-repeat/row-auto-repeat-fit-content-001.html": {
    "class": "skip",
@@ -12707,7 +12669,7 @@
   },
   "css/css-grid/grid-model/grid-button-001.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "element:button"
   },
   "css/css-grid/grid-model/grid-computed-value-display-floated-items-001.html": {
    "class": "skip",
@@ -12883,7 +12845,7 @@
   },
   "css/css-grid/grid-model/grid-margins-no-collapse-002.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:display:inline-grid"
   },
   "css/css-grid/grid-model/grid-max-content-size-with-max-content-item.html": {
    "class": "skip",
@@ -12941,11 +12903,11 @@
   },
   "css/css-grid/grid-stale-layoutbox-crash.html": {
    "class": "skip",
-   "reason": "script:inline"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-table-cell-001-crash.html": {
    "class": "skip",
-   "reason": "script:inline"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/grid-tracks-fractional-fr.html": {
    "class": "skip",
@@ -12973,15 +12935,13 @@
   },
   "css/css-grid/grid-with-orthogonal-child-within-flexbox.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:span"
   },
   "css/css-grid/grid-within-flexbox-definite-change.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-grid/grid-within-flexbox-indefinite.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-grid/img-src-changes.html": {
    "class": "skip",
@@ -13034,7 +12994,7 @@
   },
   "css/css-grid/layout-algorithm/flex-and-intrinsic-sizes-002.html": {
    "class": "skip",
-   "reason": "element:strong"
+   "reason": "element:style"
   },
   "css/css-grid/layout-algorithm/flex-sizing-columns-min-max-width-001.html": {
    "class": "skip",
@@ -13138,27 +13098,27 @@
   },
   "css/css-grid/layout-algorithm/grid-fit-content-width-percent-height-aspect-ratio-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:canvas"
   },
   "css/css-grid/layout-algorithm/grid-flex-track-intrinsic-sizes-001.html": {
    "class": "skip",
-   "reason": "script:testing-utils.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/layout-algorithm/grid-flex-track-intrinsic-sizes-002.html": {
    "class": "skip",
-   "reason": "script:testing-utils.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/layout-algorithm/grid-flex-track-intrinsic-sizes-003.html": {
    "class": "skip",
-   "reason": "script:testing-utils.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/layout-algorithm/grid-float-intrinsic-width-percent-height-aspect-ratio-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:canvas"
   },
   "css/css-grid/layout-algorithm/grid-inline-grid-intrinsic-width-percent-height-aspect-ratio-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:canvas"
   },
   "css/css-grid/layout-algorithm/grid-intrinsic-size-dynamic-block-size.html": {
    "class": "skip",
@@ -13170,7 +13130,7 @@
   },
   "css/css-grid/layout-algorithm/grid-intrinsic-track-sizes-001.html": {
    "class": "skip",
-   "reason": "script:testing-utils.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/layout-algorithm/grid-intrinsic-track-sizes-min-size-001.html": {
    "class": "skip",
@@ -13197,23 +13157,23 @@
   },
   "css/css-grid/layout-algorithm/grid-max-content-width-percent-height-aspect-ratio-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:canvas"
   },
   "css/css-grid/layout-algorithm/grid-min-content-width-percent-height-aspect-ratio-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:canvas"
   },
   "css/css-grid/layout-algorithm/grid-minimum-contribution-baseline-shim-vertical-lr.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "value:font-size:0"
   },
   "css/css-grid/layout-algorithm/grid-minimum-contribution-baseline-shim-vertical-rl.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "value:font-size:0"
   },
   "css/css-grid/layout-algorithm/grid-minimum-contribution-baseline-shim.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "value:font-size:0"
   },
   "css/css-grid/layout-algorithm/grid-percent-cols-filled-shrinkwrap-001.html": {
    "class": "skip",
@@ -13256,67 +13216,67 @@
   },
   "css/css-grid/parsing/grid-area-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-area-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-area-shorthand.html": {
    "class": "skip",
-   "reason": "script:shorthand-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-area-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-auto-columns-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-auto-columns-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-auto-columns-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-auto-flow-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-auto-flow-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-auto-flow-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-auto-rows-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-auto-rows-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-auto-rows-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-column-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-column-shortest-serialization.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-column-shorthand.html": {
    "class": "skip",
-   "reason": "script:shorthand-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-columns-rows-get-set-multiple.html": {
    "class": "skip",
@@ -13328,19 +13288,19 @@
   },
   "css/css-grid/parsing/grid-row-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-row-shortest-serialization.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-row-shorthand.html": {
    "class": "skip",
-   "reason": "script:shorthand-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-shorthand-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-shorthand-serialization.html": {
    "class": "skip",
@@ -13348,19 +13308,19 @@
   },
   "css/css-grid/parsing/grid-shorthand-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-shorthand.html": {
    "class": "skip",
-   "reason": "script:shorthand-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-template-areas-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-template-areas-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-template-areas-one-cell.html": {
    "class": "skip",
@@ -13368,7 +13328,7 @@
   },
   "css/css-grid/parsing/grid-template-areas-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-template-columns-computed-implicit-track.html": {
    "class": "skip",
@@ -13376,19 +13336,19 @@
   },
   "css/css-grid/parsing/grid-template-columns-computed-nogrid.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-template-columns-computed-withcontent.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-template-columns-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-template-columns-crash.html": {
    "class": "skip",
-   "reason": "script:inline"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-template-columns-intrinsic-auto-repeat-computed-implicit-track.tentative.html": {
    "class": "skip",
@@ -13396,27 +13356,27 @@
   },
   "css/css-grid/parsing/grid-template-columns-intrinsic-auto-repeat-computed-nogrid.tentative.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-template-columns-intrinsic-auto-repeat-computed-withcontent.tentative.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-template-columns-intrinsic-auto-repeat-computed.tentative.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-template-columns-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-template-columns-repeat-intrinsic-valid.tentative.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-template-columns-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-template-important.html": {
    "class": "skip",
@@ -13440,15 +13400,15 @@
   },
   "css/css-grid/parsing/grid-template-rows-computed-nogrid.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-template-rows-computed-withcontent.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-template-rows-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-template-rows-intrinsic-auto-repeat-computed-implicit-track.tentative.html": {
    "class": "skip",
@@ -13456,27 +13416,27 @@
   },
   "css/css-grid/parsing/grid-template-rows-intrinsic-auto-repeat-computed-nogrid.tentative.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-template-rows-intrinsic-auto-repeat-computed-withcontent.tentative.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-template-rows-intrinsic-auto-repeat-computed.tentative.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-template-rows-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-template-rows-repeat-intrinsic-valid.tentative.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-template-rows-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-template-shorthand-areas-valid.html": {
    "class": "skip",
@@ -13488,15 +13448,15 @@
   },
   "css/css-grid/parsing/grid-template-shorthand-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-template-shorthand-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/parsing/grid-template-shorthand.html": {
    "class": "skip",
-   "reason": "script:shorthand-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/placement/grid-auto-flow-sparse-001.html": {
    "class": "skip",
@@ -13549,7 +13509,7 @@
   },
   "css/css-grid/placement/grid-placement-using-named-grid-lines-004.html": {
    "class": "skip",
-   "reason": "element:strong"
+   "reason": "element:custom-ident"
   },
   "css/css-grid/placement/grid-placement-using-named-grid-lines-005.html": {
    "class": "skip",
@@ -13557,7 +13517,7 @@
   },
   "css/css-grid/placement/grid-placement-using-named-grid-lines-006.html": {
    "class": "skip",
-   "reason": "element:strong"
+   "reason": "element:custom-ident"
   },
   "css/css-grid/placement/grid-placement-using-named-grid-lines-007.html": {
    "class": "skip",
@@ -13581,11 +13541,11 @@
   },
   "css/css-grid/replaced-element-percentage-height-in-grid-nested-in-flex-001.html": {
    "class": "skip",
-   "reason": "element:img"
+   "reason": "element:style"
   },
   "css/css-grid/replaced-element-percentage-height-in-grid-nested-in-flex-002.html": {
    "class": "skip",
-   "reason": "element:img"
+   "reason": "element:style"
   },
   "css/css-grid/stretch-grid-item-button-overflow.html": {
    "class": "skip",
@@ -13593,11 +13553,11 @@
   },
   "css/css-grid/stretch-grid-item-checkbox-input.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:input"
   },
   "css/css-grid/stretch-grid-item-radio-input.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:input"
   },
   "css/css-grid/stretch-grid-item-text-input-overflow.html": {
    "class": "skip",
@@ -13649,47 +13609,47 @@
   },
   "css/css-grid/subgrid/crashtests/contain-strict-nested-subgrid.html": {
    "class": "skip",
-   "reason": "script:inline"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/subgrid/crashtests/contain-strict-subgrid.html": {
    "class": "skip",
-   "reason": "property:contain"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/subgrid/crashtests/subgrid-auto-placed-overflowing-span-crash.html": {
    "class": "skip",
-   "reason": "value:grid-template-columns:subgrid"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/subgrid/crashtests/subgrid-locked-major-axis-overflowing-span-crash.html": {
    "class": "skip",
-   "reason": "value:grid-template-columns:subgrid"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/subgrid/crashtests/subgrid-reflow-root.html": {
    "class": "skip",
-   "reason": "script:inline"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/subgrid/crashtests/subgrid-rows-auto-placed-overflowing-span-crash.html": {
    "class": "skip",
-   "reason": "value:grid-template-rows:subgrid"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/subgrid/crashtests/subgrid-rows-locked-major-axis-overflowing-span-crash.html": {
    "class": "skip",
-   "reason": "value:grid-template-rows:subgrid"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/subgrid/crashtests/subgrid-with-atuo-repeat-crash.html": {
    "class": "skip",
-   "reason": "value:grid-template-rows:subgrid [x] [x] [x] [x] repeat(auto-fill"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/subgrid/crashtests/subgridded-axis-auto-repeater-001.html": {
    "class": "skip",
-   "reason": "value:grid-template-columns:subgrid repeat(auto-fill, [b])"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/subgrid/crashtests/subgridded-axis-auto-repeater-002.html": {
    "class": "skip",
-   "reason": "value:grid-template-columns:subgrid repeat(auto-fill, [b])"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/subgrid/crashtests/subgridded-axis-auto-repeater-003.html": {
    "class": "skip",
-   "reason": "value:grid-template-columns:subgrid repeat(auto-fill, [x])"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/subgrid/dynamic-min-content-001.html": {
    "class": "skip",
@@ -13753,7 +13713,7 @@
   },
   "css/css-grid/subgrid/grid-gap-012.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:grid-template-columns:subgrid"
   },
   "css/css-grid/subgrid/grid-gap-larger-001.html": {
    "class": "skip",
@@ -13773,19 +13733,19 @@
   },
   "css/css-grid/subgrid/grid-template-computed-invalid-subgrid.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/subgrid/grid-template-computed-nogrid.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/subgrid/grid-template-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/subgrid/grid-template-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/subgrid/independent-formatting-context-fieldset.html": {
    "class": "skip",
@@ -13945,7 +13905,7 @@
   },
   "css/css-grid/subgrid/repeat-auto-fill-009.html": {
    "class": "skip",
-   "reason": "script:inline"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/subgrid/scrollbar-gutter-001.html": {
    "class": "skip",
@@ -14109,7 +14069,7 @@
   },
   "css/css-grid/subgrid/subgrid-paint-containment-change-crash.html": {
    "class": "skip",
-   "reason": "script:inline"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/subgrid/subgrid-scroller-auto-height-padding.html": {
    "class": "skip",
@@ -14153,7 +14113,7 @@
   },
   "css/css-grid/test-plan/index.html": {
    "class": "skip",
-   "reason": "script:respec-w3c-common"
+   "reason": "kind:no-assertions"
   },
   "css/css-grid/whitespace-reattach.html": {
    "class": "skip",
@@ -14201,147 +14161,147 @@
   },
   "css/css-sizing/animation/aspect-ratio-interpolation.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/animation/box-sizing-no-interpolation.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/animation/height-composition.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/animation/height-interpolation.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/animation/height-no-interpolation.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/animation/max-height-composition.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/animation/max-height-interpolation.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/animation/max-width-composition.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/animation/max-width-interpolation.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/animation/min-height-composition.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/animation/min-height-interpolation.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/animation/min-width-composition.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/animation/min-width-interpolation.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/animation/width-composition.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/animation/width-interpolation.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/aspect-ratio/abspos-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/abspos-002.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/abspos-003.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/abspos-004.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/abspos-005.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/abspos-006.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/abspos-007.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/abspos-008.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/abspos-009.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/abspos-010.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/abspos-011.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/abspos-012.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/abspos-013.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/abspos-014.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/abspos-015.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/abspos-016.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/abspos-017.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/abspos-018.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/abspos-019.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/abspos-020.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/abspos-021.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/abspos-aspect-ratio-border.html": {
    "class": "skip",
@@ -14349,103 +14309,103 @@
   },
   "css/css-sizing/aspect-ratio/aspect-ratio-minimum-size-single-axis-scroll-container.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "value:display:inline-block"
   },
   "css/css-sizing/aspect-ratio/auto-margins-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-002.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-003.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-004.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-005.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-006.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-007.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-008.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-009.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-010.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-011.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-012.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-013.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-014.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-015.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-016.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-017.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-018.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-019.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-020.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-021.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-022.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-023.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-024.html": {
    "class": "skip",
@@ -14453,15 +14413,15 @@
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-025.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-026.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-027.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-028.html": {
    "class": "skip",
@@ -14469,11 +14429,11 @@
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-029-crash.html": {
    "class": "skip",
-   "reason": "value:max-width:max-content"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-030.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-031.html": {
    "class": "skip",
@@ -14481,107 +14441,107 @@
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-032.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-033.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-034.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-035.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-036.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-037.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-038.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-039.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-040.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-041.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-042.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-043.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-044.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-045.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-046.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-047.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-048.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-049.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-050.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-051-crash.html": {
    "class": "skip",
-   "reason": "property:columns"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-052.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-053.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-054.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-055.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-056.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:width:fit-content"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-057.tentative.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:width:fit-content"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-058.html": {
    "class": "skip",
@@ -14589,11 +14549,11 @@
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-with-margin-collapsing-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/block-aspect-ratio-with-margin-collapsing-002.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/box-sizing-aspect-ratio-positioned.html": {
    "class": "skip",
@@ -14617,99 +14577,99 @@
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-002.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-003.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-004.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-005.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-006.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-007.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-008.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-009.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-010.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-011.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-012.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-013.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-014.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-015.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-016.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-017.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-018.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-019.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-020.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-021.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-022.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-023.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-024.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-025.html": {
    "class": "skip",
@@ -14737,27 +14697,27 @@
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-031.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-032.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-033.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-034.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-035.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-036.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-037.html": {
    "class": "skip",
@@ -14769,7 +14729,7 @@
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-039.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-040.html": {
    "class": "skip",
@@ -14792,44 +14752,34 @@
    "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-045.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-046.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-047.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-048.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-049.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-050.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-051.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-052.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-053.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-054.html": {
-   "class": "skip",
-   "reason": "element:link"
+   "class": "import"
   },
   "css/css-sizing/aspect-ratio/flex-aspect-ratio-055.html": {
    "class": "skip",
@@ -14837,7 +14787,7 @@
   },
   "css/css-sizing/aspect-ratio/floats-aspect-ratio-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:display:flow-root"
   },
   "css/css-sizing/aspect-ratio/fractional-aspect-ratio.html": {
    "class": "import"
@@ -14948,47 +14898,47 @@
   },
   "css/css-sizing/aspect-ratio/grid-aspect-ratio-028.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/grid-aspect-ratio-029.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/grid-aspect-ratio-030.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/grid-aspect-ratio-031.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/grid-aspect-ratio-032.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/grid-aspect-ratio-033.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/grid-aspect-ratio-034.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/grid-aspect-ratio-035.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/grid-aspect-ratio-036.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/grid-aspect-ratio-037.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/grid-aspect-ratio-038.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/grid-aspect-ratio-039.html": {
    "class": "skip",
@@ -15000,7 +14950,7 @@
   },
   "css/css-sizing/aspect-ratio/grid-aspect-ratio-041.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/grid-aspect-ratio-042.html": {
    "class": "skip",
@@ -15016,31 +14966,31 @@
   },
   "css/css-sizing/aspect-ratio/intrinsic-size-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/intrinsic-size-002.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/intrinsic-size-003.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/intrinsic-size-004.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/intrinsic-size-005.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/intrinsic-size-006.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/intrinsic-size-007.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/intrinsic-size-008.html": {
    "class": "skip",
@@ -15048,7 +14998,7 @@
   },
   "css/css-sizing/aspect-ratio/intrinsic-size-009.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/intrinsic-size-010.html": {
    "class": "skip",
@@ -15060,19 +15010,19 @@
   },
   "css/css-sizing/aspect-ratio/intrinsic-size-012.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/intrinsic-size-013.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/intrinsic-size-014.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/intrinsic-size-015.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/intrinsic-size-016.html": {
    "class": "skip",
@@ -15080,15 +15030,15 @@
   },
   "css/css-sizing/aspect-ratio/intrinsic-size-017.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:img"
   },
   "css/css-sizing/aspect-ratio/intrinsic-size-018.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:img"
   },
   "css/css-sizing/aspect-ratio/intrinsic-size-019.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:img"
   },
   "css/css-sizing/aspect-ratio/intrinsic-size-020.html": {
    "class": "skip",
@@ -15116,39 +15066,39 @@
   },
   "css/css-sizing/aspect-ratio/large-aspect-ratio-crash.html": {
    "class": "skip",
-   "reason": "element:img"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/aspect-ratio/parsing/aspect-ratio-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/aspect-ratio/parsing/aspect-ratio-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/aspect-ratio/parsing/aspect-ratio-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/aspect-ratio/percentage-resolution-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/percentage-resolution-002.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/percentage-resolution-003.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/percentage-resolution-004.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/percentage-resolution-005.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/quirks-mode-001.html": {
    "class": "skip",
@@ -15164,67 +15114,67 @@
   },
   "css/css-sizing/aspect-ratio/replaced-element-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/replaced-element-002.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/replaced-element-003.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/replaced-element-004.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/replaced-element-005.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/replaced-element-006.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/replaced-element-007.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/replaced-element-008.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/replaced-element-009.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/replaced-element-010.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/replaced-element-011.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/replaced-element-012.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/replaced-element-013.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/replaced-element-014.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/replaced-element-015.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/replaced-element-016.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/replaced-element-017.html": {
    "class": "skip",
@@ -15232,19 +15182,19 @@
   },
   "css/css-sizing/aspect-ratio/replaced-element-018.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/replaced-element-019.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:embed"
   },
   "css/css-sizing/aspect-ratio/replaced-element-020.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/replaced-element-021.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/replaced-element-022.html": {
    "class": "skip",
@@ -15260,7 +15210,7 @@
   },
   "css/css-sizing/aspect-ratio/replaced-element-025.html": {
    "class": "skip",
-   "reason": "element:strong"
+   "reason": "element:style"
   },
   "css/css-sizing/aspect-ratio/replaced-element-026.html": {
    "class": "skip",
@@ -15268,7 +15218,7 @@
   },
   "css/css-sizing/aspect-ratio/replaced-element-027.html": {
    "class": "skip",
-   "reason": "element:strong"
+   "reason": "element:style"
   },
   "css/css-sizing/aspect-ratio/replaced-element-028.html": {
    "class": "skip",
@@ -15276,11 +15226,11 @@
   },
   "css/css-sizing/aspect-ratio/replaced-element-029.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/replaced-element-030.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/replaced-element-031.html": {
    "class": "skip",
@@ -15300,7 +15250,7 @@
   },
   "css/css-sizing/aspect-ratio/replaced-element-035.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:audio"
   },
   "css/css-sizing/aspect-ratio/replaced-element-036.html": {
    "class": "skip",
@@ -15312,11 +15262,11 @@
   },
   "css/css-sizing/aspect-ratio/replaced-element-039.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/replaced-element-040.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/replaced-element-041.html": {
    "class": "skip",
@@ -15324,23 +15274,23 @@
   },
   "css/css-sizing/aspect-ratio/replaced-element-042.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "element:canvas"
   },
   "css/css-sizing/aspect-ratio/replaced-element-043.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "element:table"
   },
   "css/css-sizing/aspect-ratio/replaced-element-044.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "element:canvas"
   },
   "css/css-sizing/aspect-ratio/replaced-element-045.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/replaced-element-046.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/replaced-element-047.tentative.html": {
    "class": "skip",
@@ -15364,11 +15314,11 @@
   },
   "css/css-sizing/aspect-ratio/sign-function-aspect-ratio.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/aspect-ratio/small-aspect-ratio-crash.html": {
    "class": "skip",
-   "reason": "degenerate"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/aspect-ratio/table-element-001.html": {
    "class": "skip",
@@ -15376,43 +15326,43 @@
   },
   "css/css-sizing/aspect-ratio/zero-or-infinity-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/zero-or-infinity-002.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/zero-or-infinity-003.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/zero-or-infinity-004.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/zero-or-infinity-005.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/zero-or-infinity-006.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/zero-or-infinity-007.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/zero-or-infinity-008.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/zero-or-infinity-009.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio/zero-or-infinity-010.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/aspect-ratio-affects-container-width-when-height-changes.html": {
    "class": "skip",
@@ -15432,7 +15382,7 @@
   },
   "css/css-sizing/available-height-for-replaced-content-001.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "element:img"
   },
   "css/css-sizing/block-fit-content-as-initial.html": {
    "class": "skip",
@@ -15440,7 +15390,7 @@
   },
   "css/css-sizing/block-image-percentage-max-height-inside-inline.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/block-size-with-min-or-max-content-1a.html": {
    "class": "skip",
@@ -15500,27 +15450,27 @@
   },
   "css/css-sizing/calc-margins-block.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "value:width:min-content"
   },
   "css/css-sizing/calc-margins-fieldset-content.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "element:fieldset"
   },
   "css/css-sizing/calc-margins-fieldset-legend.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "element:fieldset"
   },
   "css/css-sizing/calc-margins-flex.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "value:width:min-content"
   },
   "css/css-sizing/calc-margins-percent-flex.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "value:width:min-content"
   },
   "css/css-sizing/calc-margins-table-caption.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "value:display:table"
   },
   "css/css-sizing/canvas-intrinsic-dynamic.html": {
    "class": "skip",
@@ -15540,7 +15490,7 @@
   },
   "css/css-sizing/contain-intrinsic-size/animation/contain-intrinsic-size-interpolation.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/contain-intrinsic-size/auto-001.html": {
    "class": "skip",
@@ -15720,7 +15670,7 @@
   },
   "css/css-sizing/contain-intrinsic-size/contain-intrinsic-size-027.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:img"
   },
   "css/css-sizing/contain-intrinsic-size/contain-intrinsic-size-028.html": {
    "class": "skip",
@@ -15732,11 +15682,11 @@
   },
   "css/css-sizing/contain-intrinsic-size/contain-intrinsic-size-030.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "property:contain"
   },
   "css/css-sizing/contain-intrinsic-size/contain-intrinsic-size-031.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "property:contain"
   },
   "css/css-sizing/contain-intrinsic-size/contain-intrinsic-size-032.html": {
    "class": "skip",
@@ -15748,11 +15698,11 @@
   },
   "css/css-sizing/contain-intrinsic-size/contain-intrinsic-size-logical-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "property:contain"
   },
   "css/css-sizing/contain-intrinsic-size/contain-intrinsic-size-logical-002.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "property:contain"
   },
   "css/css-sizing/contain-intrinsic-size/contain-intrinsic-size-logical-003.html": {
    "class": "skip",
@@ -15764,15 +15714,15 @@
   },
   "css/css-sizing/contain-intrinsic-size/parsing/contain-intrinsic-size-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/contain-intrinsic-size/parsing/contain-intrinsic-size-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/contain-intrinsic-size/parsing/contain-intrinsic-size-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/div-fit-content-auto-margin-bottom.tentative.html": {
    "class": "skip",
@@ -15976,11 +15926,11 @@
   },
   "css/css-sizing/fit-content-max-inline-size.tentative.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:span"
   },
   "css/css-sizing/fit-content-min-inline-size.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:span"
   },
   "css/css-sizing/fit-content-percentage-padding.html": {
    "class": "skip",
@@ -15988,23 +15938,23 @@
   },
   "css/css-sizing/float-clearance-with-margin-collapse-and-fit-content-and-padding-percentage-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/float-clearance-with-margin-collapse-and-fit-content-and-padding-percentage-002.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/float-clearance-with-margin-collapse-and-fit-content-and-padding-percentage-003.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/float-clearance-with-margin-collapse-and-fit-content-and-padding-percentage-004.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/frameset-intrinsic-crash.html": {
    "class": "skip",
-   "reason": "script:inline"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/grid-item-image-percentage-min-height-computes-as-0.html": {
    "class": "skip",
@@ -16064,7 +16014,7 @@
   },
   "css/css-sizing/image-percentage-max-height-in-anonymous-block.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/inheritance-001.html": {
    "class": "skip",
@@ -16180,7 +16130,7 @@
   },
   "css/css-sizing/intrinsic-percent-replaced-010.html": {
    "class": "skip",
-   "reason": "no-body"
+   "reason": "element:img"
   },
   "css/css-sizing/intrinsic-percent-replaced-011.html": {
    "class": "skip",
@@ -16252,15 +16202,15 @@
   },
   "css/css-sizing/intrinsic-percent-replaced-028.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "element:canvas"
   },
   "css/css-sizing/intrinsic-percent-replaced-029.tentative.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:canvas"
   },
   "css/css-sizing/intrinsic-percent-replaced-030.tentative.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:canvas"
   },
   "css/css-sizing/intrinsic-percent-replaced-031.html": {
    "class": "skip",
@@ -16272,7 +16222,7 @@
   },
   "css/css-sizing/intrinsic-percent-replaced-033.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "element:canvas"
   },
   "css/css-sizing/intrinsic-percent-replaced-dynamic-001.html": {
    "class": "skip",
@@ -16332,7 +16282,7 @@
   },
   "css/css-sizing/intrinsic-size-fallback-video.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "element:style"
   },
   "css/css-sizing/intrinsic-size-min-content-box-sizing.html": {
    "class": "skip",
@@ -16340,7 +16290,7 @@
   },
   "css/css-sizing/keyword-sizes-for-intrinsic-contributions-002.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "element:canvas"
   },
   "css/css-sizing/keyword-sizes-for-intrinsic-contributions.html": {
    "class": "skip",
@@ -16368,27 +16318,27 @@
   },
   "css/css-sizing/keyword-sizes-on-replaced-element.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "element:canvas"
   },
   "css/css-sizing/margin-collapse-with-indefinite-block-size-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/margin-collapse-with-indefinite-block-size-002.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/margin-collapse-with-indefinite-block-size-003.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/margin-collapse-with-indefinite-block-size-004.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/margin-collapse-with-indefinite-block-size-005.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/max-content-input-001.html": {
    "class": "skip",
@@ -16404,11 +16354,11 @@
   },
   "css/css-sizing/min-content-negative-margin-crash.html": {
    "class": "skip",
-   "reason": "value:width:min-content"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/min-content-negative-margin-inline-crash.html": {
    "class": "skip",
-   "reason": "no-body"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/min-max-content-orthogonal-flow-crash-001.html": {
    "class": "skip",
@@ -16424,87 +16374,87 @@
   },
   "css/css-sizing/ortho-writing-mode-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/orthogonal-writing-mode-float-in-inline.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-sizing/parsing/box-sizing-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/parsing/box-sizing-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/parsing/box-sizing-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/parsing/height-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/parsing/height-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/parsing/max-height-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/parsing/max-height-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/parsing/max-height-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/parsing/max-width-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/parsing/max-width-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/parsing/max-width-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/parsing/min-height-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/parsing/min-height-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/parsing/min-height-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/parsing/min-width-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/parsing/min-width-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/parsing/min-width-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/parsing/width-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/parsing/width-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/percentage-height-in-flexbox.html": {
    "class": "skip",
@@ -16516,7 +16466,7 @@
   },
   "css/css-sizing/percentage-min-width.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "element:strong"
   },
   "css/css-sizing/percentage-width-subpixels.tentative.html": {
    "class": "skip",
@@ -16536,23 +16486,23 @@
   },
   "css/css-sizing/replaced-aspect-ratio-intrinsic-size-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:img"
   },
   "css/css-sizing/replaced-aspect-ratio-intrinsic-size-002.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:img"
   },
   "css/css-sizing/replaced-aspect-ratio-stretch-fit-001.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:svg"
   },
   "css/css-sizing/replaced-aspect-ratio-stretch-fit-002.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:svg"
   },
   "css/css-sizing/replaced-aspect-ratio-stretch-fit-003.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:svg"
   },
   "css/css-sizing/replaced-element-intrinsic-sizing-keywords.html": {
    "class": "skip",
@@ -16564,11 +16514,11 @@
   },
   "css/css-sizing/replaced-fractional-height-from-aspect-ratio-2.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "element:canvas"
   },
   "css/css-sizing/replaced-fractional-height-from-aspect-ratio.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "element:canvas"
   },
   "css/css-sizing/replaced-max-height-min-content.html": {
    "class": "skip",
@@ -16576,7 +16526,7 @@
   },
   "css/css-sizing/replaced-max-size-saturation.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:canvas"
   },
   "css/css-sizing/replaced-max-width-min-content.html": {
    "class": "skip",
@@ -16604,11 +16554,11 @@
   },
   "css/css-sizing/responsive-iframe/parsing/frame-sizing-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/responsive-iframe/parsing/frame-sizing-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/responsive-iframe/responsive-iframe-cross-origin-no-match-element.sub.html": {
    "class": "skip",
@@ -16732,7 +16682,7 @@
   },
   "css/css-sizing/stretch/auto-margins-1.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "value:width:stretch"
   },
   "css/css-sizing/stretch/auto-margins-2.html": {
    "class": "skip",
@@ -16760,11 +16710,11 @@
   },
   "css/css-sizing/stretch/block-height-004.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "value:height:stretch"
   },
   "css/css-sizing/stretch/block-height-005.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "property:float"
   },
   "css/css-sizing/stretch/block-height-006.html": {
    "class": "skip",
@@ -16772,11 +16722,11 @@
   },
   "css/css-sizing/stretch/block-height-007.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "value:height:stretch"
   },
   "css/css-sizing/stretch/block-height-008.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "element:main"
   },
   "css/css-sizing/stretch/block-height-009.html": {
    "class": "skip",
@@ -16796,11 +16746,11 @@
   },
   "css/css-sizing/stretch/content-contribution-001.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "value:width:max-content"
   },
   "css/css-sizing/stretch/fixed-table-1.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:display:table"
   },
   "css/css-sizing/stretch/flex-basis-1.html": {
    "class": "skip",
@@ -16808,15 +16758,15 @@
   },
   "css/css-sizing/stretch/flex-item-height-001.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "value:height:stretch"
   },
   "css/css-sizing/stretch/flex-item-height-002.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "property:float"
   },
   "css/css-sizing/stretch/flex-item-height-003.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "element:canvas"
   },
   "css/css-sizing/stretch/flex-line-001.html": {
    "class": "skip",
@@ -16836,11 +16786,11 @@
   },
   "css/css-sizing/stretch/flex-line-005.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "value:display:inline-flex"
   },
   "css/css-sizing/stretch/flex-stretch-min-max-cross-001.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "value:display:inline-flex"
   },
   "css/css-sizing/stretch/flexbox-auto-minimum-001.html": {
    "class": "skip",
@@ -16872,51 +16822,51 @@
   },
   "css/css-sizing/stretch/indefinite-1.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "property:block-size"
   },
   "css/css-sizing/stretch/indefinite-2.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "value:min-height:stretch"
   },
   "css/css-sizing/stretch/indefinite-3.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "value:max-height:stretch"
   },
   "css/css-sizing/stretch/indefinite-4.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "element:code"
   },
   "css/css-sizing/stretch/indefinite-5.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "value:height:stretch"
   },
   "css/css-sizing/stretch/indefinite-6.html": {
    "class": "skip",
-   "reason": "element:meta"
+   "reason": "value:height:stretch"
   },
   "css/css-sizing/stretch/min-width-1.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "value:min-width:stretch"
   },
   "css/css-sizing/stretch/parsing.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/stretch/positioned-non-replaced-1.html": {
    "class": "skip",
-   "reason": "value:width:stretch"
+   "reason": "element:style"
   },
   "css/css-sizing/stretch/positioned-replaced-1.html": {
    "class": "skip",
-   "reason": "element:canvas"
+   "reason": "element:style"
   },
   "css/css-sizing/stretch/positioned-replaced-2.html": {
    "class": "skip",
-   "reason": "element:canvas"
+   "reason": "element:style"
   },
   "css/css-sizing/stretch/positioned-replaced-3.html": {
    "class": "skip",
-   "reason": "element:canvas"
+   "reason": "element:style"
   },
   "css/css-sizing/stretch/replaced-next-to-float-1.html": {
    "class": "skip",
@@ -16928,7 +16878,7 @@
   },
   "css/css-sizing/stretch/replaced-stretch-height-001.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "element:canvas"
   },
   "css/css-sizing/stretch/stretch-alias-block-size-001.tentative.html": {
    "class": "skip",
@@ -17036,7 +16986,7 @@
   },
   "css/css-sizing/svg-intrinsic-size-005.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:svg"
   },
   "css/css-sizing/svg-intrinsic-size-006.html": {
    "class": "skip",
@@ -17064,19 +17014,19 @@
   },
   "css/css-sizing/table-percentage-max-width-beside-float.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "property:float"
   },
   "css/css-sizing/table-percentage-min-width-below-float.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "property:float"
   },
   "css/css-sizing/table-percentage-min-width-beside-float.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "property:float"
   },
   "css/css-sizing/textarea-large-padding-crash.html": {
    "class": "skip",
-   "reason": "element:textarea"
+   "reason": "kind:no-assertions"
   },
   "css/css-sizing/thin-element-render.html": {
    "class": "skip",
@@ -17096,11 +17046,11 @@
   },
   "css/css-sizing/whitespace-and-break.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-align/abspos/align-items-static-position-001-ref.tentative.html": {
    "class": "skip",
-   "reason": "value:display:inline-block"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/abspos/align-items-static-position-001.tentative.html": {
    "class": "skip",
@@ -17108,7 +17058,7 @@
   },
   "css/css-align/abspos/align-items-static-position-002-ref.tentative.html": {
    "class": "skip",
-   "reason": "value:display:inline"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/abspos/align-items-static-position-002.tentative.html": {
    "class": "skip",
@@ -17220,7 +17170,7 @@
   },
   "css/css-align/abspos/align-self-stretch-auto-size-ref.tentative.html": {
    "class": "skip",
-   "reason": "value:display:inline-block"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/abspos/align-self-stretch-auto-size.tentative.html": {
    "class": "skip",
@@ -17447,27 +17397,27 @@
   },
   "css/css-align/animation/align-no-interpolation.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/animation/column-gap-composition.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/animation/column-gap-interpolation.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/animation/justify-no-interpolation.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/animation/row-gap-composition.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/animation/row-gap-interpolation.html": {
    "class": "skip",
-   "reason": "script:interpolation-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/baseline-of-scrollable-1a.html": {
    "class": "skip",
@@ -17494,14 +17444,16 @@
    "reason": "element:span"
   },
   "css/css-align/baseline-rules/inline-table-inline-block-baseline-vert-rl-export-ref.tentative.html": {
-   "class": "import"
+   "class": "skip",
+   "reason": "kind:no-assertions"
   },
   "css/css-align/baseline-rules/inline-table-inline-block-baseline-vert-rl-export.tentative.html": {
    "class": "skip",
    "reason": "element:table"
   },
   "css/css-align/baseline-rules/inline-table-inline-block-baseline-vert-rl-synthesis-ref.tentative.html": {
-   "class": "import"
+   "class": "skip",
+   "reason": "kind:no-assertions"
   },
   "css/css-align/baseline-rules/inline-table-inline-block-baseline-vert-rl-synthesis.tentative.html": {
    "class": "skip",
@@ -17633,7 +17585,7 @@
   },
   "css/css-align/blocks/justify-items-anonymous.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-align/blocks/justify-self-auto-margins-1.html": {
    "class": "skip",
@@ -17645,11 +17597,11 @@
   },
   "css/css-align/blocks/justify-self-block-in-inline-002.html": {
    "class": "skip",
-   "reason": "element:link"
+   "reason": "element:strong"
   },
   "css/css-align/blocks/justify-self-block-in-inline.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "element:span"
   },
   "css/css-align/blocks/justify-self-htb-ltr-htb.html": {
    "class": "skip",
@@ -17681,7 +17633,7 @@
   },
   "css/css-align/blocks/justify-self-text-align-2.html": {
    "class": "skip",
-   "reason": "no-divs"
+   "reason": "property:text-align"
   },
   "css/css-align/blocks/justify-self-text-align.html": {
    "class": "skip",
@@ -17756,8 +17708,7 @@
    "reason": "property:writing-mode"
   },
   "css/css-align/content-distribution/default-overflow-alignment-single-axis-scroll-container.html": {
-   "class": "skip",
-   "reason": "no-divs"
+   "class": "import"
   },
   "css/css-align/content-distribution/parse-align-content-001.html": {
    "class": "skip",
@@ -17973,7 +17924,7 @@
   },
   "css/css-align/gaps/legacy-gap-aliases-001.html": {
    "class": "skip",
-   "reason": "script:shorthand-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/gaps/row-gap-animation-001.html": {
    "class": "skip",
@@ -18001,119 +17952,119 @@
   },
   "css/css-align/parsing/align-content-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/align-content-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/align-content-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/align-items-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/align-items-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/align-items-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/align-self-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/align-self-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/align-self-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/column-gap-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/column-gap-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/column-gap-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/gap-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/gap-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/gap-shorthand.html": {
    "class": "skip",
-   "reason": "script:shorthand-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/gap-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/grid-column-gap-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/grid-column-gap-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/grid-column-gap-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/grid-gap-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/grid-gap-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/grid-gap-shorthand.html": {
    "class": "skip",
-   "reason": "script:shorthand-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/grid-gap-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/grid-row-gap-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/grid-row-gap-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/grid-row-gap-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/justify-content-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/justify-content-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/justify-content-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/justify-items-computed.html": {
    "class": "skip",
@@ -18121,83 +18072,83 @@
   },
   "css/css-align/parsing/justify-items-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/justify-items-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/justify-self-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/justify-self-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/justify-self-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/place-content-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/place-content-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/place-content-shorthand.html": {
    "class": "skip",
-   "reason": "script:shorthand-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/place-content-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/place-items-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/place-items-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/place-items-shorthand.html": {
    "class": "skip",
-   "reason": "script:shorthand-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/place-items-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/place-self-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/place-self-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/place-self-shorthand.html": {
    "class": "skip",
-   "reason": "script:shorthand-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/place-self-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/row-gap-computed.html": {
    "class": "skip",
-   "reason": "script:computed-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/row-gap-invalid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/parsing/row-gap-valid.html": {
    "class": "skip",
-   "reason": "script:parsing-testcommon.js"
+   "reason": "kind:no-assertions"
   },
   "css/css-align/self-alignment/block-justify-self.html": {
    "class": "skip",
@@ -18301,7 +18252,7 @@
   },
   "css/css-align/ttwf-reftest-alignContent.html": {
    "class": "skip",
-   "reason": "element:span"
+   "reason": "kind:no-assertions"
   }
  }
 }

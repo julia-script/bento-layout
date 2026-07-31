@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-flexbox/justify-content-006.html @ 6e90070a5b
+  help: https://drafts.csswg.org/css-flexbox/#justify-content-property
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: css/css-flexbox/justify-content-006.html</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+<div style="display: flex; flex-direction: column; width: 100px; border: 2px solid black; position: relative;">
+  <div style="flex: 0 0 50px; min-height: 50px; display: flex; flex-direction: column; justify-content: flex-end;">
+    <div style="width: 30px; height: 30px; background: orange; display: block;"></div>
+  </div>
+</div>
+</div>
+
+</body>
+</html>

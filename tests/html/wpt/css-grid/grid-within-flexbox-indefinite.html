@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-grid/grid-within-flexbox-indefinite.html @ 6e90070a5b
+  help: https://github.com/w3c/csswg-drafts/issues/4852
+  help: https://bugs.chromium.org/p/chromium/issues/detail?id=1055258
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: css/css-grid/grid-within-flexbox-indefinite.html</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+<div style="display: flex; flex-direction: column; min-height: 100px; width: 100px;">
+  <div style="display: grid; flex: 1; background: red;">
+    <div style="background: green; display: block;"></div>
+  </div>
+</div>
+</div>
+
+</body>
+</html>

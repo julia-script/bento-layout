@@ -1,0 +1,43 @@
+<test name="grid-items_grid-item-minimum-size-single-axis-scroll-container__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" direction="ltr">
+      <div display="grid" direction="ltr" width="0px" grid-template-rows="100px" grid-template-columns="auto auto">
+        <div display="block" direction="ltr" overflow-x="hidden" overflow-y="clip" scrollbar-width="0">
+          <div display="block" direction="ltr" width="100px" height="100px"/>
+        </div>
+        <div display="block" direction="ltr" overflow-x="clip" overflow-y="hidden" scrollbar-width="0">
+          <div display="block" direction="ltr" width="100px" height="100px"/>
+        </div>
+      </div>
+      <div display="grid" direction="ltr" height="0px" grid-auto-flow="column" grid-template-rows="auto auto" grid-template-columns="100px">
+        <div display="block" direction="ltr" overflow-x="clip" overflow-y="hidden" scrollbar-width="0">
+          <div display="block" direction="ltr" width="100px" height="100px"/>
+        </div>
+        <div display="block" direction="ltr" overflow-x="hidden" overflow-y="clip" scrollbar-width="0">
+          <div display="block" direction="ltr" width="100px" height="100px"/>
+        </div>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="100" height="100">
+      <node x="0" y="0" width="0" height="100">
+        <node x="0" y="0" width="0" height="100" scroll_width="100" scroll_height="0">
+          <node x="0" y="0" width="100" height="100"/>
+        </node>
+        <node x="0" y="0" width="0" height="100" scroll_width="100" scroll_height="0">
+          <node x="0" y="0" width="100" height="100"/>
+        </node>
+      </node>
+      <node x="0" y="100" width="100" height="0">
+        <node x="0" y="0" width="100" height="0" scroll_width="0" scroll_height="100">
+          <node x="0" y="0" width="100" height="100"/>
+        </node>
+        <node x="0" y="0" width="100" height="0" scroll_width="0" scroll_height="100">
+          <node x="0" y="0" width="100" height="100"/>
+        </node>
+      </node>
+    </node>
+  </expectations>
+</test>

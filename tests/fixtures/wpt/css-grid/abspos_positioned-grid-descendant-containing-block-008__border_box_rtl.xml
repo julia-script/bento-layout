@@ -1,0 +1,21 @@
+<test name="abspos_positioned-grid-descendant-containing-block-008__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" direction="rtl">
+      <div display="grid" direction="rtl" width="150px" height="150px" padding-top="25px" padding-left="25px" padding-bottom="25px" padding-right="25px" grid-template-rows="150px" grid-template-columns="150px">
+        <div display="block" direction="rtl" grid-row-start="1" grid-row-end="2" grid-column-start="1" grid-column-end="2">
+          <div display="block" direction="rtl" position="absolute" width="50%" height="50%"/>
+        </div>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="150" height="150">
+      <node x="0" y="0" width="150" height="150">
+        <node x="-25" y="25" width="150" height="150">
+          <node x="75" y="0" width="75" height="75"/>
+        </node>
+      </node>
+    </node>
+  </expectations>
+</test>

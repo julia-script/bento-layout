@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-flexbox/abspos/position-absolute-015.html @ 6e90070a5b
+  help: https://drafts.csswg.org/css-flexbox/#abspos-items
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: abspos flex children with top margins</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+<div style="display: flex; width: 200px; height: 100px; justify-content: flex-end; border: solid thick; position: relative;">
+  <div style="background: cyan; margin: 20px; position: absolute; width: 30px; height: 40px; display: block;" id="abspos"></div>
+</div>
+</div>
+
+</body>
+</html>

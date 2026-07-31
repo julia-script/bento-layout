@@ -1,0 +1,21 @@
+<test name="justify-content-006__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" direction="ltr">
+      <div display="flex" direction="ltr" flex-direction="column" width="100px" border-top="2px" border-left="2px" border-bottom="2px" border-right="2px">
+        <div display="flex" direction="ltr" flex-direction="column" justify-content="flex-end" flex-shrink="0" flex-basis="50px" min-height="50px">
+          <div display="block" direction="ltr" width="30px" height="30px"/>
+        </div>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="100" height="54">
+      <node x="0" y="0" width="100" height="54">
+        <node x="2" y="2" width="96" height="50">
+          <node x="0" y="20" width="30" height="30"/>
+        </node>
+      </node>
+    </node>
+  </expectations>
+</test>

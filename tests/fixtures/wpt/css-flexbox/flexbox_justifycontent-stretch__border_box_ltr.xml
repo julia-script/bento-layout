@@ -1,0 +1,19 @@
+<test name="flexbox_justifycontent-stretch__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" direction="ltr">
+      <div display="flex" direction="ltr" justify-content="stretch" width="200px" height="100px">
+        <div display="block" direction="ltr" width="50px"/>
+        <div display="block" direction="ltr" width="50px"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="200" height="100">
+      <node x="0" y="0" width="200" height="100">
+        <node x="0" y="0" width="50" height="100"/>
+        <node x="50" y="0" width="50" height="100"/>
+      </node>
+    </node>
+  </expectations>
+</test>

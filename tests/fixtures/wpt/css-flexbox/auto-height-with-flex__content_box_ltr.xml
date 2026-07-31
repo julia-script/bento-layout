@@ -1,0 +1,23 @@
+<test name="auto-height-with-flex__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" box-sizing="content-box" direction="ltr">
+      <div display="flex" box-sizing="content-box" direction="ltr" flex-direction="column" border-top="1px" border-left="1px" border-bottom="1px" border-right="1px">
+        <text display="block" box-sizing="content-box" direction="ltr">
+          Header
+        </text>
+        <text display="block" box-sizing="content-box" direction="ltr" flex-grow="1" flex-basis="0%">
+          Flexible content
+        </text>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="162" height="22">
+      <node x="0" y="0" width="162" height="22">
+        <node x="1" y="1" width="160" height="10"/>
+        <node x="1" y="11" width="160" height="10"/>
+      </node>
+    </node>
+  </expectations>
+</test>
