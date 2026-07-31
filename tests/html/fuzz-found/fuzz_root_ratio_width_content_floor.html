@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found (seed 20260731). Root variant of the same rule: the root has a
+  specified height and no specified width, so the ratio derived the width.
+  Chrome 97x20, engine gave 10x20. A root needs its own handling because it
+  has no parent to size it — see also fuzz_root_ar_content_width.html for the
+  opposite axis.
+  Regenerate the XML fixtures with: pnpm gentest fuzz_root_ratio_width_content_floor
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: a root ratio-derived width is floored by content
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="width: auto; height: 20px; aspect-ratio: 0.5;">
+  <div style="min-width: 97px; min-height: 10px;"></div>
+</div>
+
+</body>
+</html>

@@ -10,7 +10,7 @@ import { asIntoOption, maybeResolveSize, resolveRectOrZero, resolveStyle } from 
 import type { AvailableSpace, Style } from './style.js';
 import { Cache, layoutWithOrder } from './tree.js';
 import type { Layout, MeasureFunction, Node } from './tree.js';
-import { performChildLayout } from './compute/dispatch.js';
+import { measureChildSize, performChildLayout } from './compute/dispatch.js';
 
 export * from './geometry.js';
 export * from './style.js';
@@ -89,8 +89,11 @@ function computeRootLayout(root: Node, availableSpace: Size<AvailableSpace>): vo
   // Inline axis only: for a content-sized root Chrome resolves the width first
   // and derives the height, never the reverse — a tall narrow child keeps its
   // content height rather than widening the root.
+  const rootSpecified = maybeResolveSize(root.style.size, parentSize);
   if (
     root.style.aspectRatio !== null &&
+    rootSpecified.width === null &&
+    rootSpecified.height === null &&
     knownDimensions.width === null &&
     knownDimensions.height === null &&
     output.size.width > 0
@@ -101,6 +104,34 @@ function computeRootLayout(root: Node, availableSpace: Size<AvailableSpace>): vo
     // supplies an *automatic* size, not a cap), so never shrink below the
     // height the first pass measured.
     if (rerun.size.height >= output.size.height) output = rerun;
+  } else if (
+    root.style.aspectRatio !== null &&
+    rootSpecified.width === null &&
+    output.size.width > 0
+  ) {
+    // The mirror case: the root has no specified width, so whatever width it
+    // ended up with came from the ratio (via its specified height). That width
+    // is an automatic size too, so content wider than it grows the root rather
+    // than overflowing — the same rule block layout applies to its children.
+    // Measured in `content-size` mode so the child does not simply re-derive
+    // the width from the ratio again.
+    const contentWidth = measureChildSize(
+      root,
+      { width: null, height: null },
+      parentSize,
+      { width: 'min-content', height: 'max-content' },
+      'content-size',
+      'horizontal',
+    );
+    if (contentWidth > output.size.width) {
+      output = performChildLayout(
+        root,
+        { width: contentWidth, height: knownDimensions.height },
+        parentSize,
+        availableSpace,
+        'inherent-size',
+      );
+    }
   }
 
   const style = root.style;

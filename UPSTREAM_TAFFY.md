@@ -1531,45 +1531,84 @@ Verified in Taffy: suspected (source-read, not executed).
 
 ---
 
-## Not yet triaged
+## 29. A ratio-derived width is not floored by content
 
-- **Block: a ratio-derived width is not floored by content.** Diagnosed but not
-  yet fixed. In block layout a child whose width comes from `aspect-ratio` (not
-  from a specified width) is treated as definite, so content wider than the
-  ratio implies overflows instead of growing the box:
+A box whose width comes from `aspect-ratio` (rather than from a specified
+width) is treated as definite, so content wider than the ratio implies
+overflows instead of growing the box.
 
-  ```html
-  <div style="display: block; width: 500px; height: 500px">
-    <div style="display: block; aspect-ratio: 0.5; height: 20px">
-      <div style="display: block; width: 97px; height: 10px"></div>
-    </div>
+```html
+<div style="display: block; width: 500px; height: 500px">
+  <div style="display: block; aspect-ratio: 0.5; height: 20px">
+    <div style="display: block; width: 97px; height: 10px"></div>
   </div>
-  ```
+</div>
+```
 
-  Chrome sizes the middle box 97x20; the engine gives 10x20 (= 20 * 0.5).
+| | middle box |
+|---|---|
+| Chrome | **97 x 20** |
+| Engine (pre-fix) | 10 x 20 (= 20 * 0.5) |
 
-  The discriminator is *where the width came from*, and the probe pair proves
-  Chrome distinguishes them: a **specified** `width: 10px` with the same 97px
-  child stays 10 in Chrome (content overflows, correctly), while the
-  **ratio-derived** 10 grows to 97. css-sizing-4 §4.2 is the reason — a
-  ratio-derived size is an *automatic* size, so the automatic-minimum/content
-  floor applies to it; a specified size is not.
+**The discriminator is where the width came from**, and this probe pair is the
+evidence that Chrome distinguishes them — any fix must satisfy both:
 
-  Our site is `src/compute/block.ts:424`, where `applyAspectRatioClamped` folds
-  the ratio-derived width into the same `item.size` field that carries
-  specified widths, erasing the distinction; it is then consumed at line 589 as
-  `item.size.width ?? stretchWidth` with no content floor. Any fix must keep
-  the two provenances apart — flooring `item.size.width` unconditionally would
-  break the specified-width case above, which currently passes.
+| middle box's width | Chrome | note |
+|---|---|---|
+| `aspect-ratio: 0.5; height: 20px` (derived) | grows to **97** | the finding |
+| `width: 10px` (specified) | stays **10** | content overflows; control |
 
-  Flex is **not** affected (the same shape under a flex parent is correct), and
-  neither is the root path (fixed separately as #28). Taffy's `block.rs` has
-  the same single-field structure, so it is very likely to share this, but the
-  entry stays here until it is fixed and verified rather than being filed on a
-  reading alone.
+**Spec:** css-sizing-4 §4.2 — a ratio-derived size is an *automatic* size, so
+the content/automatic-minimum floor applies to it. A specified size is not
+automatic and is therefore not floored.
+
+**Taffy source:** `src/compute/block.rs`, where the child's
+`aspect_ratio`-adjusted size is folded into the same `size` field that carries
+specified sizes (our port's `block.ts:424`, `applyAspectRatioClamped` into
+`BlockItem.size`), then consumed with no content floor (our `block.ts:589`,
+`item.size.width ?? stretch_width`). The single field is what erases the
+provenance, so the same structure should reproduce upstream.
+
+**Fix applied here:** track the provenance explicitly
+(`BlockItem.widthIsRatioDerived`) and floor only that case, measuring the
+child's min-content width to do it. Two details cost a cycle each and are worth
+carrying upstream:
+
+- The floor must be measured in **`content-size` sizing mode**, not
+  `inherent-size`. In `inherent-size` the child simply re-derives its width
+  from its own height through the same ratio and reports the ratio width back
+  (10, not 97) — measuring the ratio again instead of the content.
+- **The root needs separate handling in both axes.** A root has no parent, so
+  `computeRootLayout` decides its size; the guards there must test the
+  *specified* size rather than `knownDimensions`, because for a block root
+  `blockRootKnownDimensions` has already applied the ratio and the width
+  arrives non-null but ratio-derived. (An earlier version of this entry claimed
+  the root path was unaffected — it is affected, just elsewhere.) Entry #28 is
+  the opposite-axis half of the same root gap.
+
+Flex is **not** affected: the same shape under a flex parent already matches.
+
+Regression fixtures: `tests/html/fuzz-found/fuzz_block_ratio_width_content_floor.html`
+and `fuzz_root_ratio_width_content_floor.html` (all four variants of each fail
+without the fix).
+
+Verified in Taffy: suspected (source-read, not executed).
+
+---
+
+## Not yet triaged
 
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they
 are not lost; each needs the same treatment before it can move up:
+
+- **Grid root: content-derived width does not transfer through the ratio.**
+  The grid copy of entry #28, surfaced by the fuzzer only once #28 and #29
+  landed (the shrinker had been minimizing these trees to the flex/block
+  variant instead). Repro:
+  `{"root":{"style":{"aspectRatio":0.5,"display":"grid"},"children":[{"style":{"minSize":{"width":97,"height":10}}}]}}`
+  — Chrome 97x194, engine 97x10. #28's re-run in `computeRootLayout` is
+  display-agnostic, so the reason grid still escapes it needs tracing before
+  fixing; do not assume it is the same guard.
 
 - **`fuzz_408e514f`** — percentage padding on an aspect-ratio flex item under a
   `height: auto` root, **content-box only**: Chrome collapses the root and item

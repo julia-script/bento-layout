@@ -59,6 +59,15 @@ interface BlockItem {
   minSize: Size<Opt>;
   maxSize: Size<Opt>;
 
+  /**
+   * True when `size.width` came from `aspect-ratio` rather than from a
+   * specified width. css-sizing-4 §4.2 makes a ratio-derived size an
+   * *automatic* size, so content may grow past it — while a specified width of
+   * the same value must not grow (the content simply overflows). The two are
+   * otherwise indistinguishable once the ratio has been applied.
+   */
+  widthIsRatioDerived: boolean;
+
   overflow: Point<Overflow>;
   scrollbarWidth: number;
 
@@ -415,18 +424,25 @@ function generateItemList(node: Node, nodeInnerSize: Size<Opt>): BlockItem[] {
     const isScroll = isScrollContainer(overflow.x) || isScrollContainer(overflow.y);
     const isInSameBfc = isBlock && position !== 'absolute' && !isScroll;
 
+    const childSpecifiedSize = maybeAddSize(
+      maybeResolveSize(childStyle.size, nodeInnerSize),
+      boxSizingAdjustment,
+    );
+    const childRatioSize = applyAspectRatioClamped(
+      childSpecifiedSize,
+      maybeAddSize(maybeResolveSize(childStyle.minSize, nodeInnerSize), boxSizingAdjustment),
+      maybeAddSize(maybeResolveSize(childStyle.maxSize, nodeInnerSize), boxSizingAdjustment),
+      aspectRatio,
+    );
+
     items.push({
       node: child,
       order: order++,
       isInSameBfc,
       // The ratio derives from the *clamped* specified size, so an axis with a
       // size of its own is never re-derived from the other axis's constraint.
-      size: applyAspectRatioClamped(
-        maybeAddSize(maybeResolveSize(childStyle.size, nodeInnerSize), boxSizingAdjustment),
-        maybeAddSize(maybeResolveSize(childStyle.minSize, nodeInnerSize), boxSizingAdjustment),
-        maybeAddSize(maybeResolveSize(childStyle.maxSize, nodeInnerSize), boxSizingAdjustment),
-        aspectRatio,
-      ),
+      size: childRatioSize,
+      widthIsRatioDerived: childSpecifiedSize.width === null && childRatioSize.width !== null,
       // A block child in normal flow stretches its inline axis only, so that is
       // the one axis a constraint may transfer into. See
       // transferConstraintToStretchedAxis.
@@ -585,8 +601,28 @@ function performFinalLayoutOnInFlowChildren(
       }
 
       const knownDimensions: Size<Opt> = ((): Size<Opt> => {
+        // A width derived from `aspect-ratio` is an *automatic* size
+        // (css-sizing-4 §4.2), so content wider than the ratio implies grows
+        // the box. A *specified* width of the same value does not — the content
+        // overflows instead — which is why the two provenances are tracked
+        // apart rather than both read off `item.size.width`.
+        let itemWidth = item.size.width;
+        if (itemWidth !== null && item.widthIsRatioDerived) {
+          // `content-size` mode, not `inherent-size`: the latter lets the
+          // child re-derive its width from its own height through the same
+          // ratio, so it just measures the ratio again (10, not 97).
+          const minContentWidth = measureChildSize(
+            item.node,
+            { width: null, height: null },
+            parentSize,
+            { width: 'min-content', height: 'max-content' },
+            'content-size',
+            'horizontal',
+          );
+          itemWidth = Math.max(itemWidth, minContentWidth);
+        }
         const withWidth: Size<Opt> = {
-          width: vClamp(item.size.width ?? stretchWidth, item.minSize.width, item.maxSize.width),
+          width: vClamp(itemWidth ?? stretchWidth, item.minSize.width, item.maxSize.width),
           height: item.size.height,
         };
         return sizeMaybeClamp(withWidth, item.minSize, item.maxSize);

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found (seed 20260731). The middle box has no specified width, so its
+  width comes from `aspect-ratio` and its specified height. css-sizing-4 §4.2
+  makes a ratio-derived size an *automatic* size, so content wider than it
+  grows the box: Chrome 97x20, engine gave 10x20 (= 20 * 0.5).
+  The control that constrains any fix: a *specified* `width: 10px` with the
+  same 97px child stays 10 in Chrome — the content overflows instead. So the
+  floor must apply to ratio-derived widths ONLY.
+  Regenerate the XML fixtures with: pnpm gentest fuzz_block_ratio_width_content_floor
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: a ratio-derived width is floored by content, a specified one is not
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: block; width: 500px; height: 500px;">
+  <div style="display: block; width: auto; height: 20px; aspect-ratio: 0.5;">
+    <div style="display: block; width: 97px; height: 10px;"></div>
+  </div>
+</div>
+
+</body>
+</html>
