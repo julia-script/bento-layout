@@ -1,7 +1,7 @@
 <test name="flex_max_size_not_available_space__border_box_ltr" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div display="block" direction="ltr">
+    <div display="block" direction="ltr" position="absolute">
       <div display="flex" direction="ltr">
         <div display="flex" direction="ltr" max-width="10px" aspect-ratio="1"/>
       </div>

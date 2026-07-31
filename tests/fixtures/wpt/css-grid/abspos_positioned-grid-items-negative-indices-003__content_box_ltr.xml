@@ -1,5 +1,5 @@
 <test name="abspos_positioned-grid-items-negative-indices-003__content_box_ltr" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" box-sizing="content-box" direction="ltr">
       <div display="grid" box-sizing="content-box" direction="ltr" width="500px" height="130px" margin-top="4px" margin-left="4px" margin-bottom="4px" margin-right="4px" padding-top="10px" padding-left="10px" padding-bottom="10px" padding-right="10px">
@@ -9,8 +9,8 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="528" height="158">
-      <node x="4" y="4" width="520" height="150">
+    <node x="0" y="4" width="1280" height="150">
+      <node x="4" y="0" width="520" height="150">
         <node x="135" y="10" width="375" height="130"/>
         <node x="10" y="10" width="500" height="130"/>
       </node>

@@ -1,5 +1,5 @@
 <test name="grid-items_grid-item-border-padding-004__content_box_ltr" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" box-sizing="content-box" direction="ltr">
       <div display="grid" box-sizing="content-box" direction="ltr" width="100px" height="100px" padding-top="5px" padding-left="20px" padding-bottom="15px" padding-right="10px" border-top="5px" border-left="20px" border-bottom="15px" border-right="10px" grid-template-rows="100px" grid-template-columns="100px">
@@ -8,7 +8,7 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="160" height="140">
+    <node x="0" y="0" width="1280" height="140">
       <node x="0" y="0" width="160" height="140">
         <node x="40" y="10" width="50" height="50"/>
       </node>

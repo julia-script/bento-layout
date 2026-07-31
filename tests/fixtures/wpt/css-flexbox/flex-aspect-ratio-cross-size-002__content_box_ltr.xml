@@ -1,5 +1,5 @@
 <test name="flex-aspect-ratio-cross-size-002__content_box_ltr" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" box-sizing="content-box" direction="ltr">
       <div display="block" box-sizing="content-box" direction="ltr" width="200px">
@@ -14,7 +14,7 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="200" height="50">
+    <node x="0" y="0" width="1280" height="50">
       <node x="0" y="0" width="200" height="50">
         <node x="0" y="0" width="200" height="50">
           <node x="0" y="0" width="100" height="50">

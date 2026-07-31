@@ -1,5 +1,5 @@
 <test name="min-size-auto-overflow-clip__border_box_rtl" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" direction="rtl">
       <div display="flex" direction="rtl" flex-direction="column">
@@ -10,10 +10,10 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="2" height="52">
-      <node x="0" y="0" width="2" height="52">
-        <node x="0" y="0" width="2" height="52">
-          <node x="1" y="1" width="0" height="50"/>
+    <node x="0" y="0" width="1280" height="52">
+      <node x="0" y="0" width="1280" height="52">
+        <node x="0" y="0" width="1280" height="52">
+          <node x="1" y="1" width="1278" height="50"/>
         </node>
       </node>
     </node>

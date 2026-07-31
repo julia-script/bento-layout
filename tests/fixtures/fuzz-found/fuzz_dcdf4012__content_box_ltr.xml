@@ -1,7 +1,7 @@
 <test name="fuzz_dcdf4012__content_box_ltr" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div box-sizing="content-box" direction="ltr" width="20px">
+    <div box-sizing="content-box" direction="ltr" position="absolute" width="20px">
       <div box-sizing="content-box" direction="ltr" height="320px" aspect-ratio="2"/>
     </div>
   </input>

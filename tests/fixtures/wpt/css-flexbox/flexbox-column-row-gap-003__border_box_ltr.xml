@@ -1,5 +1,5 @@
 <test name="flexbox-column-row-gap-003__border_box_ltr" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" direction="ltr">
       <div display="flex" direction="ltr" flex-wrap="wrap" align-content="space-around" justify-content="space-around" width="200px" row-gap="40px" column-gap="20px" border-top="1px" border-left="1px" border-bottom="1px" border-right="1px">
@@ -21,7 +21,7 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="200" height="188">
+    <node x="0" y="0" width="1280" height="188">
       <node x="0" y="0" width="200" height="98">
         <node x="4" y="1" width="28" height="28"/>
         <node x="59" y="1" width="28" height="28"/>

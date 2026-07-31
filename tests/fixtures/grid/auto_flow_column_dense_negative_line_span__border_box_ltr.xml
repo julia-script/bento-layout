@@ -1,7 +1,7 @@
 <test name="auto_flow_column_dense_negative_line_span__border_box_ltr" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div display="grid" direction="ltr" row-gap="4px" column-gap="4px" grid-auto-flow="column dense" grid-template-rows="40px 40px" grid-template-columns="40px 40px 40px" grid-auto-columns="20px">
+    <div display="grid" direction="ltr" position="absolute" row-gap="4px" column-gap="4px" grid-auto-flow="column dense" grid-template-rows="40px 40px" grid-template-columns="40px 40px 40px" grid-auto-columns="20px">
       <div direction="ltr" grid-row-start="1" grid-column-start="-2"/>
       <div direction="ltr" grid-column-start="span 2"/>
       <div direction="ltr" grid-row-start="span 2"/>

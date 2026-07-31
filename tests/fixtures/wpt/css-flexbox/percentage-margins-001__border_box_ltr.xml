@@ -1,5 +1,5 @@
 <test name="percentage-margins-001__border_box_ltr" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" direction="ltr">
       <div display="block" direction="ltr"/>
@@ -18,8 +18,8 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="400" height="900">
-      <node x="0" y="0" width="400" height="0"/>
+    <node x="0" y="0" width="1280" height="900">
+      <node x="0" y="0" width="1280" height="0"/>
       <node x="0" y="0" width="400" height="300">
         <node x="40" y="40" width="320" height="135"/>
         <node x="40" y="255" width="320" height="5"/>

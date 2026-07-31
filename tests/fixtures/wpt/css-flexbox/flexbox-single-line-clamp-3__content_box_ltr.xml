@@ -1,5 +1,5 @@
 <test name="flexbox-single-line-clamp-3__content_box_ltr" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" box-sizing="content-box" direction="ltr">
       <div display="flex" box-sizing="content-box" direction="ltr" align-content="flex-start" min-height="80px">
@@ -10,8 +10,8 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="150" height="80">
-      <node x="0" y="0" width="150" height="80">
+    <node x="0" y="0" width="1280" height="80">
+      <node x="0" y="0" width="1280" height="80">
         <node x="0" y="0" width="150" height="80">
           <node x="0" y="0" width="10" height="10"/>
         </node>

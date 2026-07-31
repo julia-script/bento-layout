@@ -1,7 +1,7 @@
 <test name="fuzz_leaf_ar_minmax_transfer__border_box_rtl" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div display="block" direction="rtl">
+    <div display="block" direction="rtl" position="absolute">
       <div display="block" direction="rtl" width="900px">
         <div display="block" direction="rtl" height="200px" min-width="900px" aspect-ratio="2"/>
       </div>

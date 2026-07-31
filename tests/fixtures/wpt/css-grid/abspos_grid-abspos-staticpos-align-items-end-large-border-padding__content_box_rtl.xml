@@ -1,5 +1,5 @@
 <test name="abspos_grid-abspos-staticpos-align-items-end-large-border-padding__content_box_rtl" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" box-sizing="content-box" direction="rtl">
       <div display="grid" box-sizing="content-box" direction="rtl" align-items="end" width="100px" height="100px" padding-top="13px" padding-left="13px" padding-bottom="42px" padding-right="13px" border-top="23px" border-left="23px" border-bottom="45px" border-right="23px">
@@ -8,8 +8,8 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="172" height="223">
-      <node x="0" y="0" width="172" height="223">
+    <node x="0" y="0" width="1280" height="223">
+      <node x="1108" y="0" width="172" height="223">
         <node x="99" y="128" width="50" height="50"/>
       </node>
     </node>

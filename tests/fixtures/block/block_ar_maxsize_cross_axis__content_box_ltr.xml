@@ -1,7 +1,7 @@
 <test name="block_ar_maxsize_cross_axis__content_box_ltr" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div display="block" box-sizing="content-box" direction="ltr">
+    <div display="block" box-sizing="content-box" direction="ltr" position="absolute">
       <div display="block" box-sizing="content-box" direction="ltr" height="200px" max-width="3px" aspect-ratio="2"/>
       <div display="block" box-sizing="content-box" direction="ltr" width="200px" max-height="3px" aspect-ratio="2"/>
       <div display="block" box-sizing="content-box" direction="ltr" width="200px" max-width="3px" aspect-ratio="2"/>

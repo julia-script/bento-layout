@@ -1,5 +1,5 @@
 <test name="abspos_position-absolute-015__content_box_rtl" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" box-sizing="content-box" direction="rtl">
       <div display="flex" box-sizing="content-box" direction="rtl" justify-content="flex-end" width="200px" height="100px" border-top="5px" border-left="5px" border-bottom="5px" border-right="5px">
@@ -8,8 +8,8 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="210" height="110">
-      <node x="0" y="0" width="210" height="110">
+    <node x="0" y="0" width="1280" height="110">
+      <node x="1070" y="0" width="210" height="110">
         <node x="25" y="25" width="30" height="40"/>
       </node>
     </node>

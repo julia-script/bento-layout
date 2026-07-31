@@ -1,5 +1,5 @@
 <test name="flexbox-flex-wrap-horiz-001__border_box_ltr" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" direction="ltr">
       <div display="flex" direction="ltr" flex-wrap="wrap" width="100px" height="12px" margin-bottom="2px" border-top="1px" border-left="1px" border-bottom="1px" border-right="1px">
@@ -40,7 +40,7 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="100" height="140">
+    <node x="0" y="0" width="1280" height="138">
       <node x="0" y="0" width="100" height="12">
         <node x="1" y="1" width="48" height="10"/>
       </node>

@@ -1,7 +1,7 @@
 <test name="mixed_block_flex_grid_nesting__content_box_rtl" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div display="block" box-sizing="content-box" direction="rtl" width="400px">
+    <div display="block" box-sizing="content-box" direction="rtl" position="absolute" width="400px">
       <div display="flex" box-sizing="content-box" direction="rtl" height="120px" row-gap="10px" column-gap="10px">
         <div display="grid" box-sizing="content-box" direction="rtl" flex-grow="1" row-gap="5px" column-gap="5px" grid-template-rows="1fr 1fr" grid-template-columns="40px 1fr">
           <div box-sizing="content-box" direction="rtl"/>

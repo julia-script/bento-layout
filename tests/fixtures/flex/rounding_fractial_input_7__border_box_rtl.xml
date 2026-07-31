@@ -1,7 +1,7 @@
 <test name="rounding_fractial_input_7__border_box_rtl" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div direction="rtl" width="7px">
+    <div direction="rtl" position="absolute" width="7px">
       <div direction="rtl" flex-wrap="wrap" width="25%">
         <div direction="rtl" width="1px" height="10px"/>
         <div direction="rtl" width="1px" height="10px"/>

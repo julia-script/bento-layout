@@ -207,7 +207,12 @@ function describeElement(e) {
       display: parseEnum(e.style.display),
       boxSizing: parseEnum(computedStyle.boxSizing),
 
-      position: parseEnum(e.style.position),
+      // Computed, not inline: the base stylesheet's `body > *` rule makes the
+      // outermost box absolute, and whether it lands on `#test-root` or on a
+      // `.viewport` wrapper decides if the root's margins collapse with its
+      // children's. Reading the inline style made both regimes look `relative`,
+      // so the engine could not tell them apart.
+      position: parseEnum(computedStyle.position),
       direction: parseEnum(computedStyle.direction),
 
       writingMode: parseEnum(e.style.writingMode),

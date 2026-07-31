@@ -1,7 +1,7 @@
 <test name="width_smaller_then_content_with_flex_grow_unconstraint_size__border_box_ltr" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div direction="ltr">
+    <div direction="ltr" position="absolute">
       <div direction="ltr" flex-direction="column" flex-grow="1" width="0px">
         <div direction="ltr" width="70px" height="100px"/>
       </div>

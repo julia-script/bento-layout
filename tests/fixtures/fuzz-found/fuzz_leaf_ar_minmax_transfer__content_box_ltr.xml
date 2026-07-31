@@ -1,7 +1,7 @@
 <test name="fuzz_leaf_ar_minmax_transfer__content_box_ltr" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div display="block" box-sizing="content-box" direction="ltr">
+    <div display="block" box-sizing="content-box" direction="ltr" position="absolute">
       <div display="block" box-sizing="content-box" direction="ltr" width="900px">
         <div display="block" box-sizing="content-box" direction="ltr" height="200px" min-width="900px" aspect-ratio="2"/>
       </div>

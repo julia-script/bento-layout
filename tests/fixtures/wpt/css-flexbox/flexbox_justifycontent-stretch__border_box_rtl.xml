@@ -1,5 +1,5 @@
 <test name="flexbox_justifycontent-stretch__border_box_rtl" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" direction="rtl">
       <div display="flex" direction="rtl" justify-content="stretch" width="200px" height="100px">
@@ -9,8 +9,8 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="200" height="100">
-      <node x="0" y="0" width="200" height="100">
+    <node x="0" y="0" width="1280" height="100">
+      <node x="1080" y="0" width="200" height="100">
         <node x="150" y="0" width="50" height="100"/>
         <node x="100" y="0" width="50" height="100"/>
       </node>

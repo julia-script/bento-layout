@@ -1,5 +1,5 @@
 <test name="anonymous-grid-items-001__content_box_rtl" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" box-sizing="content-box" direction="rtl">
       <text display="block" box-sizing="content-box" direction="rtl">
@@ -11,9 +11,9 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="610" height="20">
-      <node x="0" y="0" width="610" height="10"/>
-      <node x="0" y="10" width="610" height="10"/>
+    <node x="0" y="0" width="1280" height="20">
+      <node x="0" y="0" width="1280" height="10"/>
+      <node x="0" y="10" width="1280" height="10"/>
     </node>
   </expectations>
 </test>

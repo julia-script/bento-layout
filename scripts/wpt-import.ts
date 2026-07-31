@@ -585,6 +585,29 @@ const IN_PAGE_REWRITE = `(dropProps) => {
   return { before, after, html: root.outerHTML };
 }`;
 
+/**
+ * The width gentest renders at (`page.setViewport` in scripts/gentest.ts).
+ *
+ * WPT pages carry no `.viewport` wrapper, and `parseViewportConstraint` falls
+ * back to `max-content` without one — so the fixture claimed an unbounded
+ * viewport while Chrome had laid the page out at this width. Any test whose
+ * content fills the viewport was unpassable by construction (WPT
+ * `auto-margins-ignored-during-track-sizing-001`: its `1fr` tracks got the
+ * prose's 1010px max-content width instead of Chrome's 427).
+ *
+ * Adding the wrapper also moves these pages into the same root-positioning
+ * regime the 187 hand-written `.viewport` pages already use: `body > *` lands
+ * on the wrapper, so `#test-root` is `relative` rather than `absolute` and its
+ * margins collapse with its children's. That is a real change to every WPT
+ * expectation, which is why this lands together with a full regeneration.
+ *
+ * `display: contents` keeps the wrapper itself out of layout, so `#test-root`
+ * still sizes against the viewport width exactly as before. Keep the width in
+ * sync with gentest.
+ */
+const VIEWPORT_WRAPPER_OPEN =
+  '<div class="viewport" style="display: contents; width: 1280px;">';
+
 function buildRenderPage(supportJs: string, supportCss: string, styleCss: string, bodyHtml: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -698,7 +721,9 @@ ${help}
 </head>
 <body>
 
+${VIEWPORT_WRAPPER_OPEN}
 ${bodyHtml}
+</div>
 
 </body>
 </html>

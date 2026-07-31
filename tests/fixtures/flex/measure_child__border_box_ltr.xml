@@ -1,7 +1,7 @@
 <test name="measure_child__border_box_ltr" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div direction="ltr">
+    <div direction="ltr" position="absolute">
       <text direction="ltr">
         HHHHHH
       </text>

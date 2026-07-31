@@ -1,7 +1,7 @@
 <test name="measure_child_constraint_padding_parent__border_box_ltr" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div direction="ltr" width="50px" padding-top="10px" padding-left="10px" padding-bottom="10px" padding-right="10px">
+    <div direction="ltr" position="absolute" width="50px" padding-top="10px" padding-left="10px" padding-bottom="10px" padding-right="10px">
       <text direction="ltr">
         HHHHHHHHHH​HHHHHHHHHH​HHHHHHHHHH​HHHHHHHHHH​HHHHHHHHHH​HHHHHHHHHH​HHHHHHHHHH​HHHHHHHHHH​HHHHHHHHHH​HHHHHHHHHH
       </text>

@@ -1,7 +1,7 @@
 <test name="undefined_height_with_min_max__border_box_rtl" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div direction="rtl" flex-direction="column" width="320px" min-height="0px">
+    <div direction="rtl" position="absolute" flex-direction="column" width="320px" min-height="0px">
       <div direction="rtl" min-height="0px" max-height="100px"/>
     </div>
   </input>

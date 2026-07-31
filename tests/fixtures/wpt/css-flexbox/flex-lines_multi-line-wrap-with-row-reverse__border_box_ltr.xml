@@ -1,5 +1,5 @@
 <test name="flex-lines_multi-line-wrap-with-row-reverse__border_box_ltr" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" direction="ltr">
       <text display="flex" direction="ltr" flex-direction="row-reverse" flex-wrap="wrap" width="300px">
@@ -8,7 +8,7 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="300" height="0">
+    <node x="0" y="0" width="1280" height="0">
       <node x="0" y="0" width="300" height="0"/>
     </node>
   </expectations>

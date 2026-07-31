@@ -1,7 +1,7 @@
 <test name="grid_min_content_flex_single_item_margin_fixed__border_box_ltr" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div display="grid" direction="ltr" grid-template-rows="40px 40px 40px" grid-template-columns="40px min-content 1fr">
+    <div display="grid" direction="ltr" position="absolute" grid-template-rows="40px 40px 40px" grid-template-columns="40px min-content 1fr">
       <div direction="ltr"/>
       <div direction="ltr" min-width="10px" margin-top="5px" margin-left="20px" margin-bottom="15px" margin-right="10px"/>
       <div direction="ltr"/>

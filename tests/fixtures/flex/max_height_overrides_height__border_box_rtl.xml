@@ -1,7 +1,7 @@
 <test name="max_height_overrides_height__border_box_rtl" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div direction="rtl">
+    <div direction="rtl" position="absolute">
       <div direction="rtl" height="200px" max-height="100px"/>
     </div>
   </input>

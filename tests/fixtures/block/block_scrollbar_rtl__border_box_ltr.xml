@@ -1,7 +1,7 @@
 <test name="block_scrollbar_rtl__border_box_ltr" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div display="block" direction="rtl" overflow-y="scroll" scrollbar-width="0" width="100px" height="100px">
+    <div display="block" direction="rtl" position="absolute" overflow-y="scroll" scrollbar-width="0" width="100px" height="100px">
       <div direction="ltr" height="200px"/>
     </div>
   </input>

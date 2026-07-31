@@ -1,5 +1,5 @@
 <test name="grid-definition_grid-auto-repeat-multiple-values-003__content_box_ltr" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" box-sizing="content-box" direction="ltr">
       <div display="block" box-sizing="content-box" direction="ltr" width="300px" height="30px" border-bottom="2px">
@@ -92,7 +92,7 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="650" height="288">
+    <node x="0" y="0" width="1280" height="288">
       <node x="0" y="0" width="300" height="32">
         <node x="0" y="0" width="300" height="30">
           <node x="0" y="0" width="10" height="30"/>

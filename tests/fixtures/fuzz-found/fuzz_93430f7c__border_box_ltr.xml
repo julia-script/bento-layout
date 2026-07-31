@@ -1,7 +1,7 @@
 <test name="fuzz_93430f7c__border_box_ltr" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div display="block" direction="ltr">
+    <div display="block" direction="ltr" position="absolute">
       <div direction="ltr" width="120px" height="10px" aspect-ratio="2"/>
     </div>
   </input>

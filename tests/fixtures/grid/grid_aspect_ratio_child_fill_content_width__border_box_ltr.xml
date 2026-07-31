@@ -1,7 +1,7 @@
 <test name="grid_aspect_ratio_child_fill_content_width__border_box_ltr" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div display="grid" direction="ltr">
+    <div display="grid" direction="ltr" position="absolute">
       <text direction="ltr" aspect-ratio="2">
         HHHH
       </text>

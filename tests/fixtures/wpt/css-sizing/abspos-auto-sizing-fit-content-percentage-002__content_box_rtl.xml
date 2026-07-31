@@ -1,5 +1,5 @@
 <test name="abspos-auto-sizing-fit-content-percentage-002__content_box_rtl" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" box-sizing="content-box" direction="rtl">
       <div display="block" box-sizing="content-box" direction="rtl" width="100px" height="100px">
@@ -10,8 +10,8 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="100" height="100">
-      <node x="0" y="0" width="100" height="100">
+    <node x="0" y="0" width="1280" height="100">
+      <node x="1180" y="0" width="100" height="100">
         <node x="0" y="0" width="100" height="100">
           <node x="50" y="0" width="100" height="100"/>
         </node>

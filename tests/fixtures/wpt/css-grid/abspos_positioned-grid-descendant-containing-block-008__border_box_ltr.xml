@@ -1,5 +1,5 @@
 <test name="abspos_positioned-grid-descendant-containing-block-008__border_box_ltr" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" direction="ltr">
       <div display="grid" direction="ltr" width="150px" height="150px" padding-top="25px" padding-left="25px" padding-bottom="25px" padding-right="25px" grid-template-rows="150px" grid-template-columns="150px">
@@ -10,7 +10,7 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="150" height="150">
+    <node x="0" y="0" width="1280" height="150">
       <node x="0" y="0" width="150" height="150">
         <node x="25" y="25" width="150" height="150">
           <node x="0" y="0" width="75" height="75"/>

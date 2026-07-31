@@ -1,7 +1,7 @@
 <test name="flex_auto_margins_absorb_free_space__border_box_ltr" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div display="block" direction="ltr">
+    <div display="block" direction="ltr" position="absolute">
       <div display="flex" direction="ltr" flex-wrap="wrap" justify-content="space-around" width="200px" row-gap="10px" column-gap="20px">
         <div display="block" direction="ltr" width="30px" height="30px"/>
         <div display="block" direction="ltr" width="30px" height="30px"/>

@@ -1,5 +1,5 @@
 <test name="flexbox-lines-must-be-stretched-by-default__content_box_rtl" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" box-sizing="content-box" direction="rtl">
       <div display="flex" box-sizing="content-box" direction="rtl" flex-wrap="wrap" width="200px" height="100px">
@@ -9,8 +9,8 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="200" height="100">
-      <node x="0" y="0" width="200" height="100">
+    <node x="0" y="0" width="1280" height="100">
+      <node x="1080" y="0" width="200" height="100">
         <node x="0" y="0" width="200" height="51"/>
         <node x="0" y="51" width="200" height="49"/>
       </node>

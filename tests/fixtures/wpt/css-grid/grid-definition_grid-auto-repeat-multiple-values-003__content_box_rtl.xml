@@ -1,5 +1,5 @@
 <test name="grid-definition_grid-auto-repeat-multiple-values-003__content_box_rtl" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" box-sizing="content-box" direction="rtl">
       <div display="block" box-sizing="content-box" direction="rtl" width="300px" height="30px" border-bottom="2px">
@@ -92,8 +92,8 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="650" height="288">
-      <node x="350" y="0" width="300" height="32">
+    <node x="0" y="0" width="1280" height="288">
+      <node x="980" y="0" width="300" height="32">
         <node x="0" y="0" width="300" height="30">
           <node x="290" y="0" width="10" height="30"/>
           <node x="270" y="0" width="20" height="30"/>
@@ -103,7 +103,7 @@
           <node x="130" y="0" width="40" height="30"/>
         </node>
       </node>
-      <node x="350" y="32" width="300" height="32">
+      <node x="980" y="32" width="300" height="32">
         <node x="0" y="0" width="300" height="30">
           <node x="290" y="0" width="10" height="30"/>
           <node x="270" y="0" width="20" height="30"/>
@@ -113,7 +113,7 @@
           <node x="120" y="0" width="50" height="30"/>
         </node>
       </node>
-      <node x="0" y="64" width="650" height="32">
+      <node x="630" y="64" width="650" height="32">
         <node x="0" y="0" width="650" height="30">
           <node x="620" y="0" width="20" height="30"/>
           <node x="590" y="0" width="30" height="30"/>
@@ -123,7 +123,7 @@
           <node x="450" y="0" width="30" height="30"/>
         </node>
       </node>
-      <node x="0" y="96" width="650" height="32">
+      <node x="630" y="96" width="650" height="32">
         <node x="0" y="0" width="650" height="30">
           <node x="620" y="0" width="20" height="30"/>
           <node x="590" y="0" width="30" height="30"/>
@@ -133,7 +133,7 @@
           <node x="450" y="0" width="30" height="30"/>
         </node>
       </node>
-      <node x="0" y="128" width="650" height="32">
+      <node x="630" y="128" width="650" height="32">
         <node x="0" y="0" width="650" height="30">
           <node x="620" y="0" width="20" height="30"/>
           <node x="590" y="0" width="30" height="30"/>
@@ -143,7 +143,7 @@
           <node x="450" y="0" width="30" height="30"/>
         </node>
       </node>
-      <node x="350" y="160" width="300" height="32">
+      <node x="980" y="160" width="300" height="32">
         <node x="0" y="0" width="300" height="30">
           <node x="270" y="0" width="20" height="30"/>
           <node x="240" y="0" width="30" height="30"/>
@@ -153,7 +153,7 @@
           <node x="60" y="0" width="60" height="30"/>
         </node>
       </node>
-      <node x="350" y="192" width="300" height="32">
+      <node x="980" y="192" width="300" height="32">
         <node x="0" y="0" width="300" height="30">
           <node x="290" y="0" width="10" height="30"/>
           <node x="270" y="0" width="20" height="30"/>
@@ -163,7 +163,7 @@
           <node x="90" y="0" width="60" height="30"/>
         </node>
       </node>
-      <node x="350" y="224" width="300" height="32">
+      <node x="980" y="224" width="300" height="32">
         <node x="0" y="0" width="300" height="30">
           <node x="230" y="0" width="40" height="30"/>
           <node x="200" y="0" width="30" height="30"/>
@@ -173,7 +173,7 @@
           <node x="290" y="30" width="10" height="0"/>
         </node>
       </node>
-      <node x="140" y="256" width="510" height="32">
+      <node x="770" y="256" width="510" height="32">
         <node x="0" y="0" width="510" height="30">
           <node x="500" y="0" width="10" height="30"/>
           <node x="370" y="0" width="110" height="30"/>

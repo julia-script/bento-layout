@@ -1,7 +1,7 @@
 <test name="flex_basis_unconstraint_column__border_box_rtl" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div direction="rtl" flex-direction="column">
+    <div direction="rtl" position="absolute" flex-direction="column">
       <div direction="rtl" flex-basis="50px" width="100px"/>
     </div>
   </input>

@@ -1,7 +1,7 @@
 <test name="measure_height_overrides_measure__border_box_rtl" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div direction="rtl">
+    <div direction="rtl" position="absolute">
       <text direction="rtl" height="5px">
         H
       </text>

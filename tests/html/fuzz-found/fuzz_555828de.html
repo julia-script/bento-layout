@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: seed=424242 index=14
+  date: 2026-07-31
+  chrome: Chrome/151.0.7922.47
+  Regenerate the XML fixtures with: pnpm gentest fuzz_555828de
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found conformance mismatch (fuzz_555828de)
+  </title>
+</head>
+<body>
+
+<div id="test-root">
+  <div style="display: grid; grid-template-columns: min-content auto; grid-auto-columns: 1px;">
+    <div></div>
+    <div style="grid-column-start: span 3; grid-column-end: auto;"></div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,7 +1,7 @@
 <test name="android_news_feed__border_box_ltr" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div direction="ltr" flex-direction="column" align-content="stretch" flex-shrink="0" width="1080px">
+    <div direction="ltr" position="absolute" flex-direction="column" align-content="stretch" flex-shrink="0" width="1080px">
       <div direction="ltr" flex-direction="column" flex-shrink="0">
         <div direction="ltr" flex-direction="column" align-content="stretch">
           <div direction="ltr" flex-direction="column" align-content="stretch">

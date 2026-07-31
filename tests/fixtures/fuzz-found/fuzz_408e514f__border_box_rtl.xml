@@ -1,7 +1,7 @@
 <test name="fuzz_408e514f__border_box_rtl" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div direction="rtl" width="7px">
+    <div direction="rtl" position="absolute" width="7px">
       <div direction="rtl" aspect-ratio="2" padding-top="60%" padding-left="5%" padding-bottom="60%" padding-right="200px"/>
     </div>
   </input>

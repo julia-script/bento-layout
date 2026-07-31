@@ -1,7 +1,7 @@
 <test name="fuzz_d3b5d30d__border_box_ltr" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div display="grid" direction="ltr" width="100px" height="60px">
+    <div display="grid" direction="ltr" position="absolute" width="100px" height="60px">
       <div direction="ltr" grid-column-end="-3"/>
     </div>
   </input>

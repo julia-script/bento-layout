@@ -8,8 +8,8 @@ import { mClamp, mMax, round } from './math.js';
 import type { Opt } from './math.js';
 import { asIntoOption, maybeResolveSize, resolveRectOrZero, resolveStyle } from './style.js';
 import type { AvailableSpace, Style } from './style.js';
-import { Cache, layoutWithOrder } from './tree.js';
-import type { Layout, MeasureFunction, Node } from './tree.js';
+import { Cache, layoutWithOrder, resolveMarginSet } from './tree.js';
+import type { Layout, Line, MeasureFunction, Node } from './tree.js';
 import { measureChildSize, performChildLayout } from './compute/dispatch.js';
 
 export * from './geometry.js';
@@ -75,8 +75,31 @@ function computeRootLayout(root: Node, availableSpace: Size<AvailableSpace>): vo
     knownDimensions = blockRootKnownDimensions(root.style, parentSize, availableSpace);
   }
 
+  // A root block in normal flow is an ordinary in-flow box, so its own margins
+  // collapse with its children's (css2 §8.3.1). The conditions that *stop* that
+  // — padding or border on the edge, a definite height, a BFC, `position:
+  // absolute`, a non-block display — are all checked inside block layout, so
+  // this enables the rule rather than forcing it. Chrome, a 600px block whose
+  // only child is `height: 100; margin: 1px 2px 3px 4px`:
+  //   plain              -> h=100  (both ends collapse through)
+  //   + padding-top      -> h=106  (start blocked)
+  //   + height: 200      -> h=200  (end blocked)
+  //   + overflow: hidden -> h=104  (BFC)
+  //   position: absolute -> h=104
+  //   display: flex      -> h=104
+  // Taffy passes LINE_FALSE here, so a root never collapsed at all and its
+  // height absorbed the child margins.
+  const rootMarginsCollapse: Line<boolean> = { start: true, end: true };
+
   // Recursively compute node layout
-  let output = performChildLayout(root, knownDimensions, parentSize, availableSpace, 'inherent-size');
+  let output = performChildLayout(
+    root,
+    knownDimensions,
+    parentSize,
+    availableSpace,
+    'inherent-size',
+    rootMarginsCollapse,
+  );
 
   // A root has no parent to hand it a size, so when both style axes are `auto`
   // its inline size only becomes definite once content resolves it — after the
@@ -99,7 +122,14 @@ function computeRootLayout(root: Node, availableSpace: Size<AvailableSpace>): vo
     output.size.width > 0
   ) {
     const withResolvedWidth = { width: output.size.width, height: null };
-    const rerun = performChildLayout(root, withResolvedWidth, parentSize, availableSpace, 'inherent-size');
+    const rerun = performChildLayout(
+      root,
+      withResolvedWidth,
+      parentSize,
+      availableSpace,
+      'inherent-size',
+      rootMarginsCollapse,
+    );
     // Content that overflows the ratio-derived height still wins (the ratio
     // supplies an *automatic* size, not a cap), so never shrink below the
     // height the first pass measured.
@@ -130,6 +160,7 @@ function computeRootLayout(root: Node, availableSpace: Size<AvailableSpace>): vo
         parentSize,
         availableSpace,
         'inherent-size',
+        rootMarginsCollapse,
       );
     }
   }
@@ -149,7 +180,13 @@ function computeRootLayout(root: Node, availableSpace: Size<AvailableSpace>): vo
           ? parentSize.width - output.size.width
           : 0
         : 0,
-    y: 0,
+    // A margin that collapsed *through* the root's top edge is outside the
+    // root's own box, so it offsets the root rather than growing it — Chrome
+    // puts a block whose first child has `margin-top: 20` at y=20, height
+    // unchanged. `output.topMargin` is that already-collapsed set; when the
+    // root does not collapse (absolute, BFC, padding/border) it holds the
+    // root's own margin, which does not move it, so guard on the same flag.
+    y: rootMarginsCollapse.start ? resolveMarginSet(output.topMargin) : 0,
   };
 
   root.unroundedLayout = {

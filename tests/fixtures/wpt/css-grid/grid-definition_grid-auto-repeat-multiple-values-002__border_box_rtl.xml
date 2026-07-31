@@ -1,5 +1,5 @@
 <test name="grid-definition_grid-auto-repeat-multiple-values-002__border_box_rtl" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" direction="rtl">
       <div display="block" direction="rtl" width="300px" height="30px" border-bottom="2px">
@@ -35,8 +35,8 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="300" height="90">
-      <node x="0" y="0" width="300" height="30">
+    <node x="0" y="0" width="1280" height="90">
+      <node x="980" y="0" width="300" height="30">
         <node x="0" y="0" width="300" height="30">
           <node x="290" y="0" width="10" height="30"/>
           <node x="270" y="0" width="20" height="30"/>
@@ -46,7 +46,7 @@
           <node x="130" y="0" width="40" height="30"/>
         </node>
       </node>
-      <node x="0" y="30" width="300" height="30">
+      <node x="980" y="30" width="300" height="30">
         <node x="0" y="0" width="300" height="30">
           <node x="290" y="0" width="10" height="30"/>
           <node x="270" y="0" width="20" height="30"/>
@@ -56,7 +56,7 @@
           <node x="80" y="0" width="50" height="30"/>
         </node>
       </node>
-      <node x="0" y="60" width="300" height="30">
+      <node x="980" y="60" width="300" height="30">
         <node x="0" y="0" width="300" height="30">
           <node x="270" y="0" width="20" height="30"/>
           <node x="240" y="0" width="30" height="30"/>

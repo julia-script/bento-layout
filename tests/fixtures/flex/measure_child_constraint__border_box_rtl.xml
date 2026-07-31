@@ -1,7 +1,7 @@
 <test name="measure_child_constraint__border_box_rtl" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div direction="rtl" width="50px">
+    <div direction="rtl" position="absolute" width="50px">
       <text direction="rtl">
         HHHHHHHHHH​HHHHHHHHHH​HHHHHHHHHH​HHHHHHHHHH​HHHHHHHHHH​HHHHHHHHHH​HHHHHHHHHH​HHHHHHHHHH​HHHHHHHHHH​HHHHHHHHHH
       </text>

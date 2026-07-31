@@ -1,5 +1,5 @@
 <test name="aspect-ratio_fractional-aspect-ratio__content_box_rtl" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" box-sizing="content-box" direction="rtl">
       <div display="block" box-sizing="content-box" direction="rtl" width="100px" aspect-ratio="2.5"/>
@@ -7,9 +7,9 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="320" height="240">
-      <node x="220" y="0" width="100" height="40"/>
-      <node x="0" y="40" width="320" height="200"/>
+    <node x="0" y="0" width="1280" height="240">
+      <node x="1180" y="0" width="100" height="40"/>
+      <node x="960" y="40" width="320" height="200"/>
     </node>
   </expectations>
 </test>

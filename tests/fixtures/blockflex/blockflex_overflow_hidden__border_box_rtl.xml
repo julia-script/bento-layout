@@ -1,7 +1,7 @@
 <test name="blockflex_overflow_hidden__border_box_rtl" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div display="flex" direction="rtl" width="20px" height="50px">
+    <div display="flex" direction="rtl" position="absolute" width="20px" height="50px">
       <text display="block" direction="rtl" overflow-x="hidden" overflow-y="hidden" scrollbar-width="0" flex-grow="1">
         HHHH​HH
       </text>

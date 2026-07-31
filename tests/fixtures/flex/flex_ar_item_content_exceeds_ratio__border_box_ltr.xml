@@ -1,7 +1,7 @@
 <test name="flex_ar_item_content_exceeds_ratio__border_box_ltr" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div display="block" direction="ltr">
+    <div display="block" direction="ltr" position="absolute">
       <div display="block" direction="ltr" width="200px">
         <div display="flex" direction="ltr" aspect-ratio="4">
           <div display="flex" direction="ltr" aspect-ratio="1">

@@ -1,5 +1,5 @@
 <test name="flex-container-margin__border_box_ltr" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" direction="ltr">
       <div display="flex" direction="ltr" margin-top="20px" margin-left="20px" margin-bottom="20px" margin-right="20px">
@@ -10,8 +10,8 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="310" height="130">
-      <node x="20" y="20" width="270" height="90">
+    <node x="0" y="20" width="1280" height="90">
+      <node x="20" y="0" width="1240" height="90">
         <node x="20" y="20" width="50" height="50"/>
         <node x="110" y="20" width="50" height="50"/>
         <node x="200" y="20" width="50" height="50"/>

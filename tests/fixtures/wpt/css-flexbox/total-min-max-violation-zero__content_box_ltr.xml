@@ -1,5 +1,5 @@
 <test name="total-min-max-violation-zero__content_box_ltr" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" box-sizing="content-box" direction="ltr">
       <div display="flex" box-sizing="content-box" direction="ltr" width="300px" height="300px" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
@@ -9,7 +9,7 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="306" height="306">
+    <node x="0" y="0" width="1280" height="306">
       <node x="0" y="0" width="306" height="306">
         <node x="3" y="3" width="250" height="300"/>
         <node x="253" y="3" width="50" height="300"/>

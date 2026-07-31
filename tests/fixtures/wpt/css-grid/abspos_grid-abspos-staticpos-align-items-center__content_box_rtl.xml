@@ -1,5 +1,5 @@
 <test name="abspos_grid-abspos-staticpos-align-items-center__content_box_rtl" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" box-sizing="content-box" direction="rtl">
       <div display="grid" box-sizing="content-box" direction="rtl" align-items="center" width="100px" height="100px" border-top="1px" border-left="1px" border-bottom="1px" border-right="1px">
@@ -8,8 +8,8 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="102" height="102">
-      <node x="0" y="0" width="102" height="102">
+    <node x="0" y="0" width="1280" height="102">
+      <node x="1178" y="0" width="102" height="102">
         <node x="51" y="26" width="50" height="50"/>
       </node>
     </node>

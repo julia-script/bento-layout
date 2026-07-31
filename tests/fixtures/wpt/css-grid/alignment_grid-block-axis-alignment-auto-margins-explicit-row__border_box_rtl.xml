@@ -1,5 +1,5 @@
 <test name="alignment_grid-block-axis-alignment-auto-margins-explicit-row__border_box_rtl" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" direction="rtl">
       <div display="grid" direction="rtl" grid-template-rows="100px 100px" grid-template-columns="100px">
@@ -9,10 +9,10 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="100" height="200">
-      <node x="0" y="0" width="100" height="200">
-        <node x="0" y="40" width="100" height="20"/>
-        <node x="0" y="130" width="100" height="40"/>
+    <node x="0" y="0" width="1280" height="200">
+      <node x="0" y="0" width="1280" height="200">
+        <node x="1180" y="40" width="100" height="20"/>
+        <node x="1180" y="130" width="100" height="40"/>
       </node>
     </node>
   </expectations>

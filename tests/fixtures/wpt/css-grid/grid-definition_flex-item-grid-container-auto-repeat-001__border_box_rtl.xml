@@ -1,5 +1,5 @@
 <test name="grid-definition_flex-item-grid-container-auto-repeat-001__border_box_rtl" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" direction="rtl">
       <div display="flex" direction="rtl" width="100px" height="100px">
@@ -9,8 +9,8 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="100" height="100">
-      <node x="0" y="0" width="100" height="100">
+    <node x="0" y="0" width="1280" height="100">
+      <node x="1180" y="0" width="100" height="100">
         <node x="50" y="0" width="50" height="100"/>
         <node x="0" y="0" width="50" height="100"/>
       </node>

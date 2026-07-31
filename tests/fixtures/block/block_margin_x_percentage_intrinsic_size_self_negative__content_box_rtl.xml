@@ -1,7 +1,7 @@
 <test name="block_margin_x_percentage_intrinsic_size_self_negative__content_box_rtl" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div display="block" box-sizing="content-box" direction="rtl">
+    <div display="block" box-sizing="content-box" direction="rtl" position="absolute">
       <div box-sizing="content-box" direction="rtl" width="100px" height="10px" margin-left="-20%" margin-right="-10%"/>
     </div>
   </input>

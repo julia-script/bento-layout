@@ -1,7 +1,7 @@
 <test name="grid_out_of_order_items__border_box_ltr" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div display="grid" direction="ltr" width="120px" height="120px" grid-auto-flow="row dense" grid-template-rows="40px 40px 40px" grid-template-columns="40px 40px 40px">
+    <div display="grid" direction="ltr" position="absolute" width="120px" height="120px" grid-auto-flow="row dense" grid-template-rows="40px 40px 40px" grid-template-columns="40px 40px 40px">
       <div direction="ltr"/>
       <div direction="ltr"/>
       <div direction="ltr" width="35px" height="35px" grid-column-start="1"/>

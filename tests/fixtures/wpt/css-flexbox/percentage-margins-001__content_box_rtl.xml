@@ -1,5 +1,5 @@
 <test name="percentage-margins-001__content_box_rtl" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" box-sizing="content-box" direction="rtl">
       <div display="block" box-sizing="content-box" direction="rtl"/>
@@ -18,17 +18,17 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="600" height="1100">
-      <node x="0" y="0" width="600" height="0"/>
-      <node x="200" y="0" width="400" height="300">
+    <node x="0" y="0" width="1280" height="1100">
+      <node x="0" y="0" width="1280" height="0"/>
+      <node x="880" y="0" width="400" height="300">
         <node x="40" y="40" width="320" height="135"/>
         <node x="40" y="255" width="320" height="5"/>
       </node>
-      <node x="200" y="300" width="400" height="300">
+      <node x="880" y="300" width="400" height="300">
         <node x="125" y="40" width="235" height="5"/>
         <node x="40" y="40" width="5" height="5"/>
       </node>
-      <node x="0" y="600" width="600" height="500">
+      <node x="680" y="600" width="600" height="500">
         <node x="225" y="140" width="235" height="5"/>
         <node x="140" y="140" width="5" height="5"/>
       </node>

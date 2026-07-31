@@ -1,7 +1,7 @@
 <test name="blockgrid_block_in_grid_fr__border_box_rtl" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div display="grid" direction="rtl" grid-template-columns="1fr">
+    <div display="grid" direction="rtl" position="absolute" grid-template-columns="1fr">
       <text display="block" direction="rtl">
         HH​HH
       </text>

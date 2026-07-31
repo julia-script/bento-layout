@@ -1,7 +1,7 @@
 <test name="flex_cross_auto_margin_negative_space__border_box_ltr" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div display="block" direction="ltr">
+    <div display="block" direction="ltr" position="absolute">
       <div display="flex" direction="ltr" width="55px" height="1px">
         <div display="block" direction="ltr" margin-top="auto" margin-left="3px" margin-bottom="17px"/>
       </div>

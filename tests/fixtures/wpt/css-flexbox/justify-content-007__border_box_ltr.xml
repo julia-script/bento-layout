@@ -1,5 +1,5 @@
 <test name="justify-content-007__border_box_ltr" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" direction="ltr">
       <div display="flex" direction="ltr" flex-direction="column" flex-wrap="wrap" align-content="start" justify-content="center" max-height="200px" border-top="2px" border-left="2px" border-bottom="2px" border-right="2px">
@@ -9,8 +9,8 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="204" height="200">
-      <node x="0" y="0" width="204" height="200">
+    <node x="0" y="0" width="1280" height="200">
+      <node x="0" y="0" width="1280" height="200">
         <node x="2" y="2" width="100" height="196"/>
         <node x="102" y="50" width="100" height="100"/>
       </node>

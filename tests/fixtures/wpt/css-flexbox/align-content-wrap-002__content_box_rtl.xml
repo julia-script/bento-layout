@@ -1,5 +1,5 @@
 <test name="align-content-wrap-002__content_box_rtl" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" box-sizing="content-box" direction="rtl">
       <div display="block" box-sizing="content-box" direction="rtl"/>
@@ -84,9 +84,9 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="600" height="3000">
-      <node x="0" y="0" width="600" height="0"/>
-      <node x="0" y="0" width="600" height="100">
+    <node x="0" y="0" width="1280" height="2900">
+      <node x="0" y="0" width="1280" height="0"/>
+      <node x="680" y="0" width="600" height="100">
         <node x="440" y="10" width="150" height="80">
           <node x="50" y="0" width="100" height="150"/>
         </node>
@@ -97,7 +97,7 @@
           <node x="50" y="0" width="100" height="50"/>
         </node>
       </node>
-      <node x="0" y="200" width="600" height="100">
+      <node x="680" y="200" width="600" height="100">
         <node x="440" y="10" width="150" height="150">
           <node x="50" y="0" width="100" height="150"/>
         </node>
@@ -108,7 +108,7 @@
           <node x="50" y="0" width="100" height="50"/>
         </node>
       </node>
-      <node x="0" y="400" width="600" height="100">
+      <node x="680" y="400" width="600" height="100">
         <node x="440" y="10" width="150" height="150">
           <node x="50" y="0" width="100" height="150"/>
         </node>
@@ -125,7 +125,7 @@
           <node x="50" y="0" width="100" height="100"/>
         </node>
       </node>
-      <node x="500" y="700" width="100" height="600">
+      <node x="1180" y="700" width="100" height="600">
         <node x="10" y="10" width="80" height="150">
           <node x="-70" y="0" width="150" height="100"/>
         </node>
@@ -136,7 +136,7 @@
           <node x="30" y="0" width="50" height="100"/>
         </node>
       </node>
-      <node x="500" y="1500" width="100" height="600">
+      <node x="1180" y="1500" width="100" height="600">
         <node x="-60" y="10" width="150" height="150">
           <node x="0" y="0" width="150" height="100"/>
         </node>
@@ -147,7 +147,7 @@
           <node x="100" y="0" width="50" height="100"/>
         </node>
       </node>
-      <node x="500" y="2300" width="100" height="600">
+      <node x="1180" y="2300" width="100" height="600">
         <node x="-60" y="10" width="150" height="150">
           <node x="0" y="0" width="150" height="100"/>
         </node>

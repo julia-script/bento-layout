@@ -1,5 +1,5 @@
 <test name="implicit-grids_grid-support-grid-auto-columns-rows-001__content_box_ltr" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" box-sizing="content-box" direction="ltr">
       <div display="grid" box-sizing="content-box" direction="ltr" grid-auto-rows="30px" grid-auto-columns="30px">
@@ -10,8 +10,8 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="90" height="60">
-      <node x="0" y="0" width="90" height="60">
+    <node x="0" y="0" width="1280" height="60">
+      <node x="0" y="0" width="1280" height="60">
         <node x="0" y="0" width="30" height="30"/>
         <node x="60" y="0" width="30" height="60"/>
         <node x="0" y="30" width="60" height="30"/>

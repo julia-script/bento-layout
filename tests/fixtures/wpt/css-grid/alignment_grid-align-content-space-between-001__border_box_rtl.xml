@@ -1,5 +1,5 @@
 <test name="alignment_grid-align-content-space-between-001__border_box_rtl" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" direction="rtl">
       <div display="grid" direction="rtl" align-content="space-between" width="50px" height="100px" grid-template-rows="25px 25px" grid-template-columns="50px">
@@ -9,8 +9,8 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="50" height="100">
-      <node x="0" y="0" width="50" height="100">
+    <node x="0" y="0" width="1280" height="100">
+      <node x="1230" y="0" width="50" height="100">
         <node x="0" y="0" width="50" height="25"/>
         <node x="0" y="75" width="50" height="25"/>
       </node>

@@ -1,5 +1,5 @@
 <test name="align-content-wrap-002__border_box_ltr" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" direction="ltr">
       <div display="block" direction="ltr"/>
@@ -84,8 +84,8 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="600" height="3000">
-      <node x="0" y="0" width="600" height="0"/>
+    <node x="0" y="0" width="1280" height="2900">
+      <node x="0" y="0" width="1280" height="0"/>
       <node x="0" y="0" width="600" height="100">
         <node x="10" y="10" width="150" height="80">
           <node x="0" y="0" width="100" height="150"/>

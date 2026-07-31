@@ -1,5 +1,5 @@
 <test name="alignment_grid-content-distribution-029__border_box_rtl" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" direction="rtl">
       <div display="grid" direction="rtl" align-content="center" width="100px" max-width="50px" aspect-ratio="2">
@@ -8,8 +8,8 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="50" height="100">
-      <node x="0" y="0" width="50" height="100">
+    <node x="0" y="0" width="1280" height="100">
+      <node x="1230" y="0" width="50" height="100">
         <node x="-50" y="0" width="100" height="100"/>
       </node>
     </node>

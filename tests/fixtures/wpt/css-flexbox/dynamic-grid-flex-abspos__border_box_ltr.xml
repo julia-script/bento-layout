@@ -1,5 +1,5 @@
 <test name="dynamic-grid-flex-abspos__border_box_ltr" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" direction="ltr">
       <div display="grid" direction="ltr">
@@ -38,27 +38,27 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="0" height="80">
-      <node x="0" y="0" width="0" height="20">
-        <node x="0" y="0" width="0" height="20">
+    <node x="0" y="0" width="1280" height="80">
+      <node x="0" y="0" width="1280" height="20">
+        <node x="0" y="0" width="1280" height="20">
           <node x="0" y="0" width="42" height="12"/>
           <node x="0" y="0" width="0" height="20"/>
         </node>
       </node>
-      <node x="0" y="20" width="0" height="20">
-        <node x="0" y="0" width="0" height="20">
+      <node x="0" y="20" width="1280" height="20">
+        <node x="0" y="0" width="1280" height="20">
           <node x="0" y="0" width="42" height="12"/>
           <node x="0" y="0" width="0" height="20"/>
         </node>
       </node>
-      <node x="0" y="40" width="0" height="20">
-        <node x="0" y="0" width="0" height="20">
+      <node x="0" y="40" width="1280" height="20">
+        <node x="0" y="0" width="1280" height="20">
           <node x="0" y="0" width="42" height="12"/>
-          <node x="0" y="0" width="0" height="20"/>
+          <node x="0" y="0" width="1280" height="20"/>
         </node>
       </node>
-      <node x="0" y="60" width="0" height="20">
-        <node x="0" y="0" width="0" height="20">
+      <node x="0" y="60" width="1280" height="20">
+        <node x="0" y="0" width="1280" height="20">
           <node x="0" y="0" width="42" height="12"/>
           <node x="0" y="0" width="0" height="20"/>
           <node x="0" y="0" width="0" height="10"/>

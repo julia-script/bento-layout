@@ -1,5 +1,5 @@
 <test name="abspos_align-self-with-flex-grid-parent__border_box_rtl" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" direction="rtl">
       <div display="block" direction="rtl" width="300px" height="300px">
@@ -15,13 +15,13 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="300" height="600">
-      <node x="0" y="0" width="300" height="300">
+    <node x="0" y="0" width="1280" height="600">
+      <node x="980" y="0" width="300" height="300">
         <node x="270" y="0" width="30" height="30">
           <node x="-70" y="0" width="100" height="100"/>
         </node>
       </node>
-      <node x="0" y="300" width="300" height="300">
+      <node x="980" y="300" width="300" height="300">
         <node x="270" y="0" width="30" height="30">
           <node x="-70" y="0" width="100" height="100"/>
         </node>

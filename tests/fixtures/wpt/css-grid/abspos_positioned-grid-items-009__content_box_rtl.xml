@@ -1,5 +1,5 @@
 <test name="abspos_positioned-grid-items-009__content_box_rtl" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" box-sizing="content-box" direction="rtl">
       <div display="grid" box-sizing="content-box" direction="rtl" width="550px" height="400px" margin-top="1px" margin-left="4px" margin-bottom="3px" margin-right="2px" padding-top="20px" padding-left="5px" padding-bottom="10px" padding-right="15px" border-top="9px" border-left="6px" border-bottom="12px" border-right="3px" grid-auto-flow="row" grid-template-rows="150px 100px" grid-template-columns="200px 300px" grid-auto-rows="auto" grid-auto-columns="auto">
@@ -19,8 +19,8 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="585" height="455">
-      <node x="4" y="1" width="579" height="451">
+    <node x="0" y="1" width="1280" height="451">
+      <node x="699" y="0" width="579" height="451">
         <node x="361" y="29" width="200" height="150"/>
         <node x="61" y="29" width="300" height="150"/>
         <node x="361" y="179" width="200" height="100"/>

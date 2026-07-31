@@ -1,7 +1,7 @@
 <test name="grid_overflow_rows__content_box_rtl" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div display="grid" box-sizing="content-box" direction="rtl" grid-template-rows="40px 40px" grid-template-columns="min-content max-content 10px 20%">
+    <div display="grid" box-sizing="content-box" direction="rtl" position="absolute" grid-template-rows="40px 40px" grid-template-columns="min-content max-content 10px 20%">
       <text box-sizing="content-box" direction="rtl" grid-column-start="1" grid-column-end="span 4">
         HHHHHHHHHHHHHHHH​HHHHHHHHHHHHHHHH
       </text>

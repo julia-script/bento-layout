@@ -1,5 +1,5 @@
 <test name="justify-content_space-between-002__content_box_ltr" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" box-sizing="content-box" direction="ltr">
       <div display="flex" box-sizing="content-box" direction="ltr" flex-direction="column" justify-content="space-between" min-height="500px">
@@ -13,10 +13,10 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="110" height="500">
-      <node x="0" y="0" width="110" height="500">
-        <node x="0" y="0" width="110" height="10"/>
-        <node x="0" y="490" width="110" height="10"/>
+    <node x="0" y="0" width="1280" height="500">
+      <node x="0" y="0" width="1280" height="500">
+        <node x="0" y="0" width="1280" height="10"/>
+        <node x="0" y="490" width="1280" height="10"/>
       </node>
     </node>
   </expectations>

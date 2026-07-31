@@ -1,7 +1,7 @@
 <test name="grid_size_child_fixed_tracks__content_box_ltr" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div display="grid" box-sizing="content-box" direction="ltr" width="120px" height="120px" grid-template-rows="40px 40px 40px" grid-template-columns="40px 40px 40px">
+    <div display="grid" box-sizing="content-box" direction="ltr" position="absolute" width="120px" height="120px" grid-template-rows="40px 40px 40px" grid-template-columns="40px 40px 40px">
       <text box-sizing="content-box" direction="ltr" align-self="start" justify-self="start">
         HH​HH​HH​HH
       </text>

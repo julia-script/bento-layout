@@ -1,7 +1,7 @@
 <test name="flex_max_size_not_available_space__content_box_rtl" use-rounding="true">
   <viewport width="max-content" height="max-content"/>
   <input>
-    <div display="block" box-sizing="content-box" direction="rtl">
+    <div display="block" box-sizing="content-box" direction="rtl" position="absolute">
       <div display="flex" box-sizing="content-box" direction="rtl">
         <div display="flex" box-sizing="content-box" direction="rtl" max-width="10px" aspect-ratio="1"/>
       </div>

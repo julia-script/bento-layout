@@ -1,5 +1,5 @@
 <test name="aspect-ratio_flex-aspect-ratio-052__border_box_ltr" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" direction="ltr">
       <div display="flex" direction="ltr" flex-direction="column" width="100px" height="0px">
@@ -10,7 +10,7 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="100" height="0">
+    <node x="0" y="0" width="1280" height="0">
       <node x="0" y="0" width="100" height="0">
         <node x="0" y="0" width="100" height="100">
           <node x="0" y="0" width="100" height="100"/>

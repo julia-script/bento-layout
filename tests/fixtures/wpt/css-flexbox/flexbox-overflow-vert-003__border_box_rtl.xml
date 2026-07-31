@@ -1,5 +1,5 @@
 <test name="flexbox-overflow-vert-003__border_box_rtl" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" direction="rtl">
       <div display="flex" direction="rtl" flex-direction="column" justify-content="space-around" width="70px" height="70px" margin-bottom="5px">
@@ -13,12 +13,12 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="70" height="150">
-      <node x="0" y="0" width="70" height="70">
+    <node x="0" y="0" width="1280" height="145">
+      <node x="1210" y="0" width="70" height="70">
         <node x="-130" y="8" width="200" height="20"/>
         <node x="50" y="43" width="20" height="20"/>
       </node>
-      <node x="0" y="75" width="70" height="70" scroll_width="130" scroll_height="0">
+      <node x="1210" y="75" width="70" height="70" scroll_width="130" scroll_height="0">
         <node x="-130" y="8" width="200" height="20"/>
         <node x="50" y="43" width="20" height="20"/>
       </node>

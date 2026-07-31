@@ -1,5 +1,5 @@
 <test name="flex-aspect-ratio-content-box-padding-001__border_box_ltr" use-rounding="true">
-  <viewport width="max-content" height="max-content"/>
+  <viewport width="1280px" height="max-content"/>
   <input>
     <div display="block" direction="ltr">
       <div display="flex" direction="ltr" flex-direction="column">
@@ -8,8 +8,8 @@
     </div>
   </input>
   <expectations>
-    <node x="0" y="0" width="200" height="200">
-      <node x="0" y="0" width="200" height="200">
+    <node x="0" y="0" width="1280" height="200">
+      <node x="0" y="0" width="1280" height="200">
         <node x="0" y="0" width="200" height="200" scroll_width="0" scroll_height="0"/>
       </node>
     </node>
