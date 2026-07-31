@@ -1658,58 +1658,58 @@ after max-width clamps the aspect ratio").
 
 ---
 
+## 31. A root block never collapses margins with its children
+
+**Verified in Taffy:** suspected (source read: `src/compute/mod.rs:115-121`)
+
+`compute_root_layout` hard-codes `Line::FALSE` for
+`vertical_margins_are_collapsible`, so `own_margins_collapse_with_children` is
+never true at the root. A root block in normal flow is an ordinary in-flow box,
+so css2 §8.3.1 applies: its margins collapse with its children's, and a margin
+that collapses *through* its top edge offsets the root rather than growing it.
+
+```rust
+let output = tree.perform_child_layout(
+    root,
+    known_dimensions,
+    available_space.into_options(),
+    available_space,
+    SizingMode::InherentSize,
+    Line::FALSE,          // <-- root never collapses
+);
+```
+
+Chrome, a 600px block whose only child is `height: 100; margin: 1px 2px 3px 4px`
+— the last three rows are the controls showing the normal suppressors still
+apply, so this is genuinely "enable the rule", not "force it":
+
+| root style | Chrome | note |
+|---|---|---|
+| (as above) | y=1, h=100 | both ends collapse through |
+| `+ padding-top: 5` | h=106 | start blocked |
+| `+ border-top: 5` | h=106 | start blocked |
+| `+ height: 200` | h=200 | end blocked |
+| `+ overflow: hidden` | h=104 | BFC |
+| `position: absolute` | h=104 | out of flow |
+| `display: flex` | h=104 | not a block |
+
+Taffy gives h=104 in every row: the child margins are absorbed into the root's
+height instead of collapsing.
+
+Two parts to the fix: pass `TRUE` (every suppressor is already checked inside
+block layout), and offset the root by `resolve_margin_set(output.top_margin)`
+— a margin that escaped the top edge is outside the root's box, so it moves the
+root instead of being contained by it.
+
+Note for anyone reproducing this against a browser-derived corpus: whether the
+root is in normal flow at all depends on the harness page. If a stylesheet rule
+like `body > *` makes the outermost box absolute, the root correctly does *not*
+collapse, and a test harness that reads `element.style.position` rather than
+the computed value cannot tell the two regimes apart.
+
+---
+
 ## Not yet triaged
-
-- **A root block does not collapse margins with its children.** Chrome, a
-  1280px block whose only child is `margin: 1px 2px 3px 4px`: the root is
-  `1280x400` at `y=1` — the child's top margin collapses *through* it. This
-  engine gives `1280x404` at `y=0`. `computeRootLayout` passes `LINE_FALSE`
-  for `verticalMarginsAreCollapsible`, so `ownMarginsCollapseWithChildren` is
-  never true at the root.
-
-  **Do not fix this in isolation.** It is one corner of a three-way coupling
-  with the WPT viewport, and each leg breaks the other two:
-  1. The last 4 quarantined fixtures
-     (`auto-margins-ignored-during-track-sizing-001`) need the fixture viewport
-     recorded as `1280px` rather than `max-content` — verified: hand-editing
-     that single line makes all four pass exactly.
-  2. Recording it requires a `.viewport` wrapper on emitted WPT pages, because
-     `parseViewportConstraint` keys off that class. `display: contents` is the
-     only wrapper that is layout-transparent (a `block` one lets a first
-     child's margin collapse through the root; the stock `.viewport` flex
-     shrink-wraps it).
-  3. But *any* wrapper takes over `body > *`'s `position: absolute`, so
-     `#test-root` re-enters normal flow — which surfaces this margin-collapsing
-     bug in 132 previously-passing WPT fixtures.
-  4. And passing `LINE_TRUE` at the root to fix the bug breaks 288 fixtures,
-     because the hand-written corpus was generated with `body > *` making the
-     root absolute, so its expectations assume no collapsing.
-
-  The order that likely works: fix root margin collapsing *and* regenerate the
-  whole corpus in one change, so every expectation is re-derived under the new
-  semantics; then add the `display: contents` wrapper. Both steps move
-  expectations, so verify each against Chrome directly rather than against the
-  suite — a green suite after regeneration proves nothing here.
-
-- **A flex item's used main size ignores its own `flex-basis: 0`.** WPT
-  `css-flexbox/flex-minimum-height-flex-items-029`. A column flex container
-  with `flex: 1 0 0px; height: 500px` should use its §4.5 automatic minimum
-  (100 = the sum of its two items' 50px content) rather than its style height,
-  per the test's own comment `min-height is min(100, 500) = 100`. Chrome gives
-  100 with `flex: 1 0 0`, and 500 without it.
-
-  Already verified *not* to be the §4.5 computation: `resolvedMinimumMainSize`
-  and `hypotheticalInnerSize` both come out at exactly 100, and `flexBasis` is
-  0. The 500 therefore enters after line sizing, during the item's final
-  layout, where the container recomputes its own height from `style.size`.
-
-  Note the control is also wrong and in the *opposite* direction: with
-  `flexGrow: 0` the same tree gives 100 where Chrome gives 500. Both directions
-  are broken, so this is one bug about which size wins rather than a missing
-  clamp — do not "fix" it by flooring, or the control regresses.
-
-Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they
-are not lost; each needs the same treatment before it can move up:
 
 - **Grid root: content-derived width does not transfer through the ratio.**
   The grid copy of entry #28, surfaced by the fuzzer only once #28 and #29
