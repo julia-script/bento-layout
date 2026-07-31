@@ -3,6 +3,7 @@
 
 import type { FlexDirection, Point, Rect, Size } from '../geometry.js';
 import {
+  applyAspectRatioClamped,
   cross,
   crossAxis,
   isReverse,
@@ -179,20 +180,20 @@ export function computeFlexboxLayout(node: Node, inputs: LayoutInput): LayoutOut
   const paddingBorderSum = sumAxes(rectAdd(padding, border));
   const boxSizingAdjustment = style.boxSizing === 'content-box' ? paddingBorderSum : sizeZero();
 
-  const minSize = maybeAddSize(
-    maybeApplyAspectRatio(maybeResolveSize(style.minSize, parentSize), aspectRatio),
-    boxSizingAdjustment,
-  );
-  const maxSize = maybeAddSize(
-    maybeApplyAspectRatio(maybeResolveSize(style.maxSize, parentSize), aspectRatio),
-    boxSizingAdjustment,
-  );
+  // Min/max stay on their own axis and the ratio derives from the *clamped*
+  // specified size — see block.ts and UPSTREAM_TAFFY.md entry 23. Applying the
+  // ratio first and clamping after (the old order here) transfers a bound onto
+  // the other axis: `height: 200; aspect-ratio: 2; max-width: 3` is 3x200 in
+  // Chrome for every display type, not 3x2.
+  const minSize = maybeAddSize(maybeResolveSize(style.minSize, parentSize), boxSizingAdjustment);
+  const maxSize = maybeAddSize(maybeResolveSize(style.maxSize, parentSize), boxSizingAdjustment);
   const clampedStyleSize: Size<Opt> =
     inputs.sizingMode === 'inherent-size'
-      ? sizeMaybeClamp(
-          maybeAddSize(maybeApplyAspectRatio(maybeResolveSize(style.size, parentSize), aspectRatio), boxSizingAdjustment),
+      ? applyAspectRatioClamped(
+          maybeAddSize(maybeResolveSize(style.size, parentSize), boxSizingAdjustment),
           minSize,
           maxSize,
+          aspectRatio,
         )
       : { width: null, height: null };
 
@@ -425,12 +426,14 @@ function computeConstants(style: Style, knownDimensions: Size<Opt>, parentSize: 
     isColumn,
     isWrap,
     isWrapReverse,
-    minSize: maybeAddSize(
-      maybeApplyAspectRatio(maybeResolveSize(style.minSize, parentSize), aspectRatio),
-      boxSizingAdjustment,
-    ),
+    // Min/max stay on their own axis — see the matching note in block.ts
+    // (UPSTREAM_TAFFY.md entry 23). Pushing them through the ratio invents a
+    // bound on the other axis: `height: 200; aspect-ratio: 2; max-width: 3` is
+    // 3x200 in Chrome for flex, block and grid alike, but a transferred
+    // max-height of 1.5 shrank the height instead.
+    minSize: maybeAddSize(maybeResolveSize(style.minSize, parentSize), boxSizingAdjustment),
     maxSize: maybeAddSize(
-      maybeApplyAspectRatio(maybeResolveSize(style.maxSize, parentSize), aspectRatio),
+      maybeResolveSize(style.maxSize, parentSize),
       boxSizingAdjustment,
     ),
     margin,
