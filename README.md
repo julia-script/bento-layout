@@ -1,4 +1,4 @@
-# flexboxjs
+# bento-layout
 
 A TypeScript-only port of [Taffy](https://github.com/DioxusLabs/taffy)'s CSS
 flexbox, CSS Grid, and block layout algorithms. Zero runtime dependencies, no
@@ -11,7 +11,7 @@ suite — every fixture Taffy ships for these layout modes, none skipped (see
 ## Usage
 
 ```ts
-import { LayoutNode, computeLayout } from 'flexboxjs';
+import { LayoutNode, computeLayout } from 'bento-layout';
 
 const child1 = LayoutNode.make({ flexGrow: 1 });
 const child2 = LayoutNode.make({ flexGrow: 1 });

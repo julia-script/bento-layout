@@ -114,7 +114,7 @@ export interface ComputeLayoutOptions {
  * @example
  * Two items sharing a fixed-width row.
  * ```typescript
- * import { LayoutNode, computeLayout } from 'flexboxjs';
+ * import { LayoutNode, computeLayout } from 'bento-layout';
  *
  * const left = LayoutNode.make({ flexGrow: 1 });
  * const right = LayoutNode.make({ flexGrow: 1 });

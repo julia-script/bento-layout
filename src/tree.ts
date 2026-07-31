@@ -210,7 +210,7 @@ export const layoutWithOrder = (order: number): Layout => ({
  * Text that wraps: honour a known width, otherwise answer the intrinsic
  * question being asked.
  * ```typescript
- * import type { MeasureFunction } from 'flexboxjs';
+ * import type { MeasureFunction } from 'bento-layout';
  *
  * const measureText = (text: string, charWidth = 10, lineHeight = 20): MeasureFunction =>
  *   (known, available) => {
@@ -281,7 +281,7 @@ let internalOf!: (node: LayoutNode) => NodeInternal;
  * @example
  * A column with a fixed header and a body that fills the rest.
  * ```typescript
- * import { LayoutNode, computeLayout } from 'flexboxjs';
+ * import { LayoutNode, computeLayout } from 'bento-layout';
  *
  * const header = LayoutNode.make({ width: 'auto', height: 60 });
  * const body = LayoutNode.make({ flexGrow: 1 });

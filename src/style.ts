@@ -836,7 +836,7 @@ export const ALIGN_CONTENT_STRETCH: AlignContent = { keyword: 'stretch', safe: f
  *
  * @example
  * ```typescript
- * import { InvalidStyleError, LayoutNode, computeLayout } from 'flexboxjs';
+ * import { InvalidStyleError, LayoutNode, computeLayout } from 'bento-layout';
  *
  * const root = LayoutNode.make({
  *   display: 'grid',

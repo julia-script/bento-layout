@@ -1,5 +1,5 @@
 {
-  "name": "flexboxjs",
+  "name": "bento-layout",
   "version": "0.1.0",
   "private": true,
   "description": "TypeScript port of Taffy's CSS flexbox layout algorithm",
