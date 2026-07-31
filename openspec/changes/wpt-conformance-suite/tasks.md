@@ -40,6 +40,6 @@
 - [ ] 4.1 Work the largest section clusters: probe matrix → fix →
       promote fixtures out of quarantine → UPSTREAM_TAFFY.md entry when Taffy
       shares the defect. Repeat while clusters remain tractable.
-- [ ] 4.2 Document the wpt-import/score workflow in README alongside the fuzz
+- [x] 4.2 Document the wpt-import/score workflow in README alongside the fuzz
       workflow; state the resume criterion for the parked fuzzing burn-in
       (scoreboard plateau).

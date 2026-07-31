@@ -73,9 +73,11 @@ extracting expectations for all four box-sizing/direction variants into the
 committed XML under `tests/fixtures/`. The generating Chrome build is recorded
 in `tests/fixtures/CHROME_VERSION`; `pnpm test` never needs a browser.
 
-All 4,384 fixtures pass, none skipped (0.1px tolerance, both `box-sizing`
-modes, ltr and rtl). The corpus began as Taffy's fixture suite and grows with
-locally authored cases.
+All 4,904 conformance fixtures pass (0.1px tolerance, both `box-sizing` modes,
+ltr and rtl). The corpus began as Taffy's fixture suite and grew three ways:
+locally authored cases, fuzz-found regressions, and an imported subset of
+web-platform-tests. Ten WPT fixtures are quarantined — see *Conformance
+scoreboard* below.
 
 ### Authoring a new conformance test
 
@@ -100,6 +102,58 @@ explicit `Verified in Taffy: confirmed | suspected`. Reading Taffy's source
 makes a finding *suspected*; only running Taffy makes it *confirmed*, and
 nothing should be filed upstream while still suspected. That file is kept
 standalone so the upstreaming effort does not depend on this repo's history.
+
+### Differential fuzzing
+
+`pnpm fuzz` generates random layout trees, renders each in the pinned Chrome,
+and compares against the engine — the same oracle as the fixtures, over inputs
+nobody thought to write.
+
+```bash
+pnpm fuzz --mode grid --iterations 25 --seed 20260731
+pnpm fuzz-triage '<minimized-tree-json>'   # or a path to a .json file
+```
+
+Modes are `flex`, `grid`, `block`, `mixed`. A finding is shrunk automatically
+and printed as a `minimized:` line; feed that to `pnpm fuzz-triage` to see
+chrome-vs-engine geometry for every node in all four variants. Findings are
+persisted to `tests/html/fuzz-found/` unless `--no-write` is passed.
+
+Budget: throughput is roughly 0.2–4.4 trees/s depending on mode and tree size
+(grid is slowest), so 25 trees per mode is a few minutes and is the default
+campaign size. Raise `--max-findings` (default 5) to see a whole run.
+
+Two traps are worth knowing. **A crash in one tree hides every tree after it** —
+always check the `checked N trees` line matches what you asked for. And **the
+tree-level finding count is a poor progress metric**: one bug flags an entire
+tree, so it barely moves across real fixes. Track the feature histogram over the
+minimized findings instead.
+
+### Conformance scoreboard
+
+A subset of [web-platform-tests](https://github.com/web-platform-tests/wpt) is
+imported through the same Chrome oracle, giving a finite, spec-organized
+denominator that fuzzing cannot provide.
+
+```bash
+pnpm wpt-import          # classify + rewrite (needs a WPT checkout)
+pnpm wpt-score           # pass/fail per suite and per spec section
+pnpm wpt-score --write-quarantine
+```
+
+WPT supplies *inputs* only: its own expectations and reference pages are never
+consumed, so reftests import too. Classification is a conservative allowlist —
+a false skip only costs corpus, while a false import would poison the score.
+Tests the harness structurally cannot express (`order`, anonymous flex/grid
+items, self-set `box-sizing`) are excluded at import rather than left failing.
+
+Currently **418/428 (97.7%)**: css-flexbox, css-sizing and css-align at 100%,
+css-grid at 96%. Failing fixtures live in `tests/fixtures/wpt-quarantine.json`
+so `pnpm test` stays green; the scoreboard owns the red. Promote a fixture by
+deleting its quarantine entry in the same commit as the fix.
+
+Never shrink the denominator to raise the number — dropping tests that pass
+inflates the score, which is the one thing this metric exists to prevent.
 
 ## Scope
 
