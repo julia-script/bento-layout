@@ -131,12 +131,21 @@ export function transferConstraintToStretchedAxis(
  * The ratio-derived axis follows the *used* value of the specified one, so each
  * specified axis is clamped by its own min/max before the ratio fills in the
  * other (css-sizing-4 §5.2.2). Sizes here are border-box, matching min/max.
+ *
+ * `ratioBox` is the padding+border sum to strip before applying the ratio and
+ * add back after — non-zero only under `box-sizing: content-box`, where the
+ * ratio relates the *content* boxes (css-sizing-4 §4.1). Applying it to
+ * border-box values there uses the wrong axis's inset on the derived axis:
+ * `content-box; width: 120; aspect-ratio: 1` with 60px of horizontal border and
+ * 55px of vertical border is 180x175 in Chrome (content 120x120), not 180x180.
+ * Omit for border-box, where the ratio already relates the border boxes.
  */
 export function applyAspectRatioClamped(
   size: Size<number | null>,
   minSize: Size<number | null>,
   maxSize: Size<number | null>,
   aspectRatio: number | null,
+  ratioBox: Size<number> = { width: 0, height: 0 },
 ): Size<number | null> {
   const clamp = (v: number | null, min: number | null, max: number | null): number | null => {
     if (v === null) return null;
@@ -145,10 +154,24 @@ export function applyAspectRatioClamped(
     if (min !== null) out = Math.max(out, min);
     return out;
   };
-  return maybeApplyAspectRatio(
-    { width: clamp(size.width, minSize.width, maxSize.width), height: clamp(size.height, minSize.height, maxSize.height) },
+  const clamped = {
+    width: clamp(size.width, minSize.width, maxSize.width),
+    height: clamp(size.height, minSize.height, maxSize.height),
+  };
+  if (aspectRatio === null || (ratioBox.width === 0 && ratioBox.height === 0)) {
+    return maybeApplyAspectRatio(clamped, aspectRatio);
+  }
+  const inner = maybeApplyAspectRatio(
+    {
+      width: clamped.width !== null ? clamped.width - ratioBox.width : null,
+      height: clamped.height !== null ? clamped.height - ratioBox.height : null,
+    },
     aspectRatio,
   );
+  return {
+    width: inner.width !== null ? inner.width + ratioBox.width : null,
+    height: inner.height !== null ? inner.height + ratioBox.height : null,
+  };
 }
 
 // --- Rect helpers

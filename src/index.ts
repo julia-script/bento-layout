@@ -313,6 +313,7 @@ function blockRootKnownDimensions(
     minSizeAdj,
     maxSizeAdj,
     aspectRatio,
+    boxSizingAdjustment,
   );
 
   // If both min and max in a given axis are set and max <= min then this determines the size

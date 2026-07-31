@@ -55,6 +55,7 @@ export function computeLeafLayout(inputs: LayoutInput, style: Style, measureFunc
       rawMinSize,
       rawMaxSize,
       aspectRatio,
+      boxSizingAdjustment,
     );
 
     nodeSize = {

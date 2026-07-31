@@ -212,6 +212,7 @@ export function computeFlexboxLayout(node: Node, inputs: LayoutInput): LayoutOut
           minSize,
           maxSize,
           aspectRatio,
+          boxSizingAdjustment,
         )
       : { width: null, height: null };
 

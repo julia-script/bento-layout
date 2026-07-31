@@ -117,6 +117,7 @@ export function computeBlockLayout(node: Node, inputs: LayoutInput, blockCtx?: B
           minSize,
           maxSize,
           aspectRatio,
+          boxSizingAdjustment,
         )
       : { width: null, height: null };
 
@@ -191,6 +192,7 @@ function computeInner(node: Node, inputs: LayoutInput, blockCtx: BlockContext): 
     minSize,
     maxSize,
     aspectRatio,
+    boxSizingAdjustment,
   );
 
   // css-sizing-4: a definite size in one axis transfers through `aspect-ratio`.
@@ -452,6 +454,7 @@ function generateItemList(node: Node, nodeInnerSize: Size<Opt>): BlockItem[] {
       maybeAddSize(maybeResolveSize(childStyle.minSize, nodeInnerSize), boxSizingAdjustment),
       maybeAddSize(maybeResolveSize(childStyle.maxSize, nodeInnerSize), boxSizingAdjustment),
       aspectRatio,
+      boxSizingAdjustment,
     );
 
     items.push({

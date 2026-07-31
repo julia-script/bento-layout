@@ -76,6 +76,7 @@ export function computeGridLayout(node: Node, inputs: LayoutInput): LayoutOutput
           minSize,
           maxSize,
           aspectRatio,
+          boxSizingAdjustment,
         )
       : { width: null, height: null };
 
