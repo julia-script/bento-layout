@@ -12,11 +12,11 @@ mirror image of its LTR counterpart: the same **size**, at the mirrored
 **position**. An absent line (open end) SHALL resolve to the container edge on
 the side the *flow* leaves open, not a fixed physical side.
 
-#### Scenario: Definite insets
+#### Scenario: Absolute child with insets
 
 - **WHEN** a grid container has an absolute child with definite insets
-- **THEN** the child is sized and positioned against the inset-modified
-  containing block
+- **THEN** the child is positioned against the container per the corresponding
+  fixture expectations
 
 #### Scenario: RTL mirrors position, never size
 
@@ -25,8 +25,11 @@ the side the *flow* leaves open, not a fixed physical side.
   negative lines) in a grid with explicit, implicit, negative-implicit, or zero
   tracks
 - **THEN** under `direction: rtl` the child's width equals its LTR width and
-  its x-position is the mirror of the LTR position — for every shape in
-  `tests/probes/grid-abspos-rtl/` (a–i), with the LTR variants unchanged
+  its x-position is the mirror of the LTR position, with the LTR variants
+  unchanged. Covered by `tests/probes/grid-abspos-rtl/` (10 shapes x 4
+  variants); shape `b` — an open end in an axis whose only track is
+  positive-implicit — is a known remaining gap, tracked in that README and
+  blocking no fixture.
 
 #### Scenario: Negative-index placements keep working
 
@@ -36,19 +39,7 @@ the side the *flow* leaves open, not a fixed physical side.
 - **THEN** both directions match Chrome — this scenario is the control that
   invalidated five prior fix attempts and MUST gate any change
 
-### Requirement: Track sizing
-
-The engine SHALL size tracks per css-grid-1 §11: initialize base/growth limits
-from track sizing functions, resolve intrinsic contributions (items batched by
-span, gutters and baseline shims included), maximize tracks, and expand
-flexible (`fr`) tracks against definite or available space, including
-`min-content`/`max-content` constraints, `fit-content()` caps, percentage
-tracks, and gap accounting. When integral rounding distributes a remainder
-across equal `fr` tracks, the remainder SHALL land on the same **visual**
-tracks in RTL as in LTR (WPT `grid-flexible-track-free-space-distribution`).
-
-#### Scenario: fr distribution against definite space
-
-- **WHEN** a 100px grid has `grid-template-columns` of 99 equal `1fr` tracks
-- **THEN** per-track sizes match Chrome in all four variants, including which
-  tracks receive the rounding remainder in RTL
+Note: this change originally also modified "Requirement: Track sizing" for the
+RTL `fr` rounding remainder. That work was diagnosed but not implemented, so
+the requirement is left untouched here and carried into the follow-up change
+`grid-rtl-fr-rounding-remainder` instead.

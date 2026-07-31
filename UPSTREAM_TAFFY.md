@@ -1324,6 +1324,147 @@ Verified in Taffy: suspected (source-read, not executed).
 
 ---
 
+## 26. RTL absolute grid placement mirrors line indexes instead of offsets
+
+An absolutely-positioned grid child with a line-based column placement is put
+in the wrong place under `direction: rtl`, and — unlike a pure position bug —
+its **width changes too**. Chrome keeps the size identical between directions
+and mirrors only the position.
+
+**Repro** (`direction: rtl`, 500x100 container, `padding: 10px`,
+`grid-template-columns: 50px 60px 70px`, one `position: absolute` child with
+`grid-column: 2 / 4` and all insets 0):
+
+| | x | width |
+|---|---|---|
+| Chrome | 310 | 130 |
+| Taffy/pre-fix | 10 | 430 |
+
+The LTR case is correct (x=60, width=130), so the width is not merely offset —
+it is computed from a different pair of lines entirely.
+
+**Taffy source:** `src/compute/grid/mod.rs:571-619`. The column branch mirrors
+each *line index* across the explicit track count, then swaps start/end, then
+falls back per physical edge:
+
+```rust
+if direction.is_rtl() {
+    OriginZeroLine(final_col_counts.explicit as i16 - line.0)
+} else { line }
+// ... then:
+let maybe_col_indexes = if direction.is_rtl() {
+    Line { start: maybe_col_indexes.end, end: maybe_col_indexes.start }
+} else { maybe_col_indexes };
+// ... then, in the grid_area Rect:
+left:  ...unwrap_or_else(|| border.left + if direction.is_rtl() { scrollbar_gutter.x } else { 0.0 }),
+right: ...unwrap_or_else(|| container_border_box.width - border.right
+                            - if direction.is_rtl() { 0.0 } else { scrollbar_gutter.x }),
+```
+
+The three adjustments interact, and no consistent assignment of them exists:
+`reverse_non_gutter_tracks` has already reversed the track vector **in place**,
+so after reversal the line→slot correspondence is not a pure function of the
+line number — it also depends on which ends of the placement are open. A
+`None` end means "the container edge", and swapping it with a real line moves
+the open end to the wrong physical side; but skipping the swap breaks the
+both-lines-definite shapes, which need it. Five separate attempts to retune the
+mirror/swap here each fixed some shapes and regressed others.
+
+**Fix applied here:** resolve the placement against a **flow-ordered offset
+table** and convert to a physical rect exactly once.
+
+- Undo the in-place reversal's permutation to recover flow order, then
+  accumulate track sizes from the flow's own start edge. Lines then index that
+  table with the same plain `2*(line + negative_implicit)` arithmetic in-flow
+  items use — no mirror, no swap.
+- Mirror the *implicit track counts* under RTL: a track added past the flow's
+  end edge lands on the physical left.
+- Treat an `auto` or out-of-grid line as a line at the container edge on the
+  side the **flow** leaves open, per css-grid-1 §9.1 ("an `auto` value ...
+  contributes a special line ... whose position is that of the corresponding
+  padding edge"), rather than as a fixed physical side.
+
+§9.1 is also the justification for the overall shape: grid placement is
+flow-relative while `left`/`right` are physical, so the resolve-then-convert
+split is what the spec describes.
+
+Two caveats worth carrying upstream, both learned the expensive way:
+
+- The reflection axis must be the **content box**, not the border box. They
+  coincide under symmetric padding, so a probe matrix that only uses uniform
+  padding will pass either way; asymmetric padding (e.g. left 40 / right 20) is
+  what distinguishes them.
+- Rows need no change — they never mirror — and putting them on the same path
+  is a simplification, not a fix.
+
+Fixes WPT `positioned-grid-items-022` and `-026` (both box variants).
+Regression coverage: `tests/html/grid/grid_abspos_rtl_*` (10 shapes x 2 tree
+directions x 4 variants = 80 fixtures); `tests/html/grid/GRID_ABSPOS_RTL.md`
+records the shape table and the failed approaches.
+
+One further condition, found after the initial fix and needed for the last two
+shapes: mirror the implicit counts **except** when the axis has no explicit
+tracks *and* no negative-implicit ones. There, positive line numbers address
+the implicit tracks directly from the flow's start, so mirroring shifts every
+line one track past the grid. An all-negative-implicit axis (the
+`negative-indices-003` control) still needs the mirror — gating on
+`explicit == 0` alone regresses it.
+
+Verified in Taffy: suspected (source-read, not executed).
+
+---
+
+## 27. Layout coordinates are not quantized to Chrome's 1/64 px LayoutUnit
+
+Chrome stores every layout coordinate as a `LayoutUnit` — fixed point with a
+1/64 px quantum — so a position is truncated to 1/64 *before* being rounded to
+a device pixel. Engines that round the exact float skip that first step, which
+is invisible almost everywhere: it only changes the result when the exact
+position lies within 1/64 of a `.5` boundary, where snapping lands it *on* the
+tie and the rounding then goes the other way.
+
+**Reproduction** (WPT `grid-flexible-track-free-space-distribution`): 99 `1fr`
+tracks in a 100px grid, so each track is `100/99 = 1.0101…` px.
+
+| | 2px track lands at | matches Chrome |
+|---|---|---|
+| Chrome, LTR | flow index 49 | — |
+| Chrome, RTL | flow index **51** | — |
+| Engine (pre-fix), RTL | flow index 49 | ✗ (3 of 99 nodes wrong) |
+
+LTR already matched; only RTL diverged, which is what makes this easy to
+misdiagnose as an RTL bug. It is not — it is direction-independent
+quantization that only *manifests* in RTL here.
+
+**Why RTL:** boundaries `k=50` and `k=51` sit at `50.5051` and `51.5152`.
+Truncating to 1/64 puts them at exactly `50.5` and `51.5` — dead ties. The
+truncation is toward the **flow's start edge**, so under RTL it rounds the
+physical coordinate *up*, not toward zero. Truncating toward zero in both
+directions leaves those two boundaries a pixel off in RTL only.
+
+**Ruled out** while diagnosing, each tested against all 99 boundaries in both
+directions — none of these is the cause: float accumulation drift (~7e-15,
+three orders too small); half-even or other tie-break rules (no boundary is
+exactly `.5` *before* snapping); `floor`/`ceil` instead of round; distributing
+the `fr` remainder to a fixed logical track; and mirroring the rounded LTR
+positions (Chrome's LTR and RTL boundary sets are genuinely *not* mirrors).
+
+**Fix applied here:** in the rounding pass, snap each coordinate to 1/64 before
+rounding it, with the truncation direction following the flow (`floor` in LTR,
+`ceil` in RTL for the x axis; y always `floor`). The cumulative
+`round(cx+w) - round(cx)` scheme is unchanged — only the input to each round.
+See `roundLayout` in `src/index.ts`.
+
+Note this is engine-wide, not grid-specific: the same latent divergence exists
+in flexbox and block wherever a position lands within 1/64 of `.5`. Applying it
+engine-wide changed no other fixture in a 5037-test suite.
+
+Verified in Taffy: suspected (source-read, not executed) — Taffy's
+`sys::round` is `(value + 0.5).floor()` on the raw float, with no LayoutUnit
+quantization anywhere, so the same divergence should reproduce.
+
+---
+
 ## Not yet triaged
 
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they
