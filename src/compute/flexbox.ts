@@ -110,6 +110,8 @@ interface FlexItem {
   resolvedMinimumMainSize: number;
 
   flexBasis: number;
+  /** `flex-basis` was specified (not `auto`), so it replaces the style main size. */
+  flexBasisIsExplicit: boolean;
   innerFlexBasis: number;
   violation: number;
   frozen: boolean;
@@ -516,6 +518,7 @@ function generateAnonymousFlexItems(node: Node, constants: AlgoConstants): FlexI
       flexGrow: childStyle.flexGrow,
       flexShrink: childStyle.flexShrink,
       flexBasis: 0,
+      flexBasisIsExplicit: false,
       innerFlexBasis: 0,
       violation: 0,
       frozen: false,
@@ -690,6 +693,10 @@ function determineFlexBaseSize(
       boxSizingAdjustment = main(sumAxes(rectAdd(padding, border)), dir);
     }
     const flexBasis = mAdd(maybeResolve(childStyle.flexBasis, containerWidth), boxSizingAdjustment);
+    // `flex-basis` other than `auto` replaces the style main size outright, so
+    // that size must not resurface as a clamp on the item's intrinsic
+    // contribution. See determineContainerMainSize.
+    child.flexBasisIsExplicit = flexBasis !== null;
 
     child.flexBasis = ((): number => {
       // A. If the item has a definite used flex basis, that's the flex base size.
@@ -972,7 +979,15 @@ function determineContainerMainSize(
 
           // (See the taffy source for the spec-vs-browser rationale here.)
           const clampingBasis = mMax(item.flexBasis, stylePreferred);
-          const flexBasisMin = item.flexShrink === 0 ? clampingBasis : null;
+          // In a column with an explicit `flex-basis`, the style main size is
+          // the §4.5 *specified size suggestion* — a cap on the automatic
+          // minimum, never a floor. Both WPT siblings state it as a min():
+          //   029: `flex: 1 0 0px; height: 500`, content 100 -> min(100,500)=100
+          //   030: `flex: 1 0 0px; height:  70`, content 200 -> min(200, 70)= 70
+          // Feeding it to flexBasisMin made 029 report a 500px minimum. It
+          // still reaches maxMainSize below, which is what caps 030.
+          const basisFloor = item.flexBasisIsExplicit && !constants.isRow ? item.flexBasis : clampingBasis;
+          const flexBasisMin = item.flexShrink === 0 ? basisFloor : null;
           const flexBasisMax = item.flexGrow === 0 ? clampingBasis : null;
 
           const minMainSize = Math.max(
@@ -1016,21 +1031,43 @@ function determineContainerMainSize(
               );
             }
 
+            // `content-size` for a *column* whose basis is explicit:
+            // `inherent-size` lets the item re-read its own style main size,
+            // which a specified `flex-basis` has already replaced. Chrome, two
+            // `flex-grow: 1; flex-basis: 0; width: 12; height: 12` items:
+            //   row    -> 24 wide, the style width still contributes
+            //   column ->  0 tall, the style height does not
+            // so this applies to the block axis only. Same asymmetry the
+            // `constants.isRow` branch below already encodes.
+            const measureMode =
+              item.flexBasisIsExplicit && !constants.isRow ? 'content-size' : 'inherent-size';
             const contentMainSize =
               measureChildSize(
                 item.node,
                 childKnownDimensions,
                 constants.nodeInnerSize,
                 childAvailableSpace,
-                'inherent-size',
+                measureMode,
                 mainAxis(dir),
               ) + rectMainAxisSum(item.margin, constants.dir);
 
             if (constants.isRow) {
               contentContribution = Math.max(vClamp(contentMainSize, styleMin, styleMax), mainContentBoxInset);
             } else {
+              // With an explicit `flex-basis`, the style main size is the §4.5
+              // *specified size suggestion*: it caps the content-based minimum
+              // (and, since the basis replaced it, never floors it). Both WPT
+              // siblings write the rule as a min():
+              //   029: height 500, content 100 -> min(100, 500) = 100
+              //   030: height  70, content 200 -> min(200,  70) =  70
+              // 030 needs the cap so the inner container wraps into two
+              // columns instead of stacking to 200.
+              const suggested =
+                item.flexBasisIsExplicit && stylePreferred !== null
+                  ? Math.min(contentMainSize, stylePreferred)
+                  : contentMainSize;
               contentContribution = Math.max(
-                vClamp(Math.max(contentMainSize, item.flexBasis), styleMin, styleMax),
+                vClamp(Math.max(suggested, item.flexBasis), styleMin, styleMax),
                 mainContentBoxInset,
               );
             }
