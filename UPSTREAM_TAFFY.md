@@ -3,7 +3,7 @@
 Bugs fixed in this engine that appear to exist in upstream
 [Taffy](https://github.com/DioxusLabs/taffy) as well, recorded for separate
 upstreaming. This file is maintained for Taffy's benefit and stands alone —
-it does not assume any knowledge of this port.
+it does not assume any knowledge of this engine.
 
 Taffy reference: commit `57c230de` (the vendored checkout these line numbers
 refer to). Reference browser: `Chrome/151.0.7922.47`, headless, DPR 1.
@@ -259,7 +259,7 @@ replaced (`resolveRectOrZeroPerAxis`) now has no callers.
 
 **Note for upstream:** worth auditing every `resolve_or_zero` call that takes a
 `Size` rather than a width for padding/margin/border. Two sites were affected
-here (block and flexbox item generation); the equivalent audit of this port's
+here (block and flexbox item generation); the equivalent audit of this engine's
 grid path found it already width-based, so the grid arm may be fine upstream
 too.
 
@@ -318,7 +318,7 @@ either way).
 **Note:** border-box behaviour is unchanged by the fix, so upstreaming this
 cannot regress the common case. Worth checking whether the equivalent
 `maybe_apply_aspect_ratio` call sites elsewhere in Taffy (block, flexbox, grid)
-share the omission — in this port those sites apply the ratio to *style* sizes
+share the omission — in this engine those sites apply the ratio to *style* sizes
 before the box-sizing adjustment is added, which is correct, so only the leaf
 floor was affected.
 
@@ -567,7 +567,7 @@ never smaller than the padding+border sum, regardless of `max-width`.
 `padding + border` on the cross axis. See `src/compute/flexbox.ts`; regression
 fixture `tests/html/fuzz-found/fuzz_stretch_pb_floor.html`.
 
-**Note:** in *this port* the non-stretch cross-size path already applies this
+**Note:** in *this engine* the non-stretch cross-size path already applies this
 floor, so the fix here was to make the stretch branch consistent with its
 sibling. That asymmetry was not confirmed in Taffy — the `maybe_max` calls
 around Taffy's cross-size determination are the container-level and flex-basis
@@ -945,11 +945,11 @@ than new layout code.
 
 **Severity differs by language.** In Rust an unsupported value cannot be
 constructed, so this is a missing feature and callers simply cannot express it.
-In this TypeScript port the equivalent parser cast the string
+In this engine the equivalent parser cast the string
 (`parts[0] as AlignItemsKeyword`), so `self-end` became a keyword that matched
 no alignment branch and produced a **NaN** offset and size — silently, since
 every comparison against NaN is false. That is the third NaN-shaped defect
-found in this port (see also #12 and the `min-content` element-size hang), and
+found in this engine (see also #12 and the `min-content` element-size hang), and
 the pattern is always the same: a value accepted at the boundary that the
 type system claims cannot exist.
 
@@ -1172,7 +1172,7 @@ so free space is negative:
 
 The last four rows matter: a fix that exempts `FlexStart` from the safe-start
 rule *by keyword* is wrong on two counts — it breaks the explicit `safe
-flex-start` row, and (in this port) an over-broad first attempt that dropped
+flex-start` row, and (in this engine) an over-broad first attempt that dropped
 the implicit safety entirely regressed 60 existing fixtures via the
 `space-around`/`space-evenly` path. Only the safety introduced by the
 distributed→`FlexStart` fallback may be ignored.
@@ -1213,14 +1213,14 @@ transfer was presumably reaching for.
 | `width: 200; max-width: 3` | 3x2 | 3x2 (control — same axis, re-derives) |
 | `height: 200` | 400x200 | 400x200 (control) |
 
-**Four independent copies** of this exist in the port, and **flexbox has none
+**Four independent copies** of this exist in this engine, and **flexbox has none
 of them** — flex was already correct on all four rows, which is what made the
 split visible at all. Taffy's grid carries the same code:
 
 - `src/compute/grid/mod.rs:63-72` — `min_size` and `max_size` both take
   `.maybe_apply_aspect_ratio(aspect_ratio)`.
 
-In this port the equivalents were `src/index.ts` (`blockRootKnownDimensions`),
+In this engine the equivalents were `src/index.ts` (`blockRootKnownDimensions`),
 `src/compute/block.ts` (both `computeBlockLayout` and `computeInner`), and
 `src/compute/grid/mod.ts`. Fixing any one of them left the others broken, since
 each recomputes the sizes independently — worth checking every container-sizing
@@ -1310,7 +1310,7 @@ once and written into `child.margin.*` unclamped in all three auto-margin arms.
 **Fix applied here:** a separate `autoMarginSpace = max(freeSpace, 0)` feeds the
 auto-margin arms only. **The shared `freeSpace` must stay unclamped**: it is
 also passed to cross-axis alignment, which needs the true negative value for
-overflow. Flooring it there regressed 43 fixtures in this port
+overflow. Flooring it there regressed 43 fixtures in this engine
 (`align_items_center_child_without_margin_bigger_than_parent` and the baseline
 family), so a fix that clamps the variable rather than the branch is wrong.
 

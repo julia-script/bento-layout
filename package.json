@@ -2,7 +2,7 @@
   "name": "bento-layout",
   "version": "0.1.0",
   "private": true,
-  "description": "TypeScript port of Taffy's CSS flexbox layout algorithm",
+  "description": "Lightweight CSS flexbox, grid, and block layout engine in plain TypeScript — no WASM, no dependencies",
   "type": "module",
   "license": "MIT",
   "exports": {
@@ -20,6 +20,7 @@
     "typecheck": "tsc --noEmit",
     "gentest": "tsx scripts/gentest.ts",
     "bench": "tsx scripts/bench.ts",
+    "bench:yoga": "tsx scripts/bench-yoga.ts",
     "fuzz": "tsx scripts/fuzz.ts",
     "fuzz-triage": "tsx scripts/fuzz-triage.ts",
     "probe-matrix": "tsx scripts/probe-matrix.ts",
@@ -32,6 +33,7 @@
     "puppeteer": "^25.4.0",
     "tsx": "^4.23.1",
     "typescript": "^5.5.0",
-    "vitest": "^2.0.0"
+    "vitest": "^2.0.0",
+    "yoga-layout": "3.2.1"
   }
 }

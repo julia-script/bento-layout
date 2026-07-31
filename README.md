@@ -1,8 +1,9 @@
 # bento-layout
 
-A TypeScript-only port of [Taffy](https://github.com/DioxusLabs/taffy)'s CSS
-flexbox, CSS Grid, and block layout algorithms. Zero runtime dependencies, no
-WASM — plain style data in, pixel positions out.
+A lightweight CSS flexbox, CSS Grid, and block layout engine in plain
+TypeScript. Zero runtime dependencies, no WASM — plain style data in, pixel
+positions out. The algorithms began from
+[Taffy](https://github.com/DioxusLabs/taffy)'s and are verified against Chrome.
 
 Verified against **4,368 Chrome-derived conformance fixtures** from Taffy's test
 suite — every fixture Taffy ships for these layout modes, none skipped (see
@@ -109,9 +110,9 @@ entry in `KNOWN_DIVERGENCES.md` with a spec citation. (This policy has already
 paid off: the first authored fixture exposed an aspect-ratio constraint bug
 inherited from Taffy, now fixed to match Chrome.)
 
-**If a fixed bug also exists upstream, log it.** This engine is a port of
-[Taffy](https://github.com/DioxusLabs/taffy), so a bug found here is often a bug
-there. Whenever a fix lands for a defect that Taffy also has, add an entry to
+**If a fixed bug also exists upstream, log it.** This engine's algorithms began
+from [Taffy](https://github.com/DioxusLabs/taffy)'s, so a bug found here is
+often a bug there. Whenever a fix lands for a defect that Taffy also has, add an entry to
 `UPSTREAM_TAFFY.md` in the same commit — with the Taffy source location, the
 minimized reproduction, engine-vs-Chrome numbers, the spec citation, and an
 explicit `Verified in Taffy: confirmed | suspected`. Reading Taffy's source
@@ -175,7 +176,7 @@ inflates the score, which is the one thing this metric exists to prevent.
 
 Flexbox, CSS Grid, CSS block layout, and the full box model. Not implemented:
 named grid lines / `grid-template-areas`, floats, `calc()`, inline layout,
-subgrid. The port follows Taffy's algorithm structure closely
+subgrid. The compute modules keep Taffy's algorithm structure
 (`src/compute/flexbox.ts`, `src/compute/block.ts`, and `src/compute/grid/*` map
 module-by-module to Taffy's `compute/`), so future upstream fixes are easy to
 carry over.
