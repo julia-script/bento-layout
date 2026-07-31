@@ -1631,12 +1631,27 @@ The fix tracks *provenance* — whether the axis was specified or derived — ra
 than reading the resolved number, exactly as entry #29 does for the inline axis.
 This entry is the block axis and is reached via a max-clamp as well as directly.
 
-Fixed here in `block.ts` (`heightIsRatioDerived`) and `grid/mod.ts`
-(`rowFloor`). **Flexbox still has the bug**: by the time
-`determineContainerCrossSize` runs, the flex line has already been sized against
-the ratio-derived cross size, so the content size it sums is 25 rather than 100.
-Fixing that means restoring the pre-clamp line cross size, which is a larger
-change than the other two modes needed.
+Fixed here in `block.ts` (`heightIsRatioDerived`), `grid/mod.ts` (`rowFloor`)
+and `flexbox.ts` (`crossIsRatioDerived` + `crossIsArDerived`).
+
+Flexbox needed one extra condition the other two did not. The floor applies
+only when the items can supply a content size that is *independent* of the
+container's cross size; an item whose own cross size is ratio-derived cannot,
+because the main size it derives from depends on that very cross size. Chrome,
+`aspect-ratio: 4` in a 200px block:
+
+| item | Chrome | floors? |
+|---|---|---|
+| plain block, `height: 100` | 200x100 | yes |
+| `display: flex; height: 70` | 200x70 | yes |
+| `display: flex; width: 70; aspect-ratio: 1` | 200x50 | **no** |
+| `display: flex; aspect-ratio: 1` + 100px child | 200x50 | **no** |
+
+Note the third row: the item has a *specified* main size, yet still does not
+floor — so the discriminator is purely whether the item's **cross** size came
+from its own ratio, not where its main size came from. Test that against the
+item's **style** size: `FlexItem.size` has already had the ratio applied by
+`generateAnonymousFlexItems`, so reading it makes rows 3 and 4 look definite.
 
 WPT: `css-grid/alignment/grid-content-distribution-029` ("alignment must work
 after max-width clamps the aspect ratio").
@@ -1657,14 +1672,6 @@ are not lost; each needs the same treatment before it can move up:
   display-agnostic, so the reason grid still escapes it needs tracing before
   fixing; do not assume it is the same guard.
 
-- **Flexbox half of entry #30.** `display: flex; width: 100px;
-  aspect-ratio: 2; max-width: 50px` around a 100px-tall item is 50x100 in
-  Chrome, 50x25 here. Block and grid are fixed; flex is not. A
-  `crossIsRatioDerived` flag on `AlgoConstants` computes correctly, but
-  flooring at `determineContainerCrossSize` is too late — the line's
-  `crossSize` has already been clamped to the ratio height, so the content
-  size to floor against is 25, not 100. Needs the un-clamped line cross size,
-  so it is a real change rather than a one-line guard.
 
 - **`fuzz_408e514f`** — percentage padding on an aspect-ratio flex item under a
   `height: auto` root, **content-box only**: Chrome collapses the root and item

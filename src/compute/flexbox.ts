@@ -120,6 +120,13 @@ interface FlexItem {
   hypotheticalInnerSize: Size<number>;
   /** Mutated in place by setMain/setCross. */
   hypotheticalOuterSize: Size<number>;
+  /**
+   * This item's cross size came from its own `aspect-ratio` applied to its
+   * main size, so it cannot act as a content floor for the container's
+   * ratio-derived cross size — the main size it derives from depends on that
+   * cross size in turn. See determineContainerCrossSize.
+   */
+  crossIsArDerived: boolean;
   /** Mutated in place by setMain/setCross. */
   targetSize: Size<number>;
   /** Mutated in place by setMain/setCross. */
@@ -164,6 +171,15 @@ interface AlgoConstants {
 
   nodeOuterSize: Size<Opt>;
   nodeInnerSize: Size<Opt>;
+
+  /**
+   * The cross size came from `aspect-ratio` rather than from a specified size
+   * in that axis, making it an *automatic* size (css-sizing-4 §4.2): content
+   * larger than it grows the container instead of overflowing. See
+   * UPSTREAM_TAFFY.md entry 30 for the Chrome matrix and the
+   * scroll-container carve-out.
+   */
+  crossIsRatioDerived: boolean;
 
   containerSize: Size<number>;
   innerContainerSize: Size<number>;
@@ -446,6 +462,11 @@ function computeConstants(style: Style, knownDimensions: Size<Opt>, parentSize: 
     justifyContent,
     nodeOuterSize,
     nodeInnerSize,
+    crossIsRatioDerived:
+      aspectRatio !== null &&
+      cross(nodeOuterSize, dir) !== null &&
+      cross(maybeResolveSize(style.size, parentSize), dir) === null &&
+      !isScrollContainer(isRow ? style.overflow.y : style.overflow.x),
     containerSize: sizeZero(),
     innerContainerSize: sizeZero(),
   };
@@ -502,6 +523,7 @@ function generateAnonymousFlexItems(node: Node, constants: AlgoConstants): FlexI
       resolvedMinimumMainSize: 0,
       hypotheticalInnerSize: sizeZero(),
       hypotheticalOuterSize: sizeZero(),
+      crossIsArDerived: false,
       targetSize: sizeZero(),
       outerTargetSize: sizeZero(),
       contentFlexFraction: 0,
@@ -1241,6 +1263,13 @@ function determineHypotheticalCrossSize(
         ? transferThroughRatio(main(child.targetSize, constants.dir), child, constants.dir, 'main-to-cross')
         : null;
 
+    // Read the *style* cross size, not `child.size`: the latter has already had
+    // the ratio applied (generateAnonymousFlexItems), so an item with only a
+    // specified main size looks like it has a definite cross size here.
+    child.crossIsArDerived =
+      child.aspectRatio !== null &&
+      cross(maybeResolveSize(child.node.style.size, constants.nodeInnerSize), constants.dir) === null;
+
     const childCross = mMax(
       mClamp(cross(child.size, constants.dir) ?? arDerivedCross, transferredMinCross, transferredMaxCross),
       paddingBorderSum,
@@ -1342,7 +1371,14 @@ function calculateChildrenBaseLines(
 function calculateCrossSize(flexLines: FlexLine[], nodeSize: Size<Opt>, constants: AlgoConstants): void {
   // If the flex container is single-line and has a definite cross size,
   // the cross size of the flex line is the flex container's inner cross size.
-  if (!constants.isWrap && cross(nodeSize, constants.dir) !== null) {
+  // A ratio-derived cross size does not *fix* the line — it floors the
+  // container later (see determineContainerCrossSize), so the line must keep
+  // its content-derived size here. Only applies when the items can actually
+  // supply an independent content size.
+  const crossFloorsRatherThanFixes =
+    constants.crossIsRatioDerived &&
+    flexLines.every((line) => line.items.every((item) => !item.crossIsArDerived));
+  if (!constants.isWrap && cross(nodeSize, constants.dir) !== null && !crossFloorsRatherThanFixes) {
     const crossAxisPaddingBorder = rectCrossAxisSum(constants.contentBoxInset, constants.dir);
     const crossMinSize = cross(constants.minSize, constants.dir);
     const crossMaxSize = cross(constants.maxSize, constants.dir);
@@ -1630,12 +1666,22 @@ function determineContainerCrossSize(flexLines: FlexLine[], nodeSize: Size<Opt>,
   const crossScrollbarGutter = pointCrossValue(constants.scrollbarGutter, constants.dir);
   const minCrossSize = cross(constants.minSize, constants.dir);
   const maxCrossSize = cross(constants.maxSize, constants.dir);
+  // A ratio-derived cross size floors the container rather than fixing it
+  // (css-sizing-4 §4.2), so content taller than it wins — but only when that
+  // content is genuinely independent. An item whose own cross size came from
+  // its own ratio derives it from a main size that depends on this very cross
+  // size, so letting it floor here is circular: Chrome keeps `aspect-ratio: 4`
+  // at 200x50 around a `aspect-ratio: 1` item, while a plain 100px-tall block
+  // in the same slot grows it to 200x100.
+  const contentCrossSize = totalLineCrossSize + totalCrossAxisGap + paddingBorderSum;
+  const specifiedCross = cross(nodeSize, constants.dir);
+  const contentIsIndependent = flexLines.every((line) => line.items.every((item) => !item.crossIsArDerived));
+  const resolvedCross =
+    specifiedCross !== null && constants.crossIsRatioDerived && contentIsIndependent
+      ? Math.max(specifiedCross, contentCrossSize)
+      : (specifiedCross ?? contentCrossSize);
   const outerContainerSize = Math.max(
-    vClamp(
-      cross(nodeSize, constants.dir) ?? totalLineCrossSize + totalCrossAxisGap + paddingBorderSum,
-      minCrossSize,
-      maxCrossSize,
-    ),
+    vClamp(resolvedCross, minCrossSize, maxCrossSize),
     paddingBorderSum - crossScrollbarGutter,
   );
   const innerContainerSize = Math.max(outerContainerSize - paddingBorderSum, 0);
