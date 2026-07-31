@@ -1533,6 +1533,41 @@ Verified in Taffy: suspected (source-read, not executed).
 
 ## Not yet triaged
 
+- **Block: a ratio-derived width is not floored by content.** Diagnosed but not
+  yet fixed. In block layout a child whose width comes from `aspect-ratio` (not
+  from a specified width) is treated as definite, so content wider than the
+  ratio implies overflows instead of growing the box:
+
+  ```html
+  <div style="display: block; width: 500px; height: 500px">
+    <div style="display: block; aspect-ratio: 0.5; height: 20px">
+      <div style="display: block; width: 97px; height: 10px"></div>
+    </div>
+  </div>
+  ```
+
+  Chrome sizes the middle box 97x20; the engine gives 10x20 (= 20 * 0.5).
+
+  The discriminator is *where the width came from*, and the probe pair proves
+  Chrome distinguishes them: a **specified** `width: 10px` with the same 97px
+  child stays 10 in Chrome (content overflows, correctly), while the
+  **ratio-derived** 10 grows to 97. css-sizing-4 §4.2 is the reason — a
+  ratio-derived size is an *automatic* size, so the automatic-minimum/content
+  floor applies to it; a specified size is not.
+
+  Our site is `src/compute/block.ts:424`, where `applyAspectRatioClamped` folds
+  the ratio-derived width into the same `item.size` field that carries
+  specified widths, erasing the distinction; it is then consumed at line 589 as
+  `item.size.width ?? stretchWidth` with no content floor. Any fix must keep
+  the two provenances apart — flooring `item.size.width` unconditionally would
+  break the specified-width case above, which currently passes.
+
+  Flex is **not** affected (the same shape under a flex parent is correct), and
+  neither is the root path (fixed separately as #28). Taffy's `block.rs` has
+  the same single-field structure, so it is very likely to share this, but the
+  entry stays here until it is fixed and verified rather than being filed on a
+  reading alone.
+
 Open fuzz findings, not yet attributed to Taffy or to this port. Listed so they
 are not lost; each needs the same treatment before it can move up:
 
