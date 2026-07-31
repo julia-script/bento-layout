@@ -350,7 +350,7 @@ export class LayoutNode {
     for (const child of children) this.appendChild(child);
   }
   static make(style: StyleInput = {}, children: readonly LayoutNode[] = []): LayoutNode {
-    return LayoutNode.make(style, children);
+    return new LayoutNode(style, children);
   }
 
   static {
