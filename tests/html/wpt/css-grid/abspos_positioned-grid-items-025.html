@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-grid/abspos/positioned-grid-items-025.html @ 6e90070a5b
+  help: https://drafts.csswg.org/css-grid-2/#abspos
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: CSS Grid Layout Test: Positioned grid items</title>
+</head>
+<body>
+
+<div class="viewport" style="display: flow-root; width: 1280px;">
+<div id="test-root" style="display: block;">
+<div id="grid" style="display: grid; grid-template-columns: 50px 100px; height: 100px; width: 150px; direction: rtl; padding-left: 50px; padding-right: 80px; position: absolute;">
+  <div style="grid-column: auto / 1; inset: 0px; position: absolute; background-color: blue; display: block;"></div>
+  <div style="grid-column: -1; inset: 0px; position: absolute; background-color: blue; display: block;"></div>
+</div>
+</div>
+</div>
+
+</body>
+</html>

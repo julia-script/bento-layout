@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-flexbox/percentage-heights-002.html @ 6e90070a5b
+  help: https://drafts.csswg.org/css-flexbox/#definite-sizes
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: CSS Test: Percentage sizing in flexboxes</title>
+</head>
+<body>
+
+<div class="viewport" style="display: flow-root; width: 1280px;">
+<div id="test-root" style="display: block;">
+<div id="container" style="background-color: red; position: absolute; inset: 0px; display: flex; flex-direction: column;">
+  <div id="top-bar" style="background-color: green; height: 20%; display: block;">
+  Tests that percentage heights get resolved correctly when the flexbox is
+  </div>
+  <div id="content" style="background-color: blue; flex-basis: 100%; display: block;">
+  absolutely positioned without an explicit height. You should see no red.
+  </div>
+</div>
+</div>
+</div>
+
+</body>
+</html>

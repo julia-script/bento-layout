@@ -1,0 +1,19 @@
+<test name="abspos_positioned-grid-items-025__border_box_rtl" use-rounding="true">
+  <viewport width="1280px" height="max-content"/>
+  <input>
+    <div display="block" direction="rtl">
+      <div display="grid" direction="rtl" position="absolute" width="150px" height="100px" padding-left="50px" padding-right="80px" grid-template-columns="50px 100px">
+        <div display="block" direction="rtl" position="absolute" top="0px" left="0px" bottom="0px" right="0px" grid-column-end="1"/>
+        <div display="block" direction="rtl" position="absolute" top="0px" left="0px" bottom="0px" right="0px" grid-column-start="-1"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="1280" height="0">
+      <node x="1130" y="0" width="150" height="100">
+        <node x="70" y="0" width="80" height="100"/>
+        <node x="-80" y="0" width="0" height="100"/>
+      </node>
+    </node>
+  </expectations>
+</test>

@@ -1,0 +1,23 @@
+<test name="percentage-heights-002__border_box_rtl" use-rounding="true">
+  <viewport width="1280px" height="max-content"/>
+  <input>
+    <div display="block" direction="rtl">
+      <div display="flex" direction="rtl" position="absolute" flex-direction="column" top="0px" left="0px" bottom="0px" right="0px">
+        <text display="block" direction="rtl" height="20%">
+          Tests that percentage heights get resolved correctly when the flexbox is
+        </text>
+        <text display="block" direction="rtl" flex-basis="100%">
+          absolutely positioned without an explicit height. You should see no red.
+        </text>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="1280" height="0">
+      <node x="0" y="0" width="1280" height="0">
+        <node x="0" y="0" width="1280" height="0"/>
+        <node x="0" y="0" width="1280" height="10"/>
+      </node>
+    </node>
+  </expectations>
+</test>

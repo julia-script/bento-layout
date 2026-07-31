@@ -1,0 +1,19 @@
+<test name="abspos_positioned-grid-items-025__content_box_ltr" use-rounding="true">
+  <viewport width="1280px" height="max-content"/>
+  <input>
+    <div display="block" box-sizing="content-box" direction="ltr">
+      <div display="grid" box-sizing="content-box" direction="rtl" position="absolute" width="150px" height="100px" padding-left="50px" padding-right="80px" grid-template-columns="50px 100px">
+        <div display="block" box-sizing="content-box" direction="ltr" position="absolute" top="0px" left="0px" bottom="0px" right="0px" grid-column-end="1"/>
+        <div display="block" box-sizing="content-box" direction="ltr" position="absolute" top="0px" left="0px" bottom="0px" right="0px" grid-column-start="-1"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="1280" height="0">
+      <node x="0" y="0" width="280" height="100">
+        <node x="200" y="0" width="80" height="100"/>
+        <node x="0" y="0" width="50" height="100"/>
+      </node>
+    </node>
+  </expectations>
+</test>

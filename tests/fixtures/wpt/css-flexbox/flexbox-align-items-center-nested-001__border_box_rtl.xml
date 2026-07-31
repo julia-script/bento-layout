@@ -1,0 +1,25 @@
+<test name="flexbox-align-items-center-nested-001__border_box_rtl" use-rounding="true">
+  <viewport width="1280px" height="max-content"/>
+  <input>
+    <div display="block" direction="rtl">
+      <div display="flex" direction="rtl" position="absolute" flex-direction="column" height="100%">
+        <div display="flex" direction="rtl" align-items="center" flex-grow="1" flex-shrink="0">
+          <div display="flex" direction="rtl" align-items="center" height="100%">
+            <div display="block" direction="rtl" width="200px" height="200px"/>
+          </div>
+        </div>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="1280" height="0">
+      <node x="1080" y="0" width="200" height="0">
+        <node x="0" y="0" width="200" height="200">
+          <node x="0" y="0" width="200" height="200">
+            <node x="0" y="0" width="200" height="200"/>
+          </node>
+        </node>
+      </node>
+    </node>
+  </expectations>
+</test>
