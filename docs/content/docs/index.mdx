@@ -3,15 +3,91 @@ title: Introduction
 description: A TypeScript port of Taffy's flexbox, grid, and block layout algorithms.
 ---
 
-import { SmokeTest } from '@/components/smoke-test';
+`bento-layout` computes CSS layout — flexbox, grid, and block — without a browser.
+You give it a tree of styled nodes, it tells you where every box ends up.
 
-Docs content goes here.
+## Try it
 
-## Alias smoke test
+Every demo on this site is live. Edit the tree and the engine re-lays it out as
+you type — this is the real engine running in your browser, not a recording.
 
-The box below is laid out by the engine in `../src`, imported as
-`bento-layout`, running at build time:
+<Demo>
+{`<Layout>
+  <Node style={{width: '440px', height: '160px', display: 'flex',
+                columnGap: '12px', alignItems: 'center'}}>
+    <Node style={{width: '100px', height: '100px'}} />
+    <Node style={{flexGrow: 1, height: '60px'}} />
+    <Node style={{width: '100px', height: '100px'}} />
+  </Node>
+</Layout>`}
+</Demo>
 
-<SmokeTest />
+Try changing `alignItems` to `'flex-start'`, or giving the middle node
+`flexGrow: 2`.
 
-If two equal boxes render side by side, the alias works.
+## Two dialects
+
+Demo source accepts CSS-shaped strings — `'100px'`, `'50%'`, `'1fr'`,
+`'center'` — because that is how you would write the same thing in a
+stylesheet, and it keeps demos readable.
+
+The library itself takes **structured values only**. There is no CSS parser in
+`bento-layout`, so the same layout in your own code reads:
+
+```typescript
+import { LayoutNode, computeLayout } from 'bento-layout';
+
+const middle = LayoutNode.make({ flexGrow: 1, height: 60 });
+const root = LayoutNode.make(
+  {
+    width: 440,
+    height: 160,
+    columnGap: 12,
+    alignItems: { keyword: 'center', safe: false },
+  },
+  [
+    LayoutNode.make({ width: 100, height: 100 }),
+    middle,
+    LayoutNode.make({ width: 100, height: 100 }),
+  ],
+);
+
+computeLayout(root, { width: 'max-content', height: 'max-content' });
+middle.layout.size; // { width: 216, height: 60 }
+```
+
+Lengths are numbers and percentages are `{ percent: 0.5 }` fractions. The
+uniform shorthands do exist — `padding: 16` sets all four sides, `gap: 8` both
+gutters, and an object sets some of them:
+
+```typescript
+LayoutNode.make({ padding: 16 });                   // all four sides
+LayoutNode.make({ padding: { top: 8, bottom: 8 } }); // just those two
+LayoutNode.make({ padding: 16, paddingTop: 0 });    // 16, except the top
+```
+
+What does not exist is the multi-value string form — no `padding: '10px 20px'`,
+no `margin: '0 auto'` — since there is no CSS parser to read it. The demo
+dialect's strings are a convenience for these pages; what you write in your
+project is the structured form above.
+
+## Grid and block too
+
+The same engine handles grid:
+
+<Demo>
+{`<Layout>
+  <Node style={{display: 'grid', width: '440px', height: '180px',
+                gridTemplateColumns: '120px 1fr 1fr',
+                gridTemplateRows: 'repeat(2, 1fr)',
+                gap: '8px'}}>
+    <Node style={{gridRowEnd: 'span 2'}} />
+    <Node />
+    <Node />
+    <Node />
+    <Node />
+  </Node>
+</Layout>`}
+</Demo>
+
+Head to the [playground](/playground) for a larger canvas.

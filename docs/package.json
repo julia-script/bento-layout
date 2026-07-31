@@ -7,13 +7,17 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "postinstall": "fumadocs-mdx"
+    "postinstall": "fumadocs-mdx",
+    "test": "vitest run"
   },
   "dependencies": {
+    "acorn": "^8.18.0",
+    "acorn-jsx": "^5.3.2",
     "fumadocs-core": "^16.14.0",
     "fumadocs-mdx": "^15.2.1",
     "fumadocs-ui": "^16.14.0",
     "next": "^16.2.12",
+    "postcss-value-parser": "^4.2.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
@@ -25,6 +29,7 @@
     "@types/react-dom": "^19.2.4",
     "postcss": "^8.4.47",
     "tailwindcss": "^4.1.0",
-    "typescript": "^5.5.0"
+    "typescript": "^5.5.0",
+    "vitest": "^4.1.10"
   }
 }

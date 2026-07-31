@@ -1,0 +1,39 @@
+import Link from 'next/link';
+import { Demo } from '@/components/playground/Demo';
+
+const SEED = `<Layout>
+  <Node style={{width: '480px', height: '260px', display: 'flex',
+                padding: '16px', gap: '12px'}}>
+    <Node style={{width: '120px'}} />
+    <Node style={{flexGrow: 1, alignItems: 'center',
+                  justifyContent: 'center'}}>
+      <Node style={{width: '80px', height: '80px'}} />
+    </Node>
+  </Node>
+</Layout>`;
+
+export const metadata = {
+  title: 'Playground | bento-layout',
+  description: 'Edit a layout tree and see bento-layout lay it out.',
+};
+
+export default function PlaygroundPage() {
+  return (
+    <main className="mx-auto w-full max-w-6xl px-4 py-8">
+      <header className="mb-6">
+        <h1 className="text-2xl font-bold">Playground</h1>
+        <p className="mt-2 text-fd-muted-foreground">
+          Edit the tree on the left; the engine lays it out on the right. Sizes accept
+          CSS-shaped strings such as <code>100px</code>, <code>50%</code>, and{' '}
+          <code>1fr</code>. See the{' '}
+          <Link href="/docs" className="text-fd-foreground underline">
+            docs
+          </Link>{' '}
+          for the full style vocabulary.
+        </p>
+      </header>
+
+      <Demo height={460}>{SEED}</Demo>
+    </main>
+  );
+}

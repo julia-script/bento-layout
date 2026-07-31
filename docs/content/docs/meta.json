@@ -1,4 +1,4 @@
 {
   "title": "Docs",
-  "pages": ["index"]
+  "pages": ["index", "flex-direction", "grid-tracks", "block-layout"]
 }

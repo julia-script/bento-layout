@@ -1,0 +1,65 @@
+---
+title: Flex Direction
+description: Which way a flex container stacks its children.
+---
+
+`flexDirection` sets the main axis — the direction children are placed along.
+The cross axis is perpendicular to it, and it is the cross axis that
+`alignItems` works on.
+
+## row
+
+The default. Children are placed left to right, and `alignItems` positions them
+vertically.
+
+<Demo height={200}>
+{`<Layout>
+  <Node style={{width: '420px', height: '140px', flexDirection: 'row',
+                columnGap: '10px', alignItems: 'center'}}>
+    <Node style={{width: '80px', height: '40px'}} />
+    <Node style={{width: '80px', height: '70px'}} />
+    <Node style={{width: '80px', height: '100px'}} />
+  </Node>
+</Layout>`}
+</Demo>
+
+## column
+
+The main axis becomes vertical, so children stack downward and `alignItems`
+positions them horizontally. Change `flexDirection` above to `'column'` and the
+same three boxes rearrange.
+
+<Demo height={260}>
+{`<Layout>
+  <Node style={{width: '420px', height: '200px', flexDirection: 'column',
+                rowGap: '10px', alignItems: 'center'}}>
+    <Node style={{width: '80px', height: '40px'}} />
+    <Node style={{width: '140px', height: '40px'}} />
+    <Node style={{width: '200px', height: '40px'}} />
+  </Node>
+</Layout>`}
+</Demo>
+
+## The reverse variants
+
+`'row-reverse'` and `'column-reverse'` flip the direction items are placed in.
+The container's start edge moves with them, so `justifyContent: 'flex-start'`
+packs items to the right under `'row-reverse'`.
+
+<Demo height={200}>
+{`<Layout>
+  <Node style={{width: '420px', height: '140px', flexDirection: 'row-reverse',
+                columnGap: '10px', justifyContent: 'flex-start'}}>
+    <Node style={{width: '80px', height: '60px'}} />
+    <Node style={{width: '80px', height: '60px'}} />
+    <Node style={{width: '80px', height: '60px'}} />
+  </Node>
+</Layout>`}
+</Demo>
+
+In your own code this is a plain string, since `flexDirection` takes no
+structured form:
+
+```typescript
+LayoutNode.make({ flexDirection: 'column' });
+```
