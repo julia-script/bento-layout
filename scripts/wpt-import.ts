@@ -164,6 +164,11 @@ export const ALLOWLIST: Record<string, PropRule> = {
   'grid-column-start': { check: gridLine },
   'grid-column-end': { check: gridLine },
   'grid-area': { check: rx(String.raw`(?:auto|-?\d+|span\s+\d+)(?:\s*/\s*(?:auto|-?\d+|span\s+\d+)){0,3}`) },
+  // Only the `<rows> / <columns>` form: the browser's CSSOM expands it to the
+  // two longhands above before we read declarations back, so nothing here needs
+  // to parse it. The shorthand's other forms carry `grid-auto-flow` and named
+  // areas, which are not equivalent to a track list — hence the narrow shape.
+  'grid': { check: rx(`(?:${TRACK_LIST})\\s*/\\s*(?:${TRACK_LIST})`) },
 
   // Harness-supplied typography: valid only in the shapes our Ahem setup
   // already provides; the declaration is dropped at rewrite.
@@ -523,6 +528,20 @@ const IN_PAGE_REWRITE = `(dropProps) => {
     }
     // Harness-supplied typography is dropped; the emitted page inherits it.
     for (const p of dropProps) el.style.removeProperty(p);
+    // Border widths must be emitted as pixels. \`border: solid\` leaves the
+    // inline style's width as the keyword \`medium\`, and test_helper.js reads
+    // \`e.style.borderLeftWidth\` off the *inline* style — a keyword parses to 0
+    // there, so the fixture records border 0 while Chrome laid out with 3px.
+    // The test is then unpassable by construction. Resolve via computed style
+    // rather than a hardcoded thin/medium/thick table.
+    {
+      const cs = getComputedStyle(el);
+      for (const side of ['top', 'left', 'bottom', 'right']) {
+        const prop = \`border-\${side}-width\`;
+        if (el.style.getPropertyValue(prop) === '') continue;
+        el.style.setProperty(prop, cs.getPropertyValue(prop));
+      }
+    }
     // Explicit display on every element: the harness base stylesheet defaults
     // div to flex, so an element relying on the block default here would flip
     // when the emitted file is rendered standalone.

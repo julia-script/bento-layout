@@ -3909,11 +3909,10 @@
   },
   "css/css-flexbox/grid-flex-item-001.html": {
    "class": "skip",
-   "reason": "property:grid"
+   "reason": "property:writing-mode"
   },
   "css/css-flexbox/grid-flex-item-002.html": {
-   "class": "skip",
-   "reason": "property:grid"
+   "class": "import"
   },
   "css/css-flexbox/grid-flex-item-003.html": {
    "class": "skip",
@@ -5189,19 +5188,19 @@
   },
   "css/css-grid/abspos/descendant-static-position-001.html": {
    "class": "skip",
-   "reason": "property:grid"
+   "reason": "property:background-clip"
   },
   "css/css-grid/abspos/descendant-static-position-002.html": {
    "class": "skip",
-   "reason": "property:grid"
+   "reason": "property:background-clip"
   },
   "css/css-grid/abspos/descendant-static-position-003.html": {
    "class": "skip",
-   "reason": "property:grid"
+   "reason": "property:background-clip"
   },
   "css/css-grid/abspos/descendant-static-position-004.html": {
    "class": "skip",
-   "reason": "property:grid"
+   "reason": "property:background-clip"
   },
   "css/css-grid/abspos/empty-grid-001.html": {
    "class": "skip",
@@ -5321,15 +5320,15 @@
   },
   "css/css-grid/abspos/grid-abspos-staticpos-align-self-safe-outer-cb-001.tentative.html": {
    "class": "skip",
-   "reason": "property:grid"
+   "reason": "property:clear"
   },
   "css/css-grid/abspos/grid-abspos-staticpos-align-self-safe-outer-cb-002.tentative.html": {
    "class": "skip",
-   "reason": "property:grid"
+   "reason": "property:clear"
   },
   "css/css-grid/abspos/grid-abspos-staticpos-align-self-safe-outer-cb-003.tentative.html": {
    "class": "skip",
-   "reason": "property:grid"
+   "reason": "property:clear"
   },
   "css/css-grid/abspos/grid-abspos-staticpos-align-self-self-end-large-border-padding.html": {
    "class": "import"
@@ -5655,71 +5654,71 @@
   },
   "css/css-grid/abspos/orthogonal-positioned-grid-items-001.html": {
    "class": "skip",
-   "reason": "property:grid"
+   "reason": "property:writing-mode"
   },
   "css/css-grid/abspos/orthogonal-positioned-grid-items-002.html": {
    "class": "skip",
-   "reason": "property:grid"
+   "reason": "property:writing-mode"
   },
   "css/css-grid/abspos/orthogonal-positioned-grid-items-003.html": {
    "class": "skip",
-   "reason": "property:grid"
+   "reason": "property:writing-mode"
   },
   "css/css-grid/abspos/orthogonal-positioned-grid-items-004.html": {
    "class": "skip",
-   "reason": "property:grid"
+   "reason": "property:writing-mode"
   },
   "css/css-grid/abspos/orthogonal-positioned-grid-items-005.html": {
    "class": "skip",
-   "reason": "property:grid"
+   "reason": "property:writing-mode"
   },
   "css/css-grid/abspos/orthogonal-positioned-grid-items-006.html": {
    "class": "skip",
-   "reason": "property:grid"
+   "reason": "property:writing-mode"
   },
   "css/css-grid/abspos/orthogonal-positioned-grid-items-007.html": {
    "class": "skip",
-   "reason": "property:grid"
+   "reason": "property:writing-mode"
   },
   "css/css-grid/abspos/orthogonal-positioned-grid-items-008.html": {
    "class": "skip",
-   "reason": "property:grid"
+   "reason": "property:writing-mode"
   },
   "css/css-grid/abspos/orthogonal-positioned-grid-items-009.html": {
    "class": "skip",
-   "reason": "property:grid"
+   "reason": "property:writing-mode"
   },
   "css/css-grid/abspos/orthogonal-positioned-grid-items-010.html": {
    "class": "skip",
-   "reason": "property:grid"
+   "reason": "property:writing-mode"
   },
   "css/css-grid/abspos/orthogonal-positioned-grid-items-011.html": {
    "class": "skip",
-   "reason": "property:grid"
+   "reason": "property:writing-mode"
   },
   "css/css-grid/abspos/orthogonal-positioned-grid-items-012.html": {
    "class": "skip",
-   "reason": "property:grid"
+   "reason": "property:writing-mode"
   },
   "css/css-grid/abspos/orthogonal-positioned-grid-items-013.html": {
    "class": "skip",
-   "reason": "property:grid"
+   "reason": "property:writing-mode"
   },
   "css/css-grid/abspos/orthogonal-positioned-grid-items-014.html": {
    "class": "skip",
-   "reason": "property:grid"
+   "reason": "property:writing-mode"
   },
   "css/css-grid/abspos/orthogonal-positioned-grid-items-015.html": {
    "class": "skip",
-   "reason": "property:grid"
+   "reason": "property:writing-mode"
   },
   "css/css-grid/abspos/orthogonal-positioned-grid-items-016.html": {
    "class": "skip",
-   "reason": "property:grid"
+   "reason": "property:writing-mode"
   },
   "css/css-grid/abspos/orthogonal-positioned-grid-items-017.html": {
    "class": "skip",
-   "reason": "property:grid"
+   "reason": "property:writing-mode"
   },
   "css/css-grid/abspos/positioned-grid-descendant-containing-block-001.html": {
    "class": "import"
@@ -5838,72 +5837,55 @@
    "reason": "element:marquee"
   },
   "css/css-grid/abspos/positioned-grid-items-001.html": {
-   "class": "skip",
-   "reason": "property:grid"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-items-002.html": {
-   "class": "skip",
-   "reason": "property:grid"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-items-003.html": {
-   "class": "skip",
-   "reason": "property:grid"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-items-004.html": {
-   "class": "skip",
-   "reason": "property:grid"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-items-005.html": {
-   "class": "skip",
-   "reason": "property:grid"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-items-006.html": {
-   "class": "skip",
-   "reason": "property:grid"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-items-007.html": {
-   "class": "skip",
-   "reason": "property:grid"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-items-008.html": {
-   "class": "skip",
-   "reason": "property:grid"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-items-009.html": {
-   "class": "skip",
-   "reason": "property:grid"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-items-010.html": {
-   "class": "skip",
-   "reason": "property:grid"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-items-011.html": {
-   "class": "skip",
-   "reason": "property:grid"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-items-012.html": {
-   "class": "skip",
-   "reason": "property:grid"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-items-013.html": {
-   "class": "skip",
-   "reason": "property:grid"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-items-014.html": {
-   "class": "skip",
-   "reason": "property:grid"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-items-015.html": {
-   "class": "skip",
-   "reason": "property:grid"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-items-016.html": {
-   "class": "skip",
-   "reason": "property:grid"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-items-017.html": {
-   "class": "skip",
-   "reason": "property:grid"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-items-018.html": {
    "class": "import"
@@ -5943,8 +5925,7 @@
    "reason": "kind:no-assertions"
   },
   "css/css-grid/abspos/positioned-grid-items-negative-indices-001.html": {
-   "class": "skip",
-   "reason": "property:grid"
+   "class": "import"
   },
   "css/css-grid/abspos/positioned-grid-items-negative-indices-002.html": {
    "class": "skip",
@@ -13761,7 +13742,7 @@
   },
   "css/css-grid/subgrid/item-percentage-height-001.html": {
    "class": "skip",
-   "reason": "property:grid"
+   "reason": "value:grid:subgrid / auto"
   },
   "css/css-grid/subgrid/line-names-001.html": {
    "class": "skip",

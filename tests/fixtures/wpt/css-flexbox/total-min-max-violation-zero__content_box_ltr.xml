@@ -2,7 +2,7 @@
   <viewport width="max-content" height="max-content"/>
   <input>
     <div display="block" box-sizing="content-box" direction="ltr">
-      <div display="flex" box-sizing="content-box" direction="ltr" width="300px" height="300px">
+      <div display="flex" box-sizing="content-box" direction="ltr" width="300px" height="300px" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
         <div display="block" box-sizing="content-box" direction="ltr" flex-basis="300px" min-width="250px"/>
         <div display="block" box-sizing="content-box" direction="ltr" flex-basis="300px" min-width="0px" max-width="50px"/>
       </div>

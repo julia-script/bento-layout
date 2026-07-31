@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!--
+  Imported from web-platform-tests by scripts/wpt-import.ts — do not edit.
+  source: css/css-grid/abspos/positioned-grid-items-009.html @ 6e90070a5b
+  help: https://drafts.csswg.org/css-grid/#abspos
+  Styles are inlined (the engine pipeline reads inline styles only) and were
+  verified geometry-identical to the original <style>-block rendering.
+-->
+<html lang="en">
+<head>
+  <script src="../../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../../support/test_base_style.css">
+  <title>wpt: CSS Grid Layout Test: Positioned grid items</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+<div id="grid" style="display: grid; grid: 150px 100px / 200px 300px; margin: 1px 2px 3px 4px; padding: 20px 15px 10px 5px; border-width: 9px 3px 12px 6px; border-style: solid; width: 550px; height: 400px; position: relative;">
+  <div id="firstItem" style="position: absolute; inset: 0px; background: magenta; grid-area: 1 / 1 / 2 / 2; display: block;">First item</div>
+  <div id="secondItem" style="position: absolute; inset: 0px; background: cyan; grid-area: 1 / 2 / 2 / 3; display: block;">Second item</div>
+  <div id="thirdItem" style="position: absolute; inset: 0px; background: yellow; grid-area: 2 / 1 / 3 / 2; display: block;">Third item</div>
+  <div id="fourthItem" style="position: absolute; inset: 0px; background: lime; grid-area: 2 / 2 / 3 / 3; display: block;">Fourth item</div>
+</div>
+</div>
+
+</body>
+</html>

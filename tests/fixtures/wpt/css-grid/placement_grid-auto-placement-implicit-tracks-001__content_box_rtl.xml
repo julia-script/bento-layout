@@ -4,170 +4,170 @@
     <div display="block" box-sizing="content-box" direction="rtl">
       <div display="block" box-sizing="content-box" direction="rtl"/>
       <div display="grid" box-sizing="content-box" direction="rtl" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px" grid-auto-rows="50px" grid-auto-columns="100px">
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i1
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl" grid-row-start="span 2" grid-column-start="span 2">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px" grid-row-start="span 2" grid-column-start="span 2">
           i2
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i3
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i4
         </text>
       </div>
       <div display="grid" box-sizing="content-box" direction="rtl" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px" grid-auto-rows="50px" grid-auto-columns="100px">
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i1
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl" grid-row-start="span 2" grid-column-start="1">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px" grid-row-start="span 2" grid-column-start="1">
           i2
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i3
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i4
         </text>
       </div>
       <div display="grid" box-sizing="content-box" direction="rtl" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px" grid-auto-rows="50px" grid-auto-columns="100px">
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i1
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl" grid-row-start="1" grid-column-start="span 2">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px" grid-row-start="1" grid-column-start="span 2">
           i2
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i3
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i4
         </text>
       </div>
       <div display="grid" box-sizing="content-box" direction="rtl" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px" grid-auto-flow="row dense" grid-auto-rows="50px" grid-auto-columns="100px">
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i1
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl" grid-row-start="span 2" grid-column-start="span 2">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px" grid-row-start="span 2" grid-column-start="span 2">
           i2
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i3
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i4
         </text>
       </div>
       <div display="grid" box-sizing="content-box" direction="rtl" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px" grid-auto-flow="row dense" grid-auto-rows="50px" grid-auto-columns="100px">
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i1
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl" grid-row-start="span 2" grid-column-start="1">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px" grid-row-start="span 2" grid-column-start="1">
           i2
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i3
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i4
         </text>
       </div>
       <div display="grid" box-sizing="content-box" direction="rtl" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px" grid-auto-flow="row dense" grid-auto-rows="50px" grid-auto-columns="100px">
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i1
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl" grid-row-start="1" grid-column-start="span 2">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px" grid-row-start="1" grid-column-start="span 2">
           i2
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i3
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i4
         </text>
       </div>
       <div display="grid" box-sizing="content-box" direction="rtl" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px" grid-auto-flow="column" grid-auto-rows="50px" grid-auto-columns="100px">
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i1
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl" grid-row-start="span 2" grid-column-start="span 2">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px" grid-row-start="span 2" grid-column-start="span 2">
           i2
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i3
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i4
         </text>
       </div>
       <div display="grid" box-sizing="content-box" direction="rtl" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px" grid-auto-flow="column" grid-auto-rows="50px" grid-auto-columns="100px">
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i1
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl" grid-row-start="span 2" grid-column-start="1">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px" grid-row-start="span 2" grid-column-start="1">
           i2
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i3
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i4
         </text>
       </div>
       <div display="grid" box-sizing="content-box" direction="rtl" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px" grid-auto-flow="column" grid-auto-rows="50px" grid-auto-columns="100px">
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i1
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl" grid-row-start="1" grid-column-start="span 2">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px" grid-row-start="1" grid-column-start="span 2">
           i2
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i3
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i4
         </text>
       </div>
       <div display="grid" box-sizing="content-box" direction="rtl" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px" grid-auto-flow="column dense" grid-auto-rows="50px" grid-auto-columns="100px">
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i1
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl" grid-row-start="span 2" grid-column-start="span 2">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px" grid-row-start="span 2" grid-column-start="span 2">
           i2
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i3
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i4
         </text>
       </div>
       <div display="grid" box-sizing="content-box" direction="rtl" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px" grid-auto-flow="column dense" grid-auto-rows="50px" grid-auto-columns="100px">
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i1
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl" grid-row-start="span 2" grid-column-start="1">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px" grid-row-start="span 2" grid-column-start="1">
           i2
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i3
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i4
         </text>
       </div>
       <div display="grid" box-sizing="content-box" direction="rtl" margin-top="10px" margin-left="10px" margin-bottom="10px" margin-right="10px" grid-auto-flow="column dense" grid-auto-rows="50px" grid-auto-columns="100px">
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i1
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl" grid-row-start="1" grid-column-start="span 2">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px" grid-row-start="1" grid-column-start="span 2">
           i2
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i3
         </text>
-        <text display="block" box-sizing="content-box" direction="rtl">
+        <text display="block" box-sizing="content-box" direction="rtl" border-top="3px" border-left="3px" border-bottom="3px" border-right="3px">
           i4
         </text>
       </div>

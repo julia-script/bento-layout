@@ -1,9 +1,5 @@
 {
  "quarantined": [
-  "abspos_position-absolute-015__border_box_ltr",
-  "abspos_position-absolute-015__border_box_rtl",
-  "abspos_position-absolute-015__content_box_ltr",
-  "abspos_position-absolute-015__content_box_rtl",
   "alignment_grid-content-distribution-029__border_box_ltr",
   "alignment_grid-content-distribution-029__border_box_rtl",
   "alignment_grid-content-distribution-029__content_box_ltr",
@@ -23,10 +19,6 @@
   "layout-algorithm_auto-margins-ignored-during-track-sizing-001__border_box_ltr",
   "layout-algorithm_auto-margins-ignored-during-track-sizing-001__border_box_rtl",
   "layout-algorithm_auto-margins-ignored-during-track-sizing-001__content_box_ltr",
-  "layout-algorithm_auto-margins-ignored-during-track-sizing-001__content_box_rtl",
-  "total-min-max-violation-zero__border_box_ltr",
-  "total-min-max-violation-zero__border_box_rtl",
-  "total-min-max-violation-zero__content_box_ltr",
-  "total-min-max-violation-zero__content_box_rtl"
+  "layout-algorithm_auto-margins-ignored-during-track-sizing-001__content_box_rtl"
  ]
 }
