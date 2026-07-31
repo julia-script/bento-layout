@@ -13,10 +13,10 @@ suite — every fixture Taffy ships for these layout modes, none skipped (see
 ```ts
 import { LayoutNode, computeLayout } from 'flexboxjs';
 
-const child1 = new LayoutNode({ flexGrow: 1 });
-const child2 = new LayoutNode({ flexGrow: 1 });
-const root = new LayoutNode(
-  { size: { width: 400, height: 300 }, gap: { width: 10, height: 0 } },
+const child1 = LayoutNode.make({ flexGrow: 1 });
+const child2 = LayoutNode.make({ flexGrow: 1 });
+const root = LayoutNode.make(
+  { width: 400, height: 300, columnGap: 10 },
   [child1, child2],
 );
 
@@ -26,40 +26,49 @@ child1.layout; // { location: { x: 0, y: 0 }, size: { width: 195, height: 300 },
 child2.layout; // { location: { x: 205, y: 0 }, size: { width: 195, height: 300 }, ... }
 ```
 
-Nodes are opaque: styles change through `node.setStyle({...})` (a shallow merge —
-nested objects like `size` are replaced whole), structure through
+Nodes are opaque: styles change through `node.setStyle({...})` (a per-property
+merge — setting `width` leaves `height` alone), structure through
 `appendChild` / `insertChild` / `removeChild`, and results are read from the
 `layout` getter. A subtree removed from its parent is a live tree of its own —
 lay it out, re-attach it anywhere, or just drop it and let the garbage collector
 take it. There is no `free()`/`destroy()`: nodes have ordinary JS object
 lifetimes.
 
+Note the two directions differ in shape: styles go **in** as flat CSS
+properties, and layout comes **back out** in grouped `size`/`location`/`padding`
+objects, which is the form the engine computes in.
+
 ### Styles
 
-Styles mirror CSS, as plain data:
+Styles are flat CSS longhand properties in camelCase — the same spelling
+`element.style` and React inline styles use. Only longhands: there is no
+`padding: 10` shorthand for four sides. Values are plain data, not CSS strings:
 
 - Lengths: `100` (px), `{ percent: 0.5 }` (fraction, not 0–100), `'auto'`
-- `display` (`'flex'`, `'grid'`, or `'block'`), `position` (`relative`/`absolute` with `inset`), `boxSizing`, `direction` (`ltr`/`rtl`)
-- `size` / `minSize` / `maxSize`, `aspectRatio`
-- `margin` (supports `'auto'`; vertical block margins collapse per CSS 2.2), `padding`, `border`, `gap`
+- `display` (`'flex'`, `'grid'`, or `'block'`), `position` (`relative`/`absolute` with `top`/`left`/`bottom`/`right`), `boxSizing`, `direction` (`ltr`/`rtl`)
+- `width` / `height`, `minWidth` / `minHeight`, `maxWidth` / `maxHeight`, `aspectRatio`
+- `marginLeft` / `marginRight` / `marginTop` / `marginBottom` (support `'auto'`;
+  vertical block margins collapse per CSS 2.2), the matching `padding*` and
+  `border*` sides, and `columnGap` / `rowGap`
 - `flexDirection`, `flexWrap`, `flexGrow`, `flexShrink`, `flexBasis`
 - `gridTemplateRows` / `gridTemplateColumns` — arrays of track sizes: `40`,
   `{ percent: 0.1 }`, `'auto'`, `'min-content'`, `'max-content'`, `{ fr: 1 }`,
   `{ fitContent: 30 }`, `{ min, max }` (minmax), and
   `{ repeat: 3 | 'auto-fill' | 'auto-fit', tracks: [...] }`
 - `gridAutoRows` / `gridAutoColumns`, `gridAutoFlow` (`'row'`/`'column'`, `-dense`),
-  `gridRow` / `gridColumn` placements (`{ line: n }` incl. negative, `{ span: n }`, `'auto'`)
+  `gridRowStart` / `gridRowEnd` / `gridColumnStart` / `gridColumnEnd` placements
+  (`{ line: n }` incl. negative, `{ span: n }`, `'auto'`)
 - `alignItems` / `alignSelf` / `alignContent` / `justifyContent` / `justifyItems` / `justifySelf`
   (structured values, e.g. `{ keyword: 'center', safe: true }`)
 - `textAlign` for block containers (`legacy-left`/`legacy-right`/`legacy-center`)
-- `overflow` + `scrollbarWidth` (scrollbar gutters and automatic-min-size behavior)
+- `overflowX` / `overflowY` + `scrollbarWidth` (scrollbar gutters and automatic-min-size behavior)
 
 ### Text and other leaf content
 
 Leaf nodes take a `measure` callback so content (text, images) can report its size:
 
 ```ts
-const text = new LayoutNode().setMeasure(
+const text = LayoutNode.make().setMeasure(
   (knownDimensions, availableSpace) => measureMyText(knownDimensions, availableSpace),
 );
 ```

@@ -1,11 +1,42 @@
 // Port of taffy/src/geometry.rs (subset needed for flexbox).
 // Size/Rect/Point are plain objects; axis helpers take the flex-direction.
 
+/**
+ * A width/height pair.
+ *
+ * @remarks
+ * The container for anything two-dimensional: `size`, `minSize`, `maxSize`, and
+ * `gap` in a {@link Style}, sizes in a {@link Layout}, and the arguments to a
+ * {@link MeasureFunction}. `T` varies by use — `Size<number>` for computed
+ * pixels, `Size<Dimension>` for styles that accept `'auto'` and percentages.
+ *
+ * Note that `gap` uses this axis-wise: `width` is the gap *between columns*,
+ * `height` the gap between rows.
+ *
+ * @typeParam T - Type of each axis value.
+ */
 export interface Size<T> {
   width: T;
   height: T;
 }
 
+/**
+ * A value for each of the four physical sides.
+ *
+ * @remarks
+ * Used for `margin`, `padding`, `border`, and `inset`. Sides are physical and
+ * never flip: `left` stays left under `direction: 'rtl'`, so the *start* edge
+ * is `right` in that case.
+ *
+ * There is no shorthand — always give all four sides.
+ *
+ * @typeParam T - Type of each side's value.
+ *
+ * @example
+ * ```typescript
+ * const padding = { left: 10, right: 10, top: 5, bottom: 5 };
+ * ```
+ */
 export interface Rect<T> {
   left: T;
   right: T;
@@ -13,11 +44,33 @@ export interface Rect<T> {
   bottom: T;
 }
 
+/**
+ * An x/y pair.
+ *
+ * @remarks
+ * Used for positions — `Layout.location` — and for per-axis settings such as
+ * `Style.overflow`, where `x` is the horizontal axis and `y` the vertical.
+ *
+ * @typeParam T - Type of each coordinate.
+ */
 export interface Point<T> {
   x: T;
   y: T;
 }
 
+/**
+ * Main-axis direction of a flex container, and whether it runs in reverse.
+ *
+ * @remarks
+ * `'row'` lays items out along the inline axis (horizontally in `ltr`) and
+ * `'column'` down the block axis. The `-reverse` variants swap the start and
+ * end edges, so items stack from the opposite side; they change layout order
+ * only, not `Layout.order`.
+ *
+ * This also decides which axis alignment properties act on: `justifyContent`
+ * always works along the main axis and `alignItems` across it, so both swap
+ * meaning between `'row'` and `'column'`.
+ */
 export type FlexDirection = 'row' | 'column' | 'row-reverse' | 'column-reverse';
 export type AbsoluteAxis = 'horizontal' | 'vertical';
 

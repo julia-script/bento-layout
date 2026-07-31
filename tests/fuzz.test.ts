@@ -152,7 +152,7 @@ describe('fuzz shrinker (spec: Minimal reproduction)', () => {
       root: {
         style: { display: 'flex' },
         children: Array.from({ length: 12 }, () => ({
-          style: { flexGrow: 1, size: { width: 10 as const, height: 10 as const } },
+          style: { flexGrow: 1, width: 10 as const, height: 10 as const },
           children: [],
         })),
       },

@@ -4,6 +4,18 @@
 //   m*  — lhs is Option<f32>  (rhs may be Option or plain number; identical semantics)
 //   v*  — lhs is f32, rhs is Option<f32>
 
+/**
+ * A number that may be absent — this port's stand-in for Rust's `Option<f32>`.
+ *
+ * @remarks
+ * `null` means "not yet known" rather than zero, a distinction that matters
+ * throughout layout: an unresolved width and a width of `0` lead to different
+ * results. You meet it in a {@link MeasureFunction}, whose `knownDimensions`
+ * carries `null` on any axis the engine has not decided yet.
+ *
+ * Always test with `=== null`, never for falsiness — `0` is a perfectly good
+ * known value.
+ */
 export type Opt = number | null;
 
 export function mMin(l: Opt, r: Opt): Opt {

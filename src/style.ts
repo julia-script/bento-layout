@@ -7,21 +7,156 @@
 import type { FlexDirection, Point, Rect, Size } from './geometry.js';
 import type { Opt } from './math.js';
 
+/**
+ * A CSS length: either absolute pixels or a percentage of the containing block.
+ *
+ * @remarks
+ * This is the base of the length vocabulary the rest of the style types build
+ * on ({@link LengthPercentageAuto} adds `'auto'`, {@link Dimension} is an alias
+ * of that). Lengths are plain data rather than parsed strings: there is no CSS
+ * parser here, so you write `10`, not `'10px'`.
+ *
+ * The percentage is a **fraction, not a 0–100 number**: `{ percent: 0.5 }` is
+ * 50%. This is the single most common mistake when writing styles by hand — a
+ * literal `{ percent: 50 }` is read as 5000%.
+ *
+ * Percentages resolve against the containing block, and against its *inline*
+ * size (width) on all four sides for `padding`, `margin`, and `border` — so a
+ * percentage top padding is a fraction of the parent's width, per css-box-3.
+ *
+ * @example
+ * ```typescript
+ * const node = LayoutNode.make({
+ *   width: { percent: 0.5 }, // half the parent
+ *   height: 100,
+ *   paddingLeft: 8,
+ *   paddingRight: 8,
+ * });
+ * ```
+ */
 export type LengthPercentage = number | { percent: number };
+
+/**
+ * A {@link LengthPercentage} that may also be `'auto'`.
+ *
+ * @remarks
+ * Used where CSS lets a value be computed rather than stated — `margin`, and
+ * `inset` (`left`/`right`/`top`/`bottom`). What `'auto'` means depends on the
+ * property: an `'auto'` margin absorbs free space (the centering trick), while
+ * an `'auto'` inset leaves the box at its normal-flow position.
+ */
 export type LengthPercentageAuto = LengthPercentage | 'auto';
+
+/**
+ * A sizing value for `size`, `minSize`, `maxSize`, and `flexBasis`.
+ *
+ * @remarks
+ * Identical to {@link LengthPercentageAuto}; the separate name marks the CSS
+ * role. `'auto'` means "size from content or the layout algorithm" rather than
+ * a fixed value, and is the default on every axis.
+ */
 export type Dimension = LengthPercentageAuto;
 
+/**
+ * How much room a node has to lay out in, per axis.
+ *
+ * @remarks
+ * You pass this to {@link computeLayout} for the root; internally it is also
+ * what drives intrinsic sizing, and what a {@link MeasureFunction} receives.
+ *
+ * A number is a definite constraint in pixels. The two keywords ask intrinsic
+ * questions instead: `'max-content'` means "unconstrained — size to content",
+ * and `'min-content'` means "as narrow as the content permits". For a root you
+ * are fitting to a viewport, pass numbers; to shrink-wrap a tree, pass
+ * `'max-content'`.
+ *
+ * @example
+ * ```typescript
+ * const root = LayoutNode.make({}, [LayoutNode.make({ width: 50, height: 50 })]);
+ *
+ * computeLayout(root, { width: 800, height: 600 }); // fit a viewport
+ * computeLayout(root, { width: 'max-content', height: 'max-content' }); // shrink-wrap
+ * ```
+ */
 export type AvailableSpace = number | 'min-content' | 'max-content';
 
+/**
+ * Which layout algorithm a node runs for its children.
+ *
+ * @remarks
+ * `'none'` removes the node and its whole subtree from layout, sizing it to
+ * zero. Note the default is `'flex'`, not CSS's `'block'`.
+ */
 export type Display = 'flex' | 'none' | 'block' | 'grid';
+
+/**
+ * Whether `size` measures the border box or the content box.
+ *
+ * @remarks
+ * Under the default `'border-box'`, a width of 100 includes padding and border.
+ * Under `'content-box'` (CSS's own default) the padding and border are added on
+ * top, so the painted box comes out larger than the number you wrote.
+ */
 export type BoxSizing = 'border-box' | 'content-box';
+
+/** Inline direction: `'rtl'` mirrors the main axis and flips start/end edges. */
 export type Direction = 'ltr' | 'rtl';
+
+/**
+ * Whether a node participates in normal flow.
+ *
+ * @remarks
+ * `'absolute'` takes the node out of flow and positions it against its
+ * containing block using `inset`, so it no longer affects its siblings.
+ */
 export type Position = 'relative' | 'absolute';
+
+/**
+ * What happens to content that overflows a node's box.
+ *
+ * @remarks
+ * Layout-relevant beyond clipping: `'hidden'` and `'scroll'` make the node a
+ * scroll container, which gives it an automatic minimum size of zero — the
+ * reason an overflowing flex item shrinks with `overflow: 'hidden'` but not
+ * with `'visible'`. `'scroll'` additionally reserves `scrollbarWidth` as a
+ * gutter.
+ */
 export type Overflow = 'visible' | 'clip' | 'hidden' | 'scroll';
+
+/** Whether flex items wrap onto multiple lines, and in which order. */
 export type FlexWrap = 'nowrap' | 'wrap' | 'wrap-reverse';
+
+/**
+ * Legacy `text-align` inherited into block containers.
+ *
+ * @remarks
+ * Only the `legacy-*` values matter here: they reproduce the pre-CSS2.1
+ * behaviour where alignment on a block also aligns its block-level children.
+ * `'auto'` (the default) leaves that alone. This engine lays out boxes, not
+ * glyphs, so it has no effect on text inside a {@link MeasureFunction}.
+ */
 export type TextAlign = 'auto' | 'legacy-left' | 'legacy-right' | 'legacy-center';
 
+/**
+ * How an individual item sits within its line, on the cross axis.
+ *
+ * @remarks
+ * `'start'`/`'end'` are absolute (physical) edges, while `'flex-start'` and
+ * `'flex-end'` follow the flex direction and so swap under `row-reverse` or
+ * `rtl`. `'stretch'` fills the line — the default for flex items with an
+ * `'auto'` cross size. `'baseline'` aligns items by their first text baseline.
+ */
 export type AlignItemsKeyword = 'start' | 'end' | 'flex-start' | 'flex-end' | 'center' | 'baseline' | 'stretch';
+
+/**
+ * How the whole set of lines or tracks is distributed along an axis.
+ *
+ * @remarks
+ * Shares the edge keywords of {@link AlignItemsKeyword} and adds the
+ * space-distribution ones. `'space-between'` puts all spare room *between*
+ * items, `'space-around'` gives each item a half-size gutter on both sides, and
+ * `'space-evenly'` makes every gap — including the outer two — equal.
+ */
 export type AlignContentKeyword =
   | 'start'
   | 'end'
@@ -33,52 +168,295 @@ export type AlignContentKeyword =
   | 'space-evenly'
   | 'space-around';
 
+/**
+ * Cross-axis alignment for a container's items, as a keyword plus the CSS
+ * `safe` modifier.
+ *
+ * @remarks
+ * CSS writes this as one token (`align-items: safe center`); here it is
+ * structured data, so `'center'` becomes `{ keyword: 'center', safe: false }`.
+ *
+ * `safe: true` is the overflow escape hatch: when the item is bigger than its
+ * container, alignment falls back to `'start'` so the overflow spills off the
+ * end rather than off the start edge, where it would be unreachable. With
+ * `safe: false` (the default, matching CSS's `unsafe`) the requested alignment
+ * is honoured even when it overflows both ways.
+ *
+ * @example
+ * ```typescript
+ * const row = LayoutNode.make({
+ *   alignItems: { keyword: 'center', safe: false },
+ *   justifyContent: { keyword: 'space-between', safe: false },
+ * });
+ * ```
+ */
 export interface AlignItems {
   keyword: AlignItemsKeyword;
   safe: boolean;
 }
+
+/**
+ * Distribution of lines or tracks along an axis. Same `{ keyword, safe }` shape
+ * as {@link AlignItems} — see there for what `safe` does.
+ */
 export interface AlignContent {
   keyword: AlignContentKeyword;
   safe: boolean;
 }
+
+/**
+ * Per-item override of the parent's `alignItems`, set on the child. Same shape
+ * as {@link AlignItems}.
+ */
 export type AlignSelf = AlignItems;
+
+/**
+ * Main-axis distribution of items within a container. Same shape as
+ * {@link AlignContent}.
+ */
 export type JustifyContent = AlignContent;
 
-/** Fully-resolved style. Public input is `Partial<Style>` — see resolveStyle. */
+/**
+ * Everything that describes how one box should be laid out — the CSS box model
+ * and the flex, grid, and block properties, as plain data.
+ *
+ * @remarks
+ * You almost never build a whole `Style`. Nodes take `Partial<Style>` and fill
+ * the rest from defaults, so pass only what differs:
+ * `LayoutNode.make({ flexGrow: 1 })`. The complete resolved object is what
+ * {@link LayoutNode.style} hands back.
+ *
+ * Properties mirror CSS names and meanings, with two systematic differences:
+ * values are structured data rather than strings (`10` not `'10px'`,
+ * `{ percent: 0.5 }` not `'50%'`), and the shorthands are absent — set the
+ * longhand object instead of `margin: '0 auto'`.
+ *
+ * Which properties apply depends on `display` and on whether a node is a
+ * container or an item. `flexGrow` on a grid item, or `gridRow` on a flex item,
+ * is simply ignored rather than an error.
+ *
+ * The defaults are Taffy's, not CSS's. The three that surprise people:
+ * `display` is `'flex'` (CSS: `block`), `boxSizing` is `'border-box'` (CSS:
+ * `content-box`), and `flexShrink` is `1`, so items shrink below their basis
+ * unless told otherwise.
+ *
+ * @example
+ * A centered card with a fixed size.
+ * ```typescript
+ * const card = LayoutNode.make({
+ *   width: 300,
+ *   height: 200,
+ *   paddingLeft: 16,
+ *   paddingRight: 16,
+ *   alignItems: { keyword: 'center', safe: false },
+ *   justifyContent: { keyword: 'center', safe: false },
+ * });
+ * ```
+ *
+ * @see {@link LayoutNode.setStyle} to change styles after construction.
+ */
 export interface Style {
+  /** Layout algorithm for this node's children. @defaultValue `'flex'` */
   display: Display;
+  /** Whether {@link Style.size} means the border box or content box. @defaultValue `'border-box'` */
   boxSizing: BoxSizing;
+  /** Inline direction; `'rtl'` mirrors the main axis. @defaultValue `'ltr'` */
   direction: Direction;
+  /**
+   * Overflow handling per physical axis (`x` horizontal, `y` vertical).
+   * @defaultValue `{ x: 'visible', y: 'visible' }`
+   */
   overflow: Point<Overflow>;
+  /**
+   * Gutter reserved on an axis whose {@link Style.overflow} is `'scroll'`.
+   *
+   * @remarks
+   * Taken out of the content box, so it shrinks the room children get. Ignored
+   * unless that axis actually scrolls.
+   *
+   * @defaultValue `0`
+   */
   scrollbarWidth: number;
+  /** Whether the node stays in normal flow. @defaultValue `'relative'` */
   position: Position;
+  /**
+   * Offsets from the containing block's edges, used when
+   * {@link Style.position} is `'absolute'`.
+   *
+   * @remarks
+   * `'auto'` on a side means "no constraint from this edge". Giving both
+   * opposite sides definite values stretches the box between them, which is how
+   * you fill a container without stating a size.
+   *
+   * @defaultValue all sides `'auto'`
+   */
   inset: Rect<LengthPercentageAuto>;
+  /**
+   * Preferred size on each axis.
+   *
+   * @remarks
+   * `'auto'` defers to content and to the layout algorithm. Clamped by
+   * {@link Style.minSize} and {@link Style.maxSize}, and interpreted per
+   * {@link Style.boxSizing}.
+   *
+   * @defaultValue both axes `'auto'`
+   */
   size: Size<Dimension>;
+  /**
+   * Lower size bound, clamping {@link Style.size}.
+   *
+   * @remarks
+   * `'auto'` is not zero: for a flex or grid item it means the *automatic
+   * minimum size*, which floors the item at its content's minimum so text does
+   * not shrink to nothing. Set `0` explicitly to allow full shrinkage — or make
+   * the node a scroll container, which has the same effect.
+   *
+   * @defaultValue both axes `'auto'`
+   */
   minSize: Size<Dimension>;
+  /** Upper size bound, clamping {@link Style.size}. @defaultValue both axes `'auto'` */
   maxSize: Size<Dimension>;
+  /**
+   * Width-to-height ratio; `2` is twice as wide as tall.
+   *
+   * @remarks
+   * Derives the size of an axis left `'auto'` from the other axis, after
+   * min/max clamping on each axis independently. `null` disables it.
+   *
+   * @defaultValue `null`
+   */
   aspectRatio: number | null;
+  /**
+   * Space outside the border box.
+   *
+   * @remarks
+   * `'auto'` absorbs free space, which is how a box centers itself
+   * (`left: 'auto', right: 'auto'`). In block layout, adjacent vertical margins
+   * collapse per CSS 2.2, so the rendered gap can be smaller than the sum.
+   * Percentages resolve against the containing block's **width** on all four
+   * sides.
+   *
+   * @defaultValue all sides `0`
+   */
   margin: Rect<LengthPercentageAuto>;
+  /**
+   * Space between the border and the content, inside the box. Percentages
+   * resolve against the containing block's width on all four sides.
+   *
+   * @defaultValue all sides `0`
+   */
   padding: Rect<LengthPercentage>;
+  /**
+   * Border thickness, between padding and margin.
+   *
+   * @remarks
+   * Thickness only — this engine computes geometry, not paint, so there is no
+   * border style or color.
+   *
+   * @defaultValue all sides `0`
+   */
   border: Rect<LengthPercentage>;
+  /**
+   * Cross-axis alignment applied to all children. `null` means the algorithm's
+   * default (stretch for flex).
+   *
+   * @defaultValue `null`
+   */
   alignItems: AlignItems | null;
+  /**
+   * This node's own cross-axis alignment, overriding its parent's
+   * {@link Style.alignItems}. Set on the child, not the container.
+   *
+   * @defaultValue `null`
+   */
   alignSelf: AlignSelf | null;
+  /**
+   * Distribution of flex lines or grid tracks along the cross axis. Only has an
+   * effect with multiple lines or tracks.
+   *
+   * @defaultValue `null`
+   */
   alignContent: AlignContent | null;
+  /** Distribution of items along the main axis. @defaultValue `null` */
   justifyContent: JustifyContent | null;
+  /**
+   * Gutters between items: `width` between columns, `height` between rows.
+   *
+   * @remarks
+   * Named by axis rather than CSS's row/column gap. Applies to flex and grid;
+   * gaps are not added outside the first or last item.
+   *
+   * @defaultValue `{ width: 0, height: 0 }`
+   */
   gap: Size<LengthPercentage>;
+  /** Legacy block text alignment. @defaultValue `'auto'` */
   textAlign: TextAlign;
+  /** Main-axis direction for flex containers. @defaultValue `'row'` */
   flexDirection: FlexDirection;
+  /** Whether items wrap onto multiple lines. @defaultValue `'nowrap'` */
   flexWrap: FlexWrap;
+  /**
+   * Starting main-axis size of a flex item, before growing or shrinking.
+   *
+   * @remarks
+   * Takes priority over {@link Style.size} on the main axis. `'auto'` falls
+   * back to that size, and then to content.
+   *
+   * @defaultValue `'auto'`
+   */
   flexBasis: Dimension;
+  /**
+   * Share of leftover main-axis space this item claims, relative to its
+   * siblings' grow factors. `0` means it never grows.
+   *
+   * @defaultValue `0`
+   */
   flexGrow: number;
+  /**
+   * Share of overflow this item absorbs when items do not fit, weighted by its
+   * basis. `0` keeps it at its basis.
+   *
+   * @remarks
+   * Defaults to `1`, matching CSS: items shrink below their basis by default,
+   * which is the usual explanation for an item coming out narrower than
+   * requested. It cannot shrink past {@link Style.minSize}.
+   *
+   * @defaultValue `1`
+   */
   flexShrink: number;
+  /** Inline-axis alignment of grid items within their areas. @defaultValue `null` */
   justifyItems: AlignItems | null;
+  /**
+   * This grid item's own inline-axis alignment, overriding the container's
+   * {@link Style.justifyItems}.
+   *
+   * @defaultValue `null`
+   */
   justifySelf: AlignSelf | null;
+  /**
+   * Explicit row tracks. @defaultValue `[]` (no explicit rows)
+   * @see {@link GridTemplateComponent} for the track vocabulary.
+   */
   gridTemplateRows: GridTemplateComponent[];
+  /** Explicit column tracks. @defaultValue `[]` */
   gridTemplateColumns: GridTemplateComponent[];
+  /**
+   * Sizes for rows created implicitly beyond the explicit grid, cycled in
+   * order.
+   *
+   * @defaultValue `[]` (implicit rows are `auto`)
+   */
   gridAutoRows: TrackSizingFunction[];
+  /** Sizes for implicitly-created columns, cycled in order. @defaultValue `[]` */
   gridAutoColumns: TrackSizingFunction[];
+  /** Direction and packing of automatic grid placement. @defaultValue `'row'` */
   gridAutoFlow: GridAutoFlow;
+  /**
+   * This item's row placement. @defaultValue `{ start: 'auto', end: 'auto' }`
+   * @see {@link GridPlacement}
+   */
   gridRow: GridPlacementLine;
+  /** This item's column placement. @defaultValue `{ start: 'auto', end: 'auto' }` */
   gridColumn: GridPlacementLine;
 }
 
@@ -119,8 +497,230 @@ export const defaultStyle = (): Style => ({
   gridColumn: { start: 'auto', end: 'auto' },
 });
 
-export function resolveStyle(partial: Partial<Style> = {}): Style {
-  return { ...defaultStyle(), ...partial };
+/** Scalar {@link Style} properties, which {@link StyleInput} takes unchanged. */
+type ScalarStyleKey =
+  | 'display'
+  | 'boxSizing'
+  | 'direction'
+  | 'scrollbarWidth'
+  | 'position'
+  | 'aspectRatio'
+  | 'textAlign'
+  | 'flexDirection'
+  | 'flexWrap'
+  | 'flexBasis'
+  | 'flexGrow'
+  | 'flexShrink'
+  | 'gridAutoFlow'
+  | 'alignItems'
+  | 'alignSelf'
+  | 'alignContent'
+  | 'justifyContent'
+  | 'justifyItems'
+  | 'justifySelf'
+  | 'gridTemplateRows'
+  | 'gridTemplateColumns'
+  | 'gridAutoRows'
+  | 'gridAutoColumns';
+
+/**
+ * A style written as flat CSS properties — the form you pass to
+ * {@link LayoutNode}.
+ *
+ * @remarks
+ * Keys are CSS longhand names in camelCase, the same spelling the DOM's
+ * `element.style` and React inline styles use: `paddingLeft`, `minWidth`,
+ * `columnGap`. Every property is optional, and anything omitted keeps its
+ * default.
+ *
+ * Only longhands are accepted. There is no `padding: 10` shorthand setting four
+ * sides, and no `margin: '0 auto'` string — write the sides you mean.
+ * Values stay structured data rather than CSS strings: `10` for pixels,
+ * `{ percent: 0.5 }` for 50%, `'auto'` for the keyword.
+ *
+ * A few names differ from the CSS property they correspond to, following CSS
+ * itself rather than the engine's internals: box offsets are `top`/`left`/
+ * `bottom`/`right` (CSS `inset`), and gaps are `columnGap`/`rowGap`.
+ *
+ * @example
+ * ```typescript
+ * const card = LayoutNode.make({
+ *   width: 300,
+ *   height: 200,
+ *   paddingLeft: 16,
+ *   paddingRight: 16,
+ *   columnGap: 8,
+ *   alignItems: { keyword: 'center', safe: false },
+ * });
+ * ```
+ *
+ * @see {@link Style} for the resolved form read back from
+ *   {@link LayoutNode.style}.
+ */
+export interface StyleInput extends Partial<Pick<Style, ScalarStyleKey>> {
+  /** CSS `width`. @defaultValue `'auto'` */
+  width?: Dimension;
+  /** CSS `height`. @defaultValue `'auto'` */
+  height?: Dimension;
+  /** CSS `min-width`. @defaultValue `'auto'` */
+  minWidth?: Dimension;
+  /** CSS `min-height`. @defaultValue `'auto'` */
+  minHeight?: Dimension;
+  /** CSS `max-width`. @defaultValue `'auto'` */
+  maxWidth?: Dimension;
+  /** CSS `max-height`. @defaultValue `'auto'` */
+  maxHeight?: Dimension;
+
+  /** CSS `margin-left`. @defaultValue `0` */
+  marginLeft?: LengthPercentageAuto;
+  /** CSS `margin-right`. @defaultValue `0` */
+  marginRight?: LengthPercentageAuto;
+  /** CSS `margin-top`. @defaultValue `0` */
+  marginTop?: LengthPercentageAuto;
+  /** CSS `margin-bottom`. @defaultValue `0` */
+  marginBottom?: LengthPercentageAuto;
+
+  /** CSS `padding-left`. @defaultValue `0` */
+  paddingLeft?: LengthPercentage;
+  /** CSS `padding-right`. @defaultValue `0` */
+  paddingRight?: LengthPercentage;
+  /** CSS `padding-top`. @defaultValue `0` */
+  paddingTop?: LengthPercentage;
+  /** CSS `padding-bottom`. @defaultValue `0` */
+  paddingBottom?: LengthPercentage;
+
+  /** CSS `border-left-width`. @defaultValue `0` */
+  borderLeft?: LengthPercentage;
+  /** CSS `border-right-width`. @defaultValue `0` */
+  borderRight?: LengthPercentage;
+  /** CSS `border-top-width`. @defaultValue `0` */
+  borderTop?: LengthPercentage;
+  /** CSS `border-bottom-width`. @defaultValue `0` */
+  borderBottom?: LengthPercentage;
+
+  /** CSS `left`, used when `position` is `'absolute'`. @defaultValue `'auto'` */
+  left?: LengthPercentageAuto;
+  /** CSS `right`. @defaultValue `'auto'` */
+  right?: LengthPercentageAuto;
+  /** CSS `top`. @defaultValue `'auto'` */
+  top?: LengthPercentageAuto;
+  /** CSS `bottom`. @defaultValue `'auto'` */
+  bottom?: LengthPercentageAuto;
+
+  /** CSS `column-gap` — the gutter between columns. @defaultValue `0` */
+  columnGap?: LengthPercentage;
+  /** CSS `row-gap` — the gutter between rows. @defaultValue `0` */
+  rowGap?: LengthPercentage;
+
+  /** CSS `overflow-x`. @defaultValue `'visible'` */
+  overflowX?: Overflow;
+  /** CSS `overflow-y`. @defaultValue `'visible'` */
+  overflowY?: Overflow;
+
+  /** CSS `grid-row-start`. @defaultValue `'auto'` */
+  gridRowStart?: GridPlacement;
+  /** CSS `grid-row-end`. @defaultValue `'auto'` */
+  gridRowEnd?: GridPlacement;
+  /** CSS `grid-column-start`. @defaultValue `'auto'` */
+  gridColumnStart?: GridPlacement;
+  /** CSS `grid-column-end`. @defaultValue `'auto'` */
+  gridColumnEnd?: GridPlacement;
+}
+
+/**
+ * Flat input key → the nested {@link Style} field it writes, as
+ * `[nested key, sub-key]`. This table is the whole flat-to-nested mapping;
+ * {@link resolveStyle} does nothing else.
+ */
+const FLAT_TO_NESTED = {
+  width: ['size', 'width'],
+  height: ['size', 'height'],
+  minWidth: ['minSize', 'width'],
+  minHeight: ['minSize', 'height'],
+  maxWidth: ['maxSize', 'width'],
+  maxHeight: ['maxSize', 'height'],
+  marginLeft: ['margin', 'left'],
+  marginRight: ['margin', 'right'],
+  marginTop: ['margin', 'top'],
+  marginBottom: ['margin', 'bottom'],
+  paddingLeft: ['padding', 'left'],
+  paddingRight: ['padding', 'right'],
+  paddingTop: ['padding', 'top'],
+  paddingBottom: ['padding', 'bottom'],
+  borderLeft: ['border', 'left'],
+  borderRight: ['border', 'right'],
+  borderTop: ['border', 'top'],
+  borderBottom: ['border', 'bottom'],
+  left: ['inset', 'left'],
+  right: ['inset', 'right'],
+  top: ['inset', 'top'],
+  bottom: ['inset', 'bottom'],
+  columnGap: ['gap', 'width'],
+  rowGap: ['gap', 'height'],
+  overflowX: ['overflow', 'x'],
+  overflowY: ['overflow', 'y'],
+  gridRowStart: ['gridRow', 'start'],
+  gridRowEnd: ['gridRow', 'end'],
+  gridColumnStart: ['gridColumn', 'start'],
+  gridColumnEnd: ['gridColumn', 'end'],
+} as const satisfies Record<string, readonly [keyof Style, string]>;
+
+/**
+ * Expand a flat {@link StyleInput} into the engine's resolved {@link Style},
+ * filling in defaults for everything omitted.
+ *
+ * @remarks
+ * The engine works in normalized {@link Size} / {@link Rect} / {@link Point}
+ * shapes because they make the axis-generic math tractable — `main(size, dir)`
+ * and `cross(size, dir)` need a pair, not four loose properties. Flat CSS names
+ * are the input dialect only; this is the single point where the two meet.
+ */
+export function resolveStyle(input: StyleInput = {}): Style {
+  return mergeStyle(defaultStyle(), input);
+}
+
+/**
+ * Merge flat `input` over the resolved `base`, writing each flat key into the
+ * nested field it maps to.
+ *
+ * @remarks
+ * Shared by {@link resolveStyle} and `LayoutNode.setStyle`, so construction and
+ * mutation expand flat input identically.
+ *
+ * Nested objects touched by `input` are rebuilt rather than mutated in place,
+ * which keeps two guarantees at once: `base` is never written through (a node's
+ * existing style object is not modified underneath it), and the caller retains
+ * no live handle on the result. That second point is what makes mutation
+ * tracking possible — a style reachable from outside could go stale with no
+ * setter called, and no dirty flag could be trusted.
+ *
+ * Unlike the old nested input, a flat key sets exactly one field: passing
+ * `width` leaves `height` alone instead of replacing the whole `size` object.
+ *
+ * @internal
+ */
+export function mergeStyle(base: Style, input: StyleInput): Style {
+  const style: Style = { ...base };
+  const rebuilt = new Set<string>();
+
+  for (const [flatKey, value] of Object.entries(input)) {
+    const mapping = (FLAT_TO_NESTED as Record<string, readonly [keyof Style, string] | undefined>)[flatKey];
+    if (mapping === undefined) {
+      // Scalar (or already-structured) property: copy arrays/objects so the
+      // caller keeps no handle on what the node now owns.
+      (style as unknown as Record<string, unknown>)[flatKey] = Array.isArray(value) ? [...value] : value;
+      continue;
+    }
+    const [nestedKey, subKey] = mapping;
+    // Rebuild the nested object once, then write each flat key into the copy.
+    if (!rebuilt.has(nestedKey)) {
+      (style as unknown as Record<string, unknown>)[nestedKey] = { ...(base[nestedKey] as object) };
+      rebuilt.add(nestedKey);
+    }
+    (style[nestedKey] as Record<string, unknown>)[subKey] = value;
+  }
+
+  return style;
 }
 
 // --- Resolution (port of util/resolve.rs)
@@ -218,8 +818,39 @@ export const ALIGN_STRETCH: AlignItems = { keyword: 'stretch', safe: false };
 export const ALIGN_CONTENT_STRETCH: AlignContent = { keyword: 'stretch', safe: false };
 
 /**
- * Thrown by `computeLayout` when a user-supplied style value is invalid —
- * e.g. a grid placement line of 0, or a non-finite `repeat()` track count.
+ * Thrown when a style value cannot be laid out.
+ *
+ * @remarks
+ * Raised from {@link computeLayout}, not from the constructor or
+ * {@link LayoutNode.setStyle} — styles are stored as given and only validated
+ * when layout actually reaches them, so the stack points at the layout call
+ * rather than at the node that carries the bad value. The message names the
+ * offending value.
+ *
+ * This is deliberately narrow. Only values that make layout impossible throw; a
+ * merely nonsensical one does not. Grid line `0` is the instructive case — CSS
+ * says an invalid placement falls back to `auto`, so it lays out rather than
+ * throwing. Today the reachable causes are a `repeat()` whose track count is
+ * not finite (`NaN` or `Infinity`), and an internal grid line of `0` reached
+ * after that fallback.
+ *
+ * @example
+ * ```typescript
+ * import { InvalidStyleError, LayoutNode, computeLayout } from 'flexboxjs';
+ *
+ * const root = LayoutNode.make({
+ *   display: 'grid',
+ *   gridTemplateColumns: [{ repeat: Number.NaN, tracks: [{ min: 10, max: 10 }] }],
+ * }, [LayoutNode.make()]);
+ *
+ * try {
+ *   computeLayout(root, { width: 'max-content', height: 'max-content' });
+ * } catch (err) {
+ *   if (err instanceof InvalidStyleError) {
+ *     console.error('bad style:', err.message);
+ *   }
+ * }
+ * ```
  */
 export class InvalidStyleError extends Error {
   override readonly name = 'InvalidStyleError';
@@ -230,32 +861,134 @@ export class InvalidStyleError extends Error {
 
 // --- Grid style types (port of style/grid.rs, unnamed-track subset)
 
-/** Min track sizing function: length/percent, auto, or min/max-content */
+/**
+ * Lower bound of a grid track's size — the `min` half of CSS `minmax()`.
+ *
+ * @remarks
+ * A length or percentage is a fixed floor. `'min-content'` and `'max-content'`
+ * floor the track at its items' intrinsic sizes, and `'auto'` behaves as
+ * `'min-content'` here but additionally lets the track stretch under
+ * `alignContent`/`justifyContent: 'stretch'`. Flexible (`fr`) values are not
+ * valid as a minimum — see {@link MaxTrackSizingFunction}.
+ */
 export type MinTrackSizingFunction = LengthPercentage | 'auto' | 'min-content' | 'max-content';
-/** Max track sizing function: adds fr units and fit-content() */
+
+/**
+ * Upper bound of a grid track's size — the `max` half of CSS `minmax()`.
+ *
+ * @remarks
+ * Everything {@link MinTrackSizingFunction} allows, plus the two things only a
+ * maximum can express: `{ fr: n }` for a flexible track that divides leftover
+ * space in proportion to `n` (CSS `1fr`), and `{ fitContent: limit }` for a
+ * track that sizes to its content but stops at `limit` (CSS `fit-content()`).
+ */
 export type MaxTrackSizingFunction =
   | MinTrackSizingFunction
   | { fr: number }
   | { fitContent: LengthPercentage };
 
-/** A single track's sizing bounds (CSS minmax(); single values set both) */
+/**
+ * A single grid track's sizing bounds — CSS `minmax(min, max)`.
+ *
+ * @remarks
+ * A CSS track written as one value sets both bounds: `100px` is
+ * `{ min: 100, max: 100 }`, and `1fr` is `{ min: 'auto', max: { fr: 1 } }`.
+ * There is no single-value shorthand here, so state both.
+ *
+ * @example
+ * ```typescript
+ * const fixed = { min: 100, max: 100 };                      // 100px
+ * const flexible = { min: 'auto', max: { fr: 1 } } as const; // 1fr
+ * const bounded = { min: 100, max: { fr: 1 } } as const;     // minmax(100px, 1fr)
+ * ```
+ */
 export interface TrackSizingFunction {
   min: MinTrackSizingFunction;
   max: MaxTrackSizingFunction;
 }
 
+/**
+ * How many times a `repeat()` repeats.
+ *
+ * @remarks
+ * A number repeats exactly that many times. `'auto-fill'` fits as many
+ * repetitions as the container allows; `'auto-fit'` does the same but then
+ * collapses repetitions that ended up empty, letting the remaining tracks take
+ * that space. They differ only when there are fewer items than tracks.
+ */
 export type RepetitionCount = number | 'auto-fill' | 'auto-fit';
 
-/** An entry in grid-template-rows/columns: a single track or a repeat() */
+/**
+ * One entry in {@link Style.gridTemplateRows} or
+ * {@link Style.gridTemplateColumns}: either a single track or a `repeat()`.
+ *
+ * @remarks
+ * A template is an array of these, and a `repeat()` expands in place to the
+ * tracks it names.
+ *
+ * @example
+ * A 200px sidebar and as many 150px-minimum columns as fit beside it.
+ *
+ * The container needs a definite width for `auto-fill` to have anything to fill
+ * — an auto-sized grid shrink-wraps its content and produces a single
+ * repetition.
+ * ```typescript
+ * const grid = LayoutNode.make({
+ *   display: 'grid',
+ *   width: 800,
+ *   height: 200,
+ *   gridTemplateColumns: [
+ *     { min: 200, max: 200 },
+ *     { repeat: 'auto-fill', tracks: [{ min: 150, max: { fr: 1 } }] },
+ *   ],
+ * }, [LayoutNode.make(), LayoutNode.make(), LayoutNode.make()]);
+ *
+ * // tracks: 200px sidebar, then 150px-minimum columns filling the remaining 600px
+ * ```
+ */
 export type GridTemplateComponent =
   | TrackSizingFunction
   | { repeat: RepetitionCount; tracks: TrackSizingFunction[] };
 
+/**
+ * Direction and packing used to place items that have no explicit position.
+ *
+ * @remarks
+ * `'row'` fills each row before moving down; `'column'` fills each column
+ * first. The `-dense` variants backtrack to fill holes left by explicitly
+ * placed items, at the cost of items appearing out of source order.
+ */
 export type GridAutoFlow = 'row' | 'column' | 'row-dense' | 'column-dense';
 
-/** Grid line placement: auto, a 1-based line number (negative counts from end), or a span */
+/**
+ * Where a grid item starts or ends on one axis.
+ *
+ * @remarks
+ * `'auto'` leaves it to automatic placement. `{ line: n }` names a grid line:
+ * lines are **1-based**, and negative numbers count back from the end, so
+ * `{ line: -1 }` is the last line — the idiom for "stretch to the end".
+ * `{ span: n }` sizes the item in tracks instead of pinning it to a line.
+ *
+ * Line `0` does not exist in CSS. It is treated as `'auto'` rather than
+ * throwing, matching how browsers recover from an invalid placement.
+ *
+ * @example
+ * ```typescript
+ * const banner = LayoutNode.make({
+ *   gridColumnStart: { line: 1 }, // full width…
+ *   gridColumnEnd: { line: -1 }, // …to the last line
+ *   gridRowEnd: { span: 2 },     // two rows tall
+ * });
+ * ```
+ */
 export type GridPlacement = 'auto' | { line: number } | { span: number };
 
+/**
+ * An item's placement on one axis, as a start/end pair — CSS `grid-row` /
+ * `grid-column`.
+ *
+ * @see {@link GridPlacement} for what each end accepts.
+ */
 export interface GridPlacementLine {
   start: GridPlacement;
   end: GridPlacement;

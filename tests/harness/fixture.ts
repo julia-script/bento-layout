@@ -17,6 +17,7 @@ import type {
   MinTrackSizingFunction,
   Size,
   Style,
+  StyleInput,
   TrackSizingFunction,
 } from '../../src/index.js';
 import { ahemTextMeasure } from './measure.js';
@@ -108,7 +109,7 @@ function buildNode(el: XmlNode, displays: Set<string>): LayoutNode {
   if (attrs['display'] !== undefined) displays.add(attrs['display']);
 
   if (elementChildren.length > 0) {
-    return new LayoutNode(style, elementChildren.map((child) => buildNode(child, displays)));
+    return LayoutNode.make(style, elementChildren.map((child) => buildNode(child, displays)));
   }
 
   // Leaf: text content (if any) measured with the Ahem font
@@ -122,9 +123,9 @@ function buildNode(el: XmlNode, displays: Set<string>): LayoutNode {
     .replace(/^[ \t\n\r\f]+|[ \t\n\r\f]+$/g, '');
   if (textContent.length > 0) {
     const writingMode: WritingMode = (attrs['writing-mode'] ?? '').includes('vertical') ? 'vertical' : 'horizontal';
-    return new LayoutNode(style).setMeasure(ahemTextMeasure(textContent, writingMode));
+    return LayoutNode.make(style).setMeasure(ahemTextMeasure(textContent, writingMode));
   }
-  return new LayoutNode(style);
+  return LayoutNode.make(style);
 }
 
 function buildExpected(el: XmlNode): ExpectedNode {
@@ -141,57 +142,39 @@ function buildExpected(el: XmlNode): ExpectedNode {
 }
 
 /** Exported for the fuzzer's serializer round-trip test (tests/fuzz.test.ts). */
-export function buildStyle(attrs: Record<string, string>): Partial<Style> {
-  const style: Partial<Style> = {
+export function buildStyle(attrs: Record<string, string>): StyleInput {
+  const style: StyleInput = {
     display: (attrs['display'] as Style['display']) ?? 'flex',
     direction: (attrs['direction'] as Style['direction']) ?? 'ltr',
     boxSizing: (attrs['box-sizing'] as Style['boxSizing']) ?? 'border-box',
-    overflow: {
-      x: (attrs['overflow-x'] as Style['overflow']['x']) ?? 'visible',
-      y: (attrs['overflow-y'] as Style['overflow']['y']) ?? 'visible',
-    },
+    overflowX: (attrs['overflow-x'] as Style['overflow']['x']) ?? 'visible',
+    overflowY: (attrs['overflow-y'] as Style['overflow']['y']) ?? 'visible',
     scrollbarWidth: attrs['scrollbar-width'] !== undefined ? parseFloat(attrs['scrollbar-width']) : 0,
     position: (attrs['position'] as Style['position']) ?? 'relative',
-    size: {
-      width: parseDimension(attrs['width'], 'auto'),
-      height: parseDimension(attrs['height'], 'auto'),
-    },
-    minSize: {
-      width: parseDimension(attrs['min-width'], 'auto'),
-      height: parseDimension(attrs['min-height'], 'auto'),
-    },
-    maxSize: {
-      width: parseDimension(attrs['max-width'], 'auto'),
-      height: parseDimension(attrs['max-height'], 'auto'),
-    },
-    inset: {
-      top: parseDimension(attrs['top'], 'auto'),
-      left: parseDimension(attrs['left'], 'auto'),
-      bottom: parseDimension(attrs['bottom'], 'auto'),
-      right: parseDimension(attrs['right'], 'auto'),
-    },
-    margin: {
-      top: parseDimension(attrs['margin-top'], 0),
-      left: parseDimension(attrs['margin-left'], 0),
-      bottom: parseDimension(attrs['margin-bottom'], 0),
-      right: parseDimension(attrs['margin-right'], 0),
-    },
-    padding: {
-      top: parseLengthPercentage(attrs['padding-top']),
-      left: parseLengthPercentage(attrs['padding-left']),
-      bottom: parseLengthPercentage(attrs['padding-bottom']),
-      right: parseLengthPercentage(attrs['padding-right']),
-    },
-    border: {
-      top: parseLengthPercentage(attrs['border-top']),
-      left: parseLengthPercentage(attrs['border-left']),
-      bottom: parseLengthPercentage(attrs['border-bottom']),
-      right: parseLengthPercentage(attrs['border-right']),
-    },
-    gap: {
-      width: parseLengthPercentage(attrs['column-gap']),
-      height: parseLengthPercentage(attrs['row-gap']),
-    },
+    width: parseDimension(attrs['width'], 'auto'),
+    height: parseDimension(attrs['height'], 'auto'),
+    minWidth: parseDimension(attrs['min-width'], 'auto'),
+    minHeight: parseDimension(attrs['min-height'], 'auto'),
+    maxWidth: parseDimension(attrs['max-width'], 'auto'),
+    maxHeight: parseDimension(attrs['max-height'], 'auto'),
+    top: parseDimension(attrs['top'], 'auto'),
+    left: parseDimension(attrs['left'], 'auto'),
+    bottom: parseDimension(attrs['bottom'], 'auto'),
+    right: parseDimension(attrs['right'], 'auto'),
+    marginTop: parseDimension(attrs['margin-top'], 0),
+    marginLeft: parseDimension(attrs['margin-left'], 0),
+    marginBottom: parseDimension(attrs['margin-bottom'], 0),
+    marginRight: parseDimension(attrs['margin-right'], 0),
+    paddingTop: parseLengthPercentage(attrs['padding-top']),
+    paddingLeft: parseLengthPercentage(attrs['padding-left']),
+    paddingBottom: parseLengthPercentage(attrs['padding-bottom']),
+    paddingRight: parseLengthPercentage(attrs['padding-right']),
+    borderTop: parseLengthPercentage(attrs['border-top']),
+    borderLeft: parseLengthPercentage(attrs['border-left']),
+    borderBottom: parseLengthPercentage(attrs['border-bottom']),
+    borderRight: parseLengthPercentage(attrs['border-right']),
+    columnGap: parseLengthPercentage(attrs['column-gap']),
+    rowGap: parseLengthPercentage(attrs['row-gap']),
     aspectRatio: attrs['aspect-ratio'] !== undefined ? parseFloat(attrs['aspect-ratio']) : null,
     textAlign: parseTextAlign(attrs['text-align']),
     flexDirection: (attrs['flex-direction'] as Style['flexDirection']) ?? 'row',
@@ -216,14 +199,10 @@ export function buildStyle(attrs: Record<string, string>): Partial<Style> {
   if (attrs['grid-auto-columns'] !== undefined)
     style.gridAutoColumns = parseTrackList(attrs['grid-auto-columns']).filter(isSingleTrack);
   if (attrs['grid-auto-flow'] !== undefined) style.gridAutoFlow = parseGridAutoFlow(attrs['grid-auto-flow']);
-  style.gridRow = {
-    start: parseGridPlacement(attrs['grid-row-start']),
-    end: parseGridPlacement(attrs['grid-row-end']),
-  };
-  style.gridColumn = {
-    start: parseGridPlacement(attrs['grid-column-start']),
-    end: parseGridPlacement(attrs['grid-column-end']),
-  };
+  style.gridRowStart = parseGridPlacement(attrs['grid-row-start']);
+  style.gridRowEnd = parseGridPlacement(attrs['grid-row-end']);
+  style.gridColumnStart = parseGridPlacement(attrs['grid-column-start']);
+  style.gridColumnEnd = parseGridPlacement(attrs['grid-column-end']);
 
   return style;
 }

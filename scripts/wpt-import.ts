@@ -31,7 +31,6 @@ const SUITES = ['css-flexbox', 'css-grid', 'css-sizing', 'css-align'] as const;
 
 const NUM = String.raw`-?\d+(?:\.\d+)?`;
 const LENGTH = String.raw`(?:${NUM}px|${NUM}%|0)`;
-const DIM = String.raw`(?:${LENGTH}|auto|min-content|max-content)`;
 const rx = (body: string): RegExp => new RegExp(`^(?:${body})$`, 'i');
 
 // `min-content`/`max-content` are valid CSS but NOT in the engine's `Dimension`
@@ -296,12 +295,12 @@ export function parseStyleBlock(css: string): { rules: StyleRule[]; reason?: str
 
 export interface Classified {
   class: 'import' | 'skip';
-  reason?: string;
+  reason?: string | undefined;
   /** Present for import candidates: raw <style> css and body inner HTML. */
-  styleCss?: string;
-  bodyHtml?: string;
-  helpUrls?: string[];
-  title?: string;
+  styleCss?: string | undefined;
+  bodyHtml?: string | undefined;
+  helpUrls?: string[] | undefined;
+  title?: string | undefined;
 }
 
 const HARNESS_SCRIPTS = /(?:testharness(?:report)?|check-layout(?:-th)?)\.js/;
@@ -461,7 +460,8 @@ function* walk(dir: string): Generator<string> {
 
 export interface ManifestEntry {
   class: 'import' | 'skip';
-  reason?: string;
+  /** `undefined` when absent; JSON.stringify drops the key entirely. */
+  reason?: string | undefined;
 }
 
 export interface Manifest {

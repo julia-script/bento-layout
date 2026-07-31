@@ -9,7 +9,7 @@
 // Usage: pnpm bench [--json]
 
 import { computeLayout, LayoutNode } from '../src/index.js';
-import type { Style, TrackSizingFunction } from '../src/index.js';
+import type { StyleInput, TrackSizingFunction } from '../src/index.js';
 
 const WARMUP = 3;
 const SAMPLES = 10;
@@ -24,12 +24,12 @@ function countNodes(node: LayoutNode): number {
 
 function wideFlex(childCount: number): LayoutNode {
   const children = Array.from({ length: childCount }, (_, i) =>
-    new LayoutNode({
-        size: { width: 20 + (i % 5), height: 20 + (i % 7) },
-        margin: { left: 1, right: 1, top: 1, bottom: 1 },
+    LayoutNode.make({
+        width: 20 + (i % 5), height: 20 + (i % 7),
+        marginLeft: 1, marginRight: 1, marginTop: 1, marginBottom: 1,
       }),
   );
-  return new LayoutNode({ flexWrap: 'wrap', size: { width: 800, height: 'auto' }, gap: { width: 2, height: 2 } }, children);
+  return LayoutNode.make({ flexWrap: 'wrap', width: 800, height: 'auto', columnGap: 2, rowGap: 2 }, children);
 }
 
 /**
@@ -44,22 +44,22 @@ function wideFlex(childCount: number): LayoutNode {
  * in taffy's suite.
  */
 function taffyDeepFlex(maxNodes: number, branch: number): LayoutNode {
-  const itemStyle = (): Partial<Style> => ({
+  const itemStyle = (): StyleInput => ({
     flexGrow: 1,
-    margin: { left: 10, right: 10, top: 10, bottom: 10 },
+    marginLeft: 10, marginRight: 10, marginTop: 10, marginBottom: 10,
   });
   // Mirrors taffy's recursion: each level splits `(max_nodes - branch) / branch`
   // among `branch` children, bottoming out in leaves once the budget is small.
   const buildForest = (budget: number): LayoutNode[] => {
     if (budget <= branch) {
-      return Array.from({ length: Math.max(budget, 0) }, () => new LayoutNode(itemStyle()));
+      return Array.from({ length: Math.max(budget, 0) }, () => LayoutNode.make(itemStyle()));
     }
     const childBudget = Math.floor((budget - branch) / branch);
     return Array.from({ length: branch }, () =>
-      new LayoutNode(itemStyle(), buildForest(childBudget)),
+      LayoutNode.make(itemStyle(), buildForest(childBudget)),
     );
   };
-  return new LayoutNode({}, buildForest(maxNodes));
+  return LayoutNode.make({}, buildForest(maxNodes));
 }
 
 /**
@@ -72,48 +72,48 @@ function taffyDeepFlex(maxNodes: number, branch: number): LayoutNode {
 function deepFlexAlternating(depth: number, branch: number): LayoutNode {
   const build = (level: number): LayoutNode => {
     if (level === 0) {
-      return new LayoutNode({ size: { width: 10, height: 10 }, flexGrow: 1 });
+      return LayoutNode.make({ width: 10, height: 10, flexGrow: 1 });
     }
-    return new LayoutNode({
+    return LayoutNode.make({
         flexDirection: level % 2 === 0 ? 'row' : 'column',
         flexGrow: 1,
-        padding: { left: 1, right: 1, top: 1, bottom: 1 },
+        paddingLeft: 1, paddingRight: 1, paddingTop: 1, paddingBottom: 1,
       }, Array.from({ length: branch }, () => build(level - 1)));
   };
   const root = build(depth);
-  root.style.size = { width: 1000, height: 1000 };
+  root.setStyle({ width: 1000, height: 1000 });
   return root;
 }
 
 function gridNxN(n: number): LayoutNode {
   const track: TrackSizingFunction = { min: 'auto', max: { fr: 1 } };
   const children = Array.from({ length: n * n }, (_, i) =>
-    new LayoutNode({ size: { width: 'auto', height: 10 + (i % 3) } }),
+    LayoutNode.make({ width: 'auto', height: 10 + (i % 3) }),
   );
-  return new LayoutNode({
+  return LayoutNode.make({
       display: 'grid',
-      size: { width: 1000, height: 1000 },
+      width: 1000, height: 1000,
       gridTemplateColumns: Array.from({ length: n }, () => track),
       gridTemplateRows: Array.from({ length: n }, () => track),
-      gap: { width: 2, height: 2 },
+      columnGap: 2, rowGap: 2,
     }, children);
 }
 
 function blockStack(count: number): LayoutNode {
   const children = Array.from({ length: count }, (_, i) =>
-    new LayoutNode({
+    LayoutNode.make({
         display: 'block',
-        size: { width: 'auto', height: 12 },
-        margin: { left: 0, right: 0, top: 8, bottom: 8 + (i % 3) },
-      } satisfies Partial<Style>),
+        width: 'auto', height: 12,
+        marginLeft: 0, marginRight: 0, marginTop: 8, marginBottom: 8 + (i % 3),
+      } satisfies StyleInput),
   );
-  return new LayoutNode({ display: 'block', size: { width: 600, height: 'auto' } }, children);
+  return LayoutNode.make({ display: 'block', width: 600, height: 'auto' }, children);
 }
 
 /** A page-like mixed tree: block root > header/content/footer, flex rows, grid panels */
 function mixedPage(sections: number): LayoutNode {
   const gridPanel = (): LayoutNode =>
-    new LayoutNode({
+    LayoutNode.make({
         display: 'grid',
         flexGrow: 1,
         gridTemplateColumns: [
@@ -121,17 +121,17 @@ function mixedPage(sections: number): LayoutNode {
           { min: 'auto', max: { fr: 2 } },
           { min: 'auto', max: 'auto' },
         ],
-        gap: { width: 4, height: 4 },
-      }, Array.from({ length: 9 }, () => new LayoutNode({ size: { width: 'auto', height: 24 } })));
+        columnGap: 4, rowGap: 4,
+      }, Array.from({ length: 9 }, () => LayoutNode.make({ width: 'auto', height: 24 })));
   const flexRow = (): LayoutNode =>
-    new LayoutNode({ display: 'flex', gap: { width: 8, height: 0 }, padding: { left: 8, right: 8, top: 8, bottom: 8 } }, [
-        new LayoutNode({ size: { width: 120, height: 'auto' } }),
+    LayoutNode.make({ display: 'flex', columnGap: 8, rowGap: 0, paddingLeft: 8, paddingRight: 8, paddingTop: 8, paddingBottom: 8 }, [
+        LayoutNode.make({ width: 120, height: 'auto' }),
         gridPanel(),
-        new LayoutNode({ flexGrow: 1, aspectRatio: 1.5 }),
+        LayoutNode.make({ flexGrow: 1, aspectRatio: 1.5 }),
       ]);
   const section = (): LayoutNode =>
-    new LayoutNode({ display: 'block', margin: { left: 0, right: 0, top: 12, bottom: 12 } }, [flexRow(), flexRow()]);
-  return new LayoutNode({ display: 'block', size: { width: 1024, height: 'auto' } }, Array.from({ length: sections }, section));
+    LayoutNode.make({ display: 'block', marginLeft: 0, marginRight: 0, marginTop: 12, marginBottom: 12 }, [flexRow(), flexRow()]);
+  return LayoutNode.make({ display: 'block', width: 1024, height: 'auto' }, Array.from({ length: sections }, section));
 }
 
 // --- Runner ------------------------------------------------------------------
@@ -200,7 +200,7 @@ function bench(name: string, tree: LayoutNode, shape: Shape): Result {
 
 const FLAT: Shape['depth'] = 'flat';
 
-const scenarios: [string, () => Node, Shape][] = [
+const scenarios: [string, () => LayoutNode, Shape][] = [
   // Wide/flat trees. Taffy's "Wide tree (2-level hierarchy)" is the comparable case.
   ['flex: wide (10 children)', () => wideFlex(10), { depth: FLAT, flexDirection: 'row (wrap)', style: 'fixed size, margin 1, gap 2', comparable: true }],
   ['flex: wide (100 children)', () => wideFlex(100), { depth: FLAT, flexDirection: 'row (wrap)', style: 'fixed size, margin 1, gap 2', comparable: true }],

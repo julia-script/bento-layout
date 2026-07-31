@@ -5,9 +5,9 @@ import { computeLayout, LayoutNode } from '../src/index.js';
 
 describe('public API', () => {
   it('lays out a simple grow row', () => {
-    const a = new LayoutNode({ flexGrow: 1 });
-    const b = new LayoutNode({ flexGrow: 1 });
-    const root = new LayoutNode({ size: { width: 400, height: 300 } }, [a, b]);
+    const a = LayoutNode.make({ flexGrow: 1 });
+    const b = LayoutNode.make({ flexGrow: 1 });
+    const root = LayoutNode.make({ width: 400, height: 300 }, [a, b]);
 
     computeLayout(root, { width: 'max-content', height: 'max-content' });
 
@@ -17,14 +17,14 @@ describe('public API', () => {
   });
 
   it('percent sizes and content-box sizing', () => {
-    const child = new LayoutNode({
-        size: { width: { percent: 0.5 }, height: 100 },
-        padding: { left: 10, right: 10, top: 0, bottom: 0 },
+    const child = LayoutNode.make({
+        width: { percent: 0.5 }, height: 100,
+        paddingLeft: 10, paddingRight: 10, paddingTop: 0, paddingBottom: 0,
       });
-    const root = new LayoutNode({
-        size: { width: 200, height: 200 },
+    const root = LayoutNode.make({
+        width: 200, height: 200,
         boxSizing: 'content-box',
-        padding: { left: 10, right: 10, top: 10, bottom: 10 },
+        paddingLeft: 10, paddingRight: 10, paddingTop: 10, paddingBottom: 10,
       }, [child]);
 
     computeLayout(root, { width: 'max-content', height: 'max-content' });
@@ -36,18 +36,18 @@ describe('public API', () => {
   });
 
   it('measure functions drive leaf sizing', () => {
-    const leaf = new LayoutNode().setMeasure((known, available) => ({
+    const leaf = LayoutNode.make().setMeasure((known, available) => ({
         width: known.width ?? (typeof available.width === 'number' ? Math.min(available.width, 100) : 100),
         height: known.height ?? 20,
       }));
-    const root = new LayoutNode({}, [leaf]);
+    const root = LayoutNode.make({}, [leaf]);
     computeLayout(root, { width: 'max-content', height: 'max-content' });
     expect(leaf.layout.size).toEqual({ width: 100, height: 20 });
   });
 
   it('recomputes after style changes', () => {
-    const child = new LayoutNode({ flexGrow: 1 });
-    const root = new LayoutNode({ size: { width: 100, height: 10 } }, [child]);
+    const child = LayoutNode.make({ flexGrow: 1 });
+    const root = LayoutNode.make({ width: 100, height: 10 }, [child]);
     computeLayout(root, { width: 'max-content', height: 'max-content' });
     expect(child.layout.size.width).toBe(100);
 
@@ -58,9 +58,9 @@ describe('public API', () => {
 
   it('deeply nested tree completes quickly (layout cache works)', () => {
     // Without the measurement cache this is exponential in depth.
-    let node: LayoutNode = new LayoutNode();
+    let node: LayoutNode = LayoutNode.make();
     for (let i = 0; i < 50; i++) {
-      node = new LayoutNode({ padding: { left: 1, right: 1, top: 1, bottom: 1 } }, [node]);
+      node = LayoutNode.make({ paddingLeft: 1, paddingRight: 1, paddingTop: 1, paddingBottom: 1 }, [node]);
     }
     const start = performance.now();
     computeLayout(node, { width: 800, height: 600 });

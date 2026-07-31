@@ -3,8 +3,8 @@
 
 import type { Point, Rect, Size } from './geometry.js';
 import { pointNone, pointZero, rectZero, sizeZero } from './geometry.js';
-import type { AvailableSpace, Style } from './style.js';
-import { resolveStyle } from './style.js';
+import type { AvailableSpace, Style, StyleInput } from './style.js';
+import { mergeStyle, resolveStyle } from './style.js';
 import type { Opt } from './math.js';
 
 export type RunMode = 'perform-layout' | 'compute-size' | 'perform-hidden-layout';
@@ -106,15 +106,59 @@ export function fromSizesAndBaselines(
   };
 }
 
-/** The final result of layout for a single node. */
+/**
+ * Where a node ended up and how big it is — the result of laying one node out.
+ *
+ * @remarks
+ * Read it from {@link LayoutNode.layout} (pixel-rounded) or
+ * {@link LayoutNode.unroundedLayout} (exact). Every measurement is in pixels.
+ *
+ * The box model here is the CSS one: `size` is the **border box**, whatever the
+ * node's `boxSizing` was. Subtract `border` and `padding` to get the content
+ * box, and `scrollbarSize` too if the node reserves a scrollbar gutter.
+ */
 export interface Layout {
+  /**
+   * Paint order among siblings, matching the node's index in its parent.
+   *
+   * @remarks
+   * Useful when layout order and paint order diverge — `flexDirection:
+   * 'row-reverse'` positions children right-to-left but leaves this in document
+   * order.
+   */
   order: number;
+  /**
+   * Top-left corner, relative to the **parent's** border box — not the
+   * viewport. Accumulate down the tree for absolute coordinates.
+   */
   location: Point<number>;
+  /** Border-box size, including padding and border regardless of `boxSizing`. */
   size: Size<number>;
+  /**
+   * Extent of the node's content.
+   *
+   * @remarks
+   * Larger than {@link Layout.size} when content overflows, which is what to
+   * compare against to decide whether a scroll container actually scrolls.
+   */
   contentSize: Size<number>;
+  /**
+   * Space reserved for scrollbar gutters, from `scrollbarWidth` on an axis with
+   * `overflow: 'scroll'`. Zero on both axes otherwise.
+   */
   scrollbarSize: Size<number>;
+  /** Resolved border widths per side, inside {@link Layout.size}. */
   border: Rect<number>;
+  /** Resolved padding per side, inside the border. */
   padding: Rect<number>;
+  /**
+   * Resolved margins per side, outside {@link Layout.size}.
+   *
+   * @remarks
+   * Already reflected in the node's `location`. For vertical margins in block
+   * layout these are the values after CSS margin collapsing, so they can differ
+   * from what the style asked for.
+   */
   margin: Rect<number>;
 }
 
@@ -129,6 +173,65 @@ export const layoutWithOrder = (order: number): Layout => ({
   margin: rectZero(),
 });
 
+/**
+ * Callback that reports a leaf node's content size, given the constraints the
+ * engine has resolved so far.
+ *
+ * @remarks
+ * Attach one with {@link LayoutNode.setMeasure}. It is the bridge between the
+ * layout engine and content it cannot inspect — a run of text, an image, an
+ * embedded canvas.
+ *
+ * Read the two arguments in order. `knownDimensions` is authoritative: a
+ * non-`null` axis has already been decided, and returning anything else for it
+ * is ignored, so the useful move is to honour it — text given a definite width
+ * should wrap to it and report the resulting height. `availableSpace` only
+ * matters for axes that are still `null`; it is either a number (space
+ * remaining) or an intrinsic keyword, where `'max-content'` asks how large the
+ * content would be with unlimited room and `'min-content'` asks for the
+ * smallest size that still works — the longest unbreakable word, for text.
+ *
+ * Return the **content-box** size in pixels; the engine adds the node's own
+ * padding and border. Expect several calls per layout with different
+ * constraints, so keep the function pure and inexpensive.
+ *
+ * @param knownDimensions - Axes already resolved, `null` where still open.
+ * @param availableSpace - Room available on each unresolved axis, as a number
+ *   or an intrinsic-sizing keyword.
+ * @returns The content size in pixels.
+ *
+ * @example
+ * A fixed-size leaf, the simplest useful case.
+ * ```typescript
+ * const icon = LayoutNode.make().setMeasure(() => ({ width: 24, height: 24 }));
+ * ```
+ *
+ * @example
+ * Text that wraps: honour a known width, otherwise answer the intrinsic
+ * question being asked.
+ * ```typescript
+ * import type { MeasureFunction } from 'flexboxjs';
+ *
+ * const measureText = (text: string, charWidth = 10, lineHeight = 20): MeasureFunction =>
+ *   (known, available) => {
+ *     const maxWidth = text.length * charWidth;
+ *     const longestWord = Math.max(
+ *       ...text.split(' ').map((w) => w.length * charWidth),
+ *     );
+ *
+ *     let width: number;
+ *     if (known.width !== null) width = known.width;
+ *     else if (available.width === 'min-content') width = longestWord;
+ *     else if (available.width === 'max-content') width = maxWidth;
+ *     else width = Math.min(available.width, maxWidth);
+ *
+ *     const lines = Math.max(1, Math.ceil(maxWidth / Math.max(width, longestWord)));
+ *     return { width, height: known.height ?? lines * lineHeight };
+ *   };
+ *
+ * const paragraph = LayoutNode.make().setMeasure(measureText('hello wrapping world'));
+ * ```
+ */
 export type MeasureFunction = (knownDimensions: Size<Opt>, availableSpace: Size<AvailableSpace>) => Size<number>;
 
 /**
@@ -152,18 +255,89 @@ export interface NodeInternal {
 let internalOf!: (node: LayoutNode) => NodeInternal;
 
 /**
- * A node in a layout tree. Internals are runtime-private: styles change only
- * through {@link setStyle}, structure only through the child methods, so the
- * engine observes every mutation. Computed results are read through the
- * {@link layout} / {@link unroundedLayout} getters.
+ * A box in a layout tree: a style, a list of children, and — once
+ * {@link computeLayout} has run — a computed position and size.
  *
- * A node detached from its parent is a live standalone tree — lay it out,
- * re-attach it, or drop it; there is nothing to free.
+ * @remarks
+ * Build a tree by nesting nodes, hand the root to {@link computeLayout}, then
+ * read each node's {@link LayoutNode.layout}. A node is an ordinary JS object
+ * with an ordinary lifetime: there are no numeric handles, no arena to register
+ * with, and no `free()` or `destroy()` to remember. Drop a subtree and the
+ * garbage collector takes it; a subtree detached from its parent stays fully
+ * usable as a standalone tree, so you can lay it out on its own or re-attach it
+ * somewhere else. This is deliberately unlike Taffy and Yoga, which both make
+ * you manage node lifetime by hand.
+ *
+ * Nodes are opaque. Style changes go through {@link LayoutNode.setStyle},
+ * structure through {@link LayoutNode.appendChild} /
+ * {@link LayoutNode.insertChild} / {@link LayoutNode.removeChild}, and results
+ * come back out through the getters. Routing every mutation through a method is
+ * what lets the engine see changes; assigning to a getter throws.
+ *
+ * Only leaf nodes measure their own content, via
+ * {@link LayoutNode.setMeasure} — that is how text and images get sizes. A node
+ * with children ignores any measure function and sizes from its children.
+ *
+ * @example
+ * A column with a fixed header and a body that fills the rest.
+ * ```typescript
+ * import { LayoutNode, computeLayout } from 'flexboxjs';
+ *
+ * const header = LayoutNode.make({ width: 'auto', height: 60 });
+ * const body = LayoutNode.make({ flexGrow: 1 });
+ * const root = LayoutNode.make(
+ *   { flexDirection: 'column', width: 320, height: 480 },
+ *   [header, body],
+ * );
+ *
+ * computeLayout(root, { width: 'max-content', height: 'max-content' });
+ *
+ * header.layout.size; // { width: 320, height: 60 }
+ * body.layout.location; // { x: 0, y: 60 }
+ * body.layout.size.height; // 420 — the remaining space
+ * ```
+ *
+ * @see {@link computeLayout} to lay a tree out.
+ * @see {@link Style} for the full style vocabulary.
  */
 export class LayoutNode {
   #internal: NodeInternal;
 
-  constructor(style: Partial<Style> = {}, children: readonly LayoutNode[] = []) {
+  /**
+   * Create a node from plain style data, optionally with children.
+   *
+   * @remarks
+   * `style` is merged over the defaults, so you pass only what differs. The
+   * defaults are Taffy's rather than CSS's — most visibly `display: 'flex'`
+   * (CSS would say `block`) and `flexShrink: 1` — so a bare `LayoutNode.make()`
+   * is an empty flex container, not a block box.
+   *
+   * Passing `children` is equivalent to calling
+   * {@link LayoutNode.appendChild} for each in order, and carries the same
+   * rules: a child is detached from any previous parent, and a cycle throws.
+   *
+   * @param style - Style properties to override; anything omitted keeps its
+   *   default. Nested objects such as `size` are taken whole.
+   * @param children - Children to append, in order. Each is reparented.
+   *
+   * @throws {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error | Error}
+   *   if a node in `children` is this node or one of its ancestors.
+   *
+   * @example
+   * ```typescript
+   * const root = LayoutNode.make(
+   *   {
+   *     display: 'grid',
+   *     gridTemplateColumns: [
+   *       { min: 'auto', max: { fr: 1 } },
+   *       { min: 'auto', max: { fr: 2 } },
+   *     ],
+   *   },
+   *   [LayoutNode.make(), LayoutNode.make()],
+   * );
+   * ```
+   */
+  constructor(style: StyleInput = {}, children: readonly LayoutNode[] = []) {
     this.#internal = {
       style: resolveStyle(style),
       children: [],
@@ -175,47 +349,205 @@ export class LayoutNode {
     };
     for (const child of children) this.appendChild(child);
   }
+  static make(style: StyleInput = {}, children: readonly LayoutNode[] = []): LayoutNode {
+    return LayoutNode.make(style, children);
+  }
 
   static {
     internalOf = (node) => node.#internal;
   }
 
-  /** The resolved style. Read-only by type; mutate via {@link setStyle}. */
+  /**
+   * This node's fully-resolved style, with defaults filled in for everything
+   * the constructor and {@link LayoutNode.setStyle} did not specify.
+   *
+   * @remarks
+   * The style is the node's own: values you pass to the constructor or to
+   * {@link LayoutNode.setStyle} are copied, so keeping a reference to a style
+   * object — or reusing one template across several nodes — never lets you
+   * reach back in. Reading from this getter is always safe.
+   *
+   * Change styles through {@link LayoutNode.setStyle}, never through this
+   * getter. `Readonly<Style>` is a compile-time guard and it is shallow: the
+   * type stops `node.style = {...}` and `node.style.display = 'grid'`, but
+   * nested objects are not frozen, so `node.style.size.width = 300` type-errors
+   * yet still mutates the node at runtime. Reaching in that way is unsupported
+   * and will break once mutation tracking lands.
+   *
+   * @example
+   * ```typescript
+   * const node = LayoutNode.make({ width: 100, height: 200 });
+   * node.style.size.height; // 200 — as given
+   * node.style.display; // 'flex' — the default, filled in
+   * ```
+   */
   get style(): Readonly<Style> {
     return this.#internal.style;
   }
 
+  /**
+   * This node's children, in layout order.
+   *
+   * @remarks
+   * The array is the node's own, not a copy: it is `readonly` to the type
+   * system but reflects later structural changes, so snapshot it with
+   * `[...node.children]` before iterating while you mutate.
+   */
   get children(): readonly LayoutNode[] {
     return this.#internal.children;
   }
 
+  /**
+   * The node this one is attached to, or `null` if it is a root or detached.
+   *
+   * @remarks
+   * Named `parentNode` rather than `parent` to match the DOM, since the tree
+   * shape is otherwise DOM-like.
+   */
   get parentNode(): LayoutNode | null {
     return this.#internal.parent ?? null;
   }
 
-  /** Final layout (rounded unless rounding was disabled). Filled in by computeLayout. */
+  /**
+   * The computed layout: where this node ended up and how big it is.
+   *
+   * @remarks
+   * Meaningless until {@link computeLayout} has run over a tree containing this
+   * node — before that it reads as an all-zero box. Values are pixel-rounded
+   * unless rounding was disabled.
+   *
+   * `location` is relative to the **parent's** border box, not the viewport, so
+   * painting in absolute coordinates means accumulating positions down the
+   * tree. `size` is the border-box size regardless of the node's `boxSizing`;
+   * `padding`, `border`, and `scrollbarSize` give the insets needed to derive
+   * the content box, and `contentSize` is the extent of the content itself,
+   * which may exceed `size` when content overflows.
+   *
+   * Each {@link computeLayout} call replaces this object rather than updating
+   * it in place, so a reference held across calls goes stale — read the getter
+   * again instead of caching it.
+   *
+   * @example
+   * ```typescript
+   * const child = LayoutNode.make({ width: 50, height: 50 });
+   * const root = LayoutNode.make(
+   *   { paddingLeft: 10, paddingRight: 10, paddingTop: 10, paddingBottom: 10 },
+   *   [child],
+   * );
+   * computeLayout(root, { width: 'max-content', height: 'max-content' });
+   *
+   * child.layout.location; // { x: 10, y: 10 } — inside the parent's padding
+   * root.layout.size; // { width: 70, height: 70 } — child plus padding
+   * ```
+   */
   get layout(): Readonly<Layout> {
     return this.#internal.layout;
   }
 
-  /** Pre-rounding layout, for embedders that do their own rounding. */
+  /**
+   * The layout before pixel rounding — exact fractional values.
+   *
+   * @remarks
+   * Populated on every {@link computeLayout} call, whether or not rounding is
+   * enabled, so you can read exact geometry without giving up the rounded
+   * values. Use it when you do your own subpixel positioning (canvas, SVG, a
+   * scaled layer) or when rounding twice would compound error. For painting to
+   * a pixel grid, prefer {@link LayoutNode.layout}, whose rounding keeps
+   * adjacent boxes flush.
+   */
   get unroundedLayout(): Readonly<Layout> {
     return this.#internal.unroundedLayout;
   }
 
   /**
-   * Shallow-merge `style` into the node's resolved style. Nested objects
-   * (`size`, `margin`, `padding`, …) are replaced whole, not deep-merged:
-   * `setStyle({ size: { width: 10, height: 'auto' } })` — always supply the
-   * full object.
+   * Merge style properties into this node, overwriting the ones named and
+   * leaving the rest as they were.
+   *
+   * @remarks
+   * The merge is per property: setting `width` leaves `height` alone, and
+   * setting `paddingLeft` leaves the other three sides alone. Only the keys you
+   * name change, so there is no need to restate a whole edge or axis to adjust
+   * one value.
+   *
+   * Changes apply on the next {@link computeLayout}; this does not lay anything
+   * out on its own. Returns the node, so calls chain.
+   *
+   * @param style - Properties to overwrite. Anything omitted is untouched.
+   * @returns This node.
+   *
+   * @example
+   * ```typescript
+   * const node = LayoutNode.make({ width: 100, height: 200 });
+   *
+   * node.setStyle({ width: 50 });
+   * node.style.size; // { width: 50, height: 200 } — height untouched
+   * node.style.display; // 'flex' — everything else survives the merge
+   * ```
+   *
+   * @example
+   * Re-laying out after a change.
+   * ```typescript
+   * const a = LayoutNode.make({ flexGrow: 1 });
+   * const b = LayoutNode.make({ flexGrow: 1 });
+   * const root = LayoutNode.make({ width: 400, height: 100 }, [a, b]);
+   * const space = { width: 'max-content', height: 'max-content' } as const;
+   *
+   * computeLayout(root, space);
+   * a.layout.size.width; // 200 — split evenly
+   *
+   * a.setStyle({ flexGrow: 3 });
+   * computeLayout(root, space);
+   * a.layout.size.width; // 300 — three parts to b's one
+   * ```
    */
-  setStyle(style: Partial<Style>): this {
-    this.#internal.style = { ...this.#internal.style, ...style };
+  setStyle(style: StyleInput): this {
+    this.#internal.style = mergeStyle(this.#internal.style, style);
     this.#markDirty();
     return this;
   }
 
-  /** Set or clear the measure callback used to size this node's content. */
+  /**
+   * Attach a callback that reports this node's intrinsic content size, or pass
+   * `null` to remove it.
+   *
+   * @remarks
+   * This is how content the engine cannot see — text, an image, a canvas —
+   * gets a size. The engine has no notion of glyphs or intrinsic image
+   * dimensions; a leaf without a measure function is zero-sized unless its
+   * style gives it one.
+   *
+   * **Only leaves are measured.** A node with children sizes from those
+   * children and never calls its measure function, so attaching one to a
+   * container has no effect.
+   *
+   * The callback may be invoked several times per layout with different
+   * constraints — typically once to probe `'min-content'`, once for
+   * `'max-content'`, and again with a definite width once one is chosen. Keep
+   * it pure and cheap; it sits in the hot path.
+   *
+   * @param measure - Callback returning the content size, or `null` to clear
+   *   it. See {@link MeasureFunction} for how to read its arguments.
+   * @returns This node.
+   *
+   * @example
+   * A leaf whose text wraps at the width it is offered.
+   * ```typescript
+   * const label = LayoutNode.make().setMeasure((known, available) => ({
+   *   width: known.width ?? (typeof available.width === 'number'
+   *     ? Math.min(available.width, 100)
+   *     : 100),
+   *   height: known.height ?? 20,
+   * }));
+   *
+   * const root = LayoutNode.make({}, [label]);
+   * computeLayout(root, { width: 'max-content', height: 'max-content' });
+   * label.layout.size; // { width: 100, height: 20 }
+   *
+   * label.setMeasure(null);
+   * computeLayout(root, { width: 'max-content', height: 'max-content' });
+   * label.layout.size; // { width: 0, height: 0 } — nothing left to size it
+   * ```
+   */
   setMeasure(measure: MeasureFunction | null): this {
     this.#internal.measure = measure ?? undefined;
     this.#markDirty();
@@ -223,14 +555,75 @@ export class LayoutNode {
   }
 
   /**
-   * Append `child`, detaching it from its current parent first (a node has at
-   * most one parent). Throws if `child` is this node or one of its ancestors.
+   * Add `child` as this node's last child.
+   *
+   * @remarks
+   * A node has at most one parent, so this *moves* rather than shares: if
+   * `child` already has a parent it is removed from it first, including when
+   * that parent is this node — appending an existing child moves it to the end.
+   *
+   * @param child - Node to append. Reparented if it is already attached.
+   * @returns This node, so calls chain.
+   *
+   * @throws {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error | Error}
+   *   if `child` is this node or one of its ancestors, which would make the
+   *   tree cyclic.
+   *
+   * @example
+   * ```typescript
+   * const child = LayoutNode.make();
+   * const first = LayoutNode.make({}, [child]);
+   * const second = LayoutNode.make();
+   *
+   * second.appendChild(child);
+   * first.children; // [] — moved, not shared
+   * child.parentNode; // second
+   * ```
+   *
+   * @see {@link LayoutNode.insertChild} to place a child at a specific index.
    */
   appendChild(child: LayoutNode): this {
     return this.insertChild(this.#internal.children.length, child);
   }
 
-  /** Insert `child` at `index` (0 ≤ index ≤ children.length); otherwise like appendChild. */
+  /**
+   * Add `child` at position `index`, shifting later siblings back.
+   *
+   * @remarks
+   * Like {@link LayoutNode.appendChild} in every other respect: the child is
+   * detached from any current parent, and cycles throw.
+   *
+   * When you reorder a child *within the same parent*, `index` is interpreted
+   * against the list as it stands **before** the move. The child is removed
+   * first and the target index compensated, so passing `children.length` moves
+   * a node to the end rather than landing out of bounds.
+   *
+   * @param index - Where to insert, from `0` to `children.length` inclusive.
+   *   Must be an integer.
+   * @param child - Node to insert. Reparented if it is already attached.
+   * @returns This node, so calls chain.
+   *
+   * @throws {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError | RangeError}
+   *   if `index` is negative, greater than `children.length`, or not an
+   *   integer.
+   * @throws {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error | Error}
+   *   if `child` is this node or one of its ancestors.
+   *
+   * @example
+   * Reordering within one parent.
+   * ```typescript
+   * const a = LayoutNode.make();
+   * const b = LayoutNode.make();
+   * const c = LayoutNode.make();
+   * const root = LayoutNode.make({}, [a, b, c]);
+   *
+   * root.insertChild(0, c);
+   * root.children; // [c, a, b] — last moved to first
+   *
+   * root.insertChild(3, c);
+   * root.children; // [a, b, c] — and back to last
+   * ```
+   */
   insertChild(index: number, child: LayoutNode): this {
     const internal = this.#internal;
     if (index < 0 || index > internal.children.length || !Number.isInteger(index)) {
@@ -256,8 +649,35 @@ export class LayoutNode {
   }
 
   /**
-   * Detach `child`. The removed subtree stays alive and reusable — re-attach
-   * it anywhere or drop it and let it be garbage collected.
+   * Detach `child` from this node and return it.
+   *
+   * @remarks
+   * The removed subtree stays fully alive — it keeps its own children and
+   * styles, and becomes a root in its own right. Lay it out standalone with
+   * {@link computeLayout}, attach it elsewhere, or simply drop the reference
+   * and let the garbage collector reclaim it. There is no `free()` or
+   * `destroy()` to call afterwards, and no way to leak by forgetting one.
+   *
+   * @param child - A direct child of this node.
+   * @returns The detached `child`, for convenient chaining.
+   *
+   * @throws {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error | Error}
+   *   if `child` is not a direct child of this node. Removing a grandchild
+   *   means calling this on its actual parent.
+   *
+   * @example
+   * A detached subtree is an ordinary tree.
+   * ```typescript
+   * const inner = LayoutNode.make({ width: 10, height: 10 });
+   * const sub = LayoutNode.make({ width: 30, height: 30 }, [inner]);
+   * const root = LayoutNode.make({}, [sub]);
+   *
+   * root.removeChild(sub);
+   * sub.parentNode; // null
+   *
+   * computeLayout(sub, { width: 'max-content', height: 'max-content' });
+   * sub.layout.size; // { width: 30, height: 30 } — lays out on its own
+   * ```
    */
   removeChild(child: LayoutNode): LayoutNode {
     const children = this.#internal.children;

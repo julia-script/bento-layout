@@ -18,9 +18,9 @@ function runPlacement(
 ): GridItem[] {
   const children = childPlacements.map((p, index) => ({
     index,
-    node: new LayoutNode({
-        gridColumn: { start: p.col[0], end: p.col[1] },
-        gridRow: { start: p.row[0], end: p.row[1] },
+    node: LayoutNode.make({
+        gridColumnStart: p.col[0], gridColumnEnd: p.col[1],
+        gridRowStart: p.row[0], gridRowEnd: p.row[1],
       }),
   }));
   const [colCounts, rowCounts] = computeGridSizeEstimate(

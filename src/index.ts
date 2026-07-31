@@ -4,7 +4,7 @@
 
 import type { Size } from './geometry.js';
 import { applyAspectRatioClamped } from './geometry.js';
-import { mClamp, mMax, round } from './math.js';
+import { mMax, round } from './math.js';
 import type { Opt } from './math.js';
 import { asIntoOption, maybeResolveSize, resolveRectOrZero } from './style.js';
 import type { AvailableSpace, Style } from './style.js';
@@ -24,6 +24,7 @@ export { InvalidStyleError } from './style.js';
 export type {
   // core style vocabulary
   Style,
+  StyleInput,
   Dimension,
   LengthPercentage,
   LengthPercentageAuto,
@@ -55,14 +56,91 @@ export type {
 export type { Size, Rect, Point, FlexDirection } from './geometry.js';
 export type { Opt } from './math.js';
 
+/** Options for {@link computeLayout}. */
 export interface ComputeLayoutOptions {
-  /** Snap the final layout to whole pixels (defaults to true, like browsers). */
+  /**
+   * Snap the final layout to whole pixels, the way a browser paints.
+   *
+   * @remarks
+   * Rounding is cumulative rather than per-node: each edge is rounded in
+   * viewport coordinates and sizes are derived from the rounded edges, so
+   * adjacent boxes stay flush and no seams open up between them. Rounding a
+   * width in isolation cannot make that guarantee.
+   *
+   * Turn it off when you do your own subpixel positioning — a canvas or SVG
+   * renderer, or a layer that scales the tree. {@link LayoutNode.unroundedLayout}
+   * exposes the exact values either way, so disabling this is only necessary if
+   * you want {@link LayoutNode.layout} itself left unrounded.
+   *
+   * @defaultValue `true`
+   */
   rounding?: boolean;
 }
 
 /**
- * Compute layout for a tree of nodes. Results are stored on each node's
- * `layout` property (and `unroundedLayout` for the pre-rounding values).
+ * Lay out a tree of nodes, sizing and positioning every node under `root`.
+ *
+ * @remarks
+ * This is the one entry point of the library. It walks the tree, resolves each
+ * node's style against its parent, and writes the result into every node —
+ * read it back through {@link LayoutNode.layout}. Nothing is returned; the tree
+ * itself is the output.
+ *
+ * Coordinates in `layout.location` are relative to the parent's border box, not
+ * to the viewport. Accumulate them down the tree to paint in absolute space.
+ *
+ * The call is a full recompute: every cache is cleared first, so laying out the
+ * same tree twice costs the same both times, and mutating a node between calls
+ * always takes effect. Call it once per frame in which something changed, not
+ * once per mutation.
+ *
+ * `availableSpace` is what the root is being laid into — the viewport, or the
+ * box you have reserved for this tree. It is an upper bound rather than an
+ * assignment: a root sized by content can come out smaller, and one whose
+ * content does not fit can overflow it. `'max-content'` means "no constraint,
+ * size to content"; `'min-content'` sizes to the narrowest the content allows.
+ *
+ * @param root - Node to lay out, treated as the top of the tree. It need not be
+ *   the true root of a larger tree — laying out a detached subtree directly is
+ *   supported and computes it as its own independent root.
+ * @param availableSpace - Space the root is laid into, per axis.
+ * @param options - See {@link ComputeLayoutOptions}.
+ *
+ * @throws {@link InvalidStyleError} if the tree contains a style value that
+ *   cannot be laid out: a `repeat()` whose track count is not finite, or an
+ *   explicit grid line of `0`. Both are detected during layout rather than at
+ *   construction time, so it is this call that reports them.
+ *
+ * @example
+ * Two items sharing a fixed-width row.
+ * ```typescript
+ * import { LayoutNode, computeLayout } from 'flexboxjs';
+ *
+ * const left = LayoutNode.make({ flexGrow: 1 });
+ * const right = LayoutNode.make({ flexGrow: 1 });
+ * const root = LayoutNode.make({ width: 400, height: 300 }, [left, right]);
+ *
+ * computeLayout(root, { width: 'max-content', height: 'max-content' });
+ *
+ * left.layout.size; // { width: 200, height: 300 }
+ * right.layout.location; // { x: 200, y: 0 }
+ * ```
+ *
+ * @example
+ * Sizing a tree to its content, then re-laying it out after a change.
+ * ```typescript
+ * const item = LayoutNode.make({ width: 120, height: 40 });
+ * const root = LayoutNode.make({ flexDirection: 'column' }, [item]);
+ *
+ * computeLayout(root, { width: 'max-content', height: 'max-content' });
+ * root.layout.size; // { width: 120, height: 40 } — shrink-wrapped
+ *
+ * root.appendChild(LayoutNode.make({ width: 200, height: 40 }));
+ * computeLayout(root, { width: 'max-content', height: 'max-content' });
+ * root.layout.size; // { width: 200, height: 80 } — widest child, stacked heights
+ * ```
+ *
+ * @see {@link LayoutNode} for building and mutating the tree.
  */
 export function computeLayout(
   root: LayoutNode,
