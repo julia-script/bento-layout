@@ -69,10 +69,16 @@ function Highlighted({ code }: { code: string }) {
   const rendered = useShiki(code, {
     lang: 'jsx',
     themes: { light: 'github-light', dark: 'github-dark' },
+    // Colors via CSS variables rather than inline light-theme colors, so
+    // fumadocs' `.dark .shiki` rules can switch the palette.
+    defaultColor: false,
     components: {
       // The <pre> is a backdrop for the textarea, so it must not scroll or
-      // capture events independently — the textarea on top owns both.
-      pre: (props) => <pre {...props} className="fd-demo-pre" />,
+      // capture events independently — the textarea on top owns both. Keep
+      // shiki's own classes: `.shiki` is what the theme-switching CSS matches.
+      pre: (props) => (
+        <pre {...props} className={`${props.className ?? ''} fd-demo-pre`} />
+      ),
     },
   });
   return <>{rendered}</>;
