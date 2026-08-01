@@ -3,9 +3,9 @@
 
 import type { Point, Rect, Size } from './geometry.js';
 import { pointNone, pointZero, rectZero, sizeZero } from './geometry.js';
+import type { Opt } from './math.js';
 import type { AvailableSpace, Style, StyleInput } from './style.js';
 import { mergeStyle, resolveStyle } from './style.js';
-import type { Opt } from './math.js';
 
 export type RunMode = 'perform-layout' | 'compute-size' | 'perform-hidden-layout';
 export type SizingMode = 'content-size' | 'inherent-size';
@@ -816,6 +816,7 @@ export class Cache {
     if (input.runMode === 'perform-layout') {
       this.finalLayoutEntry = { kw, kh, aw, ah, pw, ph: input.parentSize.height, axis, out: layoutOutput };
     } else if (input.runMode === 'compute-size') {
+      // biome-ignore lint/suspicious/noAssignInExpressions: lazy-allocate the cache row on first measure.
       const entries = this.measureEntries ?? (this.measureEntries = new Array(CACHE_SIZE).fill(undefined));
       entries[Cache.computeCacheSlot(kw, kh, aw, ah)] = {
         kw,

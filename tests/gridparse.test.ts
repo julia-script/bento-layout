@@ -32,7 +32,10 @@ describe('grid track list parsing', () => {
   it('minmax and fit-content', () => {
     expect(parseTrackSizingFunction('minmax(20px,40px)')).toEqual({ min: 20, max: 40 });
     expect(parseTrackSizingFunction('minmax(0px,max-content)')).toEqual({ min: 0, max: 'max-content' });
-    expect(parseTrackSizingFunction('fit-content(50%)')).toEqual({ min: 'auto', max: { fitContent: { percent: 0.5 } } });
+    expect(parseTrackSizingFunction('fit-content(50%)')).toEqual({
+      min: 'auto',
+      max: { fitContent: { percent: 0.5 } },
+    });
     expect(parseTrackSizingFunction('fit-content(30px)')).toEqual({ min: 'auto', max: { fitContent: 30 } });
   });
 

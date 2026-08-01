@@ -18,14 +18,25 @@ describe('public API', () => {
 
   it('percent sizes and content-box sizing', () => {
     const child = LayoutNode.make({
-        width: { percent: 0.5 }, height: 100,
-        paddingLeft: 10, paddingRight: 10, paddingTop: 0, paddingBottom: 0,
-      });
-    const root = LayoutNode.make({
-        width: 200, height: 200,
+      width: { percent: 0.5 },
+      height: 100,
+      paddingLeft: 10,
+      paddingRight: 10,
+      paddingTop: 0,
+      paddingBottom: 0,
+    });
+    const root = LayoutNode.make(
+      {
+        width: 200,
+        height: 200,
         boxSizing: 'content-box',
-        paddingLeft: 10, paddingRight: 10, paddingTop: 10, paddingBottom: 10,
-      }, [child]);
+        paddingLeft: 10,
+        paddingRight: 10,
+        paddingTop: 10,
+        paddingBottom: 10,
+      },
+      [child],
+    );
 
     computeLayout(root, { width: 'max-content', height: 'max-content' });
 
@@ -37,9 +48,9 @@ describe('public API', () => {
 
   it('measure functions drive leaf sizing', () => {
     const leaf = LayoutNode.make().setMeasure((known, available) => ({
-        width: known.width ?? (typeof available.width === 'number' ? Math.min(available.width, 100) : 100),
-        height: known.height ?? 20,
-      }));
+      width: known.width ?? (typeof available.width === 'number' ? Math.min(available.width, 100) : 100),
+      height: known.height ?? 20,
+    }));
     const root = LayoutNode.make({}, [leaf]);
     computeLayout(root, { width: 'max-content', height: 'max-content' });
     expect(leaf.layout.size).toEqual({ width: 100, height: 20 });

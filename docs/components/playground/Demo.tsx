@@ -7,12 +7,12 @@
 // Shiki-highlighted output, so a docs page carrying a demo does not also carry
 // an editor bundle; Fumadocs already ships Shiki for its code blocks.
 
-import { Suspense, useDeferredValue, useMemo, useRef, useState } from 'react';
-import { useShiki } from 'fumadocs-core/highlight/client';
-import { computeLayout } from 'bento-layout';
 import type { LayoutNode } from 'bento-layout';
-import { demoToTree } from './parse.js';
+import { computeLayout } from 'bento-layout';
+import { useShiki } from 'fumadocs-core/highlight/client';
+import { Suspense, useDeferredValue, useMemo, useRef, useState } from 'react';
 import { LayoutCanvas } from './LayoutBox.js';
+import { demoToTree } from './parse.js';
 
 export interface DemoProps {
   /** Initial demo source. Readers edit from here; edits are not persisted. */
@@ -41,9 +41,7 @@ export interface DemoProps {
  */
 const SIDE_BY_SIDE_MAX_WIDTH = 260;
 
-type Result =
-  | { ok: true; root: LayoutNode }
-  | { ok: false; message: string };
+type Result = { ok: true; root: LayoutNode } | { ok: false; message: string };
 
 /**
  * Parse, build, and lay out demo source.
@@ -73,9 +71,7 @@ function Highlighted({ code }: { code: string }) {
       // The <pre> is a backdrop for the textarea, so it must not scroll or
       // capture events independently — the textarea on top owns both. Keep
       // shiki's own classes: `.shiki` is what the theme-switching CSS matches.
-      pre: (props) => (
-        <pre {...props} className={`${props.className ?? ''} fd-demo-pre`} />
-      ),
+      pre: (props) => <pre {...props} className={`${props.className ?? ''} fd-demo-pre`} />,
     },
   });
   return <>{rendered}</>;
@@ -110,9 +106,7 @@ export function Demo({ children, code, height, stacked }: DemoProps) {
     >
       <div className="fd-demo-panes">
         <div className="fd-demo-editor">
-          <Suspense
-            fallback={<pre className="fd-demo-pre fd-demo-fallback">{deferredSource}</pre>}
-          >
+          <Suspense fallback={<pre className="fd-demo-pre fd-demo-fallback">{deferredSource}</pre>}>
             <Highlighted code={deferredSource} />
           </Suspense>
           <textarea
@@ -130,11 +124,7 @@ export function Demo({ children, code, height, stacked }: DemoProps) {
         </div>
 
         <div className="fd-demo-preview" style={{ minHeight: height ?? 220 }}>
-          {shown ? (
-            <LayoutCanvas root={shown} />
-          ) : (
-            <p className="fd-demo-empty">Nothing to show yet.</p>
-          )}
+          {shown ? <LayoutCanvas root={shown} /> : <p className="fd-demo-empty">Nothing to show yet.</p>}
           {!result.ok && (
             <p className="fd-demo-error" role="alert">
               {result.message}

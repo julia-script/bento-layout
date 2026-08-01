@@ -109,20 +109,20 @@ function rectEmitter(
 }
 
 const EMITTERS: Emitter[] = [
-  (s, o) => s.display !== undefined && void (o['display'] = s.display),
+  (s, o) => s.display !== undefined && void (o.display = s.display),
   (s, o) => s.boxSizing !== undefined && void (o['box-sizing'] = s.boxSizing),
-  (s, o) => s.direction !== undefined && void (o['direction'] = s.direction),
+  (s, o) => s.direction !== undefined && void (o.direction = s.direction),
   (s, o) => {
     if (s.overflow === undefined) return;
     o['overflow-x'] = s.overflow.x;
     o['overflow-y'] = s.overflow.y;
   },
-  (s, o) => s.position !== undefined && void (o['position'] = s.position),
+  (s, o) => s.position !== undefined && void (o.position = s.position),
   rectEmitter('inset', ['top', 'left', 'bottom', 'right'], lpa),
   (s, o) => {
     if (s.size === undefined) return;
-    o['width'] = dim(s.size.width);
-    o['height'] = dim(s.size.height);
+    o.width = dim(s.size.width);
+    o.height = dim(s.size.height);
   },
   (s, o) => {
     if (s.minSize === undefined) return;
@@ -158,10 +158,22 @@ const EMITTERS: Emitter[] = [
   (s, o) => s.flexShrink !== undefined && void (o['flex-shrink'] = String(s.flexShrink)),
   (s, o) => s.justifyItems != null && void (o['justify-items'] = align(s.justifyItems)),
   (s, o) => s.justifySelf != null && void (o['justify-self'] = align(s.justifySelf)),
-  (s, o) => s.gridTemplateRows !== undefined && s.gridTemplateRows.length > 0 && void (o['grid-template-rows'] = serializeTrackList(s.gridTemplateRows)),
-  (s, o) => s.gridTemplateColumns !== undefined && s.gridTemplateColumns.length > 0 && void (o['grid-template-columns'] = serializeTrackList(s.gridTemplateColumns)),
-  (s, o) => s.gridAutoRows !== undefined && s.gridAutoRows.length > 0 && void (o['grid-auto-rows'] = serializeTrackList(s.gridAutoRows)),
-  (s, o) => s.gridAutoColumns !== undefined && s.gridAutoColumns.length > 0 && void (o['grid-auto-columns'] = serializeTrackList(s.gridAutoColumns)),
+  (s, o) =>
+    s.gridTemplateRows !== undefined &&
+    s.gridTemplateRows.length > 0 &&
+    void (o['grid-template-rows'] = serializeTrackList(s.gridTemplateRows)),
+  (s, o) =>
+    s.gridTemplateColumns !== undefined &&
+    s.gridTemplateColumns.length > 0 &&
+    void (o['grid-template-columns'] = serializeTrackList(s.gridTemplateColumns)),
+  (s, o) =>
+    s.gridAutoRows !== undefined &&
+    s.gridAutoRows.length > 0 &&
+    void (o['grid-auto-rows'] = serializeTrackList(s.gridAutoRows)),
+  (s, o) =>
+    s.gridAutoColumns !== undefined &&
+    s.gridAutoColumns.length > 0 &&
+    void (o['grid-auto-columns'] = serializeTrackList(s.gridAutoColumns)),
   (s, o) => s.gridAutoFlow !== undefined && void (o['grid-auto-flow'] = s.gridAutoFlow.replace('-', ' ')),
   (s, o) => {
     if (s.gridRow === undefined) return;
@@ -204,7 +216,7 @@ function nodeToHtml(node: FuzzNode, indent: string, isRoot: boolean): string {
     const text = node.text !== undefined ? node.text.replaceAll(ZWS, '&#8203;') : '';
     return `${indent}<div${id}${styleAttr}>${text}</div>`;
   }
-  const children = node.children.map((c) => nodeToHtml(c, indent + '  ', false)).join('\n');
+  const children = node.children.map((c) => nodeToHtml(c, `${indent}  `, false)).join('\n');
   return `${indent}<div${id}${styleAttr}>\n${children}\n${indent}</div>`;
 }
 

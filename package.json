@@ -38,6 +38,9 @@
     "build": "tsc -p tsconfig.build.json",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
     "gentest": "tsx scripts/gentest.ts",
     "bench": "tsx scripts/bench.ts",
     "bench:yoga": "tsx scripts/bench-yoga.ts",
@@ -51,6 +54,7 @@
     "wpt-score": "tsx scripts/wpt-score.ts"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.5.6",
     "@types/node": "^26.1.2",
     "fast-xml-parser": "^4.4.0",
     "puppeteer": "^25.4.0",

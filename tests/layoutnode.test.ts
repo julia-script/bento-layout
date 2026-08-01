@@ -2,7 +2,7 @@
 // "Opaque node trees" + "Tree manipulation with GC-native lifetime").
 
 import { describe, expect, it } from 'vitest';
-import { LayoutNode, computeLayout } from '../src/index.js';
+import { computeLayout, LayoutNode } from '../src/index.js';
 
 const SPACE = { width: 'max-content', height: 'max-content' } as const;
 
@@ -200,7 +200,14 @@ describe('InvalidStyleError', () => {
       [LayoutNode.make()],
     );
     expect(() => computeLayout(root, SPACE)).toThrow(InvalidStyleError);
-    const err = (() => { try { computeLayout(root, SPACE); } catch (e) { return e as Error; } return null; })();
+    const err = (() => {
+      try {
+        computeLayout(root, SPACE);
+      } catch (e) {
+        return e as Error;
+      }
+      return null;
+    })();
     expect(err?.name).toBe('InvalidStyleError');
   });
 });

@@ -3,14 +3,15 @@
 // attribute parser, the shrinker, and divergence signatures.
 
 import { describe, expect, it } from 'vitest';
-import { resolveStyle } from '../src/style.js';
-import type { Style } from '../src/index.js';
-import { generateTree, countNodes, STYLE_COVERAGE } from '../scripts/fuzz/generate.js';
 import type { FuzzMode, FuzzNode, FuzzTree } from '../scripts/fuzz/generate.js';
+import { countNodes, generateTree, STYLE_COVERAGE } from '../scripts/fuzz/generate.js';
 import { deriveSeed, mulberry32, Rng } from '../scripts/fuzz/prng.js';
 import { styleToCss } from '../scripts/fuzz/serialize.js';
 import { shrinkTree } from '../scripts/fuzz/shrink.js';
 import { treeSignature } from '../scripts/fuzz/signature.js';
+import { unreachable } from '../src/assert.js';
+import type { Style } from '../src/index.js';
+import { resolveStyle } from '../src/style.js';
 import { buildStyle } from './harness/fixture.js';
 
 const MODES: FuzzMode[] = ['flex', 'grid', 'block', 'mixed'];
@@ -31,7 +32,12 @@ describe('fuzz prng', () => {
 
   it('weighted picks respect the table deterministically', () => {
     const rng = new Rng(1);
-    const picks = Array.from({ length: 50 }, () => rng.weighted([[1, 'a'], [0, 'b']] as const));
+    const picks = Array.from({ length: 50 }, () =>
+      rng.weighted([
+        [1, 'a'],
+        [0, 'b'],
+      ] as const),
+    );
     expect(picks.every((p) => p === 'a')).toBe(true);
   });
 });
@@ -140,7 +146,7 @@ describe('fuzz shrinker (spec: Minimal reproduction)', () => {
     expect(countNodes(result.tree.root)).toBe(2);
     expect(result.tree.viewport).toBeUndefined();
     expect(Object.keys(result.tree.root.style)).toEqual([]);
-    const child = result.tree.root.children[0]!;
+    const child = result.tree.root.children[0] ?? unreachable();
     expect(Object.keys(child.style).sort()).toEqual(['aspectRatio', 'margin']);
     expect(child.text).toBeUndefined();
     expect(result.budgetExhausted).toBe(false);

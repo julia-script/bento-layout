@@ -6,23 +6,11 @@
 // - "OriginZero" (oz): explicit grid's start line is 0 (plain numbers here)
 // - "TrackVec index": even indices are lines/gutters, odd indices are tracks
 
+import { unreachable } from '../../assert.js';
 import type { AbsoluteAxis, Point, Rect, Size } from '../../geometry.js';
-import { InvalidStyleError } from '../../style.js';
 import { maybeApplyAspectRatio, rectAdd, sumAxes } from '../../geometry.js';
-import { mAdd, mClamp, mMin, mSub, vClamp } from '../../math.js';
 import type { Opt } from '../../math.js';
-import {
-  maybeResolveSize,
-  overflowAutoMinSize,
-  resolveOrZero,
-  trackDefiniteValue,
-  maxDefiniteLimit,
-  maxIsFr,
-  maxIsFitContent,
-  minIsIntrinsic,
-  maxIsIntrinsic,
-  trackUsesPercentage,
-} from '../../style.js';
+import { mAdd, mClamp, mMin, mSub, vClamp } from '../../math.js';
 import type {
   AlignItems,
   AvailableSpace,
@@ -35,6 +23,19 @@ import type {
   MinTrackSizingFunction,
   Overflow,
   Style,
+} from '../../style.js';
+import {
+  InvalidStyleError,
+  maxDefiniteLimit,
+  maxIsFitContent,
+  maxIsFr,
+  maxIsIntrinsic,
+  maybeResolveSize,
+  minIsIntrinsic,
+  overflowAutoMinSize,
+  resolveOrZero,
+  trackDefiniteValue,
+  trackUsesPercentage,
 } from '../../style.js';
 import type { LayoutNode } from '../../tree.js';
 import { measureChildSize } from '../dispatch.js';
@@ -301,7 +302,7 @@ export class CellOccupancyMatrix {
     );
     for (let r = 0; r < oldRowCount; r++) {
       for (let c = 0; c < oldColCount; c++) {
-        newInner[r + reqNegativeRows]![c + reqNegativeCols] = this.inner[r]![c]!;
+        (newInner[r + reqNegativeRows] ?? unreachable())[c + reqNegativeCols] = this.inner[r]?.[c] ?? unreachable();
       }
     }
 
@@ -331,8 +332,9 @@ export class CellOccupancyMatrix {
     }
 
     for (let x = rowRange.start; x < rowRange.end; x++) {
+      const row = this.inner[x] ?? unreachable();
       for (let y = colRange.start; y < colRange.end; y++) {
-        this.inner[x]![y] = value;
+        row[y] = value;
       }
     }
   }
@@ -380,7 +382,7 @@ export class CellOccupancyMatrix {
     let maybeIndex: number | undefined;
     if (trackType === 'horizontal') {
       if (trackComputedIndex < 0 || trackComputedIndex >= this.inner.length) return null;
-      const row = this.inner[trackComputedIndex]!;
+      const row = this.inner[trackComputedIndex] ?? unreachable();
       for (let i = row.length - 1; i >= 0; i--) {
         if (row[i] === kind) {
           maybeIndex = i;
@@ -390,7 +392,7 @@ export class CellOccupancyMatrix {
     } else {
       if (trackComputedIndex < 0 || trackComputedIndex >= (this.inner[0]?.length ?? 0)) return null;
       for (let i = this.inner.length - 1; i >= 0; i--) {
-        if (this.inner[i]![trackComputedIndex] === kind) {
+        if (this.inner[i]?.[trackComputedIndex] === kind) {
           maybeIndex = i;
           break;
         }
@@ -408,7 +410,7 @@ export class CellOccupancyMatrix {
     let maybeIndex: number | undefined;
     if (trackType === 'horizontal') {
       if (trackComputedIndex < 0 || trackComputedIndex >= this.inner.length) return null;
-      maybeIndex = this.inner[trackComputedIndex]!.findIndex((cell) => cell === kind);
+      maybeIndex = this.inner[trackComputedIndex]?.indexOf(kind);
       if (maybeIndex === -1) maybeIndex = undefined;
     } else {
       if (trackComputedIndex < 0 || trackComputedIndex >= (this.inner[0]?.length ?? 0)) return null;
@@ -658,7 +660,12 @@ function itemKnownDimensions(item: GridItem, gridAreaSize: Size<Opt>): Size<Opt>
   }
   // Reapply aspect ratio after stretch adjustments (on used border-box values,
   // so the transfer must respect box-sizing)
-  let size = maybeApplyAspectRatioUsed({ width, height: inherentSize.height }, aspectRatio, item.boxSizing, paddingBorderSize);
+  let size = maybeApplyAspectRatioUsed(
+    { width, height: inherentSize.height },
+    aspectRatio,
+    item.boxSizing,
+    paddingBorderSize,
+  );
 
   let height = size.height;
   if (
@@ -689,28 +696,32 @@ export function itemGridAreaSize(
 ): Size<Opt> {
   const size: Size<Opt> = { width: null, height: null };
 
-  let axisSum: Opt = 0;
+  // Accumulate in a plain `number` and only widen to `Opt` on the way out, so
+  // the running total never needs an assertion to stay non-null.
+  let axisTotal = 0;
+  let axisDefinite = true;
   for (const track of spannedTracks(item, axis, axisTracks)) {
     const minSize = trackDefiniteValue(track.minTrackSizingFunction, absGet(availableSpace, axis));
     const maxSize = trackDefiniteValue(track.maxTrackSizingFunction, absGet(availableSpace, axis));
     if (minSize === null || maxSize === null || minSize !== maxSize) {
-      axisSum = null;
+      axisDefinite = false;
       break;
     }
-    axisSum = axisSum! + track.baseSize;
+    axisTotal += track.baseSize;
   }
-  absSet(size, axis, axisSum);
+  absSet(size, axis, axisDefinite ? axisTotal : null);
 
-  let otherSum: Opt = 0;
+  let otherTotal = 0;
+  let otherDefinite = true;
   for (const track of spannedTracks(item, absOther(axis), otherAxisTracks)) {
     const estimate = getTrackSizeEstimate(track, absGet(availableSpace, absOther(axis)));
     if (estimate === null) {
-      otherSum = null;
+      otherDefinite = false;
       break;
     }
-    otherSum = otherSum! + estimate + track.contentAlignmentAdjustment;
+    otherTotal += estimate + track.contentAlignmentAdjustment;
   }
-  absSet(size, absOther(axis), otherSum);
+  absSet(size, absOther(axis), otherDefinite ? otherTotal : null);
 
   return size;
 }
@@ -824,7 +835,10 @@ export function itemMinimumContribution(
 
   let size =
     absGet(
-      maybeAddSize(maybeApplyAspectRatio(maybeResolveSize(item.size, gridAreaSize), item.aspectRatio), boxSizingAdjustment),
+      maybeAddSize(
+        maybeApplyAspectRatio(maybeResolveSize(item.size, gridAreaSize), item.aspectRatio),
+        boxSizingAdjustment,
+      ),
       axis,
     ) ??
     absGet(
@@ -860,11 +874,17 @@ export function itemMinimumContribution(
   // branch above measures with the clamp already applied, so re-clamping it
   // here is a no-op for that path.
   const minSize = absGet(
-    maybeAddSize(maybeApplyAspectRatio(maybeResolveSize(item.minSize, gridAreaSize), item.aspectRatio), boxSizingAdjustment),
+    maybeAddSize(
+      maybeApplyAspectRatio(maybeResolveSize(item.minSize, gridAreaSize), item.aspectRatio),
+      boxSizingAdjustment,
+    ),
     axis,
   );
   const maxSize = absGet(
-    maybeAddSize(maybeApplyAspectRatio(maybeResolveSize(item.maxSize, gridAreaSize), item.aspectRatio), boxSizingAdjustment),
+    maybeAddSize(
+      maybeApplyAspectRatio(maybeResolveSize(item.maxSize, gridAreaSize), item.aspectRatio),
+      boxSizingAdjustment,
+    ),
     axis,
   );
   size = vClamp(size, minSize, maxSize);

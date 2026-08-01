@@ -54,9 +54,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         />
         {/* Light-only. The provider stays enabled — `enabled: false` skips
             ThemeProvider entirely, which would drop forcedTheme with it. */}
-        <RootProvider theme={{ forcedTheme: 'light', enableSystem: false, hotKey: false }}>
-          {children}
-        </RootProvider>
+        <RootProvider theme={{ forcedTheme: 'light', enableSystem: false, hotKey: false }}>{children}</RootProvider>
       </body>
     </html>
   );

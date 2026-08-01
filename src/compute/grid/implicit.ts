@@ -2,6 +2,7 @@
 // in auto-placement).
 
 import type { Direction, Style } from '../../style.js';
+import type { LineOf, OzGridPlacement, TrackCounts } from './types.js';
 import {
   impliedNegativeImplicitTracks,
   impliedPositiveImplicitTracks,
@@ -10,7 +11,6 @@ import {
   ozIsSpan,
   placementLineIntoOriginZero,
 } from './types.js';
-import type { LineOf, OzGridPlacement, TrackCounts } from './types.js';
 
 /** Per-axis translation applied to origin-zero line placements (see below). */
 export interface OzOffsets {

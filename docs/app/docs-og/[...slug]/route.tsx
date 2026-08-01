@@ -1,5 +1,5 @@
-import { notFound } from 'next/navigation';
 import { generateOGImage } from 'fumadocs-ui/og';
+import { notFound } from 'next/navigation';
 import { source } from '@/lib/source';
 
 // Per-page OG cards live here rather than as an `opengraph-image` file beside
@@ -18,10 +18,7 @@ export function generateStaticParams() {
   }));
 }
 
-export async function GET(
-  _req: Request,
-  { params }: { params: Promise<{ slug: string[] }> },
-) {
+export async function GET(_req: Request, { params }: { params: Promise<{ slug: string[] }> }) {
   const { slug } = await params;
   // Drop the trailing "image.png" to recover the page's own slug.
   const pageSlug = slug.slice(0, -1);

@@ -1,6 +1,8 @@
 // Deterministic PRNG for the fuzzer (design decision 1: Math.random is banned
 // in the generator — every value must reproduce from the run seed).
 
+import { unreachable } from '../../src/assert.js';
+
 /** mulberry32: tiny 32-bit generator, plenty for style fuzzing. */
 export function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
@@ -45,7 +47,7 @@ export class Rng {
   }
 
   pick<T>(items: readonly T[]): T {
-    return items[this.int(0, items.length - 1)]!;
+    return items[this.int(0, items.length - 1)] ?? unreachable();
   }
 
   /** Pick from a [weight, value] table. */
@@ -56,6 +58,6 @@ export class Rng {
       r -= w;
       if (r < 0) return v;
     }
-    return table[table.length - 1]![1];
+    return (table[table.length - 1] ?? unreachable())[1];
   }
 }

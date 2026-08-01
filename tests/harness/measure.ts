@@ -57,8 +57,7 @@ function measureAhem(
 
   const minLineLength = lines.reduce((acc, line) => Math.max(acc, line.length), 0);
   // On one line every separator is rendered, so their widths count too.
-  const maxLineLength =
-    lines.reduce((acc, line) => acc + line.length, 0) + sepWidths.reduce((a, b) => a + b, 0);
+  const maxLineLength = lines.reduce((acc, line) => acc + line.length, 0) + sepWidths.reduce((a, b) => a + b, 0);
 
   const inlineAvs = availableSpace[inlineAxis];
   const inlineSize = Math.max(

@@ -15,14 +15,14 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import puppeteer from 'puppeteer';
 import type { Browser } from 'puppeteer';
-import { checkFixtures, checkTree, createExecutor, renderFixtures, type Executor } from './fuzz/check.js';
-import { countNodes, generateTree, treeRespectsPercentInvariant } from './fuzz/generate.js';
+import puppeteer from 'puppeteer';
+import { checkFixtures, checkTree, createExecutor, type Executor, renderFixtures } from './fuzz/check.js';
 import type { FuzzMode, FuzzTree } from './fuzz/generate.js';
+import { countNodes, generateTree, treeRespectsPercentInvariant } from './fuzz/generate.js';
 import { deriveSeed } from './fuzz/prng.js';
-import { signatureHash, treeSignature } from './fuzz/signature.js';
 import { shrinkTree } from './fuzz/shrink.js';
+import { signatureHash, treeSignature } from './fuzz/signature.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const BATCH_DIR = join(ROOT, 'tests', 'fuzz-batches');
@@ -79,7 +79,7 @@ async function pool(
 }
 
 async function main(): Promise<void> {
-  const seed = Number(argValue('--seed') ?? (Date.now() >>> 0));
+  const seed = Number(argValue('--seed') ?? Date.now() >>> 0);
   const iterations = Number(argValue('--iterations') ?? 20000);
   const mode = (argValue('--mode') ?? 'mixed') as FuzzMode;
   const target = Number(argValue('--target') ?? 1000);
@@ -96,7 +96,7 @@ async function main(): Promise<void> {
 
   const browser: Browser = await puppeteer.launch({
     headless: true,
-    args: ['--force-color-profile=srgb', ...(process.env['GENTEST_NO_SANDBOX'] ? ['--no-sandbox'] : [])],
+    args: ['--force-color-profile=srgb', ...(process.env.GENTEST_NO_SANDBOX ? ['--no-sandbox'] : [])],
   });
   const chrome = await browser.version();
   const execs: Executor[] = [];

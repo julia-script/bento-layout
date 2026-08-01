@@ -13,7 +13,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkFixtures } from './fuzz/check.js';
 import type { FuzzNode } from './fuzz/generate.js';
-import { loadBatch, type BatchFinding } from './fuzz-batch.js';
+import { type BatchFinding, loadBatch } from './fuzz-batch.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const BATCH_DIR = join(ROOT, 'tests', 'fuzz-batches');

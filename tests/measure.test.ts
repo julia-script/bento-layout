@@ -10,10 +10,7 @@ const TEXT = Array(9).fill('HHHH').join(ZWS);
 describe('ahem text measure', () => {
   it('max-content: all words on one line', () => {
     const measure = ahemTextMeasure(TEXT, 'horizontal');
-    const size = measure(
-      { width: null, height: null },
-      { width: 'max-content', height: 'max-content' },
-    );
+    const size = measure({ width: null, height: null }, { width: 'max-content', height: 'max-content' });
     expect(size).toEqual({ width: 360, height: 10 });
   });
 

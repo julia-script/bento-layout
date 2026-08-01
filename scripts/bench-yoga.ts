@@ -18,20 +18,21 @@
 //
 // Usage: pnpm bench:yoga
 
-import Yoga, { Edge, Direction } from 'yoga-layout';
-import { computeLayout, LayoutNode } from '../src/index.js';
+import Yoga, { Direction, Edge } from 'yoga-layout';
+import { unreachable } from '../src/assert.js';
 import type { StyleInput } from '../src/index.js';
+import { computeLayout, LayoutNode } from '../src/index.js';
 
 const { Node } = Yoga;
 type YogaNode = ReturnType<typeof Node.create>;
 
 const WARMUP = 3;
 const SAMPLES = 10;
-const FIXED_WINDOW_MS = Number(process.env['BENCH_WINDOW_MS'] ?? 3000);
+const FIXED_WINDOW_MS = Number(process.env.BENCH_WINDOW_MS ?? 3000);
 
 const median = (xs: number[]): number => {
   const s = [...xs].sort((a, b) => a - b);
-  return s[Math.floor(s.length / 2)]!;
+  return s[Math.floor(s.length / 2)] ?? unreachable();
 };
 
 // --- Tree builders, one pair per scenario ------------------------------------
@@ -42,8 +43,12 @@ const median = (xs: number[]): number => {
 function wideOurs(childCount: number): LayoutNode {
   const children = Array.from({ length: childCount }, (_, i) =>
     LayoutNode.make({
-      width: 20 + (i % 5), height: 20 + (i % 7),
-      marginLeft: 1, marginRight: 1, marginTop: 1, marginBottom: 1,
+      width: 20 + (i % 5),
+      height: 20 + (i % 7),
+      marginLeft: 1,
+      marginRight: 1,
+      marginTop: 1,
+      marginBottom: 1,
     }),
   );
   return LayoutNode.make({ flexWrap: 'wrap', width: 800, height: 'auto', columnGap: 2, rowGap: 2 }, children);
@@ -70,7 +75,10 @@ function wideYoga(childCount: number): YogaNode {
 function deepOurs(maxNodes: number, branch: number): LayoutNode {
   const itemStyle = (): StyleInput => ({
     flexGrow: 1,
-    marginLeft: 10, marginRight: 10, marginTop: 10, marginBottom: 10,
+    marginLeft: 10,
+    marginRight: 10,
+    marginTop: 10,
+    marginBottom: 10,
   });
   const buildForest = (budget: number): LayoutNode[] => {
     if (budget <= branch) {
@@ -109,8 +117,7 @@ function deepYoga(maxNodes: number, branch: number): YogaNode {
 
 // --- Agreement check ---------------------------------------------------------
 
-const countOurs = (n: LayoutNode): number =>
-  1 + n.children.reduce((s, c) => s + countOurs(c), 0);
+const countOurs = (n: LayoutNode): number => 1 + n.children.reduce((s, c) => s + countOurs(c), 0);
 const countYoga = (n: YogaNode): number => {
   let total = 1;
   for (let i = 0; i < n.getChildCount(); i++) total += countYoga(n.getChild(i));

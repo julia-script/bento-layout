@@ -5,8 +5,8 @@
 // allocating per hit. These pin both.
 
 import { describe, expect, it } from 'vitest';
-import { Cache } from '../src/tree.js';
 import type { LayoutInput, LayoutOutput } from '../src/tree.js';
+import { Cache } from '../src/tree.js';
 
 const baseInput = (over: Partial<LayoutInput> = {}): LayoutInput => ({
   runMode: 'compute-size',
@@ -38,7 +38,7 @@ describe('Cache', () => {
     const second = cache.get(input);
 
     expect(first).not.toBeNull();
-    expect(first!.size).toEqual({ width: 7, height: 20 });
+    expect(first?.size).toEqual({ width: 7, height: 20 });
     // Identity, not equality: a fresh object per hit would fail here.
     expect(first).toBe(second);
   });

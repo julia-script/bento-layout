@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest';
 import { computeLayout } from 'bento-layout';
-import { DemoSyntaxError, buildTree, demoToTree, parseDemo } from './parse.js';
+import { describe, expect, it } from 'vitest';
 import { CoercionError } from './coerce.js';
+import { buildTree, DemoSyntaxError, demoToTree, parseDemo } from './parse.js';
 
 describe('accepted dialect', () => {
   it('parses a nested tree', () => {
@@ -15,8 +15,8 @@ describe('accepted dialect', () => {
     `);
     expect(tree.style).toEqual({ width: 200, height: 100 });
     expect(tree.children).toHaveLength(2);
-    expect(tree.children[0]!.style).toEqual({ flexGrow: 1 });
-    expect(tree.children[1]!.children).toEqual([]);
+    expect(tree.children[0]?.style).toEqual({ flexGrow: 1 });
+    expect(tree.children[1]?.children).toEqual([]);
   });
 
   it('allows a node with no style', () => {
@@ -67,37 +67,13 @@ describe('rejected constructs', () => {
   const hostile: Array<[string, string, RegExp]> = [
     ['arithmetic', '<Layout><Node style={{width: 100 * 3}} /></Layout>', /arithmetic/],
     ['variables', '<Layout><Node style={{width: someVar}} /></Layout>', /variables/],
-    [
-      'function calls',
-      '<Layout><Node style={{width: alert(1)}} /></Layout>',
-      /function calls/,
-    ],
-    [
-      'property access',
-      '<Layout><Node style={{width: window.innerWidth}} /></Layout>',
-      /property access/,
-    ],
-    [
-      'template strings',
-      '<Layout><Node style={{width: `100`}} /></Layout>',
-      /template strings/,
-    ],
-    [
-      'functions',
-      '<Layout><Node style={{width: () => 1}} /></Layout>',
-      /functions/,
-    ],
-    [
-      'conditionals',
-      '<Layout><Node style={{width: a ? 1 : 2}} /></Layout>',
-      /conditionals|variables/,
-    ],
+    ['function calls', '<Layout><Node style={{width: alert(1)}} /></Layout>', /function calls/],
+    ['property access', '<Layout><Node style={{width: window.innerWidth}} /></Layout>', /property access/],
+    ['template strings', '<Layout><Node style={{width: `100`}} /></Layout>', /template strings/],
+    ['functions', '<Layout><Node style={{width: () => 1}} /></Layout>', /functions/],
+    ['conditionals', '<Layout><Node style={{width: a ? 1 : 2}} /></Layout>', /conditionals|variables/],
     ['spread', '<Layout><Node style={{...other}} /></Layout>', /spread/],
-    [
-      'computed keys',
-      '<Layout><Node style={{[k]: 1}} /></Layout>',
-      /computed keys/,
-    ],
+    ['computed keys', '<Layout><Node style={{[k]: 1}} /></Layout>', /computed keys/],
     ['`new`', '<Layout><Node style={{width: new Thing()}} /></Layout>', /`new`/],
   ];
 
@@ -115,9 +91,9 @@ describe('rejected constructs', () => {
   it('never evaluates rejected source', () => {
     // If this were evaluated rather than parsed, the global would be set.
     const key = '__demo_should_not_run__';
-    expect(() =>
-      parseDemo(`<Layout><Node style={{width: (globalThis.${key} = 1)}} /></Layout>`),
-    ).toThrow(DemoSyntaxError);
+    expect(() => parseDemo(`<Layout><Node style={{width: (globalThis.${key} = 1)}} /></Layout>`)).toThrow(
+      DemoSyntaxError,
+    );
     expect((globalThis as Record<string, unknown>)[key]).toBeUndefined();
   });
 });
@@ -135,9 +111,7 @@ describe('dialect shape', () => {
 
   it('rejects unknown attributes and elements', () => {
     expect(() => parseDemo('<Layout><Node id="a" /></Layout>')).toThrow(/only a `style`/);
-    expect(() => parseDemo('<Layout config={{a: 1}}><Node /></Layout>')).toThrow(
-      /takes no attributes/,
-    );
+    expect(() => parseDemo('<Layout config={{a: 1}}><Node /></Layout>')).toThrow(/takes no attributes/);
     expect(() => parseDemo('<Layout><Node><div /></Node></Layout>')).toThrow(/expected <Node>/);
   });
 
@@ -168,8 +142,8 @@ describe('building engine trees', () => {
     computeLayout(root, { width: 'max-content', height: 'max-content' });
 
     expect(root.layout.size).toEqual({ width: 400, height: 120 });
-    expect(root.children[0]!.layout.size.width).toBe(200);
-    expect(root.children[1]!.layout.location.x).toBe(200);
+    expect(root.children[0]?.layout.size.width).toBe(200);
+    expect(root.children[1]?.layout.location.x).toBe(200);
   });
 
   it('lays out a grid built from CSS-shaped strings', () => {
@@ -190,17 +164,13 @@ describe('building engine trees', () => {
   });
 
   it('surfaces coercion errors from style values', () => {
-    expect(() => demoToTree("<Layout><Node style={{width: '2rem'}} /></Layout>")).toThrow(
-      CoercionError,
-    );
+    expect(() => demoToTree("<Layout><Node style={{width: '2rem'}} /></Layout>")).toThrow(CoercionError);
   });
 
   it('rejects a NaN-producing value before it reaches layout', () => {
     // The failure this guards against is not a wrong number but a hang: NaN
     // survives every bounds check and can spin the sizing loop forever.
-    expect(() => demoToTree("<Layout><Node style={{width: '1f'}} /></Layout>")).toThrow(
-      CoercionError,
-    );
+    expect(() => demoToTree("<Layout><Node style={{width: '1f'}} /></Layout>")).toThrow(CoercionError);
   });
 
   it('builds from an already-parsed tree', () => {

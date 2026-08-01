@@ -14,17 +14,17 @@
 // Usage: pnpm fuzz-batch-manifest save [BATCH] [--out FILE]
 //        pnpm fuzz-batch-manifest rehydrate [MANIFEST] [--out FILE] [--concurrency N]
 
-import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import puppeteer from 'puppeteer';
-import { checkFixtures, checkTree, createExecutor, renderFixtures, type Executor } from './fuzz/check.js';
-import { countNodes, generateTree, treeRespectsPercentInvariant } from './fuzz/generate.js';
+import { checkFixtures, checkTree, createExecutor, type Executor, renderFixtures } from './fuzz/check.js';
 import type { FuzzMode } from './fuzz/generate.js';
+import { countNodes, generateTree, treeRespectsPercentInvariant } from './fuzz/generate.js';
 import { deriveSeed } from './fuzz/prng.js';
-import { signatureHash, treeSignature } from './fuzz/signature.js';
 import { shrinkTree } from './fuzz/shrink.js';
-import { loadBatch, type Batch, type BatchFinding } from './fuzz-batch.js';
+import { signatureHash, treeSignature } from './fuzz/signature.js';
+import { type Batch, type BatchFinding, loadBatch } from './fuzz-batch.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const BATCH_DIR = join(ROOT, 'tests', 'fuzz-batches');
@@ -85,12 +85,11 @@ async function rehydrate(): Promise<void> {
     process.exit(2);
   }
   const manifest = JSON.parse(readFileSync(manifestFile, 'utf8')) as Manifest;
-  const out =
-    argValue('--out') ?? join(BATCH_DIR, `batch-rehydrated-${manifest.entries[0]?.seed ?? 0}.json`);
+  const out = argValue('--out') ?? join(BATCH_DIR, `batch-rehydrated-${manifest.entries[0]?.seed ?? 0}.json`);
 
   const browser = await puppeteer.launch({
     headless: true,
-    args: ['--force-color-profile=srgb', ...(process.env['GENTEST_NO_SANDBOX'] ? ['--no-sandbox'] : [])],
+    args: ['--force-color-profile=srgb', ...(process.env.GENTEST_NO_SANDBOX ? ['--no-sandbox'] : [])],
   });
   const chrome = await browser.version();
   if (chrome !== manifest.chrome) {

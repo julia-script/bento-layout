@@ -143,12 +143,30 @@ function alignContent(rng: Rng): AlignContent {
 function trackSizingFunction(rng: Rng, allowPercent: boolean): TrackSizingFunction {
   return rng.weighted<TrackSizingFunction>([
     [3, { min: 'auto', max: 'auto' }],
-    [2, (() => { const v = rng.pick(PX); return { min: v, max: v }; })()],
-    [allowPercent ? 2 : 0, (() => { const p = { percent: rng.pick(PCT) / 100 }; return { min: p, max: p }; })()],
+    [
+      2,
+      (() => {
+        const v = rng.pick(PX);
+        return { min: v, max: v };
+      })(),
+    ],
+    [
+      allowPercent ? 2 : 0,
+      (() => {
+        const p = { percent: rng.pick(PCT) / 100 };
+        return { min: p, max: p };
+      })(),
+    ],
     [1, { min: 'min-content', max: 'min-content' }],
     [1, { min: 'max-content', max: 'max-content' }],
     [3, { min: 'auto', max: { fr: rng.pick(FR) } }],
-    [1, { min: 'auto', max: { fitContent: !allowPercent || rng.chance(0.5) ? rng.pick(PX) : { percent: rng.pick(PCT) / 100 } } }],
+    [
+      1,
+      {
+        min: 'auto',
+        max: { fitContent: !allowPercent || rng.chance(0.5) ? rng.pick(PX) : { percent: rng.pick(PCT) / 100 } },
+      },
+    ],
     [2, { min: rng.chance(0.5) ? rng.pick(PX) : 'auto', max: rng.chance(0.5) ? { fr: rng.pick(FR) } : 'auto' }],
     [1, { min: 'min-content', max: 'max-content' }],
   ]);
@@ -329,7 +347,13 @@ function genCommonStyle(rng: Rng, style: Partial<Style>, isRoot: boolean, ctx: G
   if (rng.chance(0.05)) style.direction = rng.pick(['ltr', 'rtl'] as const);
 }
 
-function genContainerStyle(rng: Rng, style: Partial<Style>, display: Style['display'], ownWDef: boolean, ownHDef: boolean): void {
+function genContainerStyle(
+  rng: Rng,
+  style: Partial<Style>,
+  display: Style['display'],
+  ownWDef: boolean,
+  ownHDef: boolean,
+): void {
   if (display === 'flex') {
     if (rng.chance(0.6)) {
       style.flexDirection = rng.pick(['row', 'column', 'row-reverse', 'column-reverse'] as const);
@@ -411,9 +435,7 @@ function genNode(rng: Rng, ctx: GenContext): FuzzNode {
   const childCount = display === 'grid' ? rng.int(1, 6) : rng.int(1, 5);
   const children: FuzzNode[] = [];
   for (let i = 0; i < childCount && ctx.budget.remaining > 0; i++) {
-    children.push(
-      genNode(rng, { ...ctx, parentDisplay: display, depth: ctx.depth + 1, wDef: ownWDef, hDef: ownHDef }),
-    );
+    children.push(genNode(rng, { ...ctx, parentDisplay: display, depth: ctx.depth + 1, wDef: ownWDef, hDef: ownHDef }));
   }
   return { style, children };
 }
@@ -448,12 +470,26 @@ const hasPct = (v: unknown): boolean => typeof v === 'object' && v !== null && '
 
 function stylePctAxes(style: Partial<Style>): { w: boolean; h: boolean } {
   const w =
-    hasPct(style.size?.width) || hasPct(style.minSize?.width) || hasPct(style.maxSize?.width) ||
-    hasPct(style.margin?.left) || hasPct(style.margin?.right) || hasPct(style.margin?.top) || hasPct(style.margin?.bottom) ||
-    hasPct(style.padding?.left) || hasPct(style.padding?.right) || hasPct(style.padding?.top) || hasPct(style.padding?.bottom) ||
-    hasPct(style.inset?.left) || hasPct(style.inset?.right) || hasPct(style.flexBasis);
-  const h = hasPct(style.size?.height) || hasPct(style.minSize?.height) || hasPct(style.maxSize?.height) ||
-    hasPct(style.inset?.top) || hasPct(style.inset?.bottom);
+    hasPct(style.size?.width) ||
+    hasPct(style.minSize?.width) ||
+    hasPct(style.maxSize?.width) ||
+    hasPct(style.margin?.left) ||
+    hasPct(style.margin?.right) ||
+    hasPct(style.margin?.top) ||
+    hasPct(style.margin?.bottom) ||
+    hasPct(style.padding?.left) ||
+    hasPct(style.padding?.right) ||
+    hasPct(style.padding?.top) ||
+    hasPct(style.padding?.bottom) ||
+    hasPct(style.inset?.left) ||
+    hasPct(style.inset?.right) ||
+    hasPct(style.flexBasis);
+  const h =
+    hasPct(style.size?.height) ||
+    hasPct(style.minSize?.height) ||
+    hasPct(style.maxSize?.height) ||
+    hasPct(style.inset?.top) ||
+    hasPct(style.inset?.bottom);
   return { w, h };
 }
 

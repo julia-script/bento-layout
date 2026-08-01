@@ -1,14 +1,14 @@
 // Public API: plain-object node trees + computeLayout.
 
+import { measureChildSize, performChildLayout } from './compute/dispatch.js';
 import type { Size } from './geometry.js';
 import { applyAspectRatioClamped } from './geometry.js';
-import { mMax, round } from './math.js';
 import type { Opt } from './math.js';
-import { asIntoOption, maybeResolveSize, resolveRectOrZero } from './style.js';
+import { mMax, round } from './math.js';
 import type { AvailableSpace, Style } from './style.js';
-import { LayoutNode, internals, resolveMarginSet } from './tree.js';
+import { asIntoOption, maybeResolveSize, resolveRectOrZero } from './style.js';
 import type { Layout, Line } from './tree.js';
-import { measureChildSize, performChildLayout } from './compute/dispatch.js';
+import { internals, type LayoutNode, resolveMarginSet } from './tree.js';
 
 // --- Public surface (curated; see tests/api.test.ts export snapshot) --------
 // Values: the node class, the layout entry point, the validation error.
@@ -16,54 +16,54 @@ import { measureChildSize, performChildLayout } from './compute/dispatch.js';
 // read results. Engine helpers stay module-internal (import from src modules
 // directly in tests/scripts; they are not part of the npm surface).
 
-export { LayoutNode } from './tree.js';
-export type { Layout, MeasureFunction } from './tree.js';
-export { InvalidStyleError } from './style.js';
+export type { FlexDirection, Point, Rect, Size } from './geometry.js';
+export type { Opt } from './math.js';
 export type {
-  // core style vocabulary
-  Style,
-  StyleInput,
-  EdgesInput,
-  GapInput,
-  OverflowInput,
-  Dimension,
-  LengthPercentage,
-  LengthPercentageAuto,
-  PercentString,
-  DimensionInput,
-  LengthPercentageInput,
-  LengthPercentageAutoInput,
-  AvailableSpace,
-  Display,
-  BoxSizing,
-  Direction,
-  Position,
-  Overflow,
-  FlexWrap,
-  TextAlign,
+  AlignContent,
+  AlignContentKeyword,
   // alignment
   AlignItems,
   AlignItemsKeyword,
-  AlignContent,
-  AlignContentKeyword,
   AlignSelf,
-  JustifyContent,
-  // grid
-  MinTrackSizingFunction,
-  MaxTrackSizingFunction,
-  TrackSizingFunction,
-  MinTrackSizingFunctionInput,
-  MaxTrackSizingFunctionInput,
-  TrackSizingFunctionInput,
-  RepetitionCount,
-  GridTemplateComponent,
-  GridTemplateComponentInput,
+  AvailableSpace,
+  BoxSizing,
+  Dimension,
+  DimensionInput,
+  Direction,
+  Display,
+  EdgesInput,
+  FlexWrap,
+  GapInput,
   GridAutoFlow,
   GridPlacement,
   GridPlacementLine,
+  GridTemplateComponent,
+  GridTemplateComponentInput,
+  JustifyContent,
+  LengthPercentage,
+  LengthPercentageAuto,
+  LengthPercentageAutoInput,
+  LengthPercentageInput,
+  MaxTrackSizingFunction,
+  MaxTrackSizingFunctionInput,
+  // grid
+  MinTrackSizingFunction,
+  MinTrackSizingFunctionInput,
+  Overflow,
+  OverflowInput,
+  PercentString,
+  Position,
+  RepetitionCount,
+  // core style vocabulary
+  Style,
+  StyleInput,
+  TextAlign,
+  TrackSizingFunction,
+  TrackSizingFunctionInput,
 } from './style.js';
-export type { Size, Rect, Point, FlexDirection } from './geometry.js';
-export type { Opt } from './math.js';
+export { InvalidStyleError } from './style.js';
+export type { Layout, MeasureFunction } from './tree.js';
+export { LayoutNode } from './tree.js';
 
 /** Options for {@link computeLayout}. */
 export interface ComputeLayoutOptions {
@@ -300,12 +300,7 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
     height: style.overflow.x === 'scroll' ? style.scrollbarWidth : 0,
   };
   const location = {
-    x:
-      style.direction === 'rtl'
-        ? parentSize.width !== null
-          ? parentSize.width - output.size.width
-          : 0
-        : 0,
+    x: style.direction === 'rtl' ? (parentSize.width !== null ? parentSize.width - output.size.width : 0) : 0,
     // A margin that collapsed *through* the root's top edge is outside the
     // root's own box, so it offsets the root rather than growing it — Chrome
     // puts a block whose first child has `margin-top: 20` at y=20, height
@@ -411,8 +406,7 @@ function blockRootKnownDimensions(
     width: padding.left + padding.right + border.left + border.right,
     height: padding.top + padding.bottom + border.top + border.bottom,
   };
-  const boxSizingAdjustment =
-    style.boxSizing === 'content-box' ? paddingBorderSize : { width: 0, height: 0 };
+  const boxSizingAdjustment = style.boxSizing === 'content-box' ? paddingBorderSize : { width: 0, height: 0 };
 
   const resolveAxis = (v: Opt, adj: number): Opt => (v !== null ? v + adj : null);
 

@@ -4,17 +4,15 @@
 // or the engine renders as an error panel instead. This walks the real MDX
 // content, so a demo edited in a doc page is covered without registration.
 
-import { readFileSync, readdirSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, expect, it } from 'vitest';
 import { computeLayout } from 'bento-layout';
+import { describe, expect, it } from 'vitest';
+import { unreachable } from '../../../src/assert.js';
 import { demoToTree } from './parse.js';
 
-const CONTENT_ROOT = join(
-  fileURLToPath(new URL('.', import.meta.url)),
-  '..', '..', 'content', 'docs',
-);
+const CONTENT_ROOT = join(fileURLToPath(new URL('.', import.meta.url)), '..', '..', 'content', 'docs');
 
 /** Mirrors AVAILABLE_WIDTH in Demo.tsx — demos lay out at this width. */
 const AVAILABLE_WIDTH = 600;
@@ -32,8 +30,8 @@ const DEMO_RE = /^([ \t]*)<Demo(?:\s[^>]*)?>\s*\{`([\s\S]*?)`\}\s*<\/Demo>/gm;
 const demos = mdxFiles(CONTENT_ROOT).flatMap((file) =>
   [...readFileSync(file, 'utf8').matchAll(DEMO_RE)].map((m, i) => ({
     name: `${file.slice(CONTENT_ROOT.length + 1)} #${i + 1}`,
-    indent: m[1]!,
-    source: m[2]!,
+    indent: m[1] ?? unreachable(),
+    source: m[2] ?? unreachable(),
   })),
 );
 

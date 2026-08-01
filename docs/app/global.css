@@ -1,6 +1,6 @@
-@import 'tailwindcss';
-@import 'fumadocs-ui/css/neutral.css';
-@import 'fumadocs-ui/css/preset.css';
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
 
 /* --- Theme: "elegant anime" ---------------------------------------------
    Warm washi-paper neutrals with a salmon-coral primary, drawn from the
@@ -43,7 +43,7 @@
   --color-fd-accent-foreground: var(--bento-ink);
   --color-fd-ring: var(--bento-coral);
 
-  --font-display: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', Georgia, serif;
+  --font-display: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", Georgia, serif;
 }
 
 /* --- Playground preview boxes ------------------------------------------
@@ -62,22 +62,26 @@
 .fd-layout-rect {
   stroke: var(--color-fd-border);
   stroke-width: 1;
-  transition: x 120ms ease, y 120ms ease, width 120ms ease, height 120ms ease;
+  transition:
+    x 120ms ease,
+    y 120ms ease,
+    width 120ms ease,
+    height 120ms ease;
 }
 
-.fd-layout-rect[data-depth='0'] {
+.fd-layout-rect[data-depth="0"] {
   fill: color-mix(in srgb, var(--color-fd-primary) 8%, transparent);
 }
-.fd-layout-rect[data-depth='1'] {
+.fd-layout-rect[data-depth="1"] {
   fill: color-mix(in srgb, var(--color-fd-primary) 18%, transparent);
 }
-.fd-layout-rect[data-depth='2'] {
+.fd-layout-rect[data-depth="2"] {
   fill: color-mix(in srgb, var(--color-fd-primary) 28%, transparent);
 }
-.fd-layout-rect[data-depth='3'] {
+.fd-layout-rect[data-depth="3"] {
   fill: color-mix(in srgb, var(--color-fd-primary) 38%, transparent);
 }
-.fd-layout-rect[data-depth='4'] {
+.fd-layout-rect[data-depth="4"] {
   fill: color-mix(in srgb, var(--color-fd-primary) 48%, transparent);
 }
 
@@ -145,7 +149,7 @@
 
 .fd-demo-pre {
   min-height: 100%;
-  background: transparent !important;
+  background: transparent;
   pointer-events: none;
 }
 
@@ -178,13 +182,9 @@
   position: relative;
   padding: 1rem;
   overflow: auto;
-  background-image: radial-gradient(
-    var(--color-fd-border) 1px,
-    transparent 1px
-  );
+  background-image: radial-gradient(var(--color-fd-border) 1px, transparent 1px);
   background-size: 12px 12px;
 }
-
 
 .fd-demo-empty {
   color: var(--color-fd-muted-foreground);
@@ -227,13 +227,22 @@
     radial-gradient(1100px 520px at 78% -10%, color-mix(in srgb, var(--bento-coral) 10%, transparent), transparent 70%),
     radial-gradient(900px 480px at -10% 30%, color-mix(in srgb, var(--bento-matcha) 8%, transparent), transparent 70%),
     radial-gradient(color-mix(in srgb, var(--bento-ink) 5%, transparent) 1px, transparent 1px);
-  background-size: auto, auto, 22px 22px;
+  background-size:
+    auto,
+    auto,
+    22px 22px;
 }
 
 /* Entrance: staggered fade-up, CSS only. */
 @keyframes ld-rise {
-  from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 .ld-rise {
   opacity: 0;
@@ -245,7 +254,9 @@
 .ld-reveal {
   opacity: 0;
   transform: translateY(18px);
-  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
   transition-delay: var(--reveal-delay, 0ms);
 }
 .ld-reveal[data-in] {
@@ -254,8 +265,15 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ld-rise { animation: none; opacity: 1; }
-  .ld-reveal { transition: none; opacity: 1; transform: none; }
+  .ld-rise {
+    animation: none;
+    opacity: 1;
+  }
+  .ld-reveal {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* Thin ink divider with a diamond, like a chapter mark. */
@@ -267,7 +285,7 @@
 }
 .ld-divider::before,
 .ld-divider::after {
-  content: '';
+  content: "";
   flex: 1;
   height: 1px;
   background: var(--bento-line);
@@ -284,7 +302,10 @@
   background: var(--color-fd-card);
   border: 1px solid var(--color-fd-border);
   border-radius: 0.875rem;
-  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease, border-color 0.35s ease;
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s ease,
+    border-color 0.35s ease;
 }
 .ld-card:hover {
   transform: translateY(-3px);
@@ -304,7 +325,7 @@
   margin: 0;
   padding: 1.25rem 1.5rem;
   overflow-x: auto;
-  background: transparent !important;
+  background: transparent;
   font-size: 0.8125rem;
   line-height: 1.7;
 }
@@ -317,9 +338,10 @@
   position: relative;
   border-radius: 1.25rem;
   background:
-    radial-gradient(color-mix(in srgb, var(--bento-ink) 4%, transparent) 1px, transparent 1px),
-    var(--bento-surface);
-  background-size: 14px 14px, auto;
+    radial-gradient(color-mix(in srgb, var(--bento-ink) 4%, transparent) 1px, transparent 1px), var(--bento-surface);
+  background-size:
+    14px 14px,
+    auto;
   border: 1px solid var(--color-fd-border);
   box-shadow:
     0 1px 2px color-mix(in srgb, var(--bento-ink) 8%, transparent),
@@ -346,7 +368,9 @@
     height 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
 @media (prefers-reduced-motion: reduce) {
-  .bh-item { transition: none; }
+  .bh-item {
+    transition: none;
+  }
 }
 
 .bh-salmon {
@@ -356,8 +380,7 @@
 }
 .bh-rice {
   background:
-    radial-gradient(color-mix(in srgb, var(--bento-ink) 55%, transparent) 1.2px, transparent 1.6px),
-    var(--bento-rice);
+    radial-gradient(color-mix(in srgb, var(--bento-ink) 55%, transparent) 1.2px, transparent 1.6px), var(--bento-rice);
   background-size: 26px 22px;
   background-position: 6px 4px;
 }
@@ -392,7 +415,9 @@
   height: 8px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--bento-ink) 22%, transparent);
-  transition: background 0.3s ease, transform 0.3s ease;
+  transition:
+    background 0.3s ease,
+    transform 0.3s ease;
 }
 .bh-dot[data-active] {
   background: var(--bento-coral-deep);

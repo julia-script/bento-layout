@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export function BentoMark({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" width="22" height="22" className={className} aria-hidden>
+    <svg viewBox="0 0 24 24" width="22" height="22" className={className} aria-hidden="true">
       <rect x="2" y="3.5" width="20" height="17" rx="3.5" fill="none" stroke="currentColor" strokeWidth="1.8" />
       <line x1="11" y1="3.5" x2="11" y2="20.5" stroke="currentColor" strokeWidth="1.6" />
       <line x1="11" y1="12" x2="22" y2="12" stroke="currentColor" strokeWidth="1.6" />

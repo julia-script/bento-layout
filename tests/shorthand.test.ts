@@ -5,7 +5,7 @@
 // shape and nothing downstream of resolveStyle knows they exist.
 
 import { describe, expect, it } from 'vitest';
-import { InvalidStyleError, LayoutNode, computeLayout } from '../src/index.js';
+import { computeLayout, InvalidStyleError, LayoutNode } from '../src/index.js';
 import { resolveStyle } from '../src/style.js';
 
 const SPACE = { width: 'max-content', height: 'max-content' } as const;
@@ -109,9 +109,7 @@ describe('ordering', () => {
 
 describe('through the public API', () => {
   it('lays out the same as the longhands it expands to', () => {
-    const shorthand = LayoutNode.make({ width: 200, height: 200, padding: 20 }, [
-      LayoutNode.make({ flexGrow: 1 }),
-    ]);
+    const shorthand = LayoutNode.make({ width: 200, height: 200, padding: 20 }, [LayoutNode.make({ flexGrow: 1 })]);
     const longhand = LayoutNode.make(
       {
         width: 200,
@@ -127,8 +125,8 @@ describe('through the public API', () => {
     computeLayout(shorthand, SPACE);
     computeLayout(longhand, SPACE);
 
-    expect(shorthand.children[0]!.layout.size).toEqual(longhand.children[0]!.layout.size);
-    expect(shorthand.children[0]!.layout.location).toEqual({ x: 20, y: 20 });
+    expect(shorthand.children[0]?.layout.size).toEqual(longhand.children[0]?.layout.size);
+    expect(shorthand.children[0]?.layout.location).toEqual({ x: 20, y: 20 });
   });
 
   it('setStyle merges a shorthand per side, leaving the rest', () => {

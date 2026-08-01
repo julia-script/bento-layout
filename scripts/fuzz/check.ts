@@ -11,10 +11,11 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Browser, Page } from 'puppeteer';
-import { computeLayout } from '../../src/index.js';
+import { unreachable } from '../../src/assert.js';
 import type { LayoutNode } from '../../src/index.js';
-import { parseFixture } from '../../tests/harness/fixture.js';
+import { computeLayout } from '../../src/index.js';
 import type { ExpectedNode } from '../../tests/harness/fixture.js';
+import { parseFixture } from '../../tests/harness/fixture.js';
 import { generateTestXml } from '../gentest.js';
 import type { FuzzTree } from './generate.js';
 import { fuzzTreeToHtml } from './serialize.js';
@@ -89,7 +90,13 @@ export function collectMismatches(
   // same extraction) — walk the overlap defensively anyway.
   const n = Math.min(node.children.length, expected.children.length);
   for (let i = 0; i < n; i++) {
-    collectMismatches(node.children[i]!, expected.children[i]!, `${path}/${i}`, variant, out);
+    collectMismatches(
+      node.children[i] ?? unreachable(),
+      expected.children[i] ?? unreachable(),
+      `${path}/${i}`,
+      variant,
+      out,
+    );
   }
 }
 

@@ -9,17 +9,8 @@ export const alt = 'bento-layout — flexbox, grid & block layout in plain TypeS
 /** The bento mark from app/icon.svg, scaled for the card. */
 function BentoMark() {
   return (
-    <svg width="72" height="72" viewBox="0 0 32 32">
-      <rect
-        x="2"
-        y="4"
-        width="28"
-        height="24"
-        rx="6"
-        fill="#FAF6EF"
-        stroke="#2E2A24"
-        strokeWidth="2.2"
-      />
+    <svg width="72" height="72" viewBox="0 0 32 32" aria-hidden="true">
+      <rect x="2" y="4" width="28" height="24" rx="6" fill="#FAF6EF" stroke="#2E2A24" strokeWidth="2.2" />
       <line x1="14.5" y1="4" x2="14.5" y2="28" stroke="#2E2A24" strokeWidth="2" />
       <line x1="14.5" y1="16" x2="30" y2="16" stroke="#2E2A24" strokeWidth="2" />
       <circle cx="8.25" cy="16" r="3.4" fill="#E8896B" />

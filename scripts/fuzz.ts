@@ -19,12 +19,12 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import puppeteer from 'puppeteer';
 import { checkTree, createExecutor } from './fuzz/check.js';
-import { countNodes, generateTree, treeRespectsPercentInvariant } from './fuzz/generate.js';
 import type { FuzzMode, FuzzTree } from './fuzz/generate.js';
+import { countNodes, generateTree, treeRespectsPercentInvariant } from './fuzz/generate.js';
 import { deriveSeed } from './fuzz/prng.js';
-import { signatureHash, treeSignature } from './fuzz/signature.js';
 import { fuzzTreeToHtml } from './fuzz/serialize.js';
 import { shrinkTree } from './fuzz/shrink.js';
+import { signatureHash, treeSignature } from './fuzz/signature.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const FUZZ_FOUND_DIR = join(ROOT, 'tests', 'html', 'fuzz-found');
@@ -72,7 +72,7 @@ function argValue(flag: string): string | undefined {
 }
 
 async function main(): Promise<void> {
-  const seed = Number(argValue('--seed') ?? (Date.now() >>> 0));
+  const seed = Number(argValue('--seed') ?? Date.now() >>> 0);
   const iterations = Number(argValue('--iterations') ?? 200);
   const mode = (argValue('--mode') ?? 'mixed') as FuzzMode;
   const only = argValue('--only') !== undefined ? Number(argValue('--only')) : null;
@@ -88,7 +88,7 @@ async function main(): Promise<void> {
 
   const browser = await puppeteer.launch({
     headless: true,
-    args: ['--force-color-profile=srgb', ...(process.env['GENTEST_NO_SANDBOX'] ? ['--no-sandbox'] : [])],
+    args: ['--force-color-profile=srgb', ...(process.env.GENTEST_NO_SANDBOX ? ['--no-sandbox'] : [])],
   });
   const chrome = await browser.version();
   const exec = await createExecutor(browser);

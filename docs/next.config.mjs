@@ -1,5 +1,5 @@
-import { createMDX } from 'fumadocs-mdx/next';
 import { fileURLToPath } from 'node:url';
+import { createMDX } from 'fumadocs-mdx/next';
 
 const withMDX = createMDX();
 
@@ -28,7 +28,7 @@ const config = {
   webpack: (cfg) => {
     cfg.resolve.alias = {
       ...cfg.resolve.alias,
-      'bento-layout': libSrc + '/index.ts',
+      'bento-layout': `${libSrc}/index.ts`,
     };
     // Same .js -> .ts rewrite for the webpack path.
     cfg.resolve.extensionAlias = {

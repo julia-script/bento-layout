@@ -16,6 +16,7 @@ import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import puppeteer from 'puppeteer';
+import { unreachable } from '../src/assert.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const HTML_ROOT = join(ROOT, 'tests', 'html');
@@ -66,7 +67,7 @@ class XmlWriter {
 
   startElement(tag: string): void {
     if (this.stack.length > 0) {
-      const parent = this.stack[this.stack.length - 1]!;
+      const parent = this.stack[this.stack.length - 1] ?? unreachable();
       if (!parent.hasChildren) {
         this.out += '>';
         parent.hasChildren = true;
@@ -82,7 +83,7 @@ class XmlWriter {
   }
 
   writeText(text: string): void {
-    const top = this.stack[this.stack.length - 1]!;
+    const top = this.stack[this.stack.length - 1] ?? unreachable();
     if (!top.hasChildren) {
       this.out += '>';
       top.hasChildren = true;
@@ -91,7 +92,7 @@ class XmlWriter {
   }
 
   endElement(): void {
-    const el = this.stack.pop()!;
+    const el = this.stack.pop() ?? unreachable();
     if (el.hasChildren) {
       this.out += `\n${'  '.repeat(this.stack.length)}</${el.tag}>`;
     } else {
@@ -102,7 +103,7 @@ class XmlWriter {
   endDocument(): string {
     // xmlwriter parity: close any elements still open
     while (this.stack.length > 0) this.endElement();
-    return this.out + '\n';
+    return `${this.out}\n`;
   }
 }
 
@@ -122,19 +123,19 @@ function isObject(v: Json | undefined): v is JsonObject {
 
 function serializeDimension(obj: Json | undefined): string | null {
   if (!isObject(obj)) return null;
-  const unit = obj['unit'];
-  const value = typeof obj['value'] === 'number' ? obj['value'] : null;
+  const unit = obj.unit;
+  const value = typeof obj.value === 'number' ? obj.value : null;
   switch (unit) {
     case 'auto':
     case 'max-content':
     case 'min-content':
       return unit;
     case 'px':
-      return `${formatF64(value!)}px`;
+      return `${formatF64(value ?? unreachable())}px`;
     case 'percent':
-      return `${formatF64(value! * 100.0)}%`;
+      return `${formatF64((value ?? unreachable()) * 100.0)}%`;
     case 'fraction':
-      return `${formatF64(value!)}fr`;
+      return `${formatF64(value ?? unreachable())}fr`;
     default:
       throw new Error(`Unknown dimension unit: ${String(unit)}`);
   }
@@ -158,8 +159,8 @@ function getDimAttr(value: Json | undefined, elideIf: string | null): string | n
 
 function serializeGridAutoFlow(obj: Json | undefined): string | null {
   if (!isObject(obj)) return null;
-  const direction = obj['direction'] as string;
-  const algorithm = obj['algorithm'] as string;
+  const direction = obj.direction as string;
+  const algorithm = obj.algorithm as string;
   if (direction === 'row' && algorithm === 'sparse') return 'row';
   if (direction === 'column' && algorithm === 'sparse') return 'column';
   if (direction === 'row' && algorithm === 'dense') return 'row dense';
@@ -169,8 +170,8 @@ function serializeGridAutoFlow(obj: Json | undefined): string | null {
 
 function serializeGridPosition(obj: Json | undefined): string | null {
   if (!isObject(obj)) return null;
-  const kind = obj['kind'];
-  const value = typeof obj['value'] === 'number' ? obj['value'] : 0;
+  const kind = obj.kind;
+  const value = typeof obj.value === 'number' ? obj.value : 0;
   switch (kind) {
     case 'auto':
       return null;
@@ -183,11 +184,7 @@ function serializeGridPosition(obj: Json | undefined): string | null {
   }
 }
 
-function serializeValueList(
-  values: Json[],
-  sep: string,
-  quoter: (v: Json) => string | null,
-): string | null {
+function serializeValueList(values: Json[], sep: string, quoter: (v: Json) => string | null): string | null {
   const parts: string[] = [];
   for (const item of values) {
     const part = quoter(item);
@@ -204,11 +201,11 @@ function serializeArray(value: Json | undefined, sep: string, quoter: (v: Json) 
 
 function serializeTrackDefinition(def: Json): string | null {
   if (!isObject(def)) return null;
-  const kind = def['kind'];
+  const kind = def.kind;
   if (kind === 'scalar') return serializeDimension(def);
   if (kind === 'function') {
-    const name = def['name'] as string;
-    const args = def['arguments'];
+    const name = def.name as string;
+    const args = def.arguments;
     if (!Array.isArray(args)) return null;
     if (name === 'fit-content') {
       if (args.length !== 1) throw new Error('fit-content function with the wrong number of arguments');
@@ -225,12 +222,12 @@ function serializeTrackDefinition(def: Json): string | null {
       if (args.length < 2) throw new Error('repeat function with the wrong number of arguments');
       const first = args[0];
       if (!isObject(first)) return null;
-      const unit = first['unit'];
+      const unit = first.unit;
       let repetition: string;
       if (unit === 'auto-fill' || unit === 'auto-fit') {
         repetition = unit;
       } else if (unit === 'integer') {
-        repetition = Math.trunc(first['value'] as number).toString();
+        repetition = Math.trunc(first.value as number).toString();
       } else {
         throw new Error(`Unknown repeat repetition unit: ${String(unit)}`);
       }
@@ -249,56 +246,56 @@ function maybeWrite(w: XmlWriter, name: string, value: string | null): void {
 }
 
 function generateNode(w: XmlWriter, node: JsonObject): void {
-  const style = node['style'] as JsonObject;
+  const style = node.style as JsonObject;
 
-  const textContent = typeof node['textContent'] === 'string' ? node['textContent'] : null;
+  const textContent = typeof node.textContent === 'string' ? node.textContent : null;
   w.startElement(textContent !== null ? 'text' : 'div');
 
-  maybeWrite(w, 'display', getStrAttr(style['display'], null));
-  maybeWrite(w, 'box-sizing', getStrAttr(style['boxSizing'], 'border-box'));
-  maybeWrite(w, 'direction', getStrAttr(style['direction'], null));
-  maybeWrite(w, 'writing-mode', getStrAttr(style['writingMode'], null));
-  maybeWrite(w, 'position', getStrAttr(style['position'], 'relative'));
-  maybeWrite(w, 'float', getStrAttr(style['cssFloat'], null));
-  maybeWrite(w, 'clear', getStrAttr(style['clear'], null));
-  maybeWrite(w, 'flex-direction', getStrAttr(style['flexDirection'], 'row'));
-  maybeWrite(w, 'flex-wrap', getStrAttr(style['flexWrap'], 'nowrap'));
-  maybeWrite(w, 'overflow-x', getStrAttr(style['overflowX'], 'visible'));
-  maybeWrite(w, 'overflow-y', getStrAttr(style['overflowY'], 'visible'));
+  maybeWrite(w, 'display', getStrAttr(style.display, null));
+  maybeWrite(w, 'box-sizing', getStrAttr(style.boxSizing, 'border-box'));
+  maybeWrite(w, 'direction', getStrAttr(style.direction, null));
+  maybeWrite(w, 'writing-mode', getStrAttr(style.writingMode, null));
+  maybeWrite(w, 'position', getStrAttr(style.position, 'relative'));
+  maybeWrite(w, 'float', getStrAttr(style.cssFloat, null));
+  maybeWrite(w, 'clear', getStrAttr(style.clear, null));
+  maybeWrite(w, 'flex-direction', getStrAttr(style.flexDirection, 'row'));
+  maybeWrite(w, 'flex-wrap', getStrAttr(style.flexWrap, 'nowrap'));
+  maybeWrite(w, 'overflow-x', getStrAttr(style.overflowX, 'visible'));
+  maybeWrite(w, 'overflow-y', getStrAttr(style.overflowY, 'visible'));
 
-  const overflowX = getStrAttr(style['overflowX'], 'visible');
-  const overflowY = getStrAttr(style['overflowY'], 'visible');
+  const overflowX = getStrAttr(style.overflowX, 'visible');
+  const overflowY = getStrAttr(style.overflowY, 'visible');
   if (overflowX !== null || overflowY !== null) {
-    maybeWrite(w, 'scrollbar-width', getNumAttr(style['scrollbarWidth'], null));
+    maybeWrite(w, 'scrollbar-width', getNumAttr(style.scrollbarWidth, null));
   }
 
-  maybeWrite(w, 'text-align', getStrAttr(style['textAlign'], null));
-  maybeWrite(w, 'align-items', getStrAttr(style['alignItems'], null));
-  maybeWrite(w, 'align-self', getStrAttr(style['alignSelf'], null));
-  maybeWrite(w, 'justify-items', getStrAttr(style['justifyItems'], null));
-  maybeWrite(w, 'justify-self', getStrAttr(style['justifySelf'], null));
-  maybeWrite(w, 'align-content', getStrAttr(style['alignContent'], null));
-  maybeWrite(w, 'justify-content', getStrAttr(style['justifyContent'], null));
+  maybeWrite(w, 'text-align', getStrAttr(style.textAlign, null));
+  maybeWrite(w, 'align-items', getStrAttr(style.alignItems, null));
+  maybeWrite(w, 'align-self', getStrAttr(style.alignSelf, null));
+  maybeWrite(w, 'justify-items', getStrAttr(style.justifyItems, null));
+  maybeWrite(w, 'justify-self', getStrAttr(style.justifySelf, null));
+  maybeWrite(w, 'align-content', getStrAttr(style.alignContent, null));
+  maybeWrite(w, 'justify-content', getStrAttr(style.justifyContent, null));
 
-  maybeWrite(w, 'flex-grow', getNumAttr(style['flexGrow'], 0.0));
-  maybeWrite(w, 'flex-shrink', getNumAttr(style['flexShrink'], 1.0));
-  maybeWrite(w, 'flex-basis', getDimAttr(style['flexBasis'], 'auto'));
+  maybeWrite(w, 'flex-grow', getNumAttr(style.flexGrow, 0.0));
+  maybeWrite(w, 'flex-shrink', getNumAttr(style.flexShrink, 1.0));
+  maybeWrite(w, 'flex-basis', getDimAttr(style.flexBasis, 'auto'));
 
-  const size = (style['size'] ?? {}) as JsonObject;
-  const minSize = (style['minSize'] ?? {}) as JsonObject;
-  const maxSize = (style['maxSize'] ?? {}) as JsonObject;
-  maybeWrite(w, 'width', getDimAttr(size['width'], 'auto'));
-  maybeWrite(w, 'height', getDimAttr(size['height'], 'auto'));
-  maybeWrite(w, 'min-width', getDimAttr(minSize['width'], 'auto'));
-  maybeWrite(w, 'min-height', getDimAttr(minSize['height'], 'auto'));
-  maybeWrite(w, 'max-width', getDimAttr(maxSize['width'], 'auto'));
-  maybeWrite(w, 'max-height', getDimAttr(maxSize['height'], 'auto'));
+  const size = (style.size ?? {}) as JsonObject;
+  const minSize = (style.minSize ?? {}) as JsonObject;
+  const maxSize = (style.maxSize ?? {}) as JsonObject;
+  maybeWrite(w, 'width', getDimAttr(size.width, 'auto'));
+  maybeWrite(w, 'height', getDimAttr(size.height, 'auto'));
+  maybeWrite(w, 'min-width', getDimAttr(minSize.width, 'auto'));
+  maybeWrite(w, 'min-height', getDimAttr(minSize.height, 'auto'));
+  maybeWrite(w, 'max-width', getDimAttr(maxSize.width, 'auto'));
+  maybeWrite(w, 'max-height', getDimAttr(maxSize.height, 'auto'));
 
-  maybeWrite(w, 'aspect-ratio', getNumAttr(style['aspectRatio'], null));
+  maybeWrite(w, 'aspect-ratio', getNumAttr(style.aspectRatio, null));
 
-  const gap = (style['gap'] ?? {}) as JsonObject;
-  maybeWrite(w, 'row-gap', getDimAttr(gap['row'], null));
-  maybeWrite(w, 'column-gap', getDimAttr(gap['column'], null));
+  const gap = (style.gap ?? {}) as JsonObject;
+  maybeWrite(w, 'row-gap', getDimAttr(gap.row, null));
+  maybeWrite(w, 'column-gap', getDimAttr(gap.column, null));
 
   for (const [prop, attr] of [
     ['margin', 'margin'],
@@ -306,30 +303,30 @@ function generateNode(w: XmlWriter, node: JsonObject): void {
     ['border', 'border'],
   ] as const) {
     const rect = (style[prop] ?? {}) as JsonObject;
-    maybeWrite(w, `${attr}-top`, getDimAttr(rect['top'], null));
-    maybeWrite(w, `${attr}-left`, getDimAttr(rect['left'], null));
-    maybeWrite(w, `${attr}-bottom`, getDimAttr(rect['bottom'], null));
-    maybeWrite(w, `${attr}-right`, getDimAttr(rect['right'], null));
+    maybeWrite(w, `${attr}-top`, getDimAttr(rect.top, null));
+    maybeWrite(w, `${attr}-left`, getDimAttr(rect.left, null));
+    maybeWrite(w, `${attr}-bottom`, getDimAttr(rect.bottom, null));
+    maybeWrite(w, `${attr}-right`, getDimAttr(rect.right, null));
   }
 
-  const inset = (style['inset'] ?? {}) as JsonObject;
-  maybeWrite(w, 'top', getDimAttr(inset['top'], null));
-  maybeWrite(w, 'left', getDimAttr(inset['left'], null));
-  maybeWrite(w, 'bottom', getDimAttr(inset['bottom'], null));
-  maybeWrite(w, 'right', getDimAttr(inset['right'], null));
+  const inset = (style.inset ?? {}) as JsonObject;
+  maybeWrite(w, 'top', getDimAttr(inset.top, null));
+  maybeWrite(w, 'left', getDimAttr(inset.left, null));
+  maybeWrite(w, 'bottom', getDimAttr(inset.bottom, null));
+  maybeWrite(w, 'right', getDimAttr(inset.right, null));
 
-  maybeWrite(w, 'grid-auto-flow', serializeGridAutoFlow(style['gridAutoFlow']));
-  maybeWrite(w, 'grid-template-rows', serializeArray(style['gridTemplateRows'], ' ', serializeTrackDefinition));
-  maybeWrite(w, 'grid-template-columns', serializeArray(style['gridTemplateColumns'], ' ', serializeTrackDefinition));
-  maybeWrite(w, 'grid-auto-rows', serializeArray(style['gridAutoRows'], ' ', serializeTrackDefinition));
-  maybeWrite(w, 'grid-auto-columns', serializeArray(style['gridAutoColumns'], ' ', serializeTrackDefinition));
+  maybeWrite(w, 'grid-auto-flow', serializeGridAutoFlow(style.gridAutoFlow));
+  maybeWrite(w, 'grid-template-rows', serializeArray(style.gridTemplateRows, ' ', serializeTrackDefinition));
+  maybeWrite(w, 'grid-template-columns', serializeArray(style.gridTemplateColumns, ' ', serializeTrackDefinition));
+  maybeWrite(w, 'grid-auto-rows', serializeArray(style.gridAutoRows, ' ', serializeTrackDefinition));
+  maybeWrite(w, 'grid-auto-columns', serializeArray(style.gridAutoColumns, ' ', serializeTrackDefinition));
 
-  maybeWrite(w, 'grid-row-start', serializeGridPosition(style['gridRowStart']));
-  maybeWrite(w, 'grid-row-end', serializeGridPosition(style['gridRowEnd']));
-  maybeWrite(w, 'grid-column-start', serializeGridPosition(style['gridColumnStart']));
-  maybeWrite(w, 'grid-column-end', serializeGridPosition(style['gridColumnEnd']));
+  maybeWrite(w, 'grid-row-start', serializeGridPosition(style.gridRowStart));
+  maybeWrite(w, 'grid-row-end', serializeGridPosition(style.gridRowEnd));
+  maybeWrite(w, 'grid-column-start', serializeGridPosition(style.gridColumnStart));
+  maybeWrite(w, 'grid-column-end', serializeGridPosition(style.gridColumnEnd));
 
-  const children = node['children'];
+  const children = node.children;
   if (Array.isArray(children)) {
     for (const child of children) {
       generateNode(w, child as JsonObject);
@@ -348,18 +345,18 @@ function generateNode(w: XmlWriter, node: JsonObject): void {
 }
 
 function generateAssertions(w: XmlWriter, node: JsonObject, useRounding: boolean): void {
-  const layout = (useRounding ? node['smartRoundedLayout'] : node['unroundedLayout']) as JsonObject;
-  const naive = node['naivelyRoundedLayout'] as JsonObject;
+  const layout = (useRounding ? node.smartRoundedLayout : node.unroundedLayout) as JsonObject;
+  const naive = node.naivelyRoundedLayout as JsonObject;
 
   const readF32 = (key: string): number => Math.fround(layout[key] as number);
   const readNaiveF32 = (key: string): number => Math.fround(naive[key] as number);
   const scrollWidth = Math.max(readF32('scrollWidth') - readNaiveF32('clientWidth'), 0);
   const scrollHeight = Math.max(readF32('scrollHeight') - readNaiveF32('clientHeight'), 0);
 
-  const style = node['style'] as JsonObject;
+  const style = node.style as JsonObject;
   const isScrollable = (overflow: Json | undefined): boolean =>
     overflow === 'hidden' || overflow === 'scroll' || overflow === 'auto';
-  const isScrollContainer = isScrollable(style['overflowX']) || isScrollable(style['overflowY']);
+  const isScrollContainer = isScrollable(style.overflowX) || isScrollable(style.overflowY);
 
   w.startElement('node');
   w.writeAttribute('x', formatF32(readF32('x')));
@@ -372,7 +369,7 @@ function generateAssertions(w: XmlWriter, node: JsonObject, useRounding: boolean
     w.writeAttribute('scroll_height', formatF32(scrollHeight));
   }
 
-  const children = node['children'];
+  const children = node.children;
   if (Array.isArray(children)) {
     for (const child of children) {
       generateAssertions(w, child as JsonObject, useRounding);
@@ -383,17 +380,17 @@ function generateAssertions(w: XmlWriter, node: JsonObject, useRounding: boolean
 }
 
 export function generateTestXml(name: string, description: JsonObject): string {
-  const useRounding = description['useRounding'] as boolean;
+  const useRounding = description.useRounding as boolean;
 
   const w = new XmlWriter();
   w.startElement('test');
   w.writeAttribute('name', name);
   w.writeAttribute('use-rounding', String(useRounding));
 
-  const viewport = description['viewport'] as JsonObject;
+  const viewport = description.viewport as JsonObject;
   w.startElement('viewport');
-  w.writeAttribute('width', serializeDimension(viewport['width'])!);
-  w.writeAttribute('height', serializeDimension(viewport['height'])!);
+  w.writeAttribute('width', serializeDimension(viewport.width) ?? unreachable());
+  w.writeAttribute('height', serializeDimension(viewport.height) ?? unreachable());
   w.endElement();
 
   w.startElement('input');
@@ -421,7 +418,7 @@ async function main(): Promise<void> {
 
   const browser = await puppeteer.launch({
     headless: true,
-    args: ['--force-color-profile=srgb', ...(process.env['GENTEST_NO_SANDBOX'] ? ['--no-sandbox'] : [])],
+    args: ['--force-color-profile=srgb', ...(process.env.GENTEST_NO_SANDBOX ? ['--no-sandbox'] : [])],
   });
   const version = await browser.version();
   console.log(`chrome: ${version}`);
