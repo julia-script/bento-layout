@@ -5,7 +5,7 @@ import { maybeApplyAspectRatio, rectAdd, sumAxes } from '../../geometry.js';
 import type { Opt } from '../../math.js';
 import { mClamp, vMax } from '../../math.js';
 import type { AlignContent, AlignContentKeyword, AlignItems, Direction, Position } from '../../style.js';
-import { maybeResolve, maybeResolveSize, resolveOrZero } from '../../style.js';
+import { maybeResolve, maybeResolveSize } from '../../style.js';
 import type { Layout, LayoutNode } from '../../tree.js';
 import { internals } from '../../tree.js';
 import {
@@ -19,6 +19,7 @@ import { measureChildSize, measureChildSizeBoth, performChildLayout } from '../d
 import type { GridTrack } from './types.js';
 import {
   maybeApplyAspectRatioUsed,
+  resolveGridInsets,
   transferMaxSizeThroughAspectRatio,
   transferMinSizeThroughAspectRatio,
 } from './types.js';
@@ -122,18 +123,8 @@ export function alignAndPositionItem(
     start: maybeResolve(style.inset.top, gridAreaSize.height),
     end: maybeResolve(style.inset.bottom, gridAreaSize.height),
   };
-  const padding = {
-    left: resolveOrZero(style.padding.left, gridAreaSize.width),
-    right: resolveOrZero(style.padding.right, gridAreaSize.width),
-    top: resolveOrZero(style.padding.top, gridAreaSize.width),
-    bottom: resolveOrZero(style.padding.bottom, gridAreaSize.width),
-  };
-  const border = {
-    left: resolveOrZero(style.border.left, gridAreaSize.width),
-    right: resolveOrZero(style.border.right, gridAreaSize.width),
-    top: resolveOrZero(style.border.top, gridAreaSize.width),
-    bottom: resolveOrZero(style.border.bottom, gridAreaSize.width),
-  };
+  const padding = resolveGridInsets(style.padding, gridAreaSize.width);
+  const border = resolveGridInsets(style.border, gridAreaSize.width);
   const paddingBorderSize = sumAxes(rectAdd(padding, border));
   const boxSizingAdjustment = style.boxSizing === 'content-box' ? paddingBorderSize : { width: 0, height: 0 };
 

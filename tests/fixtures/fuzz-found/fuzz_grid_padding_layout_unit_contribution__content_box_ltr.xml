@@ -1,0 +1,13 @@
+<test name="fuzz_grid_padding_layout_unit_contribution__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" box-sizing="content-box" direction="ltr" position="absolute" width="97px" height="120px" grid-template-rows="auto min-content 2fr">
+      <div box-sizing="content-box" direction="ltr" padding-top="40%" padding-left="7px" padding-bottom="10%" padding-right="10%"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="97" height="120">
+      <node x="0" y="0" width="97" height="48"/>
+    </node>
+  </expectations>
+</test>

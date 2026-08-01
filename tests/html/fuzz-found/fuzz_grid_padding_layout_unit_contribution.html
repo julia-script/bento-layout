@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, minimized from finding 9a50d63f
+  date: 2026-08-01
+  chrome: Chrome/151.0.7922.47
+  Blink converts each resolved padding edge to its 1/64px LayoutUnit before
+  forming a grid item's intrinsic contribution. At 97px, 40% becomes
+  38.796875px and 10% becomes 9.6875px, so the 48.484375px auto row paints as
+  48px. Keeping an exact 48.5px sum made the engine paint the item as 49px.
+  Regenerate with: pnpm gentest fuzz_grid_padding_layout_unit_contribution
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: grid padding contributions use Blink LayoutUnit precision
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; width: 97px; height: 120px; grid-template-rows: auto min-content 2fr;">
+  <div style="padding: 40% 10% 10% 7px;"></div>
+</div>
+
+</body>
+</html>

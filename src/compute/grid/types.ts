@@ -34,11 +34,33 @@ import {
   minIsIntrinsic,
   overflowAutoMinSize,
   resolveOrZero,
+  resolveRectOrZero,
   trackDefiniteValue,
   trackUsesPercentage,
 } from '../../style.js';
 import type { LayoutNode } from '../../tree.js';
 import { measureChildSize } from '../dispatch.js';
+
+const BLINK_LAYOUT_UNIT_DENOMINATOR = 64;
+
+/**
+ * Blink stores resolved layout lengths in 1/64px fixed point and truncates
+ * float conversions toward zero. Grid intrinsic contributions observe that
+ * conversion per edge, before padding/border sums are formed.
+ */
+function resolveGridInsetOrZero(value: LengthPercentage, context: Opt): number {
+  const resolved = resolveOrZero(value, context);
+  return Math.trunc(resolved * BLINK_LAYOUT_UNIT_DENOMINATOR) / BLINK_LAYOUT_UNIT_DENOMINATOR;
+}
+
+export function resolveGridInsets(insets: Rect<LengthPercentage>, context: Opt): Rect<number> {
+  return {
+    left: resolveGridInsetOrZero(insets.left, context),
+    right: resolveGridInsetOrZero(insets.right, context),
+    top: resolveGridInsetOrZero(insets.top, context),
+    bottom: resolveGridInsetOrZero(insets.bottom, context),
+  };
+}
 
 // --- Axis helpers (AbstractAxis Inline≡horizontal, Block≡vertical)
 
@@ -672,18 +694,8 @@ function itemKnownDimensions(item: GridItem, gridAreaSize: Size<Opt>): Size<Opt>
   const margins = itemMarginsAxisSumsWithBaselineShims(item, gridAreaSize.width);
 
   const aspectRatio = item.aspectRatio;
-  const padding = {
-    left: resolveOrZero(item.padding.left, gridAreaSize.width),
-    right: resolveOrZero(item.padding.right, gridAreaSize.width),
-    top: resolveOrZero(item.padding.top, gridAreaSize.width),
-    bottom: resolveOrZero(item.padding.bottom, gridAreaSize.width),
-  };
-  const border = {
-    left: resolveOrZero(item.border.left, gridAreaSize.width),
-    right: resolveOrZero(item.border.right, gridAreaSize.width),
-    top: resolveOrZero(item.border.top, gridAreaSize.width),
-    bottom: resolveOrZero(item.border.bottom, gridAreaSize.width),
-  };
+  const padding = resolveGridInsets(item.padding, gridAreaSize.width);
+  const border = resolveGridInsets(item.border, gridAreaSize.width);
   const paddingBorderSize = sumAxes(rectAdd(padding, border));
   const boxSizingAdjustment = item.boxSizing === 'content-box' ? paddingBorderSize : { width: 0, height: 0 };
   const resolvedStyleSize = maybeResolveSize(item.size, gridAreaSize);
@@ -749,6 +761,16 @@ function itemKnownDimensions(item: GridItem, gridAreaSize: Size<Opt>): Size<Opt>
     width: mClamp(size.width, minSize.width, maxSize.width),
     height: mClamp(size.height, minSize.height, maxSize.height),
   };
+}
+
+function autoInsetLayoutUnitDelta(item: GridItem, gridAreaSize: Size<Opt>, axis: AbsoluteAxis): number {
+  const exact = sumAxes(
+    rectAdd(resolveRectOrZero(item.padding, gridAreaSize.width), resolveRectOrZero(item.border, gridAreaSize.width)),
+  );
+  const quantized = sumAxes(
+    rectAdd(resolveGridInsets(item.padding, gridAreaSize.width), resolveGridInsets(item.border, gridAreaSize.width)),
+  );
+  return absGet(quantized, axis) - absGet(exact, axis);
 }
 
 /** Grid area size estimate for child sizing (css-grid-1 §12) */
@@ -820,7 +842,7 @@ export function itemMinContentContribution(
   availableSpace: Size<Opt>,
 ): number {
   const knownDimensions = itemKnownDimensions(item, gridAreaSize);
-  return measureChildSize(
+  const measured = measureChildSize(
     item.node,
     knownDimensions,
     gridAreaSize,
@@ -828,6 +850,9 @@ export function itemMinContentContribution(
     'inherent-size',
     axis,
   );
+  return absGet(knownDimensions, axis) === null
+    ? measured + autoInsetLayoutUnitDelta(item, gridAreaSize, axis)
+    : measured;
 }
 
 export function itemMinContentContributionCached(
@@ -850,7 +875,7 @@ export function itemMaxContentContribution(
   availableSpace: Size<Opt>,
 ): number {
   const knownDimensions = itemKnownDimensions(item, gridAreaSize);
-  return measureChildSize(
+  const measured = measureChildSize(
     item.node,
     knownDimensions,
     gridAreaSize,
@@ -858,6 +883,9 @@ export function itemMaxContentContribution(
     'inherent-size',
     axis,
   );
+  return absGet(knownDimensions, axis) === null
+    ? measured + autoInsetLayoutUnitDelta(item, gridAreaSize, axis)
+    : measured;
 }
 
 export function itemMaxContentContributionCached(
@@ -884,18 +912,8 @@ export function itemMinimumContribution(
   gridAreaSize: Size<Opt>,
   innerNodeSize: Size<Opt>,
 ): number {
-  const padding = {
-    left: resolveOrZero(item.padding.left, gridAreaSize.width),
-    right: resolveOrZero(item.padding.right, gridAreaSize.width),
-    top: resolveOrZero(item.padding.top, gridAreaSize.width),
-    bottom: resolveOrZero(item.padding.bottom, gridAreaSize.width),
-  };
-  const border = {
-    left: resolveOrZero(item.border.left, gridAreaSize.width),
-    right: resolveOrZero(item.border.right, gridAreaSize.width),
-    top: resolveOrZero(item.border.top, gridAreaSize.width),
-    bottom: resolveOrZero(item.border.bottom, gridAreaSize.width),
-  };
+  const padding = resolveGridInsets(item.padding, gridAreaSize.width);
+  const border = resolveGridInsets(item.border, gridAreaSize.width);
   const paddingBorderSize = sumAxes(rectAdd(padding, border));
   const boxSizingAdjustment = item.boxSizing === 'content-box' ? paddingBorderSize : { width: 0, height: 0 };
 
