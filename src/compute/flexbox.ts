@@ -2000,7 +2000,11 @@ function resolveCrossAxisAutoMargins(flexLines: FlexLine[], constants: AlgoConst
     // and the line's end. Computed per line because it depends on every
     // participating item, not just the one being placed.
     const baselineGroupShift = ((): number => {
-      if (!constants.isWrapReverse || !constants.isRow) return 0;
+      const columnCrossAxisReversed = constants.isColumn && constants.layoutDirection === 'rtl';
+      const groupAlignsToLineEnd = constants.isRow
+        ? constants.isWrapReverse
+        : constants.isWrapReverse !== columnCrossAxisReversed;
+      if (!groupAlignsToLineEnd) return 0;
       let groupEnd = 0;
       for (const child of line.items) {
         if (child.alignSelf.keyword !== 'baseline' || child.alignSelf.safe) continue;
@@ -2092,21 +2096,12 @@ function alignFlexItemsAlongCrossAxis(
     case 'center':
       return freeSpace / 2;
     case 'baseline':
-      if (constants.isRow) {
-        // `wrap-reverse` swaps cross-start and cross-end (css-flexbox-1 §5.2),
-        // so the baseline-aligned group sits against the line's end edge. The
-        // group translates as a unit — items stay aligned to each other's
-        // baselines — so every member takes the same per-line shift and keeps
-        // its offset within the group. Chrome, a 55px line holding text beside
-        // a 20px box: y=12/0 under `wrap`, y=45/33 under `wrap-reverse`, both
-        // moved by the same 33. Mirroring each offset individually instead
-        // would swap them to 33/45 and invert the alignment.
-        return maxBaseline - child.baseline + baselineGroupShift;
-      } else {
-        // Baseline alignment is treated as flex-start alignment in columns.
-        const baselineColumnShouldReverse = crossAxisShouldReverse && !constants.isWrap;
-        return constants.isWrapReverse !== baselineColumnShouldReverse ? freeSpace : 0;
-      }
+      // Baseline members move as one group. For rows, `wrap-reverse` hangs the
+      // group from the line's end (§5.2); for columns Chrome also reverses that
+      // group edge under RTL. A 50px RTL column line holding 20px and 10px
+      // synthesized-baseline items places both at x=30, not at their separate
+      // flex-start offsets of 30 and 40.
+      return maxBaseline - child.baseline + baselineGroupShift;
     case 'stretch':
       return constants.isWrapReverse !== crossAxisShouldReverse ? freeSpace : 0;
   }
