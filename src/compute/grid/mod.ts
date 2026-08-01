@@ -435,7 +435,15 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
       (track) => track.baseSize,
       hasBaselineAlignedItem,
     );
+  }
 
+  {
+    // Whether the rows need re-sizing is independent of what happened in the
+    // inline axis: a percentage row could not resolve on the first pass because
+    // the container height was still unknown, and that stays true whether or
+    // not the columns changed. Nesting this in the column re-run left such a
+    // grid with its first-pass row split — equal shares of the final height
+    // rather than the percentage's actual share.
     let rerunRowSizing: boolean;
     const parentHeightIndefinite = typeof availableSpace.height !== 'number';
     rerunRowSizing = parentHeightIndefinite && hasPercentageRow;
