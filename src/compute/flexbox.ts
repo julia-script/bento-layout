@@ -634,7 +634,20 @@ function determineFlexBaseSize(
     // from the browser when an axis has a definite size.
     const rawStyleSize = maybeResolveSize(childStyle.size, constants.nodeInnerSize);
     const transferredMinSize = maybeApplyAspectRatio(child.minSize, child.aspectRatio);
-    const transferredMaxSize = maybeApplyAspectRatio(child.maxSize, child.aspectRatio);
+    // A max-size below the box's own padding+border cannot be honoured — a
+    // border box is never smaller than its insets — so the axis settles at the
+    // floor, and it is that *used* size the ratio transfers, not the
+    // unsatisfiable maximum. Chrome, a row item with `aspect-ratio: 1.5;
+    // padding: 320px 0 1px` (a 321 height floor): `max-height: 321` and above
+    // give 482x321 (=321x1.5), and so does `max-height: 40` — while
+    // transferring the raw 40 gave 60x321. Above the floor the max is
+    // satisfiable and clamps normally.
+    const childPb = rectAdd(child.padding, child.border);
+    const maxSizeForTransfer: Size<Opt> = {
+      width: mMax(child.maxSize.width, horizontalSum(childPb)),
+      height: mMax(child.maxSize.height, verticalSum(childPb)),
+    };
+    const transferredMaxSize = maybeApplyAspectRatio(maxSizeForTransfer, child.aspectRatio);
     if (rawStyleSize.width !== null) {
       transferredMinSize.width = child.minSize.width;
       transferredMaxSize.width = child.maxSize.width;
