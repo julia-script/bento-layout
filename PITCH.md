@@ -139,10 +139,11 @@ faithfully reproducing them.
 - **Rendering, styling cascade, or a DOM** — the engine computes geometry from
   resolved style data; owning paint or selector matching would make it a
   framework rather than a small dependency.
-- **CSS string parsing in the library** — styles are structured data
-  (`{ percent: 0.5 }`, `{ fr: 1 }`), not `'50%'` strings; keeping the parser
-  out keeps the engine's input unambiguous and the docs playground owns the
-  CSS-ish syntax instead.
+- **CSS string parsing in the library** — styles are structured data (`16`,
+  `{ fr: 1 }`), not `'10px 20px'` strings; percentages are the one CSS
+  spelling accepted (`'50%'`), since a fraction is nobody's idea of input.
+  Keeping the parser out keeps the engine's input unambiguous and the docs
+  playground owns the CSS-ish syntax instead.
 - **Beating native performance** — parity with native code is not the target;
   chasing it would trade away the plain-TypeScript simplicity that is the
   point.

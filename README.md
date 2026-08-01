@@ -60,7 +60,7 @@ small, boring dependency.
   browsers round — cumulatively, so adjacent boxes never gap or overlap — or
   stay unrounded, your choice.
 
-Styles are structured data (`{ percent: 0.5 }`, `{ fr: 1 }`), not CSS
+Styles are structured data (`16`, `'50%'`, `{ fr: 1 }`), not CSS
 strings, in flat camelCase properties with the same spelling as
 `element.style`. Uniform shorthands (`padding: 16`, `gap: { column: 8 }`)
 expand in cascade order. Styles change through `setStyle` (a per-property

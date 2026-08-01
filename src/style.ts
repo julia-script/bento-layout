@@ -16,9 +16,11 @@ import type { Opt } from './math.js';
  * of that). Lengths are plain data rather than parsed strings: there is no CSS
  * parser here, so you write `10`, not `'10px'`.
  *
- * The percentage is a **fraction, not a 0–100 number**: `{ percent: 0.5 }` is
- * 50%. This is the single most common mistake when writing styles by hand — a
- * literal `{ percent: 50 }` is read as 5000%.
+ * Write a percentage as `'50%'`. The object form `{ percent: 0.5 }` is how the
+ * engine stores one — a 0–1 fraction, which is what the resolution arithmetic
+ * multiplies by — and it is what {@link LayoutNode.style} reads back. It is
+ * legal input too, so a resolved style round-trips, but there is no reason to
+ * write it by hand.
  *
  * Percentages resolve against the containing block, and against its *inline*
  * size (width) on all four sides for `padding`, `margin`, and `border` — so a
@@ -27,7 +29,7 @@ import type { Opt } from './math.js';
  * @example
  * ```typescript
  * const node = LayoutNode.make({
- *   width: { percent: 0.5 }, // half the parent
+ *   width: '50%', // half the parent; reads back as { percent: 0.5 }
  *   height: 100,
  *   paddingLeft: 8,
  *   paddingRight: 8,
@@ -35,6 +37,30 @@ import type { Opt } from './math.js';
  * ```
  */
 export type LengthPercentage = number | { percent: number };
+
+/**
+ * A percentage written the CSS way, accepted anywhere {@link StyleInput} takes
+ * a length.
+ *
+ * @remarks
+ * Percentages are the one place the engine's data form and the CSS spelling
+ * disagree by a factor of 100, so input accepts both and normalizes: `'50%'`
+ * becomes `{ percent: 0.5 }` on the way in, which is what
+ * {@link LayoutNode.style} reads back. The engine itself never sees the string.
+ *
+ * This is a spelling, not a parser: only a single number followed by `%`. There
+ * is still no `'10px'`, no `'0 auto'`, no `calc()`.
+ */
+export type PercentString = `${number}%`;
+
+/** {@link LengthPercentage} as written in input, where `'50%'` is also legal. */
+export type LengthPercentageInput = LengthPercentage | PercentString;
+
+/** {@link LengthPercentageAuto} as written in input, where `'50%'` is also legal. */
+export type LengthPercentageAutoInput = LengthPercentageAuto | PercentString;
+
+/** {@link Dimension} as written in input, where `'50%'` is also legal. */
+export type DimensionInput = LengthPercentageAutoInput;
 
 /**
  * A {@link LengthPercentage} that may also be `'auto'`.
@@ -227,11 +253,15 @@ export type JustifyContent = AlignContent;
  * {@link LayoutNode.style} hands back.
  *
  * Properties mirror CSS names and meanings, with two systematic differences:
- * values are structured data rather than strings (`10` not `'10px'`,
- * `{ percent: 0.5 }` not `'50%'`), and this resolved form holds only longhands,
- * grouped into `Rect`/`Size`/`Point` objects. {@link StyleInput} additionally
- * accepts uniform shorthands such as `padding: 16`, which expand into these
- * fields on the way in.
+ * values are structured data rather than strings (`10`, not `'10px'`), and this
+ * resolved form holds only longhands, grouped into `Rect`/`Size`/`Point`
+ * objects. {@link StyleInput} additionally accepts uniform shorthands such as
+ * `padding: 16`, which expand into these fields on the way in.
+ *
+ * Percentages are the one value that differs between the two forms: input takes
+ * `'50%'`, and this resolved form stores the fraction `{ percent: 0.5 }` the
+ * layout arithmetic works in. Both are legal input, so a resolved style can be
+ * passed straight back to {@link LayoutNode.setStyle}.
  *
  * Which properties apply depends on `display` and on whether a node is a
  * container or an item. `flexGrow` on a grid item, or `gridRow` on a flex item,
@@ -510,7 +540,6 @@ type ScalarStyleKey =
   | 'textAlign'
   | 'flexDirection'
   | 'flexWrap'
-  | 'flexBasis'
   | 'flexGrow'
   | 'flexShrink'
   | 'gridAutoFlow'
@@ -519,11 +548,7 @@ type ScalarStyleKey =
   | 'alignContent'
   | 'justifyContent'
   | 'justifyItems'
-  | 'justifySelf'
-  | 'gridTemplateRows'
-  | 'gridTemplateColumns'
-  | 'gridAutoRows'
-  | 'gridAutoColumns';
+  | 'justifySelf';
 
 /**
  * A style written as flat CSS properties — the form you pass to
@@ -535,10 +560,10 @@ type ScalarStyleKey =
  * `columnGap`. Every property is optional, and anything omitted keeps its
  * default.
  *
- * Values stay structured data rather than CSS strings: `10` for pixels,
- * `{ percent: 0.5 }` for 50%, `'auto'` for the keyword. There is no CSS parser
- * here, so the multi-value shorthand strings do not exist — no `margin:
- * '0 auto'`, no `padding: '10px 20px'`.
+ * Values stay structured data rather than CSS strings: `10` for pixels, `'50%'`
+ * for a percentage, `'auto'` for the keyword. There is no CSS parser here, so
+ * the multi-value shorthand strings do not exist — no `margin: '0 auto'`, no
+ * `padding: '10px 20px'`.
  *
  * The uniform shorthands do: `padding`, `margin`, `border`, `inset`, `gap`, and
  * `overflow` each set their longhands from one value, or from an object naming
@@ -566,64 +591,76 @@ type ScalarStyleKey =
  *   {@link LayoutNode.style}.
  */
 export interface StyleInput extends Partial<Pick<Style, ScalarStyleKey>> {
+  /** CSS `flex-basis`. @defaultValue `'auto'` */
+  flexBasis?: DimensionInput;
+
   /** CSS `width`. @defaultValue `'auto'` */
-  width?: Dimension;
+  width?: DimensionInput;
   /** CSS `height`. @defaultValue `'auto'` */
-  height?: Dimension;
+  height?: DimensionInput;
   /** CSS `min-width`. @defaultValue `'auto'` */
-  minWidth?: Dimension;
+  minWidth?: DimensionInput;
   /** CSS `min-height`. @defaultValue `'auto'` */
-  minHeight?: Dimension;
+  minHeight?: DimensionInput;
   /** CSS `max-width`. @defaultValue `'auto'` */
-  maxWidth?: Dimension;
+  maxWidth?: DimensionInput;
   /** CSS `max-height`. @defaultValue `'auto'` */
-  maxHeight?: Dimension;
+  maxHeight?: DimensionInput;
 
   /** CSS `margin-left`. @defaultValue `0` */
-  marginLeft?: LengthPercentageAuto;
+  marginLeft?: LengthPercentageAutoInput;
   /** CSS `margin-right`. @defaultValue `0` */
-  marginRight?: LengthPercentageAuto;
+  marginRight?: LengthPercentageAutoInput;
   /** CSS `margin-top`. @defaultValue `0` */
-  marginTop?: LengthPercentageAuto;
+  marginTop?: LengthPercentageAutoInput;
   /** CSS `margin-bottom`. @defaultValue `0` */
-  marginBottom?: LengthPercentageAuto;
+  marginBottom?: LengthPercentageAutoInput;
 
   /** CSS `padding-left`. @defaultValue `0` */
-  paddingLeft?: LengthPercentage;
+  paddingLeft?: LengthPercentageInput;
   /** CSS `padding-right`. @defaultValue `0` */
-  paddingRight?: LengthPercentage;
+  paddingRight?: LengthPercentageInput;
   /** CSS `padding-top`. @defaultValue `0` */
-  paddingTop?: LengthPercentage;
+  paddingTop?: LengthPercentageInput;
   /** CSS `padding-bottom`. @defaultValue `0` */
-  paddingBottom?: LengthPercentage;
+  paddingBottom?: LengthPercentageInput;
 
   /** CSS `border-left-width`. @defaultValue `0` */
-  borderLeft?: LengthPercentage;
+  borderLeft?: LengthPercentageInput;
   /** CSS `border-right-width`. @defaultValue `0` */
-  borderRight?: LengthPercentage;
+  borderRight?: LengthPercentageInput;
   /** CSS `border-top-width`. @defaultValue `0` */
-  borderTop?: LengthPercentage;
+  borderTop?: LengthPercentageInput;
   /** CSS `border-bottom-width`. @defaultValue `0` */
-  borderBottom?: LengthPercentage;
+  borderBottom?: LengthPercentageInput;
 
   /** CSS `left`, used when `position` is `'absolute'`. @defaultValue `'auto'` */
-  left?: LengthPercentageAuto;
+  left?: LengthPercentageAutoInput;
   /** CSS `right`. @defaultValue `'auto'` */
-  right?: LengthPercentageAuto;
+  right?: LengthPercentageAutoInput;
   /** CSS `top`. @defaultValue `'auto'` */
-  top?: LengthPercentageAuto;
+  top?: LengthPercentageAutoInput;
   /** CSS `bottom`. @defaultValue `'auto'` */
-  bottom?: LengthPercentageAuto;
+  bottom?: LengthPercentageAutoInput;
 
   /** CSS `column-gap` — the gutter between columns. @defaultValue `0` */
-  columnGap?: LengthPercentage;
+  columnGap?: LengthPercentageInput;
   /** CSS `row-gap` — the gutter between rows. @defaultValue `0` */
-  rowGap?: LengthPercentage;
+  rowGap?: LengthPercentageInput;
 
   /** CSS `overflow-x`. @defaultValue `'visible'` */
   overflowX?: Overflow;
   /** CSS `overflow-y`. @defaultValue `'visible'` */
   overflowY?: Overflow;
+
+  /** CSS `grid-template-rows`. @defaultValue `[]` */
+  gridTemplateRows?: GridTemplateComponentInput[];
+  /** CSS `grid-template-columns`. @defaultValue `[]` */
+  gridTemplateColumns?: GridTemplateComponentInput[];
+  /** CSS `grid-auto-rows` — sizing for implicit rows. @defaultValue `[]` */
+  gridAutoRows?: TrackSizingFunctionInput[];
+  /** CSS `grid-auto-columns` — sizing for implicit columns. @defaultValue `[]` */
+  gridAutoColumns?: TrackSizingFunctionInput[];
 
   /** CSS `grid-row-start`. @defaultValue `'auto'` */
   gridRowStart?: GridPlacement;
@@ -654,22 +691,22 @@ export interface StyleInput extends Partial<Pick<Style, ScalarStyleKey>> {
    * LayoutNode.make({ padding: 16, paddingTop: 0 });   // 16, except the top
    * ```
    */
-  padding?: LengthPercentage | EdgesInput<LengthPercentage>;
+  padding?: LengthPercentageInput | EdgesInput<LengthPercentageInput>;
 
   /**
    * All four margins at once, or the named sides. `'auto'` is a legal value and
    * absorbs free space, so `{ margin: 'auto' }` centres a box on both axes.
    */
-  margin?: LengthPercentageAuto | EdgesInput<LengthPercentageAuto>;
+  margin?: LengthPercentageAutoInput | EdgesInput<LengthPercentageAutoInput>;
 
   /** All four border widths at once, or the named sides. */
-  border?: LengthPercentage | EdgesInput<LengthPercentage>;
+  border?: LengthPercentageInput | EdgesInput<LengthPercentageInput>;
 
   /**
    * All four box offsets at once, or the named sides — CSS `inset`. Applies
    * when `position` is `'absolute'`.
    */
-  inset?: LengthPercentageAuto | EdgesInput<LengthPercentageAuto>;
+  inset?: LengthPercentageAutoInput | EdgesInput<LengthPercentageAutoInput>;
 
   /**
    * Both gutters at once, or one axis.
@@ -680,7 +717,7 @@ export interface StyleInput extends Partial<Pick<Style, ScalarStyleKey>> {
    * LayoutNode.make({ gap: { column: 8 } });      // columns only
    * ```
    */
-  gap?: LengthPercentage | GapInput;
+  gap?: LengthPercentageInput | GapInput;
 
   /** Both overflow axes at once, or one of them. */
   overflow?: Overflow | OverflowInput;
@@ -769,12 +806,12 @@ export interface EdgesInput<T> {
  * exists so a resolved style can be passed straight back in as input.
  */
 export interface GapInput {
-  row?: LengthPercentage;
-  column?: LengthPercentage;
+  row?: LengthPercentageInput;
+  column?: LengthPercentageInput;
   /** Column gutter, matching {@link Style.gap}. */
-  width?: LengthPercentage;
+  width?: LengthPercentageInput;
   /** Row gutter, matching {@link Style.gap}. */
-  height?: LengthPercentage;
+  height?: LengthPercentageInput;
 }
 
 /** Per-axis object form of `overflow`, matching {@link Style.overflow}. */
@@ -812,6 +849,64 @@ function expandShorthand(key: string, value: unknown): Array<[string, unknown]> 
   }
   const longhands = SHORTHAND_TO_LONGHANDS[key as keyof typeof SHORTHAND_TO_LONGHANDS];
   return longhands.map((longhand) => [longhand as string, value]);
+}
+
+/**
+ * `'50%'` → `{ percent: 0.5 }`. Any other value passes through untouched.
+ *
+ * @remarks
+ * The engine stores percentages as 0..1 fractions because that is the form the
+ * resolution arithmetic wants (`context * percent`), but nobody writing a style
+ * thinks in `{ percent: 0.5 }`. Divide by 100 once, here, and the factor-of-100
+ * trap stops existing for callers — `'50%'` in, `{ percent: 0.5 }` back out.
+ *
+ * Only a trailing `%` triggers this, so every keyword string (`'auto'`,
+ * `'center'`, `'max-content'`) is left alone and no CSS parsing is implied.
+ *
+ * A malformed percentage throws rather than resolving to `NaN`: a `NaN` length
+ * poisons every sum it touches and surfaces as a silently empty layout far from
+ * the style that caused it.
+ */
+function coercePercent(value: unknown): unknown {
+  if (typeof value !== 'string' || !value.endsWith('%')) return value;
+  const body = value.slice(0, -1).trim();
+  const n = body === '' ? Number.NaN : Number(body);
+  if (!Number.isFinite(n)) {
+    throw new InvalidStyleError(`"${value}" is not a percentage — expected a number followed by "%", as in "50%"`);
+  }
+  return { percent: n / 100 };
+}
+
+/** The four style keys holding grid tracks, where a percentage sits nested. */
+const TRACK_LIST_KEYS = new Set(['gridTemplateRows', 'gridTemplateColumns', 'gridAutoRows', 'gridAutoColumns']);
+
+/**
+ * {@link coercePercent} applied at every depth a length can appear inside a
+ * grid track: the track's own `min`/`max`, a `fitContent()` limit, and the
+ * tracks nested in a `repeat()`.
+ *
+ * @remarks
+ * Recursion is what keeps this honest — the three shapes are distinguished by
+ * their keys, not their nesting depth, so one function handles the whole tree
+ * and `'50%'` means the same thing wherever a track can hold a length. Values
+ * with nothing to convert (`{ fr: 1 }`, `'min-content'`) fall through.
+ *
+ * Objects are rebuilt rather than mutated: input a caller still holds a
+ * reference to must not change under them, and the style they get back must
+ * not be reachable from what they passed in.
+ */
+function coerceTrack(value: unknown): unknown {
+  if (typeof value !== 'object' || value === null) return coercePercent(value);
+  if ('repeat' in value) {
+    const tracks = (value as Record<string, unknown>).tracks;
+    return { ...value, tracks: Array.isArray(tracks) ? tracks.map(coerceTrack) : tracks };
+  }
+  if ('fitContent' in value) return { fitContent: coercePercent((value as { fitContent: unknown }).fitContent) };
+  if ('min' in value || 'max' in value) {
+    const { min, max } = value as { min: unknown; max: unknown };
+    return { min: coerceTrack(min), max: coerceTrack(max) };
+  }
+  return value; // `{ percent: n }` or `{ fr: n }` — already in engine form.
 }
 
 /**
@@ -864,12 +959,20 @@ export function mergeStyle(base: Style, input: StyleInput): Style {
     }
   }
 
-  for (const [flatKey, value] of entries) {
+  for (const [flatKey, raw] of entries) {
+    // `'50%'` is input spelling only; normalize before anything stores it, so
+    // the engine and `node.style` only ever see the 0..1 fraction.
+    const value = coercePercent(raw);
     const mapping = (FLAT_TO_NESTED as Record<string, readonly [keyof Style, string] | undefined>)[flatKey];
     if (mapping === undefined) {
       // Scalar (or already-structured) property: copy arrays/objects so the
-      // caller keeps no handle on what the node now owns.
-      (style as unknown as Record<string, unknown>)[flatKey] = Array.isArray(value) ? [...value] : value;
+      // caller keeps no handle on what the node now owns. A track list is
+      // copied by the same walk that converts the percentages inside it.
+      (style as unknown as Record<string, unknown>)[flatKey] = Array.isArray(value)
+        ? TRACK_LIST_KEYS.has(flatKey)
+          ? value.map(coerceTrack)
+          : [...value]
+        : value;
       continue;
     }
     const [nestedKey, subKey] = mapping;
@@ -982,11 +1085,16 @@ export const ALIGN_CONTENT_STRETCH: AlignContent = { keyword: 'stretch', safe: f
  * Thrown when a style value cannot be laid out.
  *
  * @remarks
- * Raised from {@link computeLayout}, not from the constructor or
+ * Usually raised from {@link computeLayout} rather than from the constructor or
  * {@link LayoutNode.setStyle} — styles are stored as given and only validated
  * when layout actually reaches them, so the stack points at the layout call
  * rather than at the node that carries the bad value. The message names the
  * offending value.
+ *
+ * The one exception is a malformed percentage string (`'fifty%'`), which throws
+ * where the style is set. That value has to be converted on the way in, so
+ * there is nothing to store and defer, and failing at the offending
+ * `LayoutNode.make` beats a `NaN` that surfaces as an empty layout later.
  *
  * This is deliberately narrow. Only values that make layout impossible throw; a
  * merely nonsensical one does not. Grid line `0` is the instructive case — CSS
@@ -1048,6 +1156,15 @@ export type MaxTrackSizingFunction =
   | { fr: number }
   | { fitContent: LengthPercentage };
 
+/** {@link MinTrackSizingFunction} as written in input, where `'50%'` is also legal. */
+export type MinTrackSizingFunctionInput = LengthPercentageInput | 'auto' | 'min-content' | 'max-content';
+
+/** {@link MaxTrackSizingFunction} as written in input, where `'50%'` is also legal. */
+export type MaxTrackSizingFunctionInput =
+  | MinTrackSizingFunctionInput
+  | { fr: number }
+  | { fitContent: LengthPercentageInput };
+
 /**
  * A single grid track's sizing bounds — CSS `minmax(min, max)`.
  *
@@ -1066,6 +1183,12 @@ export type MaxTrackSizingFunction =
 export interface TrackSizingFunction {
   min: MinTrackSizingFunction;
   max: MaxTrackSizingFunction;
+}
+
+/** {@link TrackSizingFunction} as written in input, where `'50%'` is also legal. */
+export interface TrackSizingFunctionInput {
+  min: MinTrackSizingFunctionInput;
+  max: MaxTrackSizingFunctionInput;
 }
 
 /**
@@ -1110,6 +1233,11 @@ export type RepetitionCount = number | 'auto-fill' | 'auto-fit';
 export type GridTemplateComponent =
   | TrackSizingFunction
   | { repeat: RepetitionCount; tracks: TrackSizingFunction[] };
+
+/** {@link GridTemplateComponent} as written in input, where `'50%'` is also legal. */
+export type GridTemplateComponentInput =
+  | TrackSizingFunctionInput
+  | { repeat: RepetitionCount; tracks: TrackSizingFunctionInput[] };
 
 /**
  * Direction and packing used to place items that have no explicit position.
