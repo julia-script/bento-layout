@@ -5,6 +5,7 @@ import type { AbsoluteAxis, Size } from '../geometry.js';
 import { sizeGetAbs } from '../geometry.js';
 import type { Opt } from '../math.js';
 import type { AvailableSpace } from '../style.js';
+import { traceLayout } from '../trace.js';
 import type { LayoutInput, LayoutNode, LayoutOutput, Line, SizingMode } from '../tree.js';
 import { internals, LINE_FALSE, layoutOutputHidden, layoutWithOrder } from '../tree.js';
 import type { BlockContext } from './block.js';
@@ -30,6 +31,18 @@ export function computeChildLayout(node: LayoutNode, inputs: LayoutInput, blockC
   }
 
   const nd = internals(node);
+  for (const axis of ['width', 'height'] as const) {
+    const value = inputs.knownDimensions[axis];
+    if (value !== null) {
+      traceLayout(node, {
+        phase: 'input',
+        source: 'parent-known',
+        axis,
+        value,
+        detail: `${inputs.runMode}/${inputs.sizingMode}`,
+      });
+    }
+  }
   const cached = nd.cache.get(inputs);
   if (cached) return cached;
 
@@ -53,6 +66,20 @@ export function computeChildLayout(node: LayoutNode, inputs: LayoutInput, blockC
   }
 
   nd.cache.store(inputs, output);
+  traceLayout(node, {
+    phase: 'output',
+    source: 'algorithm-output',
+    axis: 'width',
+    value: output.size.width,
+    detail: nd.style.display,
+  });
+  traceLayout(node, {
+    phase: 'output',
+    source: 'algorithm-output',
+    axis: 'height',
+    value: output.size.height,
+    detail: nd.style.display,
+  });
   return output;
 }
 

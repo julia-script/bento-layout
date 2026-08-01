@@ -48,6 +48,7 @@ import {
   resolveRectOrZero,
   resolveSizeOrZero,
 } from '../style.js';
+import { traceLayout } from '../trace.js';
 import type { LayoutInput, LayoutNode, LayoutOutput } from '../tree.js';
 import { fromOuterSize, fromSizesAndBaselines, internals, layoutWithOrder } from '../tree.js';
 import {
@@ -213,6 +214,24 @@ export function computeFlexboxLayout(node: LayoutNode, inputs: LayoutInput): Lay
     inputs.sizingMode === 'inherent-size'
       ? applyAspectRatioClamped(resolvedStyleSize, minSize, maxSize, aspectRatio, boxSizingAdjustment)
       : { width: null, height: null };
+  for (const axis of ['width', 'height'] as const) {
+    if (resolvedStyleSize[axis] !== null) {
+      traceLayout(node, {
+        phase: 'container-input',
+        source: 'preferred-size',
+        axis,
+        value: resolvedStyleSize[axis],
+      });
+    } else if (aspectRatio !== null && clampedStyleSize[axis] !== null) {
+      traceLayout(node, {
+        phase: 'container-input',
+        source: 'aspect-ratio',
+        axis,
+        value: clampedStyleSize[axis],
+        detail: `ratio=${aspectRatio}`,
+      });
+    }
+  }
 
   // If both min and max in a given axis are set and max <= min then this determines the size in that axis
   const minMaxDefiniteSize: Size<Opt> = {
@@ -260,11 +279,16 @@ export function computeFlexboxLayout(node: LayoutNode, inputs: LayoutInput): Lay
     main(resolvedStyleSize, dir) === null &&
     main(styledBasedKnownDimensions, dir) !== null;
   if (mainIsRatioDerived) {
-    setMain(
-      styledBasedKnownDimensions,
-      dir,
-      vClamp(main(styledBasedKnownDimensions, dir) ?? 0, main(minSize, dir), main(maxSize, dir)),
-    );
+    const beforeClamp = main(styledBasedKnownDimensions, dir) ?? 0;
+    const afterClamp = vClamp(beforeClamp, main(minSize, dir), main(maxSize, dir));
+    setMain(styledBasedKnownDimensions, dir, afterClamp);
+    traceLayout(node, {
+      phase: 'container-main',
+      source: beforeClamp === afterClamp ? 'aspect-ratio' : 'min-max-clamp',
+      axis: dirIsRow(dir) ? 'width' : 'height',
+      value: afterClamp,
+      detail: `ratio-derived; before-clamp=${beforeClamp}`,
+    });
   }
   const ratioMainAutoMinApplies =
     mainIsRatioDerived &&
@@ -367,11 +391,19 @@ function computePreliminary(node: LayoutNode, inputs: LayoutInput, ratioMainAuto
         const gapSum = sumAxisGaps(main(constants.gap, constants.dir), line.items.length);
         return Math.max(largest, itemSum + gapSum);
       }, 0);
+      const beforeFloor = outerMainSize;
       outerMainSize = vClamp(
         Math.max(outerMainSize, intrinsicInnerMain + mainContentBoxInset),
         main(constants.minSize, constants.dir),
         main(constants.maxSize, constants.dir),
       );
+      traceLayout(node, {
+        phase: 'container-main',
+        source: 'intrinsic-content',
+        axis: constants.isRow ? 'width' : 'height',
+        value: outerMainSize,
+        detail: `ratio automatic minimum; before-floor=${beforeFloor}; intrinsic=${intrinsicInnerMain}`,
+      });
     }
 
     const innerMainSize = Math.max(outerMainSize - mainContentBoxInset, 0);
@@ -1961,6 +1993,13 @@ function determineUsedCrossSize(flexLines: FlexLine[], constants: AlgoConstants)
             rectCrossAxisSum(rectAdd(child.padding, child.border), constants.dir),
           ),
         );
+        traceLayout(child.node, {
+          phase: 'flex-item-cross',
+          source: 'stretch',
+          axis: constants.isRow ? 'height' : 'width',
+          value: cross(child.targetSize, constants.dir),
+          detail: 'stretched to the flex line cross size',
+        });
       } else {
         setCross(child.targetSize, constants.dir, cross(child.hypotheticalInnerSize, constants.dir));
       }
@@ -2038,6 +2077,13 @@ function determineUsedCrossSize(flexLines: FlexLine[], constants: AlgoConstants)
             rectCrossAxisSum(rectAdd(item.padding, item.border), constants.dir),
           ),
         );
+        traceLayout(item.node, {
+          phase: 'flex-item-cross',
+          source: 'stretch',
+          axis: constants.isRow ? 'height' : 'width',
+          value: cross(item.targetSize, constants.dir),
+          detail: 'reapplied against a ratio-derived definite line',
+        });
         setCross(
           item.outerTargetSize,
           constants.dir,

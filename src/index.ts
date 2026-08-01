@@ -62,8 +62,12 @@ export type {
   TrackSizingFunctionInput,
 } from './style.js';
 export { InvalidStyleError } from './style.js';
+export type { LayoutTraceAxis, LayoutTraceEvent, LayoutTraceSink, LayoutTraceSource } from './trace.js';
 export type { Layout, MeasuredContent, MeasureFunction } from './tree.js';
 export { LayoutNode } from './tree.js';
+
+import type { LayoutTraceSink } from './trace.js';
+import { withLayoutTrace } from './trace.js';
 
 /** Options for {@link computeLayout}. */
 export interface ComputeLayoutOptions {
@@ -84,6 +88,12 @@ export interface ComputeLayoutOptions {
    * @defaultValue `true`
    */
   rounding?: boolean;
+  /**
+   * Debug-only stream of sizing decisions, including parent-known sizes,
+   * aspect-ratio transfer, intrinsic floors, stretch, clamps, and final output.
+   * Omit it in production; the tracing path is otherwise completely inert.
+   */
+  trace?: LayoutTraceSink;
 }
 
 /**
@@ -156,13 +166,17 @@ export function computeLayout(
   availableSpace: Size<AvailableSpace>,
   options: ComputeLayoutOptions = {},
 ): void {
-  clearCaches(root);
-  computeRootLayout(root, availableSpace);
-  if (options.rounding ?? true) {
-    roundLayout(root, 0, 0);
-  } else {
-    copyUnroundedLayout(root);
-  }
+  const run = (): void => {
+    clearCaches(root);
+    computeRootLayout(root, availableSpace);
+    if (options.rounding ?? true) {
+      roundLayout(root, 0, 0);
+    } else {
+      copyUnroundedLayout(root);
+    }
+  };
+  if (options.trace === undefined) run();
+  else withLayoutTrace(root, options.trace, run);
 }
 
 function clearCaches(node: LayoutNode): void {
