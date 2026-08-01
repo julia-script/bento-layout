@@ -940,10 +940,10 @@ export function itemMinimumContribution(
     const itemAxisTracks = axisTracks.slice(itemAxisTrackRange.start, itemAxisTrackRange.end);
 
     // it spans at least one track in that axis whose min track sizing function is auto
-    const spansAutoMinTrack = axisTracks.some((track) => track.minTrackSizingFunction === 'auto');
+    const spansAutoMinTrack = itemAxisTracks.some((track) => track.minTrackSizingFunction === 'auto');
     // if it spans more than one track in that axis, none of those tracks are flexible
     const onlySpanOneTrack = itemAxisTracks.length === 1;
-    const spansAFlexibleTrack = axisTracks.some((track) => maxIsFr(track.maxTrackSizingFunction));
+    const spansAFlexibleTrack = itemAxisTracks.some((track) => maxIsFr(track.maxTrackSizingFunction));
 
     const useContentBasedMinimum = spansAutoMinTrack && (onlySpanOneTrack || !spansAFlexibleTrack);
 

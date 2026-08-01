@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, minimized from finding 80f33e13
+  date: 2026-08-01
+  chrome: Chrome/151.0.7922.47
+  css-grid-1 §6.6 tests the flexible-track exception against the tracks
+  spanned by the item. The third, unspanned 1fr row therefore must not suppress
+  the item's content-based automatic minimum across the first two rows.
+  Regenerate with: pnpm gentest fuzz_grid_auto_min_ignores_unspanned_fr
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: an unspanned flexible track does not suppress a grid item's automatic minimum
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; width: 10px; height: 20px; grid-template-rows: 60% auto minmax(1px, 1fr);">
+  <div style="grid-row: span 2;">H&#8203;H&#8203;HHHHH</div>
+</div>
+
+</body>
+</html>
