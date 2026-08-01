@@ -1,0 +1,17 @@
+<test name="block_text_align_legacy_inherits_through_flex__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="ltr" position="absolute" text-align="-webkit-center" width="200px" height="40px">
+      <div display="block" direction="ltr" width="200px" height="40px">
+        <div direction="ltr" width="40px" height="20px"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="200" height="40">
+      <node x="0" y="0" width="200" height="40">
+        <node x="80" y="0" width="40" height="20"/>
+      </node>
+    </node>
+  </expectations>
+</test>

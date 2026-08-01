@@ -53,6 +53,15 @@ export interface BlockContext {
   isRoot: boolean;
 }
 
+/** Resolve CSS2's inherited `text-align` value for legacy block-child alignment. */
+function inheritedTextAlign(node: LayoutNode): TextAlign {
+  for (let current: LayoutNode | null = node; current !== null; current = internals(current).parent) {
+    const value = internals(current).style.textAlign;
+    if (value !== 'auto') return value;
+  }
+  return 'auto';
+}
+
 /** Per-child data accumulated over the course of the layout algorithm */
 interface BlockItem {
   node: LayoutNode;
@@ -270,7 +279,7 @@ function computeInner(node: LayoutNode, inputs: LayoutInput, blockCtx: BlockCont
     (size.height !== null && size.height > 0) ||
     (minSize.height !== null && minSize.height > 0);
 
-  const textAlign = style.textAlign;
+  const textAlign = inheritedTextAlign(node);
   const alignContent = style.alignContent;
 
   // 1. Generate items
