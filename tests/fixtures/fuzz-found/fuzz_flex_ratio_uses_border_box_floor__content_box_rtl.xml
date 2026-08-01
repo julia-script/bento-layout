@@ -1,0 +1,13 @@
+<test name="fuzz_flex_ratio_uses_border_box_floor__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div box-sizing="content-box" direction="rtl" position="absolute">
+      <div box-sizing="content-box" direction="rtl" width="7px" aspect-ratio="0.5" border-top="20px" border-left="320px" border-bottom="40px" border-right="10px"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="337" height="74">
+      <node x="0" y="0" width="337" height="74"/>
+    </node>
+  </expectations>
+</test>

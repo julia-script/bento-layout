@@ -1661,10 +1661,16 @@ function determineHypotheticalCrossSize(
       child.aspectRatio !== null &&
       cross(maybeResolveSize(internals(child.node).style.size, constants.nodeInnerSize), constants.dir) === null;
 
-    const childCross = mMax(
-      mClamp(cross(child.size, constants.dir) ?? arDerivedCross, transferredMinCross, transferredMaxCross),
-      paddingBorderSum,
-    );
+    // Transfer from the *used* main size when the cross size is ratio-derived.
+    // `child.size` applied the ratio before flex sizing, so it still reflects a
+    // specified border-box main size that can be smaller than its own insets.
+    // Chrome floors `width: 7px` plus 330px of horizontal border to 330px, then
+    // transfers a 1:2 ratio to 660px; transferring the raw 7px gave 14px here,
+    // which was then merely floored to the 60px vertical border. CSS Sizing 4
+    // §4.1 defines the ratio over the box selected by `box-sizing`, and Blink's
+    // BlockSizeFromAspectRatio likewise receives the used border-box inline size.
+    const preferredCross = child.crossIsArDerived ? arDerivedCross : cross(child.size, constants.dir);
+    const childCross = mMax(mClamp(preferredCross, transferredMinCross, transferredMaxCross), paddingBorderSum);
 
     const childAvailableCross = asMaybeClampWithMax(
       asMaybeClamp(cross(availableSpace, constants.dir), transferredMinCross, transferredMaxCross),

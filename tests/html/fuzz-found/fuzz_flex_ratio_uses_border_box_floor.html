@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: batch seed=20260731, finding=b7f1a309 (mode=flex)
+  chrome: Chrome/151.0.7922.47
+  A border-box flex item whose specified width is smaller than its horizontal
+  borders first floors the used width to the border sum, then transfers that
+  used width through its aspect ratio. Chrome therefore sizes the item to
+  330x660, while transferring the raw 7px width produced only the 60px
+  vertical-border floor.
+  Regenerate with: pnpm gentest fuzz_flex_ratio_uses_border_box_floor
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: aspect ratio transfers the used border-box floor</title>
+</head>
+<body>
+
+<div id="test-root">
+  <div style="width: 7px; height: auto; aspect-ratio: 0.5; border-style: solid; border-width: 20px 10px 40px 320px;"></div>
+</div>
+
+</body>
+</html>
