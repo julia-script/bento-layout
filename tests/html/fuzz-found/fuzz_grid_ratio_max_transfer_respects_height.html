@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found (rehydrated 20260731 batch). A max-width transferred through an
+  aspect ratio cannot cap an independently definite preferred height.
+  Regenerate the XML fixtures with:
+  pnpm gentest fuzz_grid_ratio_max_transfer_respects_height
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: a ratio max transfer respects the definite height
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; width: 320px; height: 1px;">
+  <div style="width: 25%; height: 120px; max-width: 1%; aspect-ratio: 1;"></div>
+</div>
+
+</body>
+</html>

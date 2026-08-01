@@ -643,6 +643,31 @@ export function transferMinSizeThroughAspectRatio(
   };
 }
 
+/** css-sizing-4 §4.4 max-size transfers, floored by definite destination sizes. */
+export function transferMaxSizeThroughAspectRatio(
+  resolvedMaxSize: Size<Opt>,
+  resolvedStyleSize: Size<Opt>,
+  minSize: Size<number>,
+  aspectRatio: number | null,
+  boxSizing: BoxSizing,
+  paddingBorderSize: Size<number>,
+): Size<Opt> {
+  const boxSizingAdjustment = boxSizing === 'content-box' ? paddingBorderSize : { width: 0, height: 0 };
+  const preferredSize = maybeAddSize(resolvedStyleSize, boxSizingAdjustment);
+  const maxSize = maybeAddSize(maybeApplyAspectRatio(resolvedMaxSize, aspectRatio), boxSizingAdjustment);
+
+  return {
+    width:
+      resolvedMaxSize.width === null && maxSize.width !== null
+        ? Math.max(maxSize.width, preferredSize.width ?? 0, minSize.width)
+        : maxSize.width,
+    height:
+      resolvedMaxSize.height === null && maxSize.height !== null
+        ? Math.max(maxSize.height, preferredSize.height ?? 0, minSize.height)
+        : maxSize.height,
+  };
+}
+
 function itemKnownDimensions(item: GridItem, gridAreaSize: Size<Opt>): Size<Opt> {
   const margins = itemMarginsAxisSumsWithBaselineShims(item, gridAreaSize.width);
 
@@ -674,9 +699,13 @@ function itemKnownDimensions(item: GridItem, gridAreaSize: Size<Opt>): Size<Opt>
     item.boxSizing,
     paddingBorderSize,
   );
-  const maxSize = maybeAddSize(
-    maybeApplyAspectRatio(maybeResolveSize(item.maxSize, gridAreaSize), aspectRatio),
-    boxSizingAdjustment,
+  const maxSize = transferMaxSizeThroughAspectRatio(
+    maybeResolveSize(item.maxSize, gridAreaSize),
+    resolvedStyleSize,
+    minSize,
+    aspectRatio,
+    item.boxSizing,
+    paddingBorderSize,
   );
 
   const gridAreaMinusItemMarginsSize = {

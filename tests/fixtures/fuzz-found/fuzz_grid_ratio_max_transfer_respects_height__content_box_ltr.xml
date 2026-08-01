@@ -1,0 +1,13 @@
+<test name="fuzz_grid_ratio_max_transfer_respects_height__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" box-sizing="content-box" direction="ltr" position="absolute" width="320px" height="1px">
+      <div box-sizing="content-box" direction="ltr" width="25%" height="120px" max-width="1%" aspect-ratio="1"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="320" height="1">
+      <node x="0" y="0" width="3" height="120"/>
+    </node>
+  </expectations>
+</test>

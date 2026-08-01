@@ -17,7 +17,11 @@ import {
 } from '../alignment.js';
 import { measureChildSize, measureChildSizeBoth, performChildLayout } from '../dispatch.js';
 import type { GridTrack } from './types.js';
-import { maybeApplyAspectRatioUsed, transferMinSizeThroughAspectRatio } from './types.js';
+import {
+  maybeApplyAspectRatioUsed,
+  transferMaxSizeThroughAspectRatio,
+  transferMinSizeThroughAspectRatio,
+} from './types.js';
 
 const ALIGN_START: AlignItems = { keyword: 'start', safe: false };
 const ALIGN_STRETCH_LOCAL: AlignItems = { keyword: 'stretch', safe: false };
@@ -152,9 +156,13 @@ export function alignAndPositionItem(
     style.boxSizing,
     paddingBorderSize,
   );
-  const maxSize = maybeAddSize(
-    maybeApplyAspectRatio(maybeResolveSize(style.maxSize, gridAreaSize), aspectRatio),
-    boxSizingAdjustment,
+  const maxSize = transferMaxSizeThroughAspectRatio(
+    maybeResolveSize(style.maxSize, gridAreaSize),
+    resolvedStyleSize,
+    minSize,
+    aspectRatio,
+    style.boxSizing,
+    paddingBorderSize,
   );
 
   // Resolve default alignment styles if set on neither the parent nor the node itself
