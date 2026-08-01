@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Automatic cross margin disables stretch during flex intrinsic sizing</title>
+</head>
+<body>
+
+<div id="test-root" style="width: auto; height: 17px;">
+  <div style="aspect-ratio: 1.5; margin: auto auto 3px 3px; flex-grow: 2;"></div>
+</div>
+
+</body>
+</html>

@@ -1217,6 +1217,8 @@ function determineContainerMainSize(
             if (
               item.alignSelf.keyword === 'stretch' &&
               !item.alignSelf.safe &&
+              !rectCrossStart(item.marginIsAuto, constants.dir) &&
+              !rectCrossEnd(item.marginIsAuto, constants.dir) &&
               cross(childKnownDimensions, dir) === null
             ) {
               setCross(
