@@ -46,7 +46,7 @@ const greens = (style: StyleInput = {}): Spec => ({
     ...style,
   },
   children: [
-    { id: 'g1', style: { flexGrow: 1, height: { percent: 0.7 } } },
+    { id: 'g1', style: { flexGrow: 1, height: '70%' } },
     { id: 'g2', style: { width: 34, height: 34 } },
   ],
 });
@@ -105,7 +105,7 @@ const VARIANTS: Variant[] = [
   },
   {
     name: 'flex wrap',
-    chip: `flexWrap: 'wrap',\nflexBasis: { percent: 0.55 } · { percent: 0.38 } · …`,
+    chip: `flexWrap: 'wrap',\nflexBasis: '55%' · '38%' · '16%' · …`,
     root: {
       id: 'tray',
       style: {
@@ -118,11 +118,11 @@ const VARIANTS: Variant[] = [
         alignContent: { keyword: 'stretch', safe: false },
       },
       children: [
-        { id: 'salmon', style: { flexBasis: { percent: 0.55 }, flexGrow: 1 } },
-        tamago('row', { flexBasis: { percent: 0.38 }, flexGrow: 1 }),
-        { id: 'pickles', style: { flexBasis: { percent: 0.16 }, flexGrow: 1 } },
-        greens({ flexBasis: { percent: 0.26 }, flexGrow: 1 }),
-        { id: 'rice', style: { flexBasis: { percent: 0.42 }, flexGrow: 1 } },
+        { id: 'salmon', style: { flexBasis: '55%', flexGrow: 1 } },
+        tamago('row', { flexBasis: '38%', flexGrow: 1 }),
+        { id: 'pickles', style: { flexBasis: '16%', flexGrow: 1 } },
+        greens({ flexBasis: '26%', flexGrow: 1 }),
+        { id: 'rice', style: { flexBasis: '42%', flexGrow: 1 } },
       ],
     },
   },
