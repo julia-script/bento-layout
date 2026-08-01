@@ -24,6 +24,7 @@
     "fuzz": "tsx scripts/fuzz.ts",
     "fuzz-batch": "tsx scripts/fuzz-batch.ts",
     "fuzz-batch-status": "tsx scripts/fuzz-batch-status.ts",
+    "fuzz-batch-manifest": "tsx scripts/fuzz-batch-manifest.ts",
     "fuzz-triage": "tsx scripts/fuzz-triage.ts",
     "probe-matrix": "tsx scripts/probe-matrix.ts",
     "wpt-import": "tsx scripts/wpt-import.ts",

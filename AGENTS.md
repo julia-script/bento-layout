@@ -75,11 +75,25 @@ Chrome's verdict is frozen into each finding at collection time, so a batch
 stays a fixed target while you fix against it — and `fuzz-batch-status` needs no
 browser, which is what makes it usable in a tight loop.
 
-Batches are **git-ignored**: they run to several MB and are regenerable from
-their seed (`pnpm fuzz-batch --seed <n>`), so they are a local working target,
-not a shared artifact. A finding worth keeping gets promoted to a real fixture
-under `tests/fixtures/fuzz-found/` via `pnpm fuzz` + `pnpm gentest`, which is
-what actually guards against regressions.
+Batch *files* are git-ignored — several MB each. What is tracked is
+`tests/fuzz-seeds.json`, a ~45 KB manifest of the `(seed, index, mode)` triples
+the findings derive from:
+
+```bash
+pnpm fuzz-batch-manifest save        # batch -> tracked seed manifest
+pnpm fuzz-batch-manifest rehydrate   # manifest -> batch, on any machine
+```
+
+Rehydrating replays each seed, re-shrinks, and re-freezes Chrome's verdict, so
+the same target follows the repo without the payload. It deliberately does not
+store shrunk trees: shrinking asks the *current* engine which candidates still
+fail, so a tree minimized before a fix is not minimal after it. Findings a fix
+already resolved are reported as "already fixed" and drop out — that is the
+progress signal, not an error.
+
+A finding worth keeping permanently gets promoted to a real fixture under
+`tests/fixtures/fuzz-found/` via `pnpm fuzz` + `pnpm gentest`. Those are what
+actually guard against regressions; the batch is only a work queue.
 
 `fuzz-batch-status` clusters open findings by *where* the geometry differs
 (node paths, axes, displays). Work top-down, but **do not read cluster size as
