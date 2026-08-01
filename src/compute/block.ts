@@ -674,9 +674,18 @@ function performFinalLayoutOnInFlowChildren(
           item.paddingBorderSum.height > 0
             ? item.paddingBorderSum.height * item.aspectRatio
             : 0;
+        // A box is never narrower than its own inline padding+border, so a
+        // stretch fit smaller than that sum does not shrink the box — it
+        // overflows the parent instead. Chrome, a block child with
+        // `border-left: 7; border-right: 320` (a 327 floor) in a parent whose
+        // content width is 0 -> 327 wide, 100 -> 327, 400 -> 400. Padding
+        // behaves identically, and so does `box-sizing: content-box` (there the
+        // insets sit outside the content box, so the border box is at least
+        // that wide either way). This clamped the child to the parent's width.
+        const inlineInsetFloor = item.paddingBorderSum.width;
         const withWidth: Size<Opt> = {
           width: vClamp(
-            Math.max(itemWidth ?? stretchWidth, ratioInsetFloorWidth),
+            Math.max(itemWidth ?? stretchWidth, ratioInsetFloorWidth, inlineInsetFloor),
             item.minSize.width,
             item.maxSize.width,
           ),
