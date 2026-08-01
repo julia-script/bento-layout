@@ -8,3 +8,8 @@
 # Chromium download.
 onlyBuiltDependencies:
   - esbuild
+
+# Approving is only half of it: pnpm errors on any build it was never told
+# about, so the refusals have to be explicit too.
+ignoredBuiltDependencies:
+  - puppeteer
