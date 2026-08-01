@@ -1,0 +1,15 @@
+<test name="flex_cross_minimum_transfers_to_auto_main_minimum__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="rtl" position="absolute" align-items="flex-start" width="55px" height="40px">
+      <div direction="rtl" border-top="1px" border-left="55px" border-bottom="1px" border-right="97px"/>
+      <div direction="rtl" min-height="50%" aspect-ratio="2"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="55" height="40">
+      <node x="-97" y="0" width="152" height="2"/>
+      <node x="-137" y="0" width="40" height="20"/>
+    </node>
+  </expectations>
+</test>

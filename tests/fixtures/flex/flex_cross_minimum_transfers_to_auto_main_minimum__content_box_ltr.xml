@@ -1,0 +1,15 @@
+<test name="flex_cross_minimum_transfers_to_auto_main_minimum__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div box-sizing="content-box" direction="ltr" position="absolute" align-items="flex-start" width="55px" height="40px">
+      <div box-sizing="content-box" direction="ltr" border-top="1px" border-left="55px" border-bottom="1px" border-right="97px"/>
+      <div box-sizing="content-box" direction="ltr" min-height="50%" aspect-ratio="2"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="55" height="40">
+      <node x="0" y="0" width="152" height="2"/>
+      <node x="152" y="0" width="40" height="20"/>
+    </node>
+  </expectations>
+</test>

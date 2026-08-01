@@ -954,9 +954,12 @@ function determineFlexBaseSize(
         // The last two are the tell that this really is the §4.5 automatic
         // minimum: both remove it, and both collapse the item back to the ratio.
         //
-        // The cross size counts as definite when it comes from *stretching* as
-        // well as from the item's own style, so this reads childKnownDimensions
-        // (which the stretch branch above fills in) rather than the style size:
+        // The cross size counts as definite when it comes from *stretching* or
+        // a definite cross minimum as well as from the item's own style. Blink
+        // includes that ratio transfer in the intrinsic content-size suggestion
+        // used for the automatic minimum (ComputeMinMaxSizes(kIntrinsic)).
+        // Therefore read childKnownDimensions (which the stretch branch above
+        // fills in), then fall back to the resolved cross minimum:
         // `aspect-ratio: 1.5` alone in a 7x7 row is 11 wide in Chrome, i.e. the
         // transferred 10.5 floors the shrink instead of collapsing to the 7px
         // container.
@@ -977,7 +980,7 @@ function determineFlexBaseSize(
             { width: overflowAutoMinSize(child.overflow.x), height: overflowAutoMinSize(child.overflow.y) },
             dir,
           ) !== null;
-        const definiteCross = cross(childKnownDimensions, dir);
+        const definiteCross = cross(childKnownDimensions, dir) ?? cross(child.minSize, dir);
         const transferredMain =
           child.aspectRatio !== null && definiteCross !== null && !crossOverflowClips
             ? transferThroughRatio(definiteCross, child, dir, 'cross-to-main')
