@@ -244,19 +244,30 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
     // supplies an *automatic* size, not a cap), so never shrink below the
     // height the first pass measured.
     if (rerun.size.height >= output.size.height) output = rerun;
-  } else if (rootInternal.style.aspectRatio !== null && output.size.width > 0) {
+  } else if (
+    rootInternal.style.aspectRatio !== null &&
+    output.size.width > 0 &&
+    // The width may only grow while the *height* is the one the ratio works
+    // from — i.e. the height is definite and the width is what it derives.
+    // With `height: auto` the ratio derives the height from the width instead,
+    // so the written width stands and content overflows it: Chrome gives
+    // `width: 1; aspect-ratio: 1` around a 200-wide child 200x55 when the
+    // height is 55, but 1x1 when the height is auto. Without this guard the
+    // root also grew by a child's *margin* (`width: 120` + a 3px right margin
+    // came out 123 where Chrome keeps 120).
+    (rootSpecified.width === null || rootSpecified.height !== null)
+  ) {
     // The mirror case: the root's width is subject to the ratio, so it is an
     // *automatic* size and content wider than it grows the root rather than
     // overflowing — the same rule block layout applies to its children
     // (`widthIsRatioDerived`).
     //
-    // This holds even when the width is specified: a ratio plus a specified
-    // height makes the inline axis ratio-determined either way. Chrome, a flex
-    // root `width: 1; height: 55` around a 200-wide child — 200x55 with
-    // `aspect-ratio: 1`, but 1x55 without it, so the ratio is what unlocks the
-    // growth. The specified width is still never *shrunk* to the ratio
-    // (`width: 300; height: 55; aspect-ratio: 1` stays 300 wide), which is why
-    // this only ever raises the width via the max() below.
+    // This holds even when the width is specified, provided the height is too:
+    // Chrome, a flex root `width: 1; height: 55` around a 200-wide child —
+    // 200x55 with `aspect-ratio: 1`, but 1x55 without it, so the ratio is what
+    // unlocks the growth. The specified width is still never *shrunk* to the
+    // ratio (`width: 300; height: 55; aspect-ratio: 1` stays 300 wide), which
+    // is why this only ever raises the width via the max() below.
     //
     // Measured in `content-size` mode so the child does not simply re-derive
     // the width from the ratio again.
