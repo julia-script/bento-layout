@@ -327,7 +327,18 @@ export function alignItemWithinArea(
   };
 
   const overflows = resolvedSize + nonAutoMargin.start + nonAutoMargin.end > gridAreaSize;
-  const alignmentKeyword = resolveSelfAlignmentSafety(alignmentStyle, overflows);
+  // css-grid-1 §10.2: an auto margin absorbs positive free space "prior to
+  // alignment ... thereby disabling the effects of any self-alignment
+  // properties in that axis". The resolved auto margin already positions the
+  // item, so running alignment on top of it would displace it a second time.
+  //
+  // This holds even when the item overflows, where the auto margin resolves to
+  // zero: Chrome pins such an item to the start edge whatever its justify-self
+  // says. Only the *absence* of an auto margin lets alignment fold the margins
+  // into its offset — with `margin-left: 10px; margin-right: 120px` in a 3px
+  // track, `center` does put the item at -53.5, so the margins are not simply
+  // ignored under overflow.
+  const alignmentKeyword = autoMarginCount > 0 ? 'start' : resolveSelfAlignmentSafety(alignmentStyle, overflows);
 
   // Compute offset in the axis
   let alignmentBasedOffset: number;
