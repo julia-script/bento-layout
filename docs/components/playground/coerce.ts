@@ -128,6 +128,27 @@ export function coerceDimension(value: unknown, prop: string): Dimension {
   return coerceLengthPercentage(value, prop);
 }
 
+/**
+ * A plain pixel number — no percentage form.
+ *
+ * `scrollbarWidth` is the one style property the engine types as a bare
+ * `number` rather than a length, so a percentage has nothing to resolve
+ * against. Without this, a demo writing the natural `'12px'` sent the string
+ * itself into the engine, where it poisoned the gutter arithmetic into NaN and
+ * the whole preview vanished.
+ */
+export function coerceNumber(value: unknown, prop: string): number {
+  if (typeof value === 'number') return finite(value, `${prop}: ${value}`);
+  if (typeof value !== 'string') {
+    throw new CoercionError(`${prop}: expected a number, got ${typeof value}`);
+  }
+  const parsed = valueParser.unit(value.trim());
+  if (parsed === false || (parsed.unit !== 'px' && parsed.unit !== '')) {
+    throw new CoercionError(`${prop}: cannot read "${value}" as a number of pixels`);
+  }
+  return finite(parseFloat(parsed.number), `${prop}: ${value}`);
+}
+
 function splitSafe(value: string): { safe: boolean; keyword: string } {
   const parts = value.trim().split(/\s+/);
   if (parts.length === 2 && (parts[0] === 'safe' || parts[0] === 'unsafe')) {
@@ -348,6 +369,8 @@ const COERCERS: Record<string, Coercer> = {
   gridRowEnd: coerceGridPlacement,
   gridColumnStart: coerceGridPlacement,
   gridColumnEnd: coerceGridPlacement,
+  scrollbarWidth: coerceNumber,
+  aspectRatio: coerceNumber,
   // Shorthands. The library expands these into longhands; coercion only has to
   // reach the values inside, whether uniform or per-side.
   padding: coerceShorthand(coerceLengthPercentage),

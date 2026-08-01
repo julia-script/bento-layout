@@ -21,9 +21,25 @@ export interface DemoProps {
   code?: string;
   /** Preview height. Defaults to a size that suits an inline docs demo. */
   height?: number | string;
-  /** Stack the panes even on wide screens — for narrow layouts. */
+  /**
+   * Force the stacked (single-column) layout. Leave unset to stack
+   * automatically when the laid-out tree is too wide for a side-by-side pane.
+   */
   stacked?: boolean;
 }
+
+/**
+ * Widest tree that still reads well beside the editor.
+ *
+ * Side-by-side splits the demo in half, and the docs column is itself inset by
+ * the sidebar and table of contents, so a half-pane is only ~340px even on a
+ * 1280px window — and `.fd-demo-preview`'s 1rem padding takes 32px more. A
+ * tree wider than what is left would be clipped into a scroll box, which
+ * silently hides exactly the comparison a wide demo exists to make, so it gets
+ * the full width instead. Not scaled down: the preview is 1:1 with the
+ * engine's own units on purpose.
+ */
+const SIDE_BY_SIDE_MAX_WIDTH = 260;
 
 type Result =
   | { ok: true; root: LayoutNode }
@@ -80,10 +96,14 @@ export function Demo({ children, code, height, stacked }: DemoProps) {
   if (result.ok) lastGood.current = result.root;
   const shown = result.ok ? result.root : lastGood.current;
 
+  // Decided from the tree on screen, so a demo the reader widens by editing
+  // reflows to stacked rather than starting to clip.
+  const tooWide = (shown?.layout.size.width ?? 0) > SIDE_BY_SIDE_MAX_WIDTH;
+
   return (
     <div
       className="fd-demo not-prose my-6 overflow-hidden rounded-lg border border-fd-border"
-      data-stacked={stacked || undefined}
+      data-stacked={(stacked ?? tooWide) ? '' : undefined}
     >
       <div className="fd-demo-panes">
         <div className="fd-demo-editor">

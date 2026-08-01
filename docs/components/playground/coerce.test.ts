@@ -62,6 +62,29 @@ describe('rejected values', () => {
   });
 });
 
+describe('plain-number properties', () => {
+  // These two are bare `number` in the engine, not lengths. Before they had a
+  // coercer, a demo writing the natural '12px' passed the *string* through to
+  // the engine, where the gutter arithmetic produced NaN and the preview
+  // vanished with no error to explain it.
+  it('reads px and bare numbers for scrollbarWidth', () => {
+    expect(coerceStyle({ scrollbarWidth: '12px' })).toEqual({ scrollbarWidth: 12 });
+    expect(coerceStyle({ scrollbarWidth: '12' })).toEqual({ scrollbarWidth: 12 });
+    expect(coerceStyle({ scrollbarWidth: 12 })).toEqual({ scrollbarWidth: 12 });
+  });
+
+  it('reads aspectRatio as a unitless number', () => {
+    expect(coerceStyle({ aspectRatio: 1.5 })).toEqual({ aspectRatio: 1.5 });
+    expect(coerceStyle({ aspectRatio: '1.5' })).toEqual({ aspectRatio: 1.5 });
+  });
+
+  it('rejects units and junk rather than leaking a string', () => {
+    expect(() => coerceStyle({ scrollbarWidth: '50%' })).toThrow(CoercionError);
+    expect(() => coerceStyle({ scrollbarWidth: '2rem' })).toThrow(CoercionError);
+    expect(() => coerceStyle({ aspectRatio: 'wide' })).toThrow(CoercionError);
+  });
+});
+
 describe('alignment keywords', () => {
   it('expands a bare keyword', () => {
     expect(coerceAlignItems('center', 'alignItems')).toEqual({ keyword: 'center', safe: false });
