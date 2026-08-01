@@ -1,0 +1,13 @@
+<test name="flex_definite_ratio_axes_floor_insets_independently__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="ltr" position="absolute" width="10px" height="320px" aspect-ratio="2" border-top="120px" border-left="40px" border-bottom="320px" border-right="7px">
+      <div direction="ltr" width="10px" height="320px" aspect-ratio="2" border-top="120px" border-left="40px" border-bottom="320px" border-right="7px"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="94" height="440">
+      <node x="40" y="120" width="47" height="440"/>
+    </node>
+  </expectations>
+</test>

@@ -162,6 +162,7 @@ interface AlgoConstants {
    *  transfers through the ratio into the main size (determineContainerMainSize). */
   aspectRatio: number | null;
   boxSizing: Style['boxSizing'];
+  mainSizeIsAuto: boolean;
   margin: Rect<number>;
   border: Rect<number>;
   contentBoxInset: Rect<number>;
@@ -541,6 +542,7 @@ function computeConstants(style: Style, knownDimensions: Size<Opt>, parentSize: 
     maxSize: maybeAddSize(maybeResolveSize(style.maxSize, parentSize), boxSizingAdjustment),
     aspectRatio,
     boxSizing: style.boxSizing,
+    mainSizeIsAuto: main(maybeResolveSize(style.size, parentSize), dir) === null,
     margin,
     border,
     gap,
@@ -1408,10 +1410,14 @@ function determineContainerMainSize(
   // this floor (src/compute/leaf.ts) — the divergence appeared the moment the
   // node became a flex container.
   //
-  // Border-box only: under content-box the ratio relates the *content* boxes,
-  // which the insets sit outside of, so there is nothing to transfer.
+  // Border-box and an automatic main size only: under content-box the ratio
+  // relates the *content* boxes, which the insets sit outside of, so there is
+  // nothing to transfer. With two definite preferred axes, css-sizing-4 §4.2
+  // says the ratio has no effect; their inset floors apply independently.
   const crossInsetFloor =
-    constants.boxSizing === 'content-box' ? 0 : rectCrossAxisSum(constants.contentBoxInset, constants.dir);
+    constants.boxSizing === 'content-box' || !constants.mainSizeIsAuto
+      ? 0
+      : rectCrossAxisSum(constants.contentBoxInset, constants.dir);
   const ratioMainFloor =
     constants.aspectRatio === null || crossInsetFloor === 0
       ? 0

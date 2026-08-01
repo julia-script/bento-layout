@@ -25,8 +25,9 @@ export function computeLeafLayout(inputs: LayoutInput, style: Style, measureFunc
   let nodeMinSize: Size<Opt>;
   let nodeMaxSize: Size<Opt>;
   let aspectRatio: number | null;
-  let styleHeightIsDefinite = false;
-  let styleWidthIsDefinite = false;
+  const rawStyleSize = maybeResolveSize(style.size, parentSize);
+  const styleHeightIsDefinite = rawStyleSize.height !== null;
+  const styleWidthIsDefinite = rawStyleSize.width !== null;
   if (sizingMode === 'content-size') {
     nodeSize = { ...knownDimensions };
     nodeMinSize = { width: null, height: null };
@@ -34,9 +35,6 @@ export function computeLeafLayout(inputs: LayoutInput, style: Style, measureFunc
     aspectRatio = null;
   } else {
     aspectRatio = style.aspectRatio;
-    const rawStyleSize = maybeResolveSize(style.size, parentSize);
-    styleHeightIsDefinite = rawStyleSize.height !== null;
-    styleWidthIsDefinite = rawStyleSize.width !== null;
     const rawMinSize = maybeAdd(maybeResolveSize(style.minSize, parentSize), boxSizingAdjustment);
     const rawMaxSize = maybeAdd(maybeResolveSize(style.maxSize, parentSize), boxSizingAdjustment);
     // The ratio derives the automatic axis from the *used* value of the
