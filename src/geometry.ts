@@ -171,13 +171,33 @@ export function transferConstraintToStretchedAxis(
   styleSize: Size<number | null>,
   aspectRatio: number | null,
   stretched: Size<boolean>,
+  /** How to reconcile a transferred constraint with one the axis already has.
+   *  Minimums take the larger, maximums the smaller. Omit to keep the axis's
+   *  own value and discard the transfer. */
+  combine?: (own: number, transferred: number) => number,
 ): Size<number | null> {
   if (aspectRatio === null) return { ...constraint };
+  // `maybeApplyAspectRatio` only fills an axis that is null, so an axis with a
+  // constraint of its own never sees the transferred one. Both are constraints
+  // of the same kind, so the used value is `combine` of the two rather than
+  // whichever happened to be written down. Chrome, a block child with
+  // `min-width: 20%; min-height: 120; aspect-ratio: 1.5` in a 17-wide parent:
+  // 180x120 — the transferred 180 (=120x1.5) beats the 3.4 the percentage
+  // resolves to — where keeping only the percentage left it at the stretch
+  // width of 17.
   const transferred = maybeApplyAspectRatio(constraint, aspectRatio);
-  return {
-    width: stretched.width && styleSize.width === null ? transferred.width : constraint.width,
-    height: stretched.height && styleSize.height === null ? transferred.height : constraint.height,
+  const resolve = (axis: 'width' | 'height'): number | null => {
+    if (!stretched[axis] || styleSize[axis] !== null) return constraint[axis];
+    const own = constraint[axis];
+    if (own === null) return transferred[axis];
+    // The transfer needs the *other* axis to have supplied it; when this axis
+    // filled its own value, `transferred` just echoes `own`.
+    const other = axis === 'width' ? constraint.height : constraint.width;
+    if (other === null || combine === undefined) return own;
+    const fromOther = axis === 'width' ? other * aspectRatio : other / aspectRatio;
+    return combine(own, fromOther);
   };
+  return { width: resolve('width'), height: resolve('height') };
 }
 
 /**
