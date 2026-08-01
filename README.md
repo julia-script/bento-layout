@@ -1,190 +1,124 @@
 # bento-layout
 
-A lightweight CSS flexbox, CSS Grid, and block layout engine in plain
-TypeScript. Zero runtime dependencies, no WASM — plain style data in, pixel
-positions out. The algorithms began from
-[Taffy](https://github.com/DioxusLabs/taffy)'s and are verified against Chrome.
+A flexbox, CSS Grid, and block layout engine in plain TypeScript. Style data
+goes in, pixel positions come out — and that is the whole transaction. No
+WASM binary to load, no async initialization, no engine instance to register
+nodes with, no `free()` or `destroy()` to remember: nodes are ordinary
+JavaScript objects with ordinary lifetimes, and an unreferenced subtree is
+just garbage collected. Zero runtime dependencies.
 
-Verified against **4,368 Chrome-derived conformance fixtures** from Taffy's test
-suite — every fixture Taffy ships for these layout modes, none skipped (see
-[Conformance](#conformance)).
-
-## Usage
-
-```ts
+```typescript
 import { LayoutNode, computeLayout } from 'bento-layout';
 
-const child1 = LayoutNode.make({ flexGrow: 1 });
-const child2 = LayoutNode.make({ flexGrow: 1 });
-const root = LayoutNode.make(
-  { width: 400, height: 300, columnGap: 10 },
-  [child1, child2],
-);
+const left = LayoutNode.make({ flexGrow: 1 });
+const right = LayoutNode.make({ flexGrow: 1 });
+const root = LayoutNode.make({ width: 400, height: 300 }, [left, right]);
 
 computeLayout(root, { width: 'max-content', height: 'max-content' });
 
-child1.layout; // { location: { x: 0, y: 0 }, size: { width: 195, height: 300 }, ... }
-child2.layout; // { location: { x: 205, y: 0 }, size: { width: 195, height: 300 }, ... }
+left.layout.size; // { width: 200, height: 300 }
+right.layout.location; // { x: 200, y: 0 }
 ```
 
-Nodes are opaque: styles change through `node.setStyle({...})` (a per-property
-merge — setting `width` leaves `height` alone), structure through
-`appendChild` / `insertChild` / `removeChild`, and results are read from the
-`layout` getter. A subtree removed from its parent is a live tree of its own —
-lay it out, re-attach it anywhere, or just drop it and let the garbage collector
-take it. There is no `free()`/`destroy()`: nodes have ordinary JS object
-lifetimes.
+That is the entire setup, and it runs the same in Node, a browser, a worker,
+or an edge runtime. The engine computes geometry, full stop — it does not
+paint, own a DOM, or parse CSS strings — which makes it the layout half of a
+canvas renderer, a terminal UI, a PDF generator, or an SVG diagram, without
+dragging in the rest of a browser.
 
-Note the two directions differ in shape: styles go **in** as flat CSS
-properties, and layout comes **back out** in grouped `size`/`location`/`padding`
-objects, which is the form the engine computes in.
+## Why
 
-### Styles
+If you want spec-grade flexbox *and* CSS Grid in a JavaScript project today,
+your options each carry a tax. **Yoga** is the battle-tested standard, but
+every published release is flexbox-only (Grid is an open, unmerged PR:
+[facebook/yoga#1865](https://github.com/facebook/yoga/pull/1865)), and the
+npm package is C++-compiled WASM behind an async loader. **Taffy** has
+excellent flexbox, grid, and block algorithms — this project began from
+them — but it is a Rust crate; using it from JS means a WASM build and a
+binding layer with manual lifetime bookkeeping. **Hand-rolled layout math**
+is a slow leak: every alignment mode and percentage edge case is another
+divergence from CSS-trained intuition.
 
-Styles are flat CSS longhand properties in camelCase — the same spelling
-`element.style` and React inline styles use. Only longhands: there is no
-`padding: 10` shorthand for four sides. Values are plain data, not CSS strings:
+bento-layout fills the gap those leave: one plain-TypeScript package where
+flexbox, grid, and block all work, verified against a browser, that installs
+and runs with the ceremony of `lodash`. Yoga and Taffy remain better choices
+when their strengths are your constraints — React Native, or Rust. This is
+the choice for when you are writing TypeScript and want layout to be a
+small, boring dependency.
 
-- Lengths: `100` (px), `{ percent: 0.5 }` (fraction, not 0–100), `'auto'`
-- `display` (`'flex'`, `'grid'`, or `'block'`), `position` (`relative`/`absolute` with `top`/`left`/`bottom`/`right`), `boxSizing`, `direction` (`ltr`/`rtl`)
-- `width` / `height`, `minWidth` / `minHeight`, `maxWidth` / `maxHeight`, `aspectRatio`
-- `marginLeft` / `marginRight` / `marginTop` / `marginBottom` (support `'auto'`;
-  vertical block margins collapse per CSS 2.2), the matching `padding*` and
-  `border*` sides, and `columnGap` / `rowGap`
-- `flexDirection`, `flexWrap`, `flexGrow`, `flexShrink`, `flexBasis`
-- `gridTemplateRows` / `gridTemplateColumns` — arrays of track sizes: `40`,
-  `{ percent: 0.1 }`, `'auto'`, `'min-content'`, `'max-content'`, `{ fr: 1 }`,
-  `{ fitContent: 30 }`, `{ min, max }` (minmax), and
-  `{ repeat: 3 | 'auto-fill' | 'auto-fit', tracks: [...] }`
-- `gridAutoRows` / `gridAutoColumns`, `gridAutoFlow` (`'row'`/`'column'`, `-dense`),
-  `gridRowStart` / `gridRowEnd` / `gridColumnStart` / `gridColumnEnd` placements
-  (`{ line: n }` incl. negative, `{ span: n }`, `'auto'`)
-- `alignItems` / `alignSelf` / `alignContent` / `justifyContent` / `justifyItems` / `justifySelf`
-  (structured values, e.g. `{ keyword: 'center', safe: true }`)
-- `textAlign` for block containers (`legacy-left`/`legacy-right`/`legacy-center`)
-- `overflowX` / `overflowY` + `scrollbarWidth` (scrollbar gutters and automatic-min-size behavior)
+## What it computes
 
-### Text and other leaf content
+- **Flexbox, CSS Grid, and block layout** (with CSS 2.2 margin collapsing),
+  composing freely in one tree — a grid inside a flex row inside a block
+  page is the normal case.
+- **The full box model:** min/max constraints, aspect ratios, percentages,
+  auto margins, absolute positioning, RTL, both `box-sizing` modes, gaps,
+  alignment including the `safe` variants, and scrollbar gutters.
+- **Content-driven sizing:** leaf nodes take a measure callback, so text and
+  images report their own size.
+- **Browser-faithful rounding:** results snap to whole pixels the way
+  browsers round — cumulatively, so adjacent boxes never gap or overlap — or
+  stay unrounded, your choice.
 
-Leaf nodes take a `measure` callback so content (text, images) can report its size:
+Styles are structured data (`{ percent: 0.5 }`, `{ fr: 1 }`), not CSS
+strings, in flat camelCase properties with the same spelling as
+`element.style`. Uniform shorthands (`padding: 16`, `gap: { column: 8 }`)
+expand in cascade order. Styles change through `setStyle` (a per-property
+merge), structure through `appendChild` / `insertChild` / `removeChild`. A
+removed subtree is a live tree of its own: lay it out, re-attach it, or drop
+it and let the GC take it.
 
-```ts
-const text = LayoutNode.make().setMeasure(
-  (knownDimensions, availableSpace) => measureMyText(knownDimensions, availableSpace),
-);
-```
+## Conformance: Chrome is the oracle
 
-### Rounding
+Correctness is defined as agreement with a pinned Chrome, not with the
+reference implementation the algorithms came from:
 
-Layouts are computed in floats and snapped to whole pixels the way browsers do
-(cumulative rounding, so adjacent boxes never gap or overlap). Pass
-`{ rounding: false }` to `computeLayout` for the raw values; both are available
-as `node.layout` and `node.unroundedLayout`.
+- **5,304 conformance fixtures** — geometry extracted from headless Chrome
+  by an in-repo pipeline (`pnpm gentest`) and asserted at 0.1px tolerance,
+  each in four variants (both `box-sizing` modes × LTR and RTL). `pnpm test`
+  replays them browserless, in seconds.
+- **A differential fuzzer** (`pnpm fuzz`) generates random trees, compares
+  the engine against Chrome, shrinks every disagreement to a minimal
+  reproduction, and commits findings as permanent regression fixtures.
+- **A WPT scoreboard** imports a spec-organized subset of web-platform-tests
+  (`css-flexbox`, `css-grid`, `css-sizing`, `css-align`) through the same
+  pipeline, with failures quarantined in the open rather than dropped from
+  the denominator.
+- **Zero silent divergence:** any engine-vs-Chrome disagreement is either
+  fixed or documented with a spec citation in
+  [KNOWN_DIVERGENCES.md](KNOWN_DIVERGENCES.md) — currently one class-level
+  entry (cyclic percentage resolution) and no fixture-level ones.
 
-## Conformance
+The algorithms began from [Taffy](https://github.com/DioxusLabs/taffy)'s,
+and `src/compute/` preserves Taffy's module structure so upstream fixes
+transfer. Where Chrome and Taffy disagree, this engine follows Chrome; each
+Taffy-inherited bug found that way is logged in
+[UPSTREAM_TAFFY.md](UPSTREAM_TAFFY.md) with a minimized reproduction and
+spec citation, staged for filing upstream.
 
-Conformance fixtures are generated **directly from a real, pinned Chrome** by
-the in-repo pipeline: HTML fixture sources live in `tests/html/`, and
-`pnpm gentest` renders each one headless (Ahem font, deterministic viewport),
-extracting expectations for all four box-sizing/direction variants into the
-committed XML under `tests/fixtures/`. The generating Chrome build is recorded
-in `tests/fixtures/CHROME_VERSION`; `pnpm test` never needs a browser.
+## Documentation
 
-All 4,904 conformance fixtures pass (0.1px tolerance, both `box-sizing` modes,
-ltr and rtl). The corpus began as Taffy's fixture suite and grew three ways:
-locally authored cases, fuzz-found regressions, and an imported subset of
-web-platform-tests. Ten WPT fixtures are quarantined — see *Conformance
-scoreboard* below.
+The full documentation — a getting-started tutorial, guides for measuring
+content, grid, and renderer integration, a complete style-property
+reference, and the conformance story — lives in the [docs site](docs/)
+(`cd docs && pnpm dev`), with live, editable demos running the real engine.
 
-### Authoring a new conformance test
+## Non-goals
 
-1. Write a small HTML page in `tests/html/<category>/my_case.html` (copy an
-   existing fixture; styles go inline on elements under `#test-root`).
-2. `pnpm gentest my_case` — renders it in the pinned Chrome and writes the XML
-   fixtures.
-3. `pnpm test` — the engine must match the browser.
+- **Rendering, styling cascade, or a DOM** — the engine computes geometry
+  from resolved style data.
+- **CSS string parsing** — styles are structured data; the docs playground
+  owns the CSS-ish syntax instead.
+- **Beating native performance** — parity with native code is not the
+  target; [BENCHMARKS.md](BENCHMARKS.md) keeps honest numbers and their
+  limits.
+- **The full CSS layout surface** — floats, inline layout, `calc()`, named
+  grid lines/areas, and subgrid are out of scope, so that what *is* claimed
+  is browser-verified rather than approximate.
+- **Taffy API compatibility** — the API is designed for TypeScript idioms
+  (GC lifetimes, structural types, per-property merge), not for symmetry
+  with the Rust crate.
 
-**Divergence policy: the browser wins.** If the engine disagrees with the
-generated expectations, the engine gets fixed; deliberate exceptions require an
-entry in `KNOWN_DIVERGENCES.md` with a spec citation. (This policy has already
-paid off: the first authored fixture exposed an aspect-ratio constraint bug
-inherited from Taffy, now fixed to match Chrome.)
+## License
 
-**If a fixed bug also exists upstream, log it.** This engine's algorithms began
-from [Taffy](https://github.com/DioxusLabs/taffy)'s, so a bug found here is
-often a bug there. Whenever a fix lands for a defect that Taffy also has, add an entry to
-`UPSTREAM_TAFFY.md` in the same commit — with the Taffy source location, the
-minimized reproduction, engine-vs-Chrome numbers, the spec citation, and an
-explicit `Verified in Taffy: confirmed | suspected`. Reading Taffy's source
-makes a finding *suspected*; only running Taffy makes it *confirmed*, and
-nothing should be filed upstream while still suspected. That file is kept
-standalone so the upstreaming effort does not depend on this repo's history.
-
-### Differential fuzzing
-
-`pnpm fuzz` generates random layout trees, renders each in the pinned Chrome,
-and compares against the engine — the same oracle as the fixtures, over inputs
-nobody thought to write.
-
-```bash
-pnpm fuzz --mode grid --iterations 25 --seed 20260731
-pnpm fuzz-triage '<minimized-tree-json>'   # or a path to a .json file
-```
-
-Modes are `flex`, `grid`, `block`, `mixed`. A finding is shrunk automatically
-and printed as a `minimized:` line; feed that to `pnpm fuzz-triage` to see
-chrome-vs-engine geometry for every node in all four variants. Findings are
-persisted to `tests/html/fuzz-found/` unless `--no-write` is passed.
-
-Budget: throughput is roughly 0.2–4.4 trees/s depending on mode and tree size
-(grid is slowest), so 25 trees per mode is a few minutes and is the default
-campaign size. Raise `--max-findings` (default 5) to see a whole run.
-
-Two traps are worth knowing. **A crash in one tree hides every tree after it** —
-always check the `checked N trees` line matches what you asked for. And **the
-tree-level finding count is a poor progress metric**: one bug flags an entire
-tree, so it barely moves across real fixes. Track the feature histogram over the
-minimized findings instead.
-
-### Conformance scoreboard
-
-A subset of [web-platform-tests](https://github.com/web-platform-tests/wpt) is
-imported through the same Chrome oracle, giving a finite, spec-organized
-denominator that fuzzing cannot provide.
-
-```bash
-pnpm wpt-import          # classify + rewrite (needs a WPT checkout)
-pnpm wpt-score           # pass/fail per suite and per spec section
-pnpm wpt-score --write-quarantine
-```
-
-WPT supplies *inputs* only: its own expectations and reference pages are never
-consumed, so reftests import too. Classification is a conservative allowlist —
-a false skip only costs corpus, while a false import would poison the score.
-Tests the harness structurally cannot express (`order`, anonymous flex/grid
-items, self-set `box-sizing`) are excluded at import rather than left failing.
-
-Currently **418/428 (97.7%)**: css-flexbox, css-sizing and css-align at 100%,
-css-grid at 96%. Failing fixtures live in `tests/fixtures/wpt-quarantine.json`
-so `pnpm test` stays green; the scoreboard owns the red. Promote a fixture by
-deleting its quarantine entry in the same commit as the fix.
-
-Never shrink the denominator to raise the number — dropping tests that pass
-inflates the score, which is the one thing this metric exists to prevent.
-
-## Scope
-
-Flexbox, CSS Grid, CSS block layout, and the full box model. Not implemented:
-named grid lines / `grid-template-areas`, floats, `calc()`, inline layout,
-subgrid. The compute modules keep Taffy's algorithm structure
-(`src/compute/flexbox.ts`, `src/compute/block.ts`, and `src/compute/grid/*` map
-module-by-module to Taffy's `compute/`), so future upstream fixes are easy to
-carry over.
-
-## Development
-
-```bash
-pnpm install
-pnpm test        # vitest: conformance fixtures + unit tests
-pnpm build       # emit ESM + .d.ts to dist/
-```
+MIT

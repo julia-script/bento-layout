@@ -1,15 +1,24 @@
 ---
 title: Introduction
-description: A lightweight flexbox, grid, and block layout engine in plain TypeScript.
+description: A flexbox, CSS Grid, and block layout engine in plain TypeScript — no WASM, no dependencies, no node lifecycle to manage.
 ---
 
-`bento-layout` computes CSS layout — flexbox, grid, and block — without a browser.
-You give it a tree of styled nodes, it tells you where every box ends up.
+`bento-layout` is a flexbox, CSS Grid, and block layout engine in plain
+TypeScript. Style data goes in, pixel positions come out — and that is the
+whole transaction. No WASM binary to load, no async initialization, no engine
+instance to register nodes with, no `free()` or `destroy()` to remember:
+nodes are ordinary JavaScript objects with ordinary lifetimes, and an
+unreferenced subtree is just garbage collected. Zero runtime dependencies.
+
+It computes geometry, full stop. It does not paint, own a DOM, or parse CSS
+strings — which makes it the layout half of a canvas renderer, a terminal UI,
+a PDF generator, or an SVG diagram, without dragging in the rest of a browser.
 
 ## Try it
 
-Every demo on this site is live. Edit the tree and the engine re-lays it out as
-you type — this is the real engine running in your browser, not a recording.
+Every demo on this site is live: edit the source and the real engine re-lays
+it out as you type. Try changing `alignItems` to `'flex-start'`, or giving
+the middle node `flexGrow: 2`.
 
 <Demo>
 {`<Layout>
@@ -22,72 +31,88 @@ you type — this is the real engine running in your browser, not a recording.
 </Layout>`}
 </Demo>
 
-Try changing `alignItems` to `'flex-start'`, or giving the middle node
-`flexGrow: 2`.
+Demos accept CSS-shaped strings (`'100px'`, `'50%'`, `'1fr'`) because the
+playground ships a small CSS-ish parser. The library itself deliberately does
+not: in your code, values are structured data — `100`, `{ percent: 0.5 }`,
+`{ fr: 1 }` — so the engine's input stays unambiguous. The
+[style reference](/docs/reference/style-properties) covers the whole
+vocabulary.
 
-## Two dialects
+## Quick start
 
-Demo source accepts CSS-shaped strings — `'100px'`, `'50%'`, `'1fr'`,
-`'center'` — because that is how you would write the same thing in a
-stylesheet, and it keeps demos readable.
-
-The library itself takes **structured values only**. There is no CSS parser in
-`bento-layout`, so the same layout in your own code reads:
+```bash
+npm install bento-layout
+```
 
 ```typescript
 import { LayoutNode, computeLayout } from 'bento-layout';
 
-const middle = LayoutNode.make({ flexGrow: 1, height: 60 });
-const root = LayoutNode.make(
-  {
-    width: 440,
-    height: 160,
-    columnGap: 12,
-    alignItems: { keyword: 'center', safe: false },
-  },
-  [
-    LayoutNode.make({ width: 100, height: 100 }),
-    middle,
-    LayoutNode.make({ width: 100, height: 100 }),
-  ],
-);
+const left = LayoutNode.make({ flexGrow: 1 });
+const right = LayoutNode.make({ flexGrow: 1 });
+const root = LayoutNode.make({ width: 400, height: 300 }, [left, right]);
 
 computeLayout(root, { width: 'max-content', height: 'max-content' });
-middle.layout.size; // { width: 216, height: 60 }
+
+left.layout.size; // { width: 200, height: 300 }
+right.layout.location; // { x: 200, y: 0 }
 ```
 
-Lengths are numbers and percentages are `{ percent: 0.5 }` fractions. The
-uniform shorthands do exist — `padding: 16` sets all four sides, `gap: 8` both
-gutters, and an object sets some of them:
+That is the entire setup: import, build a tree, lay it out, read positions
+back. It runs the same in Node, a browser, a worker, or an edge runtime —
+there is no loader and no sync-vs-async API fork, because there is nothing to
+load.
 
-```typescript
-LayoutNode.make({ padding: 16 });                   // all four sides
-LayoutNode.make({ padding: { top: 8, bottom: 8 } }); // just those two
-LayoutNode.make({ padding: 16, paddingTop: 0 });    // 16, except the top
-```
+## What's in the box
 
-What does not exist is the multi-value string form — no `padding: '10px 20px'`,
-no `margin: '0 auto'` — since there is no CSS parser to read it. The demo
-dialect's strings are a convenience for these pages; what you write in your
-project is the structured form above.
+- **Three layout modes, one tree.** Flexbox, CSS Grid, and block layout (with
+  margin collapsing per CSS 2.2) over the full box model: min/max constraints,
+  aspect ratios, percentages, auto margins, absolute positioning, RTL,
+  `box-sizing`, gaps, alignment including `safe` variants, and scrollbar
+  gutters. The modes compose freely — a grid inside a flex row inside a block
+  page is the normal case, not a special one. That is exactly what this is:
 
-## Grid and block too
-
-The same engine handles grid:
-
-<Demo>
+<Demo height={260}>
 {`<Layout>
-  <Node style={{display: 'grid', width: '440px', height: '180px',
-                gridTemplateColumns: '120px 1fr 1fr',
-                gridTemplateRows: 'repeat(2, 1fr)',
-                gap: '8px'}}>
-    <Node style={{gridRowEnd: 'span 2'}} />
-    <Node />
-    <Node />
-    <Node />
-    <Node />
+  <Node style={{display: 'block', width: '440px', padding: '12px'}}>
+    <Node style={{height: '32px', marginBottom: '12px'}} />
+    <Node style={{display: 'flex', columnGap: '12px', height: '150px'}}>
+      <Node style={{width: '120px'}} />
+      <Node style={{flexGrow: 1, display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gridAutoRows: '69px', gap: '12px'}}>
+        <Node style={{}} />
+        <Node style={{}} />
+        <Node style={{}} />
+        <Node style={{}} />
+        <Node style={{}} />
+        <Node style={{}} />
+      </Node>
+    </Node>
   </Node>
 </Layout>`}
 </Demo>
+- **Plain data in, plain objects out.** `LayoutNode.make(style, children)`
+  takes flat camelCase CSS properties, the same spelling as `element.style`.
+  Results come back through the `layout` getter, snapped to whole pixels the
+  way browsers round — or unrounded, your choice.
+- **Content measures itself.** Leaf nodes take a measure callback, so text and
+  images report their own size. See
+  [Measuring content](/docs/guides/measuring-content).
+- **Verified against a browser.** Every conformance fixture is geometry
+  extracted from a pinned Chrome — 5,304 fixtures at 0.1px tolerance, plus a
+  differential fuzzer and a WPT scoreboard on the same oracle.
+  [How correctness is verified](/docs/explanation/correctness) has the whole
+  story.
 
-Head to the [playground](/playground) for a larger canvas.
+## Where next
+
+- [Getting started](/docs/getting-started) — a tutorial from install to a
+  working ASCII renderer, in about fifteen minutes.
+- Guides: [Measuring content](/docs/guides/measuring-content),
+  [Grid layouts](/docs/guides/grid-layouts), and
+  [Driving a renderer](/docs/guides/rendering).
+- Reference: [the API](/docs/reference/api),
+  [every style property](/docs/reference/style-properties), and
+  [what CSS is covered](/docs/reference/css-coverage).
+- Background: [why plain TypeScript](/docs/explanation/why-typescript) and
+  [how correctness is verified](/docs/explanation/correctness).

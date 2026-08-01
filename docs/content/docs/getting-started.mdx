@@ -1,0 +1,353 @@
+---
+title: Getting started
+description: From install to a working text-measuring ASCII renderer, step by step.
+---
+
+In this tutorial you will build a small layout from nothing: a screen frame
+with a header, body, and footer, text that wraps and reports its own height,
+and — at the end — a tiny renderer that paints the whole tree in your
+terminal. Along the way you will use every core piece of the library:
+building a tree, laying it out, reading positions back, changing styles, and
+measuring content.
+
+You need Node 18 or newer and a terminal. The tutorial takes about fifteen
+minutes. It assumes you know TypeScript and have met flexbox before; nothing
+else.
+
+## Set up
+
+Create a project and install the library, plus `tsx` to run TypeScript
+directly:
+
+```bash
+mkdir hello-layout && cd hello-layout
+npm init -y
+npm install bento-layout
+npm install -D tsx
+```
+
+There is no other setup — no loader, no async initialization, no engine to
+instantiate. Create a file called `layout.ts`; you will run it after each
+step with:
+
+```bash
+npx tsx layout.ts
+```
+
+## First boxes
+
+Put this in `layout.ts`:
+
+```typescript
+import { LayoutNode, computeLayout } from 'bento-layout';
+
+const left = LayoutNode.make({ flexGrow: 1 });
+const right = LayoutNode.make({ flexGrow: 1 });
+const root = LayoutNode.make({ width: 400, height: 300 }, [left, right]);
+
+computeLayout(root, { width: 'max-content', height: 'max-content' });
+
+console.log(left.layout.size);
+console.log(right.layout.location);
+```
+
+Run it. You should see:
+
+```
+{ width: 200, height: 300 }
+{ x: 200, y: 0 }
+```
+
+Three things just happened. `LayoutNode.make(style, children)` built a tree
+from plain style objects — camelCase CSS properties, numbers for pixels.
+`computeLayout` walked the tree and wrote a position and size into every
+node. And the `layout` getter read the result back: two `flexGrow: 1`
+children split a 400px row evenly, so each is 200 wide and the second starts
+at `x: 200`.
+
+The second argument to `computeLayout` is the space the root is laid into.
+`'max-content'` means "no constraint — size to content"; since our root has
+an explicit `width` and `height`, it simply uses those.
+
+## Space: gaps and padding
+
+Give the root a gap between its children and padding around them. Change the
+root line to:
+
+```typescript
+const root = LayoutNode.make(
+  { width: 400, height: 300, columnGap: 10, padding: 16 },
+  [left, right],
+);
+```
+
+Run again:
+
+```
+{ width: 179, height: 268 }
+{ x: 205, y: 16 }
+```
+
+Every number moved. The padding pushed both children in by 16 (that is the
+`y`), the gap took 10 more from the middle, and the remaining 358px split
+into 179 each: `16 + 179 + 10 = 205`.
+
+`padding: 16` is a shorthand: one value sets all four sides. An object form,
+`padding: { top: 8, bottom: 8 }`, would set only the sides it names.
+Positions are relative to the parent's border box — that is why `x` includes
+the padding but nothing outside the root.
+
+## An app frame
+
+Now build something with a shape you will recognize: a fixed header and
+footer with a body that takes whatever is left. Replace the whole file:
+
+```typescript
+import { LayoutNode, computeLayout } from 'bento-layout';
+
+const header = LayoutNode.make({ height: 60 });
+const body = LayoutNode.make({ flexGrow: 1 });
+const footer = LayoutNode.make({ height: 40 });
+
+const frame = LayoutNode.make(
+  { flexDirection: 'column', width: 320, height: 480 },
+  [header, body, footer],
+);
+
+computeLayout(frame, { width: 'max-content', height: 'max-content' });
+
+console.log('header', header.layout.size);
+console.log('body  ', body.layout.size, body.layout.location);
+console.log('footer', footer.layout.location);
+```
+
+```
+header { width: 320, height: 60 }
+body   { width: 320, height: 380 } { x: 0, y: 60 }
+footer { x: 0, y: 440 }
+```
+
+The body got `480 − 60 − 40 = 380` pixels — `flexGrow: 1` claims the
+leftover space. All three children are 320 wide without asking: in a column,
+the cross axis is horizontal, and flex items stretch across it by default.
+
+Here is the same frame drawn by the engine. Change the header's `height`, or
+give the footer `flexGrow: 1` too, and watch the body give up its space:
+
+<Demo>
+{`<Layout>
+  <Node style={{flexDirection: 'column', width: '320px', height: '480px'}}>
+    <Node style={{height: '60px'}} />
+    <Node style={{flexGrow: 1}} />
+    <Node style={{height: '40px'}} />
+  </Node>
+</Layout>`}
+</Demo>
+
+## Change a style and lay out again
+
+Make the header taller. Add below the last `console.log`:
+
+```typescript
+header.setStyle({ height: 96 });
+computeLayout(frame, { width: 'max-content', height: 'max-content' });
+
+console.log('body now', body.layout.size, body.layout.location);
+```
+
+```
+body now { width: 320, height: 344 } { x: 0, y: 96 }
+```
+
+`setStyle` merges per property — it changed `height` and touched nothing
+else. Styles never take effect on their own: the next `computeLayout` call
+is what recomputes the tree, and each call is a full, from-scratch layout.
+Call it once per frame in which something changed, not once per mutation.
+
+## Text that measures itself
+
+The engine positions boxes; it knows nothing about glyphs, images, or
+anything else *inside* a box. Leaves bridge that gap with a measure
+function: the engine calls it with the constraints it has resolved so far,
+and the function answers with a content size.
+
+Add a fake text measurer — a fixed-width font, eight pixels per character:
+
+```typescript
+import { LayoutNode, computeLayout, type MeasureFunction } from 'bento-layout';
+
+const CHAR_W = 8;
+const LINE_H = 18;
+const text =
+  'Layout without a browser: flexbox, grid, and block in plain TypeScript.';
+
+const measureText: MeasureFunction = (known, available) => {
+  const fullWidth = text.length * CHAR_W;
+  const longestWord = Math.max(...text.split(' ').map((w) => w.length * CHAR_W));
+
+  let width: number;
+  if (known.width !== null) width = known.width;
+  else if (available.width === 'min-content') width = longestWord;
+  else if (available.width === 'max-content') width = fullWidth;
+  else width = Math.min(available.width, fullWidth);
+
+  const lines = Math.max(1, Math.ceil(fullWidth / Math.max(width, longestWord)));
+  return { width, height: known.height ?? lines * LINE_H };
+};
+```
+
+Read the two arguments in order. `known` is authoritative: a non-`null` axis
+has already been decided, so honour it — text given a definite width wraps
+to it. `available` matters for axes still open, and it is either a number
+(space remaining) or an intrinsic question: `'max-content'` asks how wide
+the text would be on one line, `'min-content'` asks for the narrowest
+workable width — the longest unbreakable word. Answering `'min-content'`
+with the full one-line width is the classic mistake: the engine treats that
+answer as a hard floor, and the label refuses to shrink below it.
+
+Attach it to a leaf inside the body:
+
+```typescript
+const label = LayoutNode.make({ margin: 12 }).setMeasure(measureText);
+body.appendChild(label);
+
+computeLayout(frame, { width: 'max-content', height: 'max-content' });
+console.log('label', label.layout.size, label.layout.location);
+```
+
+```
+label { width: 296, height: 320 } { x: 12, y: 12 }
+```
+
+The width is right — 320 minus two 12px margins — but the height filled the
+whole body. That is not a bug: the body is a flex container, and a lone flex
+item stretches across the cross axis by default, exactly as in CSS. Both
+containers below hold the same 160×40 child; only the right one says
+`alignItems: 'flex-start'`:
+
+<Demo height={160}>
+{`<Layout>
+  <Node style={{width: '420px', height: '140px', columnGap: '20px'}}>
+    <Node style={{flexGrow: 1}}>
+      <Node style={{width: '160px', height: '40px'}} />
+    </Node>
+    <Node style={{flexGrow: 1, alignItems: 'flex-start'}}>
+      <Node style={{width: '160px', height: '40px'}} />
+    </Node>
+  </Node>
+</Layout>`}
+</Demo>
+
+Tell the body to align its items to the top the same way:
+
+```typescript
+body.setStyle({ alignItems: { keyword: 'flex-start', safe: false } });
+computeLayout(frame, { width: 'max-content', height: 'max-content' });
+console.log('label', label.layout.size, label.layout.location);
+```
+
+```
+label { width: 296, height: 36 } { x: 12, y: 12 }
+```
+
+Two lines of 18px — the text wrapped at 296px and reported its own height.
+(Alignment values are structured: CSS's `safe center` is one token, so here
+a keyword travels with its `safe` flag. The
+[style reference](/docs/reference/style-properties) lists every property's
+shape.)
+
+## Paint it
+
+Positions in `layout.location` are relative to each node's parent, so a
+renderer is one recursive walk that accumulates offsets. Yours will paint
+boxes into a character grid — eight pixels per column, sixteen per row:
+
+```typescript
+const SCALE = 8;
+
+function paint(root: LayoutNode): string {
+  const w = Math.ceil(root.layout.size.width / SCALE);
+  const h = Math.ceil(root.layout.size.height / SCALE / 2);
+  const grid: string[][] = Array.from({ length: h + 1 }, () =>
+    Array(w + 1).fill(' '),
+  );
+
+  const draw = (node: LayoutNode, px: number, py: number): void => {
+    const { location, size } = node.layout;
+    const x0 = Math.round((px + location.x) / SCALE);
+    const y0 = Math.round((py + location.y) / SCALE / 2);
+    const x1 = Math.round((px + location.x + size.width) / SCALE) - 1;
+    const y1 = Math.round((py + location.y + size.height) / SCALE / 2) - 1;
+
+    for (let x = x0; x <= x1; x++) grid[y0][x] = grid[y1][x] = '─';
+    for (let y = y0; y <= y1; y++) grid[y][x0] = grid[y][x1] = '│';
+    grid[y0][x0] = '┌';
+    grid[y0][x1] = '┐';
+    grid[y1][x0] = '└';
+    grid[y1][x1] = '┘';
+
+    for (const child of node.children) {
+      draw(child, px + location.x, py + location.y);
+    }
+  };
+
+  draw(root, 0, 0);
+  return grid.map((row) => row.join('')).join('\n');
+}
+
+console.log(paint(frame));
+```
+
+```
+┌──────────────────────────────────────┐
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+┌──────────────────────────────────────┐
+│ ┌───────────────────────────────────┐│
+│ └───────────────────────────────────┘│
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+┌──────────────────────────────────────┐
+└──────────────────────────────────────┘
+```
+
+There is your frame: tall header, the wrapped label sitting at the top of
+the body, footer at the bottom. You have written a renderer — the
+accumulate-and-draw walk is the same loop a canvas, SVG, or PDF back-end
+uses, with `fillRect` in place of box-drawing characters.
+
+## Where you are
+
+You have used the whole core surface: `LayoutNode.make`, `computeLayout`,
+the `layout` getter, `setStyle`, `appendChild`, and `setMeasure`. That is
+not a starter subset — it is most of the API.
+
+From here:
+
+- [Measuring content](/docs/guides/measuring-content) — real text metrics,
+  images, caching, and the min-content contract in depth.
+- [Grid layouts](/docs/guides/grid-layouts) — the second layout mode, with
+  the structured track vocabulary.
+- [Driving a renderer](/docs/guides/rendering) — rounding, paint order,
+  scrolling content, and re-layout loops beyond this tutorial's sketch.
+- [The API reference](/docs/reference/api) — every method, precisely.

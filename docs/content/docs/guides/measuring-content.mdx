@@ -1,0 +1,191 @@
+---
+title: Measuring content
+description: How to size text, images, and other content the engine cannot see.
+---
+
+The engine positions boxes; it has no notion of glyphs or image files. When a
+leaf's size depends on what is *inside* it, attach a measure function — the
+engine calls it during layout with the constraints resolved so far, and your
+function answers with a content size. This guide shows how to write one for
+the common cases.
+
+## Attach a measure function
+
+```typescript
+import { LayoutNode, computeLayout } from 'bento-layout';
+
+const icon = LayoutNode.make().setMeasure(() => ({ width: 24, height: 24 }));
+```
+
+Two rules govern when it runs:
+
+- **Only leaves are measured.** A node with children sizes from its children;
+  its measure function is never called.
+- A leaf without a measure function and without a styled size is zero-sized.
+
+## Follow the contract
+
+A measure function receives `(knownDimensions, availableSpace)` and returns a
+content-box size in pixels. Read the arguments in order:
+
+1. **`knownDimensions` is authoritative.** A non-`null` axis has already been
+   decided by styles or the layout algorithm; returning anything else for it
+   is ignored. The useful move is to honour it — text given a definite width
+   should wrap to it and report the resulting height.
+2. **`availableSpace` applies to axes still `null`.** Each axis is either a
+   number (space remaining) or an intrinsic question: `'max-content'` asks
+   how big the content wants to be with unlimited room; `'min-content'` asks
+   for the smallest workable size — for text, the longest unbreakable word.
+
+Answering `'min-content'` with the full one-line width is the classic
+mistake: flex and grid treat that answer as the item's automatic minimum
+size, and the item then refuses to shrink below it, overflowing its
+container.
+
+Expect several calls per layout under different constraints — typically a
+`'min-content'` probe, a `'max-content'` probe, and a final call with a
+definite width. Keep the function pure and cheap; it sits in the hot path.
+
+## Measure real text
+
+In a browser or worker, wrap the canvas text measurer:
+
+```typescript
+import type { MeasureFunction } from 'bento-layout';
+
+const ctx = document.createElement('canvas').getContext('2d')!;
+ctx.font = '16px sans-serif';
+
+function measureParagraph(text: string, lineHeight = 22): MeasureFunction {
+  const words = text.split(' ');
+  const wordWidths = words.map((w) => ctx.measureText(w + ' ').width);
+  const fullWidth = ctx.measureText(text).width;
+  const longestWord = Math.max(...wordWidths);
+
+  return (known, available) => {
+    let width: number;
+    if (known.width !== null) width = known.width;
+    else if (available.width === 'min-content') width = longestWord;
+    else if (available.width === 'max-content') width = fullWidth;
+    else width = Math.min(available.width, fullWidth);
+
+    // Greedy line breaking against the chosen width.
+    let lines = 1;
+    let lineWidth = 0;
+    for (const w of wordWidths) {
+      if (lineWidth + w > width && lineWidth > 0) {
+        lines += 1;
+        lineWidth = 0;
+      }
+      lineWidth += w;
+    }
+    return { width, height: known.height ?? lines * lineHeight };
+  };
+}
+
+const paragraph = LayoutNode.make().setMeasure(
+  measureParagraph('The engine calls, the text answers.'),
+);
+```
+
+The shape is always the same: precompute what you can outside the closure,
+answer the two intrinsic questions honestly, and wrap when handed a definite
+width. For a terminal UI the same function works with
+`width = charCount * cellWidth` in place of `measureText`.
+
+The result is a box that trades width for height. Below is what that
+function returns for one paragraph at three widths — 440, 220, and 120 —
+laid out as fixed sizes, since demos on this site cannot carry callbacks:
+
+<Demo height={180}>
+{`<Layout>
+  <Node style={{flexDirection: 'column', width: '440px', rowGap: '12px',
+                alignItems: 'flex-start'}}>
+    <Node style={{width: '440px', height: '18px'}} />
+    <Node style={{width: '220px', height: '36px'}} />
+    <Node style={{width: '120px', height: '72px'}} />
+  </Node>
+</Layout>`}
+</Demo>
+
+## Measure images
+
+If you know an image's size up front, you do not need a measure function at
+all — put it in the style, with `aspectRatio` if you want scaling handled by
+layout. Use a measure function when the node must *react* to the size layout
+offers, keeping its intrinsic ratio:
+
+```typescript
+const intrinsic = { width: 300, height: 150 };
+
+const image = LayoutNode.make().setMeasure((known) => {
+  const ratio = intrinsic.width / intrinsic.height;
+  if (known.width !== null) {
+    return { width: known.width, height: known.width / ratio };
+  }
+  if (known.height !== null) {
+    return { width: known.height * ratio, height: known.height };
+  }
+  return intrinsic;
+});
+
+const column = LayoutNode.make({ flexDirection: 'column', width: 200 }, [image]);
+computeLayout(column, { width: 'max-content', height: 'max-content' });
+
+image.layout.size; // { width: 200, height: 100 } — scaled, ratio kept
+```
+
+The column stretched the image to its 200px width (`known.width` was
+definite), and the function derived the height from the ratio.
+
+## Return the content box — padding is added for you
+
+A measure function reports content size only. The node's own padding and
+border are the engine's job:
+
+```typescript
+const badge = LayoutNode.make({ padding: 6, border: 2 }).setMeasure(() => ({
+  width: 40,
+  height: 16,
+}));
+
+const row = LayoutNode.make({}, [badge]);
+computeLayout(row, { width: 'max-content', height: 'max-content' });
+
+badge.layout.size; // { width: 56, height: 32 } — 40 + 2·6 + 2·2, 16 + 2·6 + 2·2
+```
+
+If you add padding inside the measure function too, it is counted twice.
+
+## Cache expensive measurement
+
+Real text shaping is not cheap, and the function runs several times per
+layout. Memoize on the inputs that matter:
+
+```typescript
+function cached(measure: MeasureFunction): MeasureFunction {
+  const memo = new Map<string, { width: number; height: number }>();
+  return (known, available) => {
+    const key = `${known.width}|${known.height}|${available.width}|${available.height}`;
+    let out = memo.get(key);
+    if (out === undefined) {
+      out = measure(known, available);
+      memo.set(key, out);
+    }
+    return out;
+  };
+}
+```
+
+Clear the memo when the content changes. The engine itself never holds a
+stale measurement — every `computeLayout` call is a full recompute — so the
+only cache you need to manage is your own.
+
+## When it does not fire
+
+- **The node has children.** Containers never measure; give the size to the
+  leaves instead.
+- **Both axes are already known.** If styles fully determine the size, the
+  measure function has nothing to decide, and the engine may skip calling it
+  entirely. That is fine — it is a fallback for content-driven sizing, not a
+  hook that always runs.

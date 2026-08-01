@@ -1,0 +1,188 @@
+---
+title: Driving a renderer
+description: How to paint a laid-out tree — coordinates, rounding, scrolling, and the re-layout loop.
+---
+
+The engine's output is a tree of positions and sizes; a renderer is the loop
+that turns them into pixels, glyphs, or path data. This guide covers the
+handful of decisions every back-end — canvas, SVG, PDF, terminal — has to
+make.
+
+## Walk the tree, accumulate offsets
+
+`layout.location` is relative to the **parent's border box**, not the
+viewport. Painting in absolute coordinates means accumulating positions on
+the way down:
+
+```typescript
+import type { LayoutNode } from 'bento-layout';
+
+function paint(node: LayoutNode, ctx: CanvasRenderingContext2D, px = 0, py = 0): void {
+  const { location, size } = node.layout;
+  const x = px + location.x;
+  const y = py + location.y;
+
+  ctx.strokeRect(x, y, size.width, size.height);
+
+  for (const child of node.children) {
+    paint(child, ctx, x, y);
+  }
+}
+```
+
+Children are stored in document order, and painting them in that order gives
+CSS's own stacking for boxes that overlap. When layout order and paint order
+diverge — `flexDirection: 'row-reverse'` positions children right-to-left —
+`layout.order` still holds the document index, so a renderer that sorts by
+something else can recover it.
+
+## The box model at paint time
+
+`layout.size` is always the **border box**, whatever the node's `boxSizing`
+was. The other fields are insets from it, so backgrounds, borders, and
+content each have a rectangle:
+
+```typescript
+const { size, border, padding } = node.layout;
+
+// Border box: paint the background here.
+// Content box: place text and children's coordinate origin reference here.
+const content = {
+  x: border.left + padding.left,
+  y: border.top + padding.top,
+  width: size.width - border.left - border.right - padding.left - padding.right,
+  height: size.height - border.top - border.bottom - padding.top - padding.bottom,
+};
+```
+
+`layout.margin` sits *outside* the border box and is already reflected in
+the node's `location` — do not add it again.
+
+## Rounding
+
+By default the layout you read is snapped to whole pixels the way a browser
+paints: each edge is rounded in viewport coordinates and sizes derive from
+the rounded edges, so adjacent boxes stay flush — no seams, no overlaps.
+Three equal columns in 100px come out 33/34/33, still summing to 100:
+
+```typescript
+import { LayoutNode, computeLayout } from 'bento-layout';
+
+const cols = [LayoutNode.make({ flexGrow: 1 }), LayoutNode.make({ flexGrow: 1 }), LayoutNode.make({ flexGrow: 1 })];
+const row = LayoutNode.make({ width: 100, height: 30 }, cols);
+
+computeLayout(row, { width: 'max-content', height: 'max-content' });
+cols.map((c) => c.layout.size.width); // [33, 34, 33]
+cols.map((c) => c.layout.location.x); // [0, 33, 67]
+```
+
+Rounding a width in isolation cannot make that flushness guarantee — which
+is why you should never round the values yourself. The three columns below
+are drawn from the engine's own numbers, so the edges you see are the edges
+it computed — no seams, despite the thirds:
+
+<Demo height={140}>
+{`<Layout>
+  <Node style={{width: '100px', height: '48px'}}>
+    <Node style={{flexGrow: 1}} />
+    <Node style={{flexGrow: 1}} />
+    <Node style={{flexGrow: 1}} />
+  </Node>
+</Layout>`}
+</Demo>
+
+If your back-end does its own subpixel positioning — canvas with
+transforms, SVG, a scaled scene — take the exact values instead. They are
+always available on `unroundedLayout`, whether or not rounding is on:
+
+```typescript
+cols[0].unroundedLayout.size.width; // 33.33333333333333
+```
+
+Or turn rounding off wholesale, which leaves `layout` itself fractional:
+
+```typescript
+computeLayout(row, { width: 'max-content', height: 'max-content' }, { rounding: false });
+cols[0].layout.size.width; // 33.33333333333333
+```
+
+Use rounded values for pixel grids (terminal cells, unscaled canvas), and
+unrounded ones wherever the renderer accumulates or scales coordinates —
+rounding twice compounds error.
+
+## Scrolling content
+
+The engine does not scroll — it reports what a scroll container would need.
+Compare `contentSize` with `size` to decide whether to paint a scrollbar and
+how far the content can move; `scrollbarSize` is the gutter reserved by
+`scrollbarWidth` on axes with `overflow: 'scroll'`:
+
+```typescript
+const inner = LayoutNode.make({ width: 400, height: 500 });
+const pane = LayoutNode.make(
+  { width: 200, height: 200, overflowY: 'scroll', scrollbarWidth: 12 },
+  [inner],
+);
+
+computeLayout(pane, { width: 'max-content', height: 'max-content' });
+
+pane.layout.size; // { width: 200, height: 200 }
+pane.layout.contentSize.height; // 500 — scrollable: 300px of travel
+pane.layout.scrollbarSize; // { width: 12, height: 0 } — reserved gutter
+```
+
+Seen as boxes, the overflow is literal — the inner box is drawn spilling
+past the pane that contains it, and the pane is 12px narrower inside than
+out because of the reserved gutter:
+
+<Demo height={200}>
+{`<Layout>
+  <Node style={{width: '260px', height: '160px'}}>
+    <Node style={{width: '200px', height: '200px', overflowY: 'scroll',
+                  scrollbarWidth: '12px'}}>
+      <Node style={{width: '400px', height: '260px'}} />
+    </Node>
+  </Node>
+</Layout>`}
+</Demo>
+
+A scroll offset is then the renderer's job: clip to the pane's box and
+translate children by the offset when painting. Note that `overflow:
+'hidden'` and `'scroll'` also change layout itself — a scroll container's
+automatic minimum size is zero, so it shrinks where a `'visible'` box would
+refuse.
+
+## The re-layout loop
+
+Mutate freely between frames — `setStyle`, `appendChild`, `removeChild`,
+`setMeasure` — then lay out once and repaint:
+
+```typescript
+function frame(root: LayoutNode, viewport: { width: number; height: number }) {
+  computeLayout(root, viewport);
+  // …paint the tree…
+}
+```
+
+Two rules keep this honest:
+
+- **One `computeLayout` per frame in which something changed**, not one per
+  mutation. Every call is a full recompute; batching mutations is what makes
+  it cheap.
+- **Re-read `layout` after each call.** The getter returns a fresh object
+  each layout; a reference held across calls is stale.
+
+## Detached subtrees
+
+`removeChild` returns a live tree, not a corpse. A tooltip, a drag preview,
+or an off-screen page can be laid out on its own and re-attached later:
+
+```typescript
+const tooltip = app.removeChild(tooltipNode);
+computeLayout(tooltip, { width: 'max-content', height: 'max-content' });
+// …paint it in its own layer at the cursor…
+```
+
+Nothing needs freeing afterwards. Drop the reference and the subtree is
+garbage collected, like any other object — there is no node registry to
+leak.

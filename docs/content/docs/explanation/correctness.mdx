@@ -1,0 +1,87 @@
+---
+title: How correctness is verified
+description: Chrome as the oracle — the conformance pipeline, the differential fuzzer, and the WPT scoreboard.
+---
+
+A layout engine's hardest problem is not implementing the spec; it is
+knowing when it has. Specs are prose, edge cases interact, and a test suite
+written by the same hands as the engine inherits the same blind spots. This
+engine's answer is to make a browser the oracle: **conformance is defined
+as agreement with a pinned Chrome**, measured mechanically, with every
+disagreement either fixed or documented — never silently dropped.
+
+Any layout engine, in any language, could adopt this pipeline; nothing
+about it is specific to TypeScript.
+
+## The conformance pipeline
+
+Test fixtures start as small HTML files. An in-repo generator
+(`pnpm gentest`) renders each one in a pinned headless Chrome, extracts the
+geometry Chrome computed for every element, and commits it as XML
+expectations — four variants per fixture, covering both `box-sizing` modes
+in both LTR and RTL. From then on, `pnpm test` replays those expectations
+against the engine without a browser: 5,304 fixtures asserted at 0.1px
+tolerance, in seconds.
+
+The tolerance is not laziness about precision — it absorbs Chrome's own
+fixed-point coordinate representation (1/64px units), which the engine's
+rounding reproduces deliberately, down to the direction truncation flips
+under RTL.
+
+Committing the oracle's output, rather than querying a browser at test
+time, is what makes the suite fast, deterministic, and reviewable: when a
+fixture regenerates differently, the diff *is* the browser-behavior change.
+
+## The differential fuzzer
+
+Hand-written fixtures encode the failures someone imagined. The fuzzer
+(`pnpm fuzz`) covers the ones nobody did: it generates random style trees,
+lays them out in both the engine and Chrome, and flags any disagreement.
+Two properties make it useful rather than noisy:
+
+- **Every finding shrinks.** A disagreeing tree is minimized to the
+  smallest reproduction that still disagrees — typically two or three
+  nodes — before a human ever looks at it.
+- **Every finding becomes permanent.** Minimized reproductions are
+  committed as ordinary conformance fixtures, so a fuzz finding can never
+  regress silently.
+
+The fuzzer found real bugs inherited from the reference implementation —
+cases absent from Taffy's own fixture corpus, which is why its suite
+passes. Each is recorded in `UPSTREAM_TAFFY.md` with the minimized
+reproduction, the Chrome-vs-engine numbers, and a spec citation, staged for
+filing upstream once confirmed against Rust Taffy itself. Correctness debts
+flow back to the project this one started from.
+
+## The WPT scoreboard
+
+The third leg imports a spec-organized subset of
+[web-platform-tests](https://web-platform-tests.org/) — the suites browsers
+themselves test against: `css-flexbox`, `css-grid`, `css-sizing`,
+`css-align` — through the same Chrome-extraction pipeline. The score is a
+countable N-of-M per suite and per spec section, and failures are
+**quarantined in the open**: a failing WPT fixture stays in the repository,
+listed in a quarantine file the scoreboard reports against, rather than
+being dropped from the denominator. Newly-passing tests are flagged for
+promotion; newly-failing ones are flagged as regressions.
+
+## The divergence discipline
+
+Whatever the source — fixture, fuzzer, or WPT — an engine-vs-Chrome
+disagreement has exactly two legal states: fixed, or documented in
+`KNOWN_DIVERGENCES.md` with a minimized fixture and a spec citation
+explaining why the divergence is kept. There is currently one class-level
+entry (cyclic percentage resolution, where the spec itself is loose and
+matching Chrome would require multi-pass relayout) and zero fixture-level
+entries. "Zero silent divergence" is the invariant the whole pipeline
+exists to keep.
+
+## Why not just trust the port?
+
+The algorithms began as a port of Taffy's, and Taffy is good — but "the
+port matches the original" and "the original matches the browser" are
+different claims, and only the second one matters to someone whose
+CSS-trained intuition is the real spec. Defining conformance against
+Chrome, not against Taffy, is what lets the engine fix inherited bugs
+instead of faithfully reproducing them — and what makes its correctness
+claim measurable: run `pnpm test` and count.

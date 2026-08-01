@@ -1,0 +1,207 @@
+---
+title: API
+description: The complete runtime surface — computeLayout, LayoutNode, Layout, MeasureFunction, InvalidStyleError.
+---
+
+The package exports three runtime values — `LayoutNode`, `computeLayout`,
+and `InvalidStyleError` — plus the types needed to construct styles and read
+results. That is the whole surface; everything else in the source is
+internal.
+
+```typescript
+import { LayoutNode, computeLayout, InvalidStyleError } from 'bento-layout';
+import type { Layout, MeasureFunction, Style, StyleInput, AvailableSpace } from 'bento-layout';
+```
+
+## `computeLayout(root, availableSpace, options?)`
+
+```typescript
+function computeLayout(
+  root: LayoutNode,
+  availableSpace: Size<AvailableSpace>,
+  options?: ComputeLayoutOptions,
+): void;
+```
+
+Lays out the tree under `root`, writing a position and size into every node.
+Nothing is returned; results are read from each node's
+[`layout`](#get-layout) getter.
+
+- `root` — the node to treat as the top of the tree. It need not be the true
+  root of a larger tree: a detached subtree lays out as its own independent
+  root.
+- `availableSpace` — the space the root is laid into, per axis. Each axis is
+  a number of pixels, `'max-content'` ("no constraint — size to content"),
+  or `'min-content'` ("the narrowest the content allows"). It is an upper
+  bound rather than an assignment: a content-sized root can come out
+  smaller, and overflowing content can exceed it.
+- `options.rounding` — snap the result to whole pixels the way a browser
+  paints. Defaults to `true`. Rounding is cumulative: edges are rounded in
+  viewport coordinates and sizes derive from rounded edges, so adjacent
+  boxes stay flush. With `rounding: false`, `layout` holds exact fractional
+  values. Either way, `unroundedLayout` always holds the exact values.
+
+Every call is a full recompute: all caches are cleared first, so laying out
+an unchanged tree twice costs the same both times, and any mutation made
+between calls takes effect. Call it once per frame in which something
+changed, not once per mutation.
+
+**Throws** [`InvalidStyleError`](#invalidstyleerror) if the tree contains a
+style value that cannot be laid out. Styles are validated during layout, not
+at construction, so the error surfaces here.
+
+## `LayoutNode`
+
+A box in a layout tree: a style, a list of children, and — after
+`computeLayout` — a computed position and size. Nodes are ordinary
+JavaScript objects with ordinary lifetimes: no handles, no registry, no
+`free()`. An unreferenced subtree is garbage collected.
+
+Nodes are opaque: styles change through `setStyle`, structure through
+`appendChild` / `insertChild` / `removeChild`, results come out through
+getters. Assigning to a getter throws.
+
+### `new LayoutNode(style?, children?)` / `LayoutNode.make(style?, children?)`
+
+```typescript
+constructor(style?: StyleInput, children?: readonly LayoutNode[]);
+static make(style?: StyleInput, children?: readonly LayoutNode[]): LayoutNode;
+```
+
+`make` is the constructor as a static method, for use in expressions. The
+style is merged over the defaults, so pass only what differs. Note the
+defaults are Taffy's, not CSS's — most visibly `display: 'flex'` (see
+[Style properties](/docs/reference/style-properties#defaults)). Passing
+`children` is equivalent to calling `appendChild` for each in order, with
+the same reparenting and cycle rules.
+
+**Throws** `Error` if a node in `children` is this node or one of its
+ancestors.
+
+### `get style(): Readonly<Style>`
+
+The fully-resolved style, defaults filled in. Input values are copied on the
+way in, so no external reference can mutate a node's style. The `Readonly`
+guard is compile-time and shallow: writing through nested objects
+(`node.style.size.width = 300`) type-errors but is not blocked at runtime —
+it is unsupported and will break when mutation tracking lands. Change styles
+with `setStyle`.
+
+### `get children(): readonly LayoutNode[]`
+
+The node's children in layout order. The array is live, not a copy — it
+reflects later structural changes. Snapshot with `[...node.children]` if you
+mutate while iterating.
+
+### `get parentNode(): LayoutNode | null`
+
+The node this one is attached to; `null` for a root or detached node. Named
+after the DOM's `parentNode`.
+
+### `get layout(): Readonly<Layout>`
+
+The computed [`Layout`](#layout-1). All-zero until `computeLayout` has run
+over a tree containing this node. Pixel-rounded unless rounding was
+disabled. Each `computeLayout` call replaces the object — re-read the getter
+rather than holding the old reference.
+
+### `get unroundedLayout(): Readonly<Layout>`
+
+The layout before pixel rounding — exact fractional values. Populated on
+every `computeLayout` call whether or not rounding is enabled.
+
+### `setStyle(style: StyleInput): this`
+
+Merges the given properties over the node's current style, per property:
+setting `width` leaves `height` alone; setting `paddingLeft` leaves the
+other sides alone. Takes effect on the next `computeLayout`. Returns the
+node for chaining.
+
+### `setMeasure(measure: MeasureFunction | null): this`
+
+Attaches a callback that reports this node's intrinsic content size, or
+removes it with `null`. Only leaves are measured — a node with children
+sizes from its children and never calls its measure function. A leaf with
+neither a measure function nor a styled size is zero-sized. Returns the node
+for chaining.
+
+### `appendChild(child: LayoutNode): this`
+
+Adds `child` as the last child. A node has at most one parent, so this
+*moves* rather than shares: a child attached elsewhere is removed from its
+old parent first — including when the old parent is this node, which moves
+it to the end.
+
+**Throws** `Error` if `child` is this node or an ancestor (a cycle).
+
+### `insertChild(index: number, child: LayoutNode): this`
+
+Adds `child` at `index` (0 to `children.length` inclusive), shifting later
+siblings back. Same moving and cycle rules as `appendChild`. When reordering
+within the same parent, `index` is read against the list *before* the move —
+so `insertChild(children.length, child)` always means "move to the end".
+
+**Throws** `RangeError` for a non-integer or out-of-bounds index; `Error`
+for a cycle.
+
+### `removeChild(child: LayoutNode): LayoutNode`
+
+Detaches a direct child and returns it. The removed subtree stays fully
+alive: it keeps its children and styles, becomes a root in its own right,
+can be laid out standalone or re-attached elsewhere — or dropped, and the
+garbage collector reclaims it.
+
+**Throws** `Error` if `child` is not a direct child of this node.
+
+## `Layout`
+
+What `layout` and `unroundedLayout` return. All values in pixels. `size` is
+the **border box** regardless of the node's `boxSizing`.
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `location` | `Point<number>` | Top-left corner, relative to the **parent's** border box. Accumulate down the tree for absolute coordinates. |
+| `size` | `Size<number>` | Border-box size, padding and border included. |
+| `contentSize` | `Size<number>` | Extent of the content; exceeds `size` when content overflows. The scrollability test. |
+| `scrollbarSize` | `Size<number>` | Gutter reserved by `scrollbarWidth` on axes with `overflow: 'scroll'`; zero otherwise. |
+| `border` | `Rect<number>` | Resolved border widths, inside `size`. |
+| `padding` | `Rect<number>` | Resolved padding, inside the border. |
+| `margin` | `Rect<number>` | Resolved margins, outside `size`, already reflected in `location`. In block layout, vertical margins are post-collapse values. |
+| `order` | `number` | Paint order among siblings — the node's index in its parent, even when layout reverses positions (`row-reverse`). |
+
+## `MeasureFunction`
+
+```typescript
+type MeasureFunction = (
+  knownDimensions: Size<number | null>,
+  availableSpace: Size<AvailableSpace>,
+) => Size<number>;
+```
+
+Reports a leaf's content size under the given constraints. `knownDimensions`
+axes that are non-`null` have already been decided — honour them.
+`availableSpace` applies to the open axes: a number is space remaining;
+`'max-content'` asks for the unconstrained size; `'min-content'` asks for
+the smallest workable size. Return the **content-box** size — the engine
+adds the node's own padding and border. Called several times per layout with
+different constraints; keep it pure and cheap. See
+[Measuring content](/docs/guides/measuring-content) for working recipes.
+
+## `InvalidStyleError`
+
+Thrown by `computeLayout` — not by the constructor or `setStyle` — when a
+style value makes layout impossible. Deliberately narrow: values CSS defines
+as invalid-but-recoverable fall back the way browsers fall back (a grid line
+of `0` becomes `'auto'`) rather than throwing. The reachable causes are a
+`repeat()` whose track count is not finite, and an explicit grid line of `0`
+reached internally after fallback. The `name` property is
+`'InvalidStyleError'`; the message names the offending value.
+
+## Exported types
+
+The style vocabulary — `Style`, `StyleInput`, `Dimension`,
+`LengthPercentage`, `AvailableSpace`, alignment and grid track types — is
+covered property by property in
+[Style properties](/docs/reference/style-properties). Geometry helpers
+`Size<T>`, `Rect<T>` (`left`/`right`/`top`/`bottom`), and `Point<T>`
+(`x`/`y`) are plain object shapes with no methods.

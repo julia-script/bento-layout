@@ -1,0 +1,90 @@
+---
+title: CSS coverage
+description: What is implemented, what is deliberately out of scope, and where the engine knowingly differs from Chrome.
+---
+
+Scope here is chosen so that what *is* claimed is browser-verified rather
+than approximate: every supported feature is asserted against geometry
+extracted from a pinned Chrome — 5,304 conformance fixtures at 0.1px
+tolerance, each in four variants (`border-box` and `content-box`, LTR and
+RTL). [How correctness is verified](/docs/explanation/correctness) describes
+the pipeline.
+
+## Implemented
+
+**Three layout modes, composing freely in one tree:**
+
+- **Flexbox** — both axes and both reverse directions, wrapping including
+  `wrap-reverse`, grow/shrink resolution, `flexBasis`, baseline alignment,
+  and the automatic minimum size.
+- **CSS Grid** — explicit templates with fixed, percentage, `auto`,
+  intrinsic (`min-content` / `max-content`), flexible (`fr`), and
+  `fit-content()` tracks; `minmax()`; `repeat()` with counts, `'auto-fill'`,
+  and `'auto-fit'`; implicit tracks via `gridAutoRows` / `gridAutoColumns`;
+  auto-placement in all four `gridAutoFlow` modes; line- and span-based
+  placement with negative line numbers.
+- **Block layout** — normal flow with margin collapsing per CSS 2.2,
+  including collapse-through, and the legacy `text-align` inheritance for
+  block children.
+
+**Across all modes, the full box model:**
+
+- min/max constraints and the automatic minimum size
+- `aspectRatio`, including its interaction with min/max transfer
+- percentages (as structured fractions), resolved per CSS — against the
+  containing block's width on all four sides for padding, margin, and
+  border
+- auto margins, absolute positioning with inset stretching, RTL via
+  `direction`, both `boxSizing` modes
+- gaps, alignment including the `safe` variants, scrollbar gutters, and
+  `overflow`'s layout effects (scroll containers get a zero automatic
+  minimum)
+- measure callbacks for content-sized leaves
+- browser-faithful pixel rounding (cumulative, seam-free), or exact
+  unrounded output
+
+## Not implemented
+
+Deliberate scope boundaries, not roadmap gaps — each would either grow the
+library toward being a framework or dilute the browser-verified claim:
+
+- **Rendering, styling cascade, or a DOM.** The engine computes geometry
+  from resolved style data. No paint, no selectors, no inheritance.
+- **CSS string parsing.** Styles are structured data (`{ percent: 0.5 }`,
+  `{ fr: 1 }`), not `'50%'` strings. The docs playground's CSS-ish strings
+  are a playground feature, parsed by the docs site, never by the library.
+- **Floats and inline layout.** Boxes only; text lives behind measure
+  callbacks.
+- **`calc()`.** Values are numbers by the time they reach the engine —
+  compute arithmetic in TypeScript, where it is ordinary code.
+- **Named grid lines, `grid-template-areas`, and subgrid.** Grid placement
+  is by line number and span.
+- **The `order` property.** Layout order is the child list; reorder with
+  `insertChild`.
+
+## Known divergences from Chrome
+
+The policy: any engine-vs-Chrome disagreement is either fixed or documented
+in `KNOWN_DIVERGENCES.md` with a minimized fixture and a spec citation —
+zero silent divergence. Deliberate divergences are currently one
+class-level entry and no fixture-level ones:
+
+- **Cyclic percentage resolution.** A percentage sized against a containing
+  block that is itself sized by its contents (max-content sizing) is
+  loosely specified (css-sizing-3 §5.2, "behaves as auto" in cyclic cases).
+  Chrome effectively re-resolves such percentages after layout; this engine
+  (like Taffy) resolves them as indefinite during intrinsic sizing and does
+  not re-run layout. Matching Chrome would require multi-pass relayout.
+  In practice: give the containing block a definite size and percentages
+  resolve identically to Chrome.
+
+Where Chrome and Taffy disagree, this engine follows Chrome — each
+Taffy-inherited bug found that way is logged in `UPSTREAM_TAFFY.md` with a
+minimized reproduction and spec citation, staged for filing upstream.
+
+## Defaults differ from CSS
+
+The style defaults are Taffy's: `display: 'flex'` (CSS: `block`) and
+`boxSizing: 'border-box'` (CSS: `content-box`) are the two that change
+geometry relative to a stylesheet author's expectations. See
+[Style properties](/docs/reference/style-properties#defaults).

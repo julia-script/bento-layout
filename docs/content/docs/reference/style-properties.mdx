@@ -1,0 +1,267 @@
+---
+title: Style properties
+description: Every style property — types, defaults, shorthands, and the structured value vocabulary.
+---
+
+Styles are plain data. Keys are CSS longhand names in camelCase — the same
+spelling as `element.style` and React inline styles — and values are
+structured TypeScript, not CSS strings: `10` for pixels, `{ percent: 0.5 }`
+for 50%, `'auto'` for the keyword. There is no CSS parser in the library, so
+multi-value string shorthands (`padding: '10px 20px'`, `flex: '1 1 auto'`)
+do not exist; the uniform shorthands below do.
+
+## How input works
+
+- **Everything is optional.** Input is merged over the defaults at
+  construction, and `setStyle` merges per property over the node's current
+  style — setting `width` never touches `height`.
+- **Shorthands expand in cascade order.** Input is read in insertion order,
+  so a longhand after a shorthand overrides it:
+  `{ padding: 16, paddingTop: 0 }` is 16 on three sides, 0 on top.
+- **Values are copied.** Reusing one style template across nodes is safe;
+  no node can be reached through a style object you keep.
+
+## Values
+
+| Type | Forms | Used by |
+| --- | --- | --- |
+| `LengthPercentage` | `number` (px), `{ percent: number }` | padding, border, gaps |
+| `LengthPercentageAuto` | ...plus `'auto'` | margin, inset |
+| `Dimension` | same as `LengthPercentageAuto` | width/height, min/max, flexBasis |
+| `AvailableSpace` | `number`, `'min-content'`, `'max-content'` | `computeLayout`, measure functions |
+
+**Percentages are fractions, not 0–100 numbers**: `{ percent: 0.5 }` is
+50%, and `{ percent: 50 }` is 5000% — the single most common mistake when
+writing styles by hand. Percentages resolve against the containing block,
+and for `padding`, `margin`, and `border` they resolve against its *width*
+on all four sides, per CSS.
+
+## Defaults
+
+Defaults are Taffy's, not CSS's. Two differ from what a stylesheet author
+expects, and one more surprises people even though it matches CSS:
+
+- **`display` defaults to `'flex'`** (CSS: `block`). A bare
+  `LayoutNode.make()` is an empty flex row.
+- **`boxSizing` defaults to `'border-box'`** (CSS: `content-box`). A width
+  of 100 includes padding and border.
+- **`flexShrink` defaults to `1`** — same as CSS, but it means items shrink
+  below their basis unless told otherwise, which is the usual answer to
+  "why is my item narrower than I asked".
+
+The `boxSizing` difference is the one that moves pixels. Both boxes below ask
+for `width: 160, padding: 20`; the right one is `content-box`, so the padding
+is added outside the 160 and it paints 200 wide:
+
+<Demo height={150}>
+{`<Layout>
+  <Node style={{width: '420px', height: '120px', columnGap: '20px',
+                alignItems: 'flex-start'}}>
+    <Node style={{width: '160px', height: '80px', padding: '20px',
+                  boxSizing: 'border-box'}}>
+      <Node style={{flexGrow: 1, height: '40px'}} />
+    </Node>
+    <Node style={{width: '160px', height: '80px', padding: '20px',
+                  boxSizing: 'content-box'}}>
+      <Node style={{flexGrow: 1, height: '40px'}} />
+    </Node>
+  </Node>
+</Layout>`}
+</Demo>
+
+## Layout mode and box
+
+| Property | Type | Default |
+| --- | --- | --- |
+| `display` | `'flex' \| 'grid' \| 'block' \| 'none'` | `'flex'` |
+| `boxSizing` | `'border-box' \| 'content-box'` | `'border-box'` |
+| `direction` | `'ltr' \| 'rtl'` | `'ltr'` |
+| `position` | `'relative' \| 'absolute'` | `'relative'` |
+| `overflowX`, `overflowY` | `'visible' \| 'clip' \| 'hidden' \| 'scroll'` | `'visible'` |
+| `scrollbarWidth` | `number` | `0` |
+| `aspectRatio` | `number \| null` | `null` |
+| `textAlign` | `'auto' \| 'legacy-left' \| 'legacy-right' \| 'legacy-center'` | `'auto'` |
+
+- `display` selects the algorithm the node runs *for its children*;
+  `'none'` removes the node and its subtree from layout entirely.
+- `direction: 'rtl'` mirrors the inline axis: rows lay out right-to-left
+  and start/end edges flip.
+- `position: 'absolute'` takes the node out of flow; it is positioned
+  against its containing block using the [inset properties](#position-offsets)
+  and no longer affects siblings.
+- `overflow` matters to layout, not just painting: `'hidden'` and
+  `'scroll'` make the node a scroll container, which sets its automatic
+  minimum size to zero (so it can shrink where a `'visible'` box refuses),
+  and `'scroll'` additionally reserves `scrollbarWidth` as a gutter on that
+  axis.
+- `aspectRatio` is width/height — `2` is twice as wide as tall. It supplies
+  the *automatic* size for an axis left `'auto'`; a definite size on that
+  axis wins over the ratio.
+- `textAlign` exists for CSS 2's legacy block alignment inheritance only;
+  the engine lays out boxes, not glyphs.
+
+## Sizing
+
+| Property | Type | Default |
+| --- | --- | --- |
+| `width`, `height` | `Dimension` | `'auto'` |
+| `minWidth`, `minHeight` | `Dimension` | `'auto'` |
+| `maxWidth`, `maxHeight` | `Dimension` | `'auto'` |
+
+Sizes are interpreted per `boxSizing` and clamped by min/max. A min of
+`'auto'` is **not zero**: for flex and grid items it is CSS's *automatic
+minimum size*, flooring the item at its content's min-content size so text
+does not collapse to nothing. To allow full shrinkage, set the min to `0`
+explicitly — or make the node a scroll container, which has the same
+effect.
+
+## Spacing
+
+| Property | Type | Default |
+| --- | --- | --- |
+| `paddingLeft/Right/Top/Bottom` | `LengthPercentage` | `0` |
+| `borderLeft/Right/Top/Bottom` | `LengthPercentage` | `0` |
+| `marginLeft/Right/Top/Bottom` | `LengthPercentageAuto` | `0` |
+
+Border is thickness only — geometry, not paint. An `'auto'` margin absorbs
+free space, which is the centering idiom: `marginLeft: 'auto', marginRight:
+'auto'`. In block layout, adjacent vertical margins collapse per CSS 2.2,
+so the rendered gap can be smaller than the sum, and `layout.margin`
+reports the post-collapse values.
+
+**Shorthands** — `padding`, `margin`, `border` each accept one value for
+all four sides, or an object naming only the sides to set:
+
+```typescript
+LayoutNode.make({ padding: 16 }); // all four sides
+LayoutNode.make({ padding: { top: 8, bottom: 8 } }); // named sides only
+LayoutNode.make({ padding: 16, paddingTop: 0 }); // 16 everywhere except top
+LayoutNode.make({ margin: 'auto' }); // centers on both axes
+```
+
+That last one is worth seeing — a uniform `'auto'` margin absorbs the free
+space on every side, which centers the box without any alignment property:
+
+<Demo height={140}>
+{`<Layout>
+  <Node style={{width: '400px', height: '100px'}}>
+    <Node style={{width: '120px', height: '60px', margin: 'auto'}} />
+  </Node>
+</Layout>`}
+</Demo>
+
+## Position offsets
+
+| Property | Type | Default |
+| --- | --- | --- |
+| `left`, `right`, `top`, `bottom` | `LengthPercentageAuto` | `'auto'` |
+
+Used when `position` is `'absolute'`; CSS calls the group `inset`. `'auto'`
+means "no constraint from this edge". Giving both opposite edges definite
+values stretches the box between them — the way to fill a container without
+stating a size. The `inset` shorthand takes one value or a
+`{ top, right, bottom, left }` object.
+
+## Flexbox
+
+| Property | Type | Default |
+| --- | --- | --- |
+| `flexDirection` | `'row' \| 'column' \| 'row-reverse' \| 'column-reverse'` | `'row'` |
+| `flexWrap` | `'nowrap' \| 'wrap' \| 'wrap-reverse'` | `'nowrap'` |
+| `flexBasis` | `Dimension` | `'auto'` |
+| `flexGrow` | `number` | `0` |
+| `flexShrink` | `number` | `1` |
+
+`flexBasis` beats `width`/`height` on the main axis; `'auto'` falls back to
+that size and then to content. `flexGrow` shares leftover space in
+proportion to siblings' factors; `flexShrink` shares overflow weighted by
+basis and cannot shrink an item past its min size.
+
+## Alignment
+
+Alignment values are structured: CSS's `safe center` is one token, so here
+a keyword travels with its `safe` flag —
+`{ keyword: 'center', safe: false }`. With `safe: true`, an item bigger
+than its container falls back to `'start'` alignment so the overflow spills
+off the reachable end; `safe: false` matches CSS's default (`unsafe`)
+behavior.
+
+| Property | Keywords | Applies to |
+| --- | --- | --- |
+| `alignItems` | `start end flex-start flex-end center baseline stretch` | container; cross/block axis |
+| `alignSelf` | same | item, overriding parent's `alignItems` |
+| `justifyItems` | same | grid container; inline axis |
+| `justifySelf` | same | grid item, overriding `justifyItems` |
+| `alignContent` | ...plus `space-between space-around space-evenly` | container; lines/tracks, cross axis |
+| `justifyContent` | same as `alignContent` | container; main/inline axis |
+
+All default to `null` — "use the algorithm's default" (stretch for flex
+items, for instance). `flex-start`/`flex-end` follow the flex direction and
+so swap under `row-reverse` or RTL; `start`/`end` are absolute.
+`justifyItems`/`justifySelf` are grid-only, as in CSS — flex items ignore
+them. `alignContent` needs multiple lines or tracks to have anything to
+distribute.
+
+## Gaps
+
+| Property | Type | Default |
+| --- | --- | --- |
+| `columnGap` | `LengthPercentage` | `0` |
+| `rowGap` | `LengthPercentage` | `0` |
+
+Gutters between items in flex and grid; never added before the first or
+after the last item. The `gap` shorthand takes one value for both, or
+`{ row, column }`.
+
+## Grid container
+
+| Property | Type | Default |
+| --- | --- | --- |
+| `gridTemplateColumns`, `gridTemplateRows` | `GridTemplateComponent[]` | `[]` |
+| `gridAutoColumns`, `gridAutoRows` | `TrackSizingFunction[]` | `[]` (implicit tracks `auto`) |
+| `gridAutoFlow` | `'row' \| 'column' \| 'row-dense' \| 'column-dense'` | `'row'` |
+
+A track is a `{ min, max }` pair — CSS `minmax()` with both halves always
+stated. `min` accepts lengths, percentages, `'auto'`, `'min-content'`, and
+`'max-content'`; `max` additionally accepts `{ fr: n }` and
+`{ fitContent: length }` — the two things only a maximum can express. A
+template entry is either a track or a
+`{ repeat: count, tracks: [...] }` object, where `count` is a positive
+integer, `'auto-fill'`, or `'auto-fit'`.
+
+The single-value CSS track forms translate mechanically:
+
+| CSS | Structured |
+| --- | --- |
+| `100px` | `{ min: 100, max: 100 }` |
+| `25%` | `{ min: { percent: 0.25 }, max: { percent: 0.25 } }` |
+| `auto` | `{ min: 'auto', max: 'auto' }` |
+| `1fr` | `{ min: 'auto', max: { fr: 1 } }` |
+| `minmax(100px, 1fr)` | `{ min: 100, max: { fr: 1 } }` |
+| `fit-content(200px)` | `{ min: 'auto', max: { fitContent: 200 } }` |
+| `repeat(3, 1fr)` | `{ repeat: 3, tracks: [{ min: 'auto', max: { fr: 1 } }] }` |
+| `repeat(auto-fill, minmax(100px, 1fr))` | `{ repeat: 'auto-fill', tracks: [{ min: 100, max: { fr: 1 } }] }` |
+
+Named lines and `grid-template-areas` are not implemented — see
+[CSS coverage](/docs/reference/css-coverage).
+
+## Grid placement
+
+| Property | Type | Default |
+| --- | --- | --- |
+| `gridColumnStart`, `gridColumnEnd` | `GridPlacement` | `'auto'` |
+| `gridRowStart`, `gridRowEnd` | `GridPlacement` | `'auto'` |
+
+A `GridPlacement` is `'auto'`, `{ line: n }`, or `{ span: n }`. Lines are
+1-based; negative lines count back from the end (`{ line: -1 }` is the last
+line). Line `0` does not exist in CSS and is treated as `'auto'`, matching
+browser recovery, rather than throwing.
+
+## Ignored, fallback, or error
+
+Properties that do not apply in context — `flexGrow` on a grid item,
+`gridRowStart` on a flex item — are ignored, as in CSS. Values CSS defines
+as invalid-and-ignored fall back the way browsers fall back. Only values
+that make layout impossible throw
+[`InvalidStyleError`](/docs/reference/api#invalidstyleerror), and they
+throw from `computeLayout`, not from the constructor or `setStyle`.

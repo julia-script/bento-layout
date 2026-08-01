@@ -1,0 +1,245 @@
+---
+title: Grid layouts
+description: How to express CSS Grid templates, placement, and implicit tracks as structured data.
+---
+
+CSS Grid in this library is the same grid you know from the browser; only
+the spelling differs. There is no CSS string parser, so a track list is an
+array of structured values rather than `'repeat(3, 1fr)'`. This guide maps
+the common grid patterns onto that vocabulary.
+
+(Demos on this page *do* use the CSS-style strings — the playground ships
+its own CSS-ish parser precisely so demos read like CSS. Your code passes
+the structured forms shown in the TypeScript blocks.)
+
+## A minimal grid
+
+Set `display: 'grid'` and give the container column tracks. Items flow into
+cells automatically, row by row:
+
+```typescript
+import { LayoutNode, computeLayout } from 'bento-layout';
+
+const fr1 = { min: 'auto', max: { fr: 1 } } as const;
+
+const cells = Array.from({ length: 6 }, () => LayoutNode.make());
+const grid = LayoutNode.make(
+  {
+    display: 'grid',
+    width: 320,
+    gridTemplateColumns: [fr1, fr1, fr1],
+    gridAutoRows: [{ min: 40, max: 40 }],
+    gap: 10,
+  },
+  cells,
+);
+
+computeLayout(grid, { width: 'max-content', height: 'max-content' });
+
+cells[0].layout.size; // { width: 100, height: 40 }
+cells[3].layout.location; // { x: 0, y: 50 } — second row
+grid.layout.size; // { width: 320, height: 90 }
+```
+
+Every track is a `{ min, max }` pair — CSS `minmax()` with both halves
+always stated. The single-value CSS forms are shorthands for pairs, and the
+two you will use constantly:
+
+| CSS | Structured |
+| --- | --- |
+| `100px` | `{ min: 100, max: 100 }` |
+| `25%` | `{ min: { percent: 0.25 }, max: { percent: 0.25 } }` |
+| `1fr` | `{ min: 'auto', max: { fr: 1 } }` |
+| `auto` | `{ min: 'auto', max: 'auto' }` |
+| `minmax(100px, 1fr)` | `{ min: 100, max: { fr: 1 } }` |
+| `fit-content(200px)` | `{ min: 'auto', max: { fitContent: 200 } }` |
+
+Note that bare `1fr` takes an `'auto'` minimum — that is CSS's own rule
+(`1fr` means `minmax(auto, 1fr)`), and it is why a `1fr` track refuses to
+shrink below its content unless you write `{ min: 0, max: { fr: 1 } }`,
+the equivalent of `minmax(0, 1fr)`.
+
+## Equal columns with repeat
+
+A `repeat()` is an object in the template array, expanding in place:
+
+```typescript
+const grid = LayoutNode.make(
+  {
+    display: 'grid',
+    width: 300,
+    height: 50,
+    gridTemplateColumns: [{ repeat: 3, tracks: [{ min: 'auto', max: { fr: 1 } }] }],
+  },
+  [LayoutNode.make(), LayoutNode.make(), LayoutNode.make()],
+);
+
+computeLayout(grid, { width: 'max-content', height: 'max-content' });
+grid.children[2].layout.location; // { x: 200, y: 0 }
+```
+
+## A sidebar layout
+
+Fixed sidebar, flexible content with a floor — `200px minmax(100px, 1fr)`:
+
+```typescript
+const sidebar = LayoutNode.make();
+const content = LayoutNode.make();
+
+const page = LayoutNode.make(
+  {
+    display: 'grid',
+    width: 640,
+    height: 200,
+    gridTemplateColumns: [
+      { min: 200, max: 200 },
+      { min: 100, max: { fr: 1 } },
+    ],
+    columnGap: 16,
+  },
+  [sidebar, content],
+);
+
+computeLayout(page, { width: 'max-content', height: 'max-content' });
+
+sidebar.layout.size.width; // 200
+content.layout.size.width; // 424 — 640 − 200 − 16
+```
+
+<Demo>
+{`<Layout>
+  <Node style={{display: 'grid', width: '480px', height: '180px',
+                gridTemplateColumns: '200px minmax(100px, 1fr)',
+                columnGap: '16px'}}>
+    <Node style={{}} />
+    <Node style={{}} />
+  </Node>
+</Layout>`}
+</Demo>
+
+## As many cards as fit
+
+`auto-fill` fits as many repetitions as the container allows. It needs a
+definite width to fill — an auto-sized grid shrink-wraps and produces a
+single repetition:
+
+```typescript
+const cards = Array.from({ length: 5 }, () => LayoutNode.make());
+
+const wall = LayoutNode.make(
+  {
+    display: 'grid',
+    width: 520,
+    gridTemplateColumns: [
+      { repeat: 'auto-fill', tracks: [{ min: 150, max: { fr: 1 } }] },
+    ],
+    gridAutoRows: [{ min: 80, max: 80 }],
+    gap: 10,
+  },
+  cards,
+);
+
+computeLayout(wall, { width: 'max-content', height: 'max-content' });
+
+// Three 150px-minimum tracks fit in 520px; the leftover stretches them.
+cards[0].layout.size.width; // 167
+cards[3].layout.location; // { x: 0, y: 90 } — wrapped to the second row
+```
+
+(167, not 166.67 — layout is pixel-snapped by default, cumulatively, so the
+three tracks come out 167/166/167 and stay flush. See
+[Driving a renderer](/docs/guides/rendering#rounding) for the rounding
+rules.)
+
+`'auto-fit'` is the same, but repetitions left with no items collapse to
+zero and their space goes back to the filled tracks. The demo below is the
+same grid at 480px — still three tracks, now 153px each. Edit the `width`
+and watch the track count change: at 460px a third 150px track no longer
+fits beside the gaps, so the grid drops to two columns of 225px.
+
+<Demo>
+{`<Layout>
+  <Node style={{display: 'grid', width: '480px',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+                gridAutoRows: '80px', gap: '10px'}}>
+    <Node style={{}} />
+    <Node style={{}} />
+    <Node style={{}} />
+    <Node style={{}} />
+    <Node style={{}} />
+  </Node>
+</Layout>`}
+</Demo>
+
+## Placing items
+
+Placement is per axis, on the item: `gridColumnStart` / `gridColumnEnd` and
+`gridRowStart` / `gridRowEnd`. Each end is `'auto'`, a line, or a span.
+Lines are 1-based and negative lines count from the end, so `{ line: -1 }`
+is the last line — the idiom for "stretch to the end":
+
+```typescript
+const fr1 = { min: 'auto', max: { fr: 1 } } as const;
+
+const banner = LayoutNode.make({
+  gridColumnStart: { line: 1 },
+  gridColumnEnd: { line: -1 }, // full width
+});
+const tall = LayoutNode.make({ gridRowEnd: { span: 2 } }); // two rows
+const [a, b, c] = [LayoutNode.make(), LayoutNode.make(), LayoutNode.make()];
+
+const grid = LayoutNode.make(
+  {
+    display: 'grid',
+    width: 300,
+    gridTemplateColumns: [fr1, fr1, fr1],
+    gridAutoRows: [{ min: 40, max: 40 }],
+  },
+  [banner, tall, a, b, c],
+);
+
+computeLayout(grid, { width: 'max-content', height: 'max-content' });
+
+banner.layout.size; // { width: 300, height: 40 } — spans all three columns
+tall.layout.size; // { width: 100, height: 80 } — two 40px rows
+tall.layout.location; // { x: 0, y: 40 } — placed under the banner
+```
+
+The unplaced items flow around the placed ones. `gridAutoFlow` controls the
+direction and packing: `'row'` (the default) fills each row before moving
+down, `'column'` fills columns first, and the `-dense` variants backtrack to
+fill holes at the cost of source order.
+
+A placement CSS would reject — line `0`, which does not exist — falls back
+to `'auto'` instead of throwing, matching how browsers recover.
+
+<Demo>
+{`<Layout>
+  <Node style={{display: 'grid', width: '300px',
+                gridTemplateColumns: '1fr 1fr 1fr', gridAutoRows: '40px',
+                gap: '6px'}}>
+    <Node style={{gridColumnStart: 1, gridColumnEnd: -1}} />
+    <Node style={{gridRowEnd: 'span 2'}} />
+    <Node style={{}} />
+    <Node style={{}} />
+    <Node style={{}} />
+  </Node>
+</Layout>`}
+</Demo>
+
+## Implicit tracks
+
+Items placed beyond the explicit template create implicit tracks. Their
+sizes come from `gridAutoRows` / `gridAutoColumns`, cycled in order —
+`[{ min: 40, max: 40 }, { min: 80, max: 80 }]` alternates 40 and 80. With
+neither set, implicit tracks are `auto` and size to their content.
+
+## What grid does not include
+
+Named lines, `grid-template-areas`, and subgrid are not implemented — the
+supported surface is the unnamed-track model above, chosen so that
+everything claimed is browser-verified. The full list lives in
+[CSS coverage](/docs/reference/css-coverage). Alignment inside cells
+(`justifyItems`, `alignItems`, and the per-item `justifySelf` /
+`alignSelf`) works as in CSS and shares the flexbox vocabulary — see the
+[style reference](/docs/reference/style-properties#alignment).
