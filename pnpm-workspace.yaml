@@ -2,14 +2,12 @@
 # neither approved nor refused (ERR_PNPM_IGNORED_BUILDS), so the decision has
 # to be recorded here rather than left implicit.
 #
+# `allowBuilds` is the v11 key — it replaced onlyBuiltDependencies and
+# ignoredBuiltDependencies, which v11 accepts silently and ignores.
+#
 # esbuild: vitest bundles the test files with it, so its binary is required.
-# puppeteer is deliberately absent — it is only used by the gentest/fuzz
-# scripts against real Chrome, never by `pnpm test`, so CI skips the ~150MB
-# Chromium download.
-onlyBuiltDependencies:
-  - esbuild
-
-# Approving is only half of it: pnpm errors on any build it was never told
-# about, so the refusals have to be explicit too.
-ignoredBuiltDependencies:
-  - puppeteer
+# puppeteer: refused. Only the gentest/fuzz scripts drive real Chrome, never
+# `pnpm test`, so CI skips the ~150MB Chromium download.
+allowBuilds:
+  esbuild: true
+  puppeteer: false
