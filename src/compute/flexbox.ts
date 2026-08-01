@@ -281,7 +281,7 @@ function computePreliminary(node: LayoutNode, inputs: LayoutInput): LayoutOutput
   // 9.3. Main Size Determination
 
   // 5. Collect flex items into flex lines.
-  const flexLines = collectFlexLines(constants, availableSpace, flexItems);
+  let flexLines = collectFlexLines(constants, availableSpace, flexItems);
 
   // If container size is undefined, determine the container's main size
   // and then re-resolve gaps based on newly determined size
@@ -300,6 +300,33 @@ function computePreliminary(node: LayoutNode, inputs: LayoutInput): LayoutOutput
     const innerContainerSize = main(constants.innerContainerSize, constants.dir);
     const newGap = maybeResolve(main(nd.style.gap, constants.dir), innerContainerSize) ?? 0;
     setMain(constants.gap, constants.dir, newGap);
+
+    // Line collection ran against an intrinsic keyword, because the container's
+    // main size was not known yet. Under a max-content constraint that meant
+    // "never wrap", which holds only while each item's hypothetical size is
+    // covered by its contribution to the container. `flex-basis` breaks that:
+    // it sets the hypothetical main size but contributes nothing of its own
+    // (§9.9.1 works from the items' content), so a container of
+    // `flex-basis: 30px` items ends up narrower than the line they want and
+    // they have to wrap after all.
+    //
+    // Chrome, two items with `flex-basis: 30px/40px` and `column-gap: 20px` in
+    // a shrink-to-fit wrapping container: 20x13 — the width is the gap alone
+    // and each item takes its own line. Swap `flex-basis` for `width` and it is
+    // 90x5 on one line, because then the items do contribute. Mixed,
+    // `flex-basis: 30px` beside `width: 40px`, gives 60 = 40 + gap, still two
+    // lines.
+    //
+    // Now that the size is resolved, re-break against it. The greedy pass is
+    // idempotent when the original grouping already fits, so this only ever
+    // splits lines that never fitted.
+    if (constants.isWrap && typeof main(availableSpace, constants.dir) !== 'number') {
+      flexLines = collectFlexLines(
+        constants,
+        { ...availableSpace, [constants.isRow ? 'width' : 'height']: innerContainerSize },
+        flexItems,
+      );
+    }
   }
 
   // 6. Resolve the flexible lengths of all the flex items to find their used main size.
