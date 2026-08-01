@@ -2575,16 +2575,18 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
           rectMainEnd(resolvedMargin, constants.dir)) /
         2;
 
-      if (keyword === 'space-between') {
-        offsetMain = startOffset;
-      } else if (keyword === 'stretch' || keyword === 'flex-start') {
+      // Blink maps abspos static positions by alignment edge: logical
+      // start/end follow inline direction but not `*-reverse`; flex-start/end
+      // follow the flex main axis. A lone space-between subject falls back to
+      // flex-start (css-align-3 §5.1.3).
+      if (keyword === 'space-between' || keyword === 'stretch' || keyword === 'flex-start') {
         offsetMain = mainAxisFlexStartReversed ? endOffset : startOffset;
       } else if (keyword === 'flex-end') {
         offsetMain = mainAxisFlexStartReversed ? startOffset : endOffset;
       } else if (keyword === 'start') {
-        offsetMain = mainAxisFlexStartReversed ? endOffset : startOffset;
+        offsetMain = mainIsRtl ? endOffset : startOffset;
       } else if (keyword === 'end') {
-        offsetMain = mainAxisFlexStartReversed ? startOffset : endOffset;
+        offsetMain = mainIsRtl ? startOffset : endOffset;
       } else {
         // space-evenly | space-around | center
         offsetMain = centerOffset;

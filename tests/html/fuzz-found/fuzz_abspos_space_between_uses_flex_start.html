@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found (rehydrated 20260731 batch). For the sole hypothetical flex item
+  used to find an abspos child's static position, `space-between` falls back
+  to flex-start. In column-reverse Chrome therefore places the child at y=7;
+  the engine used logical start and placed it at y=0.
+  Regenerate the XML fixtures with:
+  pnpm gentest fuzz_abspos_space_between_uses_flex_start
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: abspos space-between falls back to flex-start
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="width: 10px; height: 10px; flex-direction: column-reverse; justify-content: space-between;">
+  <div style="position: absolute; width: 2px; height: 3px;"></div>
+</div>
+
+</body>
+</html>

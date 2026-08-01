@@ -1,0 +1,13 @@
+<test name="fuzz_abspos_logical_justify_ignores_flex_reverse__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="ltr" position="absolute" flex-direction="column-reverse" justify-content="start" width="10px" height="10px">
+      <div direction="ltr" position="absolute" width="2px" height="3px"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="10" height="10">
+      <node x="0" y="0" width="2" height="3"/>
+    </node>
+  </expectations>
+</test>

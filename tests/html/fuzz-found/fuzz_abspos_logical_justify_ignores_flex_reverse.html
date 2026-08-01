@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found (rehydrated 20260731 batch). Logical `justify-content: start`
+  stays at the block-start edge in a column-reverse flex container. Chrome
+  places the abspos child's static position at y=0; the engine incorrectly
+  reversed logical start with the flex axis and placed it at y=7.
+  Regenerate the XML fixtures with:
+  pnpm gentest fuzz_abspos_logical_justify_ignores_flex_reverse
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: abspos logical justify start ignores flex reversal
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="width: 10px; height: 10px; flex-direction: column-reverse; justify-content: start;">
+  <div style="position: absolute; width: 2px; height: 3px;"></div>
+</div>
+
+</body>
+</html>
