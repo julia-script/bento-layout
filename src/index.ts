@@ -244,15 +244,20 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
     // supplies an *automatic* size, not a cap), so never shrink below the
     // height the first pass measured.
     if (rerun.size.height >= output.size.height) output = rerun;
-  } else if (
-    rootInternal.style.aspectRatio !== null &&
-    rootSpecified.width === null &&
-    output.size.width > 0
-  ) {
-    // The mirror case: the root has no specified width, so whatever width it
-    // ended up with came from the ratio (via its specified height). That width
-    // is an automatic size too, so content wider than it grows the root rather
-    // than overflowing — the same rule block layout applies to its children.
+  } else if (rootInternal.style.aspectRatio !== null && output.size.width > 0) {
+    // The mirror case: the root's width is subject to the ratio, so it is an
+    // *automatic* size and content wider than it grows the root rather than
+    // overflowing — the same rule block layout applies to its children
+    // (`widthIsRatioDerived`).
+    //
+    // This holds even when the width is specified: a ratio plus a specified
+    // height makes the inline axis ratio-determined either way. Chrome, a flex
+    // root `width: 1; height: 55` around a 200-wide child — 200x55 with
+    // `aspect-ratio: 1`, but 1x55 without it, so the ratio is what unlocks the
+    // growth. The specified width is still never *shrunk* to the ratio
+    // (`width: 300; height: 55; aspect-ratio: 1` stays 300 wide), which is why
+    // this only ever raises the width via the max() below.
+    //
     // Measured in `content-size` mode so the child does not simply re-derive
     // the width from the ratio again.
     const contentWidth = measureChildSize(
