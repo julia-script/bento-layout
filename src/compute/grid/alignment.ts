@@ -132,10 +132,8 @@ export function alignAndPositionItem(
   const paddingBorderSize = sumAxes(rectAdd(padding, border));
   const boxSizingAdjustment = style.boxSizing === 'content-box' ? paddingBorderSize : { width: 0, height: 0 };
 
-  const inherentSize = maybeAddSize(
-    maybeApplyAspectRatio(maybeResolveSize(style.size, gridAreaSize), aspectRatio),
-    boxSizingAdjustment,
-  );
+  const resolvedStyleSize = maybeResolveSize(style.size, gridAreaSize);
+  const inherentSize = maybeAddSize(maybeApplyAspectRatio(resolvedStyleSize, aspectRatio), boxSizingAdjustment);
   const minSizeRaw = maybeAddSize(maybeResolveSize(style.minSize, gridAreaSize), boxSizingAdjustment);
   const minSize = maybeApplyAspectRatio(
     {
@@ -174,20 +172,25 @@ export function alignAndPositionItem(
     height: vMaybeSub(vMaybeSub(gridAreaSize.height, margin.top), margin.bottom) - baselineShim,
   };
 
+  // css-grid-1 §6.6: explicit stretch uses the stretch-fit size and can
+  // distort a preferred aspect ratio. Blink models this as kStretchExplicit,
+  // which wins before its aspect-ratio size transfer. Chrome 151 stretches a
+  // 40px-wide, 3:1 item to its 27px row; retaining the ratio-derived 13px
+  // height here left it aligned at the row start. Test the unresolved style
+  // axis, because `inherentSize` can already contain that transferred 13px.
   // Absolute positioning: derive width from left+right insets; stretch alignment otherwise
   let width = inherentSize.width;
-  if (width === null) {
-    if (position === 'absolute' && insetHorizontal.start !== null && insetHorizontal.end !== null) {
-      width = Math.max(gridAreaMinusItemMarginsSize.width - insetHorizontal.start - insetHorizontal.end, 0);
-    } else if (
-      margin.left !== null &&
-      margin.right !== null &&
-      alignmentStyles.horizontal.keyword === 'stretch' &&
-      !alignmentStyles.horizontal.safe &&
-      position !== 'absolute'
-    ) {
-      width = gridAreaMinusItemMarginsSize.width;
-    }
+  if (width === null && position === 'absolute' && insetHorizontal.start !== null && insetHorizontal.end !== null) {
+    width = Math.max(gridAreaMinusItemMarginsSize.width - insetHorizontal.start - insetHorizontal.end, 0);
+  } else if (
+    resolvedStyleSize.width === null &&
+    margin.left !== null &&
+    margin.right !== null &&
+    alignmentStyles.horizontal.keyword === 'stretch' &&
+    !alignmentStyles.horizontal.safe &&
+    position !== 'absolute'
+  ) {
+    width = gridAreaMinusItemMarginsSize.width;
   }
   // Reapply aspect ratio after stretch/absolute width adjustments (used
   // border-box values, so the transfer must respect box-sizing)
@@ -199,18 +202,17 @@ export function alignAndPositionItem(
   );
 
   let height = size.height;
-  if (height === null) {
-    if (position === 'absolute' && insetVertical.start !== null && insetVertical.end !== null) {
-      height = Math.max(gridAreaMinusItemMarginsSize.height - insetVertical.start - insetVertical.end, 0);
-    } else if (
-      margin.top !== null &&
-      margin.bottom !== null &&
-      alignmentStyles.vertical.keyword === 'stretch' &&
-      !alignmentStyles.vertical.safe &&
-      position !== 'absolute'
-    ) {
-      height = gridAreaMinusItemMarginsSize.height;
-    }
+  if (height === null && position === 'absolute' && insetVertical.start !== null && insetVertical.end !== null) {
+    height = Math.max(gridAreaMinusItemMarginsSize.height - insetVertical.start - insetVertical.end, 0);
+  } else if (
+    resolvedStyleSize.height === null &&
+    margin.top !== null &&
+    margin.bottom !== null &&
+    alignmentStyles.vertical.keyword === 'stretch' &&
+    !alignmentStyles.vertical.safe &&
+    position !== 'absolute'
+  ) {
+    height = gridAreaMinusItemMarginsSize.height;
   }
   // Reapply aspect ratio after stretch/absolute height adjustments
   size = maybeApplyAspectRatioUsed({ width: size.width, height }, aspectRatio, style.boxSizing, paddingBorderSize);

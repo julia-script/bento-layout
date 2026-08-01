@@ -1,0 +1,15 @@
+<test name="grid_explicit_stretch_overrides_aspect_ratio__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" direction="ltr" position="absolute" align-items="stretch" grid-auto-flow="column">
+      <div direction="ltr" max-width="40px" max-height="200px" aspect-ratio="3"/>
+      <div direction="ltr" border-top="10px" border-left="3px" border-bottom="17px"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="43" height="27">
+      <node x="0" y="0" width="40" height="27"/>
+      <node x="40" y="0" width="3" height="27"/>
+    </node>
+  </expectations>
+</test>

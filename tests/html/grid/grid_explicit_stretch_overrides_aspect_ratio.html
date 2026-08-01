@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Explicit grid stretch overrides an automatic aspect-ratio size</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; grid-auto-flow: column; align-items: stretch;">
+  <div style="max-width: 40px; max-height: 200px; aspect-ratio: 3;"></div>
+  <div style="border-left-width: 3px; border-top-width: 10px; border-bottom-width: 17px;"></div>
+</div>
+
+</body>
+</html>
