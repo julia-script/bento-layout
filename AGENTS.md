@@ -79,6 +79,32 @@ The order that works:
 5. **Re-run the probe matrix, then the full suite.** 5000+ fixtures pass today;
    any drop is a regression, not an acceptable trade.
 
+## When spec and Chrome disagree, read the engine source
+
+The oracle is pinned Chrome, i.e. **Blink** — match it even where it diverges
+from the spec's literal wording. When a probe matrix contradicts your best
+spec reading, stop guessing arithmetic and read the implementation:
+
+- **Blink** (authoritative): fetch from gitiles at the *pinned Chrome's branch*,
+  not `main` — behavior can move between releases. For Chrome 151:
+  `curl -s "https://chromium.googlesource.com/chromium/src/+/refs/branch-heads/7922/third_party/blink/renderer/core/layout/grid/<file>.cc?format=TEXT" | base64 -d`
+  (flex lives under `layout/flex/`, grid under `layout/grid/`).
+- **WebKit** (readable reference): full checkout at
+  `~/Documents/dev.nosync/WebKit`, grid code in
+  `Source/WebCore/rendering/RenderGrid.cpp` / `Grid.cpp`. Clearest of the
+  engines to read, but it is NOT the oracle — WebKit and Blink split in 2013
+  and do differ. Example: for negative grid lines in a template-less axis,
+  WebKit materializes the literal contiguous tracks while Chrome materializes
+  only tracks spanned by the explicit grid or a placed item; simulating
+  WebKit's `populateExplicitGridAndOrderIterator` by hand predicted Chrome on
+  0 of the coalescing cases.
+- Hand-simulate the engine's algorithm against the probe matrix *before*
+  editing. A model that predicts 20/20 measured cases is an implementation
+  plan; anything less is another guess. When engine source and rendered
+  behavior still disagree, the mechanism usually lives in a stage you haven't
+  read yet (that grid bug was in track *materialization*, two stages after the
+  line resolver everyone reads first).
+
 ## Comments carry the evidence
 
 Non-obvious layout code in this repo explains *why* with a concrete Chrome

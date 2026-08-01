@@ -1,0 +1,31 @@
+<test name="grid_negative_line_template_less_materializes_needed_tracks__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div box-sizing="content-box" direction="ltr" position="absolute" flex-direction="column" align-items="start">
+      <div display="grid" box-sizing="content-box" direction="ltr" row-gap="7px" column-gap="20px">
+        <div box-sizing="content-box" direction="ltr" width="5px" height="5px" grid-column-end="-3"/>
+        <div box-sizing="content-box" direction="ltr" width="7px" height="5px"/>
+      </div>
+      <div display="grid" box-sizing="content-box" direction="ltr" row-gap="7px" column-gap="20px">
+        <div box-sizing="content-box" direction="ltr" width="5px" height="5px" grid-column-end="-4"/>
+      </div>
+      <div display="grid" box-sizing="content-box" direction="ltr" row-gap="7px" column-gap="20px" grid-template-columns="30px">
+        <div box-sizing="content-box" direction="ltr" width="5px" height="5px" grid-column-end="-3"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="75" height="15">
+      <node x="0" y="0" width="32" height="5">
+        <node x="0" y="0" width="5" height="5"/>
+        <node x="25" y="0" width="7" height="5"/>
+      </node>
+      <node x="0" y="5" width="5" height="5">
+        <node x="0" y="0" width="5" height="5"/>
+      </node>
+      <node x="0" y="10" width="75" height="5">
+        <node x="0" y="0" width="5" height="5"/>
+      </node>
+    </node>
+  </expectations>
+</test>

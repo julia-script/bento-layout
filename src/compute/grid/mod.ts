@@ -225,6 +225,45 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
   const finalColCounts: TrackCounts = { ...cellOccupancyMatrix.trackCounts('horizontal') };
   const finalRowCounts: TrackCounts = { ...cellOccupancyMatrix.trackCounts('vertical') };
 
+  // Chrome (Blink) resolves placement on the full implicit grid — an item at
+  // `auto / -4` in a template-less axis sits four line numbers below the origin
+  // and the auto-placement cursor may roam that whole width — but only tracks
+  // spanned by the explicit grid or a placed item ever *materialize*. Implicit
+  // lines past those stay line numbers: they contribute no track and, crucially,
+  // no gutter. Keeping them inflated the container by one gap per phantom
+  // track. With zero explicit tracks the explicit grid is a lone line
+  // (css-grid-1 §7.1) and floors nothing, which is why `auto / -4` alone still
+  // yields a single-column grid. Interior unoccupied tracks (between a placed
+  // item and the explicit grid) are kept — Chrome keeps them at 0px, gutters
+  // and all. Verified against Blink @ refs/branch-heads/7922 (our pinned
+  // Chrome): grid_placement.cc places on untranslated lines and the trailing
+  // region simply never reaches the track builder.
+  //
+  // Returns the number of *leading* tracks trimmed: item oz coordinates stay
+  // consistent (track index = oz + negativeImplicit, both sides shrink
+  // together), but the CellOccupancyMatrix keeps its original indices, so
+  // occupancy queries must shift by this amount. In RTL, placement mirrors item
+  // coordinates, which lands the phantom tracks on the leading side.
+  const trimUnmaterializedTracks = (counts: TrackCounts, occupiedStart: number, occupiedEnd: number): number => {
+    const keepOzStart = counts.explicit > 0 ? Math.min(0, occupiedStart) : occupiedStart;
+    const keepOzEnd = Math.max(counts.explicit, occupiedEnd);
+    const newNegative = Math.min(counts.negativeImplicit, Math.max(0, -keepOzStart));
+    const leadTrim = counts.negativeImplicit - newNegative;
+    counts.negativeImplicit = newNegative;
+    counts.positiveImplicit = Math.min(counts.positiveImplicit, Math.max(0, keepOzEnd - counts.explicit));
+    return leadTrim;
+  };
+  const colLeadTrim = trimUnmaterializedTracks(
+    finalColCounts,
+    items.reduce((m, item) => Math.min(m, item.column.start), 0),
+    items.reduce((m, item) => Math.max(m, item.column.end), 0),
+  );
+  const rowLeadTrim = trimUnmaterializedTracks(
+    finalRowCounts,
+    items.reduce((m, item) => Math.min(m, item.row.start), 0),
+    items.reduce((m, item) => Math.max(m, item.row.end), 0),
+  );
+
   // 5. Initialize Tracks
   const columns: GridTrack[] = [];
   const rows: GridTrack[] = [];
@@ -236,10 +275,11 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
   initializeGridTracks(columns, columnTrackCountsForInit, style, 'horizontal', (columnIndex) => {
     const occupancyIndex =
       direction === 'rtl' ? rtlColumnOccupancyIndexForInitialization(columnIndex, finalColCounts) : columnIndex;
-    return cellOccupancyMatrix.columnIsOccupied(occupancyIndex);
+    // The matrix keeps its pre-trim indices; leading trimmed tracks shift it.
+    return cellOccupancyMatrix.columnIsOccupied(occupancyIndex + colLeadTrim);
   });
   initializeGridTracks(rows, finalRowCounts, style, 'vertical', (rowIndex) =>
-    cellOccupancyMatrix.rowIsOccupied(rowIndex),
+    cellOccupancyMatrix.rowIsOccupied(rowIndex + rowLeadTrim),
   );
   if (direction === 'rtl') {
     reverseNonGutterTracks(columns, finalColCounts);
