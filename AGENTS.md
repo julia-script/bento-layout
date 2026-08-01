@@ -14,24 +14,49 @@ be a rule stated plainly in a numbered step.
 
 The specs that govern this engine:
 
-| Area | Spec |
-|---|---|
-| Flex base size, hypothetical size, flexible lengths | [css-flexbox-1](https://www.w3.org/TR/css-flexbox-1/) — §9.2 line sizing, §9.7 resolving flexible lengths |
-| Automatic minimum size (`min-width: auto`) | [css-flexbox-1 §4.5](https://www.w3.org/TR/css-flexbox-1/#min-size-auto) |
-| Intrinsic contributions, cyclic percentages | [css-sizing-3](https://www.w3.org/TR/css-sizing-3/) — §5 intrinsic sizes |
-| `aspect-ratio`, transferred min/max sizes | [css-sizing-4 §4–5](https://www.w3.org/TR/css-sizing-4/#aspect-ratio) |
-| Track sizing, placement | [css-grid-1](https://www.w3.org/TR/css-grid-1/) — §11 track sizing |
-| Alignment, `stretch`, safe/unsafe | [css-align-3](https://www.w3.org/TR/css-align-3/) |
-| Margin collapsing, block flow | [CSS2 §8.3.1](https://www.w3.org/TR/CSS22/box.html#collapsing-margins) |
+| Area | Spec | Local |
+|---|---|---|
+| Flex base size, hypothetical size, flexible lengths | css-flexbox-1 §9.2, §9.7 | `spec/css-flexbox-1.bs` |
+| Automatic minimum size (`min-width: auto`) | css-flexbox-1 §4.5 | `spec/css-flexbox-1.bs` |
+| Intrinsic contributions, cyclic percentages | css-sizing-3 §5 | `spec/css-sizing-3.bs` |
+| `aspect-ratio`, transferred min/max sizes | css-sizing-4 §4–5 | `spec/css-sizing-4.bs` |
+| Track sizing, placement | css-grid-1 §8, §11 | `spec/css-grid-1.bs` |
+| Alignment, `stretch`, safe/unsafe | css-align-3 | `spec/css-align-3.bs` |
+| Margin collapsing, block flow | [CSS2 §8.3.1](https://www.w3.org/TR/CSS22/box.html#collapsing-margins) | — (not vendored) |
 
 Prefer the **editor's drafts** at `drafts.csswg.org` over `/TR/` snapshots when
 the two differ — Chrome tracks the drafts, and the imported WPT fixtures record
 draft URLs in their headers.
 
-Fetch the actual section text (WebFetch on the spec URL). Do not reconstruct a
-rule from memory: the details that matter are exactly the ones that are easy to
-misremember — which axis, whether a constraint *floors* or *caps*, whether it
-applies only to an automatic axis.
+Do not reconstruct a rule from memory: the details that matter are exactly the
+ones that are easy to misremember — which axis, whether a constraint *floors* or
+*caps*, whether it applies only to an automatic axis.
+
+**Read the vendored specs in `spec/`, not the live URLs.** WebFetch silently
+truncates the long CSS drafts, and it truncates *before* the algorithm sections
+— every attempt to read css-flexbox §9.2 step 3, §4.1, and css-sizing-4 §5 came
+back with exactly the useful part missing. `spec/` holds the Bikeshed sources of
+css-flexbox-1, css-sizing-3/4, css-grid-1 and css-align-3; grep them by **anchor
+id** (quoting differs per file, so match either):
+
+```bash
+grep -nE "id=['\"]algo-main-item"        spec/css-flexbox-1.bs  # §9.2 step 3
+grep -nE "id=['\"]aspect-ratio-size-transfers" spec/css-sizing-4.bs  # min/max transfers
+```
+
+| Area | Anchors |
+|---|---|
+| §9.2 line sizing | `line-sizing`, `algo-available`, `algo-main-item`, `algo-main-container` |
+| §9.3 main sizing | `main-sizing`, `algo-line-break`, `algo-flex` |
+| §9.4 cross sizing | `cross-sizing`, `algo-cross-item`, `algo-cross-line`, `algo-line-stretch`, `algo-stretch` |
+| §9.5 / §9.6 alignment | `algo-main-align`, `algo-cross-margins`, `algo-cross-align`, `algo-cross-container`, `algo-line-align` |
+| §9.7 flexible lengths | `resolve-flexible-lengths` |
+| §9.9 intrinsic sizing | `intrinsic-sizes`, `intrinsic-main-sizes`, `intrinsic-cross-sizes`, `intrinsic-item-contributions` |
+| §4.1 abspos children | `abspos-items` |
+| §8.1 auto margins | `auto-margins`, `item-margins` |
+| Properties | `flex-basis-property`, `flex-grow-property`, `flex-direction-property`, `align-items-property`, … (`grep "id='"` for the full list) |
+
+See `spec/README.md` for the full list and how to add another module.
 
 When the spec genuinely underdetermines the case (css-sizing-3 §5.2 cyclic
 percentages is the standing example), say so explicitly and record it in
