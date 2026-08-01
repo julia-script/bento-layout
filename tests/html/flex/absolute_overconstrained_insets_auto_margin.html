@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Overconstrained absolute insets allow negative auto margins</title>
+</head>
+<body>
+
+<div id="test-root" style="width: 40px; height: 40px; border-left-width: 40px; border-right-width: 17px; border-top-width: 40px; border-bottom-width: 17px;">
+  <div style="position: absolute; left: 0; right: 3px; top: 0; bottom: 3px; margin-left: auto; margin-right: 0; margin-top: auto; margin-bottom: 0; border-left-width: 3px; border-right-width: 20px; border-top-width: 3px; border-bottom-width: 20px;"></div>
+</div>
+
+</body>
+</html>

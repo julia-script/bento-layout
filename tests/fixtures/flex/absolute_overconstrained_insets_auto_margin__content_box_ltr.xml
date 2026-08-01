@@ -1,0 +1,13 @@
+<test name="absolute_overconstrained_insets_auto_margin__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div box-sizing="content-box" direction="ltr" position="absolute" width="40px" height="40px" border-top="40px" border-left="40px" border-bottom="17px" border-right="17px">
+      <div box-sizing="content-box" direction="ltr" position="absolute" margin-top="auto" margin-left="auto" margin-bottom="0px" margin-right="0px" border-top="3px" border-left="3px" border-bottom="20px" border-right="20px" top="0px" left="0px" bottom="3px" right="3px"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="97" height="97">
+      <node x="40" y="40" width="37" height="37"/>
+    </node>
+  </expectations>
+</test>

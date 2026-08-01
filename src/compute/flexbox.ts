@@ -54,6 +54,7 @@ import {
   applyAlignmentFallback,
   computeAlignmentOffset,
   computeContentSizeContribution,
+  resolveAbsoluteAxis,
   resolveSelfAlignmentSafety,
 } from './alignment.js';
 import { measureChildSize, measureChildSizeBoth, performChildLayout } from './dispatch.js';
@@ -2370,66 +2371,36 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
       'inherent-size',
     );
 
-    const nonAutoMargin = {
-      left: margin.left ?? 0,
-      right: margin.right ?? 0,
-      top: margin.top ?? 0,
-      bottom: margin.bottom ?? 0,
-    };
-
-    // The insets are part of the constraint equation, so the space an auto
-    // margin may absorb is what is left between them — not the whole container.
-    // They are only subtracted where set; an axis with an unset inset cannot
-    // resolve an auto margin at all (see the fully-constrained test below), so
-    // the fallback of 0 never feeds a real division.
-    const freeSpace = {
-      width: Math.max(
-        constants.containerSize.width - finalSize.width - horizontalSum(nonAutoMargin) - (left ?? 0) - (right ?? 0),
-        0,
-      ),
-      height: Math.max(
-        constants.containerSize.height - finalSize.height - verticalSum(nonAutoMargin) - (top ?? 0) - (bottom ?? 0),
-        0,
-      ),
-    };
-
-    // Expand auto margins to fill available space.
-    //
-    // CSS2 §10.3.7/§10.6.4: an auto margin on an absolutely positioned box only
-    // absorbs free space when the axis is fully constrained — none of
-    // start-inset / size / end-inset is auto — so the constraint equation has a
-    // free variable to solve for. Every other branch of those sections says to
-    // set auto margins to 0 first. Splitting unconditionally against the
-    // container made `margin-top: auto; margin-bottom: 17px` with no insets
-    // push the box to y=80 of a 97px parent, where Chrome leaves it at y=0.
-    // Same rule as the block container path in block.ts; both are reachable
-    // depending on which formatting context the abspos child's parent
-    // establishes.
-    //
-    // When both margins are auto and the split would be negative, only the
-    // start margin is zeroed ("...unless this would make them negative, in
-    // which case when direction is 'ltr' set 'margin-left' to zero"), so an
-    // over-large box hangs off the end edge instead of being centred.
-    const autoMarginWidthCount = (margin.left === null ? 1 : 0) + (margin.right === null ? 1 : 0);
-    const autoMarginHeightCount = (margin.top === null ? 1 : 0) + (margin.bottom === null ? 1 : 0);
-    const widthFullyConstrained = left !== null && right !== null && styleSize.width !== null;
-    const heightFullyConstrained = top !== null && bottom !== null && styleSize.height !== null;
-    const splitOrZero = (free: number, count: number, constrained: boolean): number =>
-      !constrained || count === 0 ? 0 : count === 2 && free < 0 ? 0 : free / count;
-    const autoMarginSize = {
-      width: splitOrZero(freeSpace.width, autoMarginWidthCount, widthFullyConstrained),
-      height: splitOrZero(freeSpace.height, autoMarginHeightCount, heightFullyConstrained),
-    };
+    const resolvedHorizontal = resolveAbsoluteAxis(
+      insetRelativeSize.width,
+      { start: left, end: right },
+      { start: margin.left, end: margin.right },
+      finalSize.width,
+      true,
+      constants.layoutDirection !== 'rtl',
+    );
+    const resolvedVertical = resolveAbsoluteAxis(
+      insetRelativeSize.height,
+      { start: top, end: bottom },
+      { start: margin.top, end: margin.bottom },
+      finalSize.height,
+      false,
+      true,
+    );
     const resolvedMargin: Rect<number> = {
-      left: margin.left ?? autoMarginSize.width,
-      right: margin.right ?? autoMarginSize.width,
-      top: margin.top ?? autoMarginSize.height,
-      bottom: margin.bottom ?? autoMarginSize.height,
+      left: resolvedHorizontal.margin.start,
+      right: resolvedHorizontal.margin.end,
+      top: resolvedVertical.margin.start,
+      bottom: resolvedVertical.margin.end,
     };
+    const usedLeft = resolvedHorizontal.inset.start;
+    const usedRight = resolvedHorizontal.inset.end;
+    const usedTop = resolvedVertical.inset.start;
+    const usedBottom = resolvedVertical.inset.end;
 
     // Determine flex-relative insets
-    const [startMain, endMain] = constants.isRow ? [left, right] : [top, bottom];
-    const [startCross, endCross] = constants.isRow ? [top, bottom] : [left, right];
+    const [startMain, endMain] = constants.isRow ? [usedLeft, usedRight] : [usedTop, usedBottom];
+    const [startCross, endCross] = constants.isRow ? [usedTop, usedBottom] : [usedLeft, usedRight];
     const mainAxisIsHorizontal = constants.isRow;
     const crossAxisIsHorizontal = !constants.isRow;
     const mainIsRtl = mainAxisIsHorizontal && constants.layoutDirection === 'rtl';

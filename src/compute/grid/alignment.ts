@@ -12,6 +12,7 @@ import {
   applyAlignmentFallback,
   computeAlignmentOffset,
   computeContentSizeContribution,
+  resolveAbsoluteAxis,
   resolveSelfAlignmentSafety,
 } from '../alignment.js';
 import { measureChildSizeBoth, performChildLayout } from '../dispatch.js';
@@ -272,6 +273,7 @@ export function alignAndPositionItem(
     { start: margin.left, end: margin.right },
     0,
     direction,
+    true,
   );
   const [y, yMargin] = alignItemWithinArea(
     { start: gridArea.top, end: gridArea.bottom },
@@ -282,6 +284,7 @@ export function alignAndPositionItem(
     { start: margin.top, end: margin.bottom },
     baselineShim,
     'ltr',
+    false,
   );
 
   const scrollbarSize = {
@@ -323,19 +326,25 @@ export function alignItemWithinArea(
   margin: { start: Opt; end: Opt },
   baselineShim: number,
   direction: Direction,
+  isInlineAxis: boolean,
 ): [number, { start: number; end: number }] {
   // Calculate grid area dimension in the axis
   const nonAutoMargin = { start: (margin.start ?? 0) + baselineShim, end: margin.end ?? 0 };
   const gridAreaSize = Math.max(gridArea.end - gridArea.start, 0);
-  const freeSpace = Math.max(gridAreaSize - resolvedSize - nonAutoMargin.start - nonAutoMargin.end, 0);
-
-  // Expand auto margins to fill available space
   const autoMarginCount = (margin.start === null ? 1 : 0) + (margin.end === null ? 1 : 0);
+  const absoluteAxis =
+    position === 'absolute'
+      ? resolveAbsoluteAxis(gridAreaSize, inset, margin, resolvedSize, isInlineAxis, direction !== 'rtl')
+      : null;
+  const freeSpace = Math.max(gridAreaSize - resolvedSize - nonAutoMargin.start - nonAutoMargin.end, 0);
   const autoMarginSize = autoMarginCount > 0 ? freeSpace / autoMarginCount : 0;
-  const resolvedMargin = {
-    start: (margin.start ?? autoMarginSize) + baselineShim,
-    end: margin.end ?? autoMarginSize,
-  };
+  const resolvedMargin = absoluteAxis
+    ? { start: absoluteAxis.margin.start + baselineShim, end: absoluteAxis.margin.end }
+    : {
+        start: (margin.start ?? autoMarginSize) + baselineShim,
+        end: margin.end ?? autoMarginSize,
+      };
+  const resolvedInset = absoluteAxis?.inset ?? inset;
 
   const overflows = resolvedSize + nonAutoMargin.start + nonAutoMargin.end > gridAreaSize;
   // css-grid-1 §10.2: an auto margin absorbs positive free space "prior to
@@ -384,15 +393,15 @@ export function alignItemWithinArea(
 
   let offsetWithinArea: number;
   if (position === 'absolute') {
-    if (inset.start !== null && inset.end !== null) {
+    if (resolvedInset.start !== null && resolvedInset.end !== null) {
       offsetWithinArea =
         direction === 'rtl'
-          ? gridAreaSize - inset.end - resolvedSize - nonAutoMargin.end
-          : inset.start + nonAutoMargin.start;
-    } else if (inset.start !== null) {
-      offsetWithinArea = inset.start + nonAutoMargin.start;
-    } else if (inset.end !== null) {
-      offsetWithinArea = gridAreaSize - inset.end - resolvedSize - nonAutoMargin.end;
+          ? gridAreaSize - resolvedInset.end - resolvedSize - resolvedMargin.end
+          : resolvedInset.start + resolvedMargin.start;
+    } else if (resolvedInset.start !== null) {
+      offsetWithinArea = resolvedInset.start + resolvedMargin.start;
+    } else if (resolvedInset.end !== null) {
+      offsetWithinArea = gridAreaSize - resolvedInset.end - resolvedSize - resolvedMargin.end;
     } else {
       offsetWithinArea = alignmentBasedOffset;
     }

@@ -34,7 +34,12 @@ import {
   marginSetFromMargin,
   resolveMarginSet,
 } from '../tree.js';
-import { applyAlignmentFallback, computeAlignmentOffset, computeContentSizeContribution } from './alignment.js';
+import {
+  applyAlignmentFallback,
+  computeAlignmentOffset,
+  computeContentSizeContribution,
+  resolveAbsoluteAxis,
+} from './alignment.js';
 import { computeChildLayout, measureChildSize, measureChildSizeBoth, performChildLayout } from './dispatch.js';
 
 const LINE_TRUE: Line<boolean> = { start: true, end: true };
@@ -963,84 +968,43 @@ function performAbsoluteLayoutOnAbsoluteChildren(
       'content-size',
     );
 
-    const nonAutoMargin: Rect<number> = {
-      left: left !== null ? (margin.left ?? 0) : 0,
-      right: right !== null ? (margin.right ?? 0) : 0,
-      top: top !== null ? (margin.top ?? 0) : 0,
-      bottom: bottom !== null ? (margin.bottom ?? 0) : 0,
-    };
-
-    // Expand auto margins to fill available space
-    // https://www.w3.org/TR/CSS21/visudet.html#abs-non-replaced-width
-    // Auto margins only resolve if inset is set; otherwise they resolve to 0.
-    const absoluteAutoMarginSpace: Point<number> = {
-      x: right !== null ? areaSize.width - right - (left ?? 0) : finalSize.width,
-      y: bottom !== null ? areaSize.height - bottom - (top ?? 0) : finalSize.height,
-    };
-    const freeSpace: Size<number> = {
-      width: absoluteAutoMarginSpace.x - finalSize.width - nonAutoMargin.left - nonAutoMargin.right,
-      height: absoluteAutoMarginSpace.y - finalSize.height - nonAutoMargin.top - nonAutoMargin.bottom,
-    };
-
-    const widthAutoMarginCount = (margin.left === null ? 1 : 0) + (margin.right === null ? 1 : 0);
-    const heightAutoMarginCount = (margin.top === null ? 1 : 0) + (margin.bottom === null ? 1 : 0);
-
-    // CSS2 §10.6.4 / §10.4.3: an auto margin on an absolutely positioned box
-    // only absorbs free space when the axis is fully constrained — i.e. NONE of
-    // start-inset / size / end-inset is auto, so the equation
-    //   top + margins + borders + padding + height + bottom = containing block
-    // has a free variable to solve for. Every other branch of that section
-    // reads "set 'auto' values for 'margin-*' to 0" before solving.
-    //
-    // Testing only the *opposing* inset was not enough: with
-    // `margin-top: auto; margin-bottom: 17px` and no top/bottom at all, the
-    // fallback made free space the containing block's height, so the margin
-    // absorbed 80 of a 97px parent and pushed the box to y=80 where Chrome
-    // leaves it at y=0. Chrome matches the spec across the axis: y=0 with no
-    // insets, y=5 with `top` only, y=75 with `bottom` only, but y=55 once
-    // top+bottom+height are all set (and centered at 38.5 with both margins
-    // auto).
-    const widthFullyConstrained = left !== null && right !== null && styleSize.width !== null;
-    const heightFullyConstrained = top !== null && bottom !== null && styleSize.height !== null;
-
-    // "...solve the equation under the extra constraint that the two margins
-    // get equal values, unless this would make them negative, in which case
-    // when direction is 'ltr' set 'margin-left' to zero and solve for
-    // 'margin-right'". Only the start margin is forced to zero, so an
-    // over-large box hangs off the end edge rather than being centred on
-    // negative margins: a 72px box in a 52px parent with `left: 10; right: 20`
-    // and both margins auto sits at x=10, not x=-15.
-    const splitOrZero = (free: number, count: number, constrained: boolean): number =>
-      !constrained || count === 0 ? 0 : count === 2 && free < 0 ? 0 : free / count;
-
-    const autoMarginSize: Size<number> = {
-      width: splitOrZero(freeSpace.width, widthAutoMarginCount, widthFullyConstrained),
-      height: splitOrZero(freeSpace.height, heightAutoMarginCount, heightFullyConstrained),
-    };
-    const autoMargin: Rect<number> = {
-      left: margin.left !== null ? 0 : autoMarginSize.width,
-      right: margin.right !== null ? 0 : autoMarginSize.width,
-      top: margin.top !== null ? 0 : autoMarginSize.height,
-      bottom: margin.bottom !== null ? 0 : autoMarginSize.height,
-    };
-
+    const resolvedHorizontal = resolveAbsoluteAxis(
+      areaWidth,
+      { start: left, end: right },
+      { start: margin.left, end: margin.right },
+      finalSize.width,
+      true,
+      direction !== 'rtl',
+    );
+    const resolvedVertical = resolveAbsoluteAxis(
+      areaHeight,
+      { start: top, end: bottom },
+      { start: margin.top, end: margin.bottom },
+      finalSize.height,
+      false,
+      true,
+    );
     const resolvedMargin: Rect<number> = {
-      left: margin.left ?? autoMargin.left,
-      right: margin.right ?? autoMargin.right,
-      top: margin.top ?? autoMargin.top,
-      bottom: margin.bottom ?? autoMargin.bottom,
+      left: resolvedHorizontal.margin.start,
+      right: resolvedHorizontal.margin.end,
+      top: resolvedVertical.margin.start,
+      bottom: resolvedVertical.margin.end,
     };
+    const usedLeft = resolvedHorizontal.inset.start;
+    const usedRight = resolvedHorizontal.inset.end;
+    const usedTop = resolvedVertical.inset.start;
+    const usedBottom = resolvedVertical.inset.end;
 
     let xOffset: number;
-    if (left !== null && right !== null) {
+    if (usedLeft !== null && usedRight !== null) {
       xOffset =
         direction === 'rtl'
-          ? areaSize.width - finalSize.width - right - resolvedMargin.right
-          : left + resolvedMargin.left;
-    } else if (left !== null) {
-      xOffset = left + resolvedMargin.left;
-    } else if (right !== null) {
-      xOffset = areaSize.width - finalSize.width - right - resolvedMargin.right;
+          ? areaSize.width - finalSize.width - usedRight - resolvedMargin.right
+          : usedLeft + resolvedMargin.left;
+    } else if (usedLeft !== null) {
+      xOffset = usedLeft + resolvedMargin.left;
+    } else if (usedRight !== null) {
+      xOffset = areaSize.width - finalSize.width - usedRight - resolvedMargin.right;
     } else {
       xOffset =
         direction === 'rtl'
@@ -1048,10 +1012,10 @@ function performAbsoluteLayoutOnAbsoluteChildren(
           : item.staticPosition.x + resolvedMargin.left - areaOffset.x;
     }
     const yFromInset =
-      top !== null
-        ? top + resolvedMargin.top
-        : bottom !== null
-          ? areaSize.height - finalSize.height - bottom - resolvedMargin.bottom
+      usedTop !== null
+        ? usedTop + resolvedMargin.top
+        : usedBottom !== null
+          ? areaSize.height - finalSize.height - usedBottom - resolvedMargin.bottom
           : null;
     const location: Point<number> = {
       x: xOffset + areaOffset.x,

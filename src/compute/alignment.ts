@@ -1,7 +1,63 @@
 // Alignment fallbacks and content-size accumulation, shared by all layout modes.
 
 import type { Point, Size } from '../geometry.js';
+import type { Opt } from '../math.js';
 import type { AlignContent, AlignContentKeyword, AlignItems, AlignItemsKeyword, Overflow } from '../style.js';
+
+export interface ResolvedAbsoluteAxis {
+  inset: { start: number | null; end: number | null };
+  margin: { start: number; end: number };
+}
+
+/** Resolve an abspos inset-modified containing block and its auto margins. */
+export function resolveAbsoluteAxis(
+  availableSize: number,
+  inset: { start: Opt; end: Opt },
+  margin: { start: Opt; end: Opt },
+  usedSize: number,
+  isInlineAxis: boolean,
+  startIsDominant: boolean,
+): ResolvedAbsoluteAxis {
+  if (inset.start === null || inset.end === null) {
+    return { inset, margin: { start: margin.start ?? 0, end: margin.end ?? 0 } };
+  }
+
+  let resolvedStart = inset.start;
+  let resolvedEnd = inset.end;
+  let imcbSize = availableSize - resolvedStart - resolvedEnd;
+  // css-position-3 §3.5.1: clamp a negative inset-modified containing block
+  // to zero by weakening its end inset (its start inset in RTL).
+  if (imcbSize < 0) {
+    if (startIsDominant) resolvedEnd += imcbSize;
+    else resolvedStart += imcbSize;
+    imcbSize = 0;
+  }
+
+  const freeSpace = imcbSize - usedSize - (margin.start ?? 0) - (margin.end ?? 0);
+  let marginStart = margin.start;
+  let marginEnd = margin.end;
+  if (marginStart === null && marginEnd === null) {
+    if (freeSpace >= 0 || !isInlineAxis) {
+      marginStart = freeSpace / 2;
+      marginEnd = freeSpace - marginStart;
+    } else if (startIsDominant) {
+      marginStart = 0;
+      marginEnd = freeSpace;
+    } else {
+      marginStart = freeSpace;
+      marginEnd = 0;
+    }
+  } else if (marginStart === null) {
+    marginStart = freeSpace;
+  } else if (marginEnd === null) {
+    marginEnd = freeSpace;
+  }
+
+  return {
+    inset: { start: resolvedStart, end: resolvedEnd },
+    margin: { start: marginStart ?? 0, end: marginEnd ?? 0 },
+  };
+}
 
 /** Resolve the safe/unsafe overflow-position fallback for a self-alignment value. */
 export function resolveSelfAlignmentSafety(alignment: AlignItems, overflows: boolean): AlignItemsKeyword {
