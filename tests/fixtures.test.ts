@@ -5,10 +5,11 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { computeLayout } from '../src/index.js';
+import { unreachable } from '../src/assert.js';
 import type { LayoutNode } from '../src/index.js';
-import { parseFixture } from './harness/fixture.js';
+import { computeLayout } from '../src/index.js';
 import type { ExpectedNode } from './harness/fixture.js';
+import { parseFixture } from './harness/fixture.js';
 
 const FIXTURES_ROOT = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
 const TOLERANCE = 0.1;
@@ -46,7 +47,7 @@ function assertLayoutMatches(node: LayoutNode, expected: ExpectedNode, path: str
   expect.soft(size.height, `${path} height`).toBeCloseToTolerance(expected.height, TOLERANCE);
   expect(node.children.length, `${path} child count`).toBe(expected.children.length);
   for (let i = 0; i < expected.children.length; i++) {
-    assertLayoutMatches(node.children[i]!, expected.children[i]!, `${path}/${i}`);
+    assertLayoutMatches(node.children[i] ?? unreachable(), expected.children[i] ?? unreachable(), `${path}/${i}`);
   }
 }
 
@@ -68,7 +69,7 @@ declare module 'vitest' {
 
 for (const dir of Object.keys(SKIP_BY_DIR)) {
   const fixtureDir = join(FIXTURES_ROOT, dir);
-  const skip = SKIP_BY_DIR[dir]!;
+  const skip = SKIP_BY_DIR[dir] ?? unreachable();
   if (!existsSync(fixtureDir)) continue; // wpt dirs appear only after `pnpm wpt-import`
   const files = readdirSync(fixtureDir).filter((f) => f.endsWith('.xml'));
   if (files.length === 0) continue; // fuzz-found starts empty

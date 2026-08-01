@@ -1,7 +1,7 @@
 // Fixture XML parser + tree builder.
 
 import { XMLParser } from 'fast-xml-parser';
-import { LayoutNode } from '../../src/index.js';
+import { unreachable } from '../../src/assert.js';
 import type {
   AlignContent,
   AlignContentKeyword,
@@ -20,8 +20,9 @@ import type {
   StyleInput,
   TrackSizingFunction,
 } from '../../src/index.js';
-import { ahemTextMeasure } from './measure.js';
+import { LayoutNode } from '../../src/index.js';
 import type { WritingMode } from './measure.js';
+import { ahemTextMeasure } from './measure.js';
 
 export interface ExpectedNode {
   x: number;
@@ -57,7 +58,7 @@ export function parseFixture(xml: string): FixtureTest {
   const testEl = doc.find((el) => 'test' in el);
   if (!testEl) throw new Error('fixture has no <test> element');
   const testAttrs = testEl[':@'] ?? {};
-  const children = testEl['test'] as XmlNode[];
+  const children = testEl.test as XmlNode[];
 
   const viewportEl = children.find((el) => 'viewport' in el);
   const inputEl = children.find((el) => 'input' in el);
@@ -66,22 +67,22 @@ export function parseFixture(xml: string): FixtureTest {
 
   const viewportAttrs = viewportEl?.[':@'] ?? {};
   const viewport: Size<AvailableSpace> = {
-    width: parseAvailableSpace(viewportAttrs['width']),
-    height: parseAvailableSpace(viewportAttrs['height']),
+    width: parseAvailableSpace(viewportAttrs.width),
+    height: parseAvailableSpace(viewportAttrs.height),
   };
 
-  const inputChildren = (inputEl['input'] as XmlNode[]).filter(isElement);
-  const expectationChildren = (expectationsEl['expectations'] as XmlNode[]).filter(isElement);
+  const inputChildren = (inputEl.input as XmlNode[]).filter(isElement);
+  const expectationChildren = (expectationsEl.expectations as XmlNode[]).filter(isElement);
   if (inputChildren.length !== 1 || expectationChildren.length !== 1) {
     throw new Error('fixture must have exactly one root input/expectation node');
   }
 
   const displays = new Set<string>();
-  const root = buildNode(inputChildren[0]!, displays);
-  const expected = buildExpected(expectationChildren[0]!);
+  const root = buildNode(inputChildren[0] ?? unreachable(), displays);
+  const expected = buildExpected(expectationChildren[0] ?? unreachable());
 
   return {
-    name: testAttrs['name'] ?? 'unnamed',
+    name: testAttrs.name ?? 'unnamed',
     useRounding: (testAttrs['use-rounding'] ?? 'true') !== 'false',
     viewport,
     root,
@@ -106,10 +107,13 @@ function buildNode(el: XmlNode, displays: Set<string>): LayoutNode {
   const kids = (el[tag] as XmlNode[]) ?? [];
   const elementChildren = kids.filter(isElement);
   const style = buildStyle(attrs);
-  if (attrs['display'] !== undefined) displays.add(attrs['display']);
+  if (attrs.display !== undefined) displays.add(attrs.display);
 
   if (elementChildren.length > 0) {
-    return LayoutNode.make(style, elementChildren.map((child) => buildNode(child, displays)));
+    return LayoutNode.make(
+      style,
+      elementChildren.map((child) => buildNode(child, displays)),
+    );
   }
 
   // Leaf: text content (if any) measured with the Ahem font
@@ -133,10 +137,10 @@ function buildExpected(el: XmlNode): ExpectedNode {
   const attrs = el[':@'] ?? {};
   const kids = ((el[tag] as XmlNode[]) ?? []).filter(isElement);
   return {
-    x: parseFloat(attrs['x'] ?? '0'),
-    y: parseFloat(attrs['y'] ?? '0'),
-    width: parseFloat(attrs['width'] ?? '0'),
-    height: parseFloat(attrs['height'] ?? '0'),
+    x: parseFloat(attrs.x ?? '0'),
+    y: parseFloat(attrs.y ?? '0'),
+    width: parseFloat(attrs.width ?? '0'),
+    height: parseFloat(attrs.height ?? '0'),
     children: kids.map(buildExpected),
   };
 }
@@ -144,23 +148,23 @@ function buildExpected(el: XmlNode): ExpectedNode {
 /** Exported for the fuzzer's serializer round-trip test (tests/fuzz.test.ts). */
 export function buildStyle(attrs: Record<string, string>): StyleInput {
   const style: StyleInput = {
-    display: (attrs['display'] as Style['display']) ?? 'flex',
-    direction: (attrs['direction'] as Style['direction']) ?? 'ltr',
+    display: (attrs.display as Style['display']) ?? 'flex',
+    direction: (attrs.direction as Style['direction']) ?? 'ltr',
     boxSizing: (attrs['box-sizing'] as Style['boxSizing']) ?? 'border-box',
     overflowX: (attrs['overflow-x'] as Style['overflow']['x']) ?? 'visible',
     overflowY: (attrs['overflow-y'] as Style['overflow']['y']) ?? 'visible',
     scrollbarWidth: attrs['scrollbar-width'] !== undefined ? parseFloat(attrs['scrollbar-width']) : 0,
-    position: (attrs['position'] as Style['position']) ?? 'relative',
-    width: parseDimension(attrs['width'], 'auto'),
-    height: parseDimension(attrs['height'], 'auto'),
+    position: (attrs.position as Style['position']) ?? 'relative',
+    width: parseDimension(attrs.width, 'auto'),
+    height: parseDimension(attrs.height, 'auto'),
     minWidth: parseDimension(attrs['min-width'], 'auto'),
     minHeight: parseDimension(attrs['min-height'], 'auto'),
     maxWidth: parseDimension(attrs['max-width'], 'auto'),
     maxHeight: parseDimension(attrs['max-height'], 'auto'),
-    top: parseDimension(attrs['top'], 'auto'),
-    left: parseDimension(attrs['left'], 'auto'),
-    bottom: parseDimension(attrs['bottom'], 'auto'),
-    right: parseDimension(attrs['right'], 'auto'),
+    top: parseDimension(attrs.top, 'auto'),
+    left: parseDimension(attrs.left, 'auto'),
+    bottom: parseDimension(attrs.bottom, 'auto'),
+    right: parseDimension(attrs.right, 'auto'),
     marginTop: parseDimension(attrs['margin-top'], 0),
     marginLeft: parseDimension(attrs['margin-left'], 0),
     marginBottom: parseDimension(attrs['margin-bottom'], 0),
@@ -236,12 +240,16 @@ export function parseTrackList(input: string): GridTemplateComponent[] {
   return splitTopLevel(input.trim()).map((entry) => {
     const repeatMatch = /^repeat\((.*)\)$/s.exec(entry);
     if (repeatMatch) {
-      const inner = repeatMatch[1]!;
+      const inner = repeatMatch[1] ?? unreachable();
       const commaIdx = inner.indexOf(',');
       const countStr = inner.slice(0, commaIdx).trim();
       const tracksStr = inner.slice(commaIdx + 1).trim();
       const count =
-        countStr === 'auto-fill' ? ('auto-fill' as const) : countStr === 'auto-fit' ? ('auto-fit' as const) : parseInt(countStr, 10);
+        countStr === 'auto-fill'
+          ? ('auto-fill' as const)
+          : countStr === 'auto-fit'
+            ? ('auto-fit' as const)
+            : parseInt(countStr, 10);
       const tracks = splitTopLevel(tracksStr).map(parseTrackSizingFunction);
       return { repeat: count, tracks };
     }
@@ -252,7 +260,7 @@ export function parseTrackList(input: string): GridTemplateComponent[] {
 export function parseTrackSizingFunction(input: string): TrackSizingFunction {
   const minmaxMatch = /^minmax\((.*)\)$/s.exec(input);
   if (minmaxMatch) {
-    const inner = minmaxMatch[1]!;
+    const inner = minmaxMatch[1] ?? unreachable();
     const commaIdx = inner.indexOf(',');
     return {
       min: parseMinTrack(inner.slice(0, commaIdx).trim()),
@@ -260,8 +268,7 @@ export function parseTrackSizingFunction(input: string): TrackSizingFunction {
     };
   }
   const max = parseMaxTrack(input);
-  const min: MinTrackSizingFunction =
-    typeof max === 'object' && ('fr' in max || 'fitContent' in max) ? 'auto' : max;
+  const min: MinTrackSizingFunction = typeof max === 'object' && ('fr' in max || 'fitContent' in max) ? 'auto' : max;
   return { min, max };
 }
 
@@ -273,9 +280,9 @@ function parseMinTrack(input: string): MinTrackSizingFunction {
 function parseMaxTrack(input: string): MaxTrackSizingFunction {
   if (input === 'auto' || input === 'min-content' || input === 'max-content') return input;
   const fitMatch = /^fit-content\((.*)\)$/s.exec(input);
-  if (fitMatch) return { fitContent: parseLength(fitMatch[1]!.trim()) };
+  if (fitMatch) return { fitContent: parseLength((fitMatch[1] ?? unreachable()).trim()) };
   const frMatch = /^(-?[\d.]+)fr$/.exec(input);
-  if (frMatch) return { fr: parseFloat(frMatch[1]!) };
+  if (frMatch) return { fr: parseFloat(frMatch[1] ?? unreachable()) };
   return parseLength(input);
 }
 
@@ -290,7 +297,7 @@ function parseGridAutoFlow(input: string): Style['gridAutoFlow'] {
 export function parseGridPlacement(input: string | undefined): GridPlacement {
   if (input === undefined || input === 'auto') return 'auto';
   const spanMatch = /^span\s+(\d+)$/.exec(input.trim());
-  if (spanMatch) return { span: parseInt(spanMatch[1]!, 10) };
+  if (spanMatch) return { span: parseInt(spanMatch[1] ?? unreachable(), 10) };
   return { line: parseInt(input.trim(), 10) };
 }
 

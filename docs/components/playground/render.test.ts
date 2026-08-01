@@ -2,8 +2,9 @@
 // these tests cover the thing that could actually be wrong: that each display
 // mode lays out and that the tree the renderer walks has the geometry it needs.
 
-import { describe, expect, it } from 'vitest';
 import { computeLayout } from 'bento-layout';
+import { describe, expect, it } from 'vitest';
+import { unreachable } from '../../../src/assert.js';
 import { demoToTree } from './parse.js';
 
 function layout(source: string) {
@@ -72,7 +73,7 @@ describe('geometry the renderer relies on', () => {
         </Node>
       </Layout>
     `);
-    expect(root.children[0]!.layout.location).toEqual({ x: 20, y: 10 });
+    expect(root.children[0]?.layout.location).toEqual({ x: 20, y: 10 });
   });
 
   it('nests offsets per level rather than cumulatively', () => {
@@ -85,10 +86,10 @@ describe('geometry the renderer relies on', () => {
         </Node>
       </Layout>
     `);
-    const mid = root.children[0]!;
+    const mid = root.children[0] ?? unreachable();
     expect(mid.layout.location.x).toBe(10);
     // Not 20: the grandchild's x is relative to its own parent.
-    expect(mid.children[0]!.layout.location.x).toBe(10);
+    expect(mid.children[0]?.layout.location.x).toBe(10);
   });
 
   it('keeps a one-axis collapse at zero size for the renderer to mark', () => {
@@ -102,7 +103,7 @@ describe('geometry the renderer relies on', () => {
         </Node>
       </Layout>
     `);
-    expect(root.children[0]!.layout.size).toEqual({ width: 0, height: 40 });
+    expect(root.children[0]?.layout.size).toEqual({ width: 0, height: 40 });
   });
 
   it('keeps a display:none node in the tree for the renderer to skip', () => {
@@ -114,6 +115,6 @@ describe('geometry the renderer relies on', () => {
       </Layout>
     `);
     expect(root.children).toHaveLength(1);
-    expect(root.children[0]!.style.display).toBe('none');
+    expect(root.children[0]?.style.display).toBe('none');
   });
 });

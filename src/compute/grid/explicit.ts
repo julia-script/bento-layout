@@ -1,13 +1,14 @@
 // The explicit grid: track counts and sizes from grid-template-* (named lines
 // not implemented).
 
+import { unreachable } from '../../assert.js';
 import type { AbsoluteAxis } from '../../geometry.js';
-import { vMax } from '../../math.js';
 import type { Opt } from '../../math.js';
-import { isRepeat, resolveOrZero, trackDefiniteValue, trackHasFixedComponent, AUTO_TRACK } from '../../style.js';
+import { vMax } from '../../math.js';
 import type { GridTemplateComponent, LengthPercentage, Style, TrackSizingFunction } from '../../style.js';
-import { collapseTrack, gutter, newGridTrack } from './types.js';
+import { AUTO_TRACK, isRepeat, resolveOrZero, trackDefiniteValue, trackHasFixedComponent } from '../../style.js';
 import type { GridTrack, TrackCounts } from './types.js';
+import { collapseTrack, gutter, newGridTrack } from './types.js';
 
 /** The auto-repeat fit strategy to use */
 export type AutoRepeatStrategy = 'max-repetitions-that-do-not-overflow' | 'min-repetitions-that-do-overflow';
@@ -44,10 +45,12 @@ export function computeExplicitGridSizeInAxis(
 
   if (autoRepetitionCount === 0) return [0, nonAutoRepeatingTrackCount];
 
-  const repetitionDefinition = template.find(
-    (def): def is { repeat: 'auto-fill' | 'auto-fit'; tracks: TrackSizingFunction[] } =>
-      isRepeat(def) && typeof def.repeat !== 'number',
-  )!;
+  // `autoRepetitionCount === 1` was established above, so the find always hits.
+  const repetitionDefinition =
+    template.find(
+      (def): def is { repeat: 'auto-fill' | 'auto-fit'; tracks: TrackSizingFunction[] } =>
+        isRepeat(def) && typeof def.repeat !== 'number',
+    ) ?? unreachable();
   const repetitionTrackCount = repetitionDefinition.tracks.length;
 
   // "treating each track as its max track sizing function if that is definite or as its
@@ -55,7 +58,9 @@ export function computeExplicitGridSizeInAxis(
   const trackDefiniteValueFn = (sizingFunction: TrackSizingFunction, parentSize: Opt): number => {
     const maxSize = trackDefiniteValue(sizingFunction.max, parentSize);
     const minSize = trackDefiniteValue(sizingFunction.min, parentSize);
-    return maxSize !== null ? vMax(maxSize, minSize) : minSize!;
+    // Only reached for track definitions with a fixed component (checked via
+    // `allTrackDefsHaveFixedComponent` above), so one of the two is definite.
+    return maxSize !== null ? vMax(maxSize, minSize) : (minSize ?? unreachable());
   };
 
   let numRepetitions: number;
@@ -139,7 +144,9 @@ export function initializeGridTracks(
 
   // Cycle helper for auto-track lists
   const autoTrackAt = (index: number): TrackSizingFunction =>
-    autoTrackCount === 0 ? AUTO_TRACK : autoTracks[((index % autoTrackCount) + autoTrackCount) % autoTrackCount]!;
+    autoTrackCount === 0
+      ? AUTO_TRACK
+      : (autoTracks[((index % autoTrackCount) + autoTrackCount) % autoTrackCount] ?? unreachable());
 
   // Create negative implicit tracks. When auto-tracks exist, offset the cycle so the
   // track immediately before the explicit grid gets the *last* auto track, etc.
@@ -162,7 +169,7 @@ export function initializeGridTracks(
       } else if (typeof def.repeat === 'number') {
         const total = def.repeat * def.tracks.length;
         for (let i = 0; i < total; i++) {
-          const sf = def.tracks[i % def.tracks.length]!;
+          const sf = def.tracks[i % def.tracks.length] ?? unreachable();
           tracks.push(newGridTrack(sf.min, sf.max));
           tracks.push(gutter(gap));
           currentTrackIndex++;
@@ -171,7 +178,7 @@ export function initializeGridTracks(
         // auto-fill / auto-fit
         const autoRepeatedTrackCount = counts.explicit - nonAutoRepeatingTrackCount;
         for (let i = 0; i < autoRepeatedTrackCount; i++) {
-          const sf = def.tracks[i % def.tracks.length]!;
+          const sf = def.tracks[i % def.tracks.length] ?? unreachable();
           const track = newGridTrack(sf.min, sf.max);
           const gutterTrack = gutter(gap);
 
@@ -191,7 +198,7 @@ export function initializeGridTracks(
         const isLast = currentTrackIndex === trackCountsTotal(counts);
         if (def.repeat === 'auto-fit' && isLast) {
           for (let i = tracks.length - 1; i >= 0; i--) {
-            const prev = tracks[i]!;
+            const prev = tracks[i] ?? unreachable();
             if (prev.kind === 'track' && !prev.isCollapsed) break;
             collapseTrack(prev);
           }
@@ -210,8 +217,8 @@ export function initializeGridTracks(
   }
 
   // Mark first and last grid lines as collapsed
-  collapseTrack(tracks[0]!);
-  collapseTrack(tracks[tracks.length - 1]!);
+  collapseTrack(tracks[0] ?? unreachable());
+  collapseTrack(tracks[tracks.length - 1] ?? unreachable());
 }
 
 function trackCountsTotal(c: TrackCounts): number {

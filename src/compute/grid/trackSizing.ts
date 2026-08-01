@@ -1,23 +1,25 @@
 // The CSS Grid track sizing algorithm.
 // https://www.w3.org/TR/css-grid-1/#layout-algorithm
 
+import { unreachable } from '../../assert.js';
 import type { AbsoluteAxis, Size } from '../../geometry.js';
-import { mMin } from '../../math.js';
 import type { Opt } from '../../math.js';
+import { mMin } from '../../math.js';
+import type { AlignContent, AvailableSpace } from '../../style.js';
 import {
   isScrollContainer,
   maxDefiniteLimit,
   maxHasDefiniteValue,
-  maxIsFr,
   maxIsFitContent,
+  maxIsFr,
   maxIsMaxContentAlike,
   maxIsMaxOrFitContent,
   resolveOrZero,
   trackDefiniteValue,
   trackUsesPercentage,
 } from '../../style.js';
-import type { AlignContent, AvailableSpace } from '../../style.js';
 import { performChildLayout } from '../dispatch.js';
+import type { GridItem, GridTrack, TrackCounts } from './types.js';
 import {
   absGet,
   absOther,
@@ -41,7 +43,6 @@ import {
   trackHasIntrinsicSizingFunction,
   trackIsFlexible,
 } from './types.js';
-import type { GridItem, GridTrack, TrackCounts } from './types.js';
 
 /** Whether a minimum or maximum size's space is being distributed */
 type IntrinsicContributionType = 'minimum' | 'maximum';
@@ -62,7 +63,7 @@ class ItemBatcher {
   next(items: GridItem[]): [GridItem[], boolean] | null {
     if (this.currentIsFlex || this.indexOffset >= items.length) return null;
 
-    const item = items[this.indexOffset]!;
+    const item = items[this.indexOffset] ?? unreachable();
     const currentSpan = itemSpan(item, this.axis);
     this.currentIsFlex = itemCrossesFlexibleTrack(item, this.axis);
 
@@ -110,8 +111,7 @@ export function computeAlignmentGutterAdjustment(
   if (tracks.length <= 1) return 0;
 
   const keyword = alignment.keyword;
-  const outerGutterWeight =
-    keyword === 'stretch' || keyword === 'space-between' ? 0 : 1;
+  const outerGutterWeight = keyword === 'stretch' || keyword === 'space-between' ? 0 : 1;
   const innerGutterWeight =
     keyword === 'space-between' ? 1 : keyword === 'space-around' ? 2 : keyword === 'space-evenly' ? 1 : 0;
 
@@ -257,7 +257,7 @@ export function trackSizingAlgorithm(
   );
   if (otherAxisTracks.length > 3) {
     for (let i = 2; i < otherAxisTracks.length; i += 2) {
-      otherAxisTracks[i]!.contentAlignmentAdjustment = gutterAlignmentAdjustment;
+      (otherAxisTracks[i] ?? unreachable()).contentAlignmentAdjustment = gutterAlignmentAdjustment;
     }
   }
 
@@ -334,9 +334,9 @@ function resolveItemBaselines(axis: AbsoluteAxis, items: GridItem[], innerNodeSi
 
   let index = 0;
   while (index < items.length) {
-    const currentRow = itemPlacement(items[index]!, otherAxis).start;
+    const currentRow = itemPlacement(items[index] ?? unreachable(), otherAxis).start;
     let end = index;
-    while (end < items.length && itemPlacement(items[end]!, otherAxis).start === currentRow) end++;
+    while (end < items.length && itemPlacement(items[end] ?? unreachable(), otherAxis).start === currentRow) end++;
     const rowItems = items.slice(index, end);
     index = end;
 
@@ -393,15 +393,16 @@ function resolveIntrinsicTrackSizes(
 
   const batcher = new ItemBatcher(axis);
   let batchResult: [GridItem[], boolean] | null;
+  // biome-ignore lint/suspicious/noAssignInExpressions: drain-the-batcher loop; the assignment is the condition.
   while ((batchResult = batcher.next(items)) !== null) {
     const [batch, isFlex] = batchResult;
 
     // 2. Size tracks to fit non-spanning items (optimized single-span case)
-    const batchSpan = lineSpan(itemPlacement(batch[0]!, axis));
+    const batchSpan = lineSpan(itemPlacement(batch[0] ?? unreachable(), axis));
     if (!isFlex && batchSpan === 1) {
       for (const item of batch) {
         const trackIndex = itemPlacementIndexes(item, axis).start + 1;
-        const track = axisTracks[trackIndex]!;
+        const track = axisTracks[trackIndex] ?? unreachable();
         const min = track.minTrackSizingFunction;
 
         // Handle base sizes
@@ -798,11 +799,7 @@ function distributeItemSpaceToGrowthLimit(
 }
 
 /** 11.6 Maximise Tracks */
-function maximiseTracks(
-  axisTracks: GridTrack[],
-  axisInnerNodeSize: Opt,
-  axisAvailableGridSpace: AvailableSpace,
-): void {
+function maximiseTracks(axisTracks: GridTrack[], axisInnerNodeSize: Opt, axisAvailableGridSpace: AvailableSpace): void {
   const usedSpace = axisTracks.reduce((sum, track) => sum + track.baseSize, 0);
   const freeSpace =
     axisAvailableGridSpace === 'max-content'

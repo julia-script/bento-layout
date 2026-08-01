@@ -13,7 +13,7 @@
 // false imports would poison the scoreboard.
 
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -30,12 +30,14 @@ const SUITES = ['css-flexbox', 'css-grid', 'css-sizing', 'css-align'] as const;
 // parseGridPosition: auto | int | span int).
 
 const NUM = String.raw`-?\d+(?:\.\d+)?`;
+// biome-ignore lint/complexity/noUselessStringRaw: kept uniform with the other regex fragments, which do need raw.
 const LENGTH = String.raw`(?:${NUM}px|${NUM}%|0)`;
 const rx = (body: string): RegExp => new RegExp(`^(?:${body})$`, 'i');
 
 // `min-content`/`max-content` are valid CSS but NOT in the engine's `Dimension`
 // model (px | percent | auto) — the fixture harness would turn them into NaN.
 // They remain legal inside track lists, where the engine does model them.
+// biome-ignore lint/complexity/noUselessStringRaw: kept uniform with the other regex fragments, which do need raw.
 const SIZE_DIM = String.raw`(?:${LENGTH}|auto)`;
 const dimension = rx(SIZE_DIM);
 const lengthPct = rx(LENGTH);
@@ -78,36 +80,36 @@ interface PropRule {
 
 export const ALLOWLIST: Record<string, PropRule> = {
   // Box model / layout
-  'display': { check: oneOf('block', 'flex', 'grid', 'none') },
+  display: { check: oneOf('block', 'flex', 'grid', 'none') },
   'box-sizing': { check: oneOf('border-box', 'content-box') },
-  'direction': { check: oneOf('ltr', 'rtl') },
-  'position': { check: oneOf('relative', 'absolute') },
-  'overflow': { check: repeated('(?:visible|hidden|clip|scroll)', 1, 2) },
+  direction: { check: oneOf('ltr', 'rtl') },
+  position: { check: oneOf('relative', 'absolute') },
+  overflow: { check: repeated('(?:visible|hidden|clip|scroll)', 1, 2) },
   'overflow-x': { check: oneOf('visible', 'hidden', 'clip', 'scroll') },
   'overflow-y': { check: oneOf('visible', 'hidden', 'clip', 'scroll') },
-  'width': { check: dimension },
-  'height': { check: dimension },
+  width: { check: dimension },
+  height: { check: dimension },
   'min-width': { check: dimension },
   'min-height': { check: dimension },
   'max-width': { check: rx(`${SIZE_DIM}|none`) },
   'max-height': { check: rx(`${SIZE_DIM}|none`) },
   'aspect-ratio': { check: ratio },
-  'top': { check: lengthPctAuto },
-  'left': { check: lengthPctAuto },
-  'bottom': { check: lengthPctAuto },
-  'right': { check: lengthPctAuto },
-  'inset': { check: repeated(`(?:${LENGTH}|auto)`, 1, 4) },
-  'margin': { check: repeated(`(?:${LENGTH}|auto)`, 1, 4) },
+  top: { check: lengthPctAuto },
+  left: { check: lengthPctAuto },
+  bottom: { check: lengthPctAuto },
+  right: { check: lengthPctAuto },
+  inset: { check: repeated(`(?:${LENGTH}|auto)`, 1, 4) },
+  margin: { check: repeated(`(?:${LENGTH}|auto)`, 1, 4) },
   'margin-top': { check: lengthPctAuto },
   'margin-left': { check: lengthPctAuto },
   'margin-bottom': { check: lengthPctAuto },
   'margin-right': { check: lengthPctAuto },
-  'padding': { check: repeated(LENGTH, 1, 4) },
+  padding: { check: repeated(LENGTH, 1, 4) },
   'padding-top': { check: lengthPct },
   'padding-left': { check: lengthPct },
   'padding-bottom': { check: lengthPct },
   'padding-right': { check: lengthPct },
-  'border': { check: borderShorthand },
+  border: { check: borderShorthand },
   'border-top': { check: borderShorthand },
   'border-left': { check: borderShorthand },
   'border-bottom': { check: borderShorthand },
@@ -123,18 +125,20 @@ export const ALLOWLIST: Record<string, PropRule> = {
   'flex-direction': { check: oneOf('row', 'row-reverse', 'column', 'column-reverse') },
   'flex-wrap': { check: oneOf('nowrap', 'wrap', 'wrap-reverse') },
   'flex-flow': {
-    check: rx(String.raw`(?:row|row-reverse|column|column-reverse)(?:\s+(?:nowrap|wrap|wrap-reverse))?|(?:nowrap|wrap|wrap-reverse)`),
+    check: rx(
+      String.raw`(?:row|row-reverse|column|column-reverse)(?:\s+(?:nowrap|wrap|wrap-reverse))?|(?:nowrap|wrap|wrap-reverse)`,
+    ),
   },
   'flex-grow': { check: number },
   'flex-shrink': { check: number },
   'flex-basis': { check: dimension },
-  'flex': { check: rx(String.raw`none|initial|${NUM}(?:\s+${NUM})?(?:\s+${SIZE_DIM})?|${SIZE_DIM}`) },
+  flex: { check: rx(String.raw`none|initial|${NUM}(?:\s+${NUM})?(?:\s+${SIZE_DIM})?|${SIZE_DIM}`) },
   // `order` is NOT modelled: the engine has no such style field and
   // test_helper.js never extracts it, so a test that reorders items records
   // DOM order while Chrome lays out visual order. Unpassable by construction,
   // so it must not enter the corpus (it would sit in quarantine forever and
   // understate the score). `order: 0` is the initial value and harmless.
-  'order': { check: rx('0') },
+  order: { check: rx('0') },
 
   // Alignment
   'align-items': { check: alignValue },
@@ -143,7 +147,7 @@ export const ALLOWLIST: Record<string, PropRule> = {
   'justify-content': { check: alignValue },
   'justify-items': { check: alignValue },
   'justify-self': { check: rx(String.raw`auto|(?:(?:safe|unsafe)\s+)?${ALIGN_KW}`) },
-  'gap': { check: repeated(LENGTH, 1, 2) },
+  gap: { check: repeated(LENGTH, 1, 2) },
   'row-gap': { check: lengthPct },
   'column-gap': { check: lengthPct },
   'grid-gap': { check: repeated(LENGTH, 1, 2) },
@@ -167,25 +171,25 @@ export const ALLOWLIST: Record<string, PropRule> = {
   // two longhands above before we read declarations back, so nothing here needs
   // to parse it. The shorthand's other forms carry `grid-auto-flow` and named
   // areas, which are not equivalent to a track list — hence the narrow shape.
-  'grid': { check: rx(`(?:${TRACK_LIST})\\s*/\\s*(?:${TRACK_LIST})`) },
+  grid: { check: rx(`(?:${TRACK_LIST})\\s*/\\s*(?:${TRACK_LIST})`) },
 
   // Harness-supplied typography: valid only in the shapes our Ahem setup
   // already provides; the declaration is dropped at rewrite.
-  'font': { check: rx(String.raw`10px\s*/\s*1\s+ahem|10px\s+ahem`), action: 'drop' },
+  font: { check: rx(String.raw`10px\s*/\s*1\s+ahem|10px\s+ahem`), action: 'drop' },
   'font-family': { check: rx(String.raw`ahem(?:\s*,.*)?`), action: 'drop' },
   'font-size': { check: rx('10px'), action: 'drop' },
   'line-height': { check: rx('1|10px'), action: 'drop' },
 
   // Paint-only: no layout effect, any value accepted, kept as-is (inert).
-  'color': { check: 'any' },
-  'background': { check: 'any' },
+  color: { check: 'any' },
+  background: { check: 'any' },
   'background-color': { check: 'any' },
   'border-color': { check: 'any' },
   'border-top-color': { check: 'any' },
   'border-left-color': { check: 'any' },
   'border-bottom-color': { check: 'any' },
   'border-right-color': { check: 'any' },
-  'outline': { check: 'any' },
+  outline: { check: 'any' },
   'outline-color': { check: 'any' },
   'content-visibility': { check: rx('visible') },
 };
@@ -261,7 +265,9 @@ export function stripVendorPrefixes(css: string): string {
 
 /** Parse a <style> block into flat rules. Returns null (=> skip) on any @rule
  *  other than a droppable Ahem @font-face, or on unbalanced input. */
-export function parseStyleBlock(css: string): { rules: StyleRule[]; reason?: string } | { rules: null; reason: string } {
+export function parseStyleBlock(
+  css: string,
+): { rules: StyleRule[]; reason?: string } | { rules: null; reason: string } {
   const noComments = css.replace(/\/\*[\s\S]*?\*\//g, '');
   const rules: StyleRule[] = [];
   let rest = noComments.trim();
@@ -429,7 +435,8 @@ function afterHeadFallback(html: string): string | null {
   // Walk forward from the start instead, stepping over each leading
   // <style>/<script>/<link>/<meta>/<title> block, and stop at the first thing
   // that is not part of the preamble.
-  const PREAMBLE = /^\s*(?:<!DOCTYPE[^>]*>|<\/?(?:html|head)\b[^>]*>|<(?:link|meta)\b[^>]*\/?>|<title\b[^>]*>[\s\S]*?<\/title>|<style\b[^>]*>[\s\S]*?<\/style>|<script\b[^>]*>[\s\S]*?<\/script>|<!--[\s\S]*?-->)/i;
+  const PREAMBLE =
+    /^\s*(?:<!DOCTYPE[^>]*>|<\/?(?:html|head)\b[^>]*>|<(?:link|meta)\b[^>]*\/?>|<title\b[^>]*>[\s\S]*?<\/title>|<style\b[^>]*>[\s\S]*?<\/style>|<script\b[^>]*>[\s\S]*?<\/script>|<!--[\s\S]*?-->)/i;
   let rest = html;
   for (;;) {
     const m = PREAMBLE.exec(rest);
@@ -475,7 +482,10 @@ function argValue(flag: string): string | undefined {
   return idx >= 0 ? process.argv[idx + 1] : undefined;
 }
 
-export function runScan(wptRoot: string, suiteFilter: string | null): { manifest: Manifest; candidates: Map<string, Classified> } {
+export function runScan(
+  wptRoot: string,
+  suiteFilter: string | null,
+): { manifest: Manifest; candidates: Map<string, Classified> } {
   const wptSha = execFileSync('git', ['-C', wptRoot, 'rev-parse', 'HEAD']).toString().trim();
   const files: Record<string, ManifestEntry> = {};
   const candidates = new Map<string, Classified>();
@@ -605,8 +615,7 @@ const IN_PAGE_REWRITE = `(dropProps) => {
  * still sizes against the viewport width exactly as before. Keep the width in
  * sync with gentest.
  */
-const VIEWPORT_WRAPPER_OPEN =
-  '<div class="viewport" style="display: contents; width: 1280px;">';
+const VIEWPORT_WRAPPER_OPEN = '<div class="viewport" style="display: contents; width: 1280px;">';
 
 function buildRenderPage(supportJs: string, supportCss: string, styleCss: string, bodyHtml: string): string {
   return `<!DOCTYPE html>
@@ -742,7 +751,7 @@ async function runRewrite(
   };
   const browser = await puppeteer.launch({
     headless: true,
-    args: ['--force-color-profile=srgb', ...(process.env['GENTEST_NO_SANDBOX'] ? ['--no-sandbox'] : [])],
+    args: ['--force-color-profile=srgb', ...(process.env.GENTEST_NO_SANDBOX ? ['--no-sandbox'] : [])],
   });
   const page = await browser.newPage();
   const supportDir = join(ROOT, 'tests', 'html', 'support');
@@ -759,7 +768,13 @@ async function runRewrite(
       failed++;
       continue;
     }
-    emitFile(join(OUT_DIR, '..', emittedFileName(relPath)), relPath, manifest.wptSha, candidate, result.bodyHtml as string);
+    emitFile(
+      join(OUT_DIR, '..', emittedFileName(relPath)),
+      relPath,
+      manifest.wptSha,
+      candidate,
+      result.bodyHtml as string,
+    );
     emitted++;
   }
   await browser.close();
@@ -782,7 +797,9 @@ if (isMain) {
       reasons.set(key, (reasons.get(key) ?? 0) + 1);
     }
   }
-  console.log(`wpt-import: scanned ${total} files, ${candidates.size} import candidates (sha ${manifest.wptSha.slice(0, 10)})`);
+  console.log(
+    `wpt-import: scanned ${total} files, ${candidates.size} import candidates (sha ${manifest.wptSha.slice(0, 10)})`,
+  );
   console.log('top skip reasons:');
   for (const [reason, count] of [...reasons.entries()].sort((a, b) => b[1] - a[1]).slice(0, 25)) {
     console.log(`  ${String(count).padStart(5)}  ${reason}`);

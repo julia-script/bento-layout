@@ -1,10 +1,12 @@
 // The grid layout orchestrator.
 // Phases: resolve explicit grid → place items → size tracks → align & position.
 
+import { unreachable } from '../../assert.js';
 import type { Rect, Size } from '../../geometry.js';
 import { applyAspectRatioClamped, rectAdd, sumAxes } from '../../geometry.js';
-import { mClamp, mSub, vClamp } from '../../math.js';
 import type { Opt } from '../../math.js';
+import { mClamp, mSub, vClamp } from '../../math.js';
+import type { AvailableSpace, Direction } from '../../style.js';
 import {
   ALIGN_CONTENT_STRETCH,
   ALIGN_STRETCH,
@@ -16,13 +18,12 @@ import {
   trackResolvedPercentageSize,
   trackUsesPercentage,
 } from '../../style.js';
-import type { AvailableSpace, Direction } from '../../style.js';
-import type { LayoutNode, LayoutInput, LayoutOutput } from '../../tree.js';
+import type { LayoutInput, LayoutNode, LayoutOutput } from '../../tree.js';
 import { fromOuterSize, fromSizesAndBaselines, internals, layoutWithOrder } from '../../tree.js';
 import { performChildLayout } from '../dispatch.js';
 import { alignAndPositionItem, alignTracks } from './alignment.js';
-import { computeExplicitGridSizeInAxis, initializeGridTracks } from './explicit.js';
 import type { AutoRepeatStrategy } from './explicit.js';
+import { computeExplicitGridSizeInAxis, initializeGridTracks } from './explicit.js';
 import { computeGridSizeEstimate } from './implicit.js';
 import { placeGridItems } from './placement.js';
 import {
@@ -30,6 +31,7 @@ import {
   resolveItemTrackIndexes,
   trackSizingAlgorithm,
 } from './trackSizing.js';
+import type { GridItem, GridTrack, TrackCounts } from './types.js';
 import {
   CellOccupancyMatrix,
   itemGridAreaSize,
@@ -37,7 +39,6 @@ import {
   ozResolveAbsolutelyPositionedGridTracks,
   placementLineIntoOriginZero,
 } from './types.js';
-import type { GridItem, GridTrack, TrackCounts } from './types.js';
 
 /** Translate an oz line placement by the axis coalescing offset (implicit.ts). */
 function ozLineTranslateAbs(
@@ -120,7 +121,10 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
   };
 
   const outerNodeSize: Size<Opt> = {
-    width: vMaxOpt(mClamp(knownDimensions.width ?? preferredSize.width, minSize.width, maxSize.width), paddingBorderSize.width),
+    width: vMaxOpt(
+      mClamp(knownDimensions.width ?? preferredSize.width, minSize.width, maxSize.width),
+      paddingBorderSize.width,
+    ),
     height: vMaxOpt(
       mClamp(knownDimensions.height ?? preferredSize.height, minSize.height, maxSize.height),
       paddingBorderSize.height,
@@ -182,7 +186,7 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
   // 3. Implicit Grid: estimate track counts
   const inFlowChildren: { index: number; node: LayoutNode }[] = [];
   for (let index = 0; index < nd.children.length; index++) {
-    const child = nd.children[index]!;
+    const child = nd.children[index] ?? unreachable();
     const childStyle = internals(child).style;
     if (childStyle.display === 'none' || childStyle.position === 'absolute') continue;
     inFlowChildren.push({ index, node: child });
@@ -297,7 +301,11 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     heightIsRatioDerived ? Math.max(resolvedStyleSize.height as number, rowSum) : resolvedStyleSize.height;
   const containerBorderBox = {
     width: Math.max(
-      vClamp(resolvedStyleSize.width ?? initialColumnSum + horizontalSum(contentBoxInset), minSize.width, maxSize.width),
+      vClamp(
+        resolvedStyleSize.width ?? initialColumnSum + horizontalSum(contentBoxInset),
+        minSize.width,
+        maxSize.width,
+      ),
       paddingBorderSize.width,
     ),
     height: Math.max(
@@ -340,7 +348,9 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
   let rerunColumnSizing: boolean;
   let intrinsicColumnContributionChanged = false;
 
-  const hasPercentageColumn = columns.some((track) => trackUsesPercentage(track.minTrackSizingFunction) || trackUsesPercentage(track.maxTrackSizingFunction));
+  const hasPercentageColumn = columns.some(
+    (track) => trackUsesPercentage(track.minTrackSizingFunction) || trackUsesPercentage(track.maxTrackSizingFunction),
+  );
   const hasPercentageRow = rows.some(
     (track) => trackUsesPercentage(track.minTrackSizingFunction) || trackUsesPercentage(track.maxTrackSizingFunction),
   );
@@ -351,7 +361,14 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     intrinsicColumnContributionChanged = items
       .filter((item) => item.crossesIntrinsicColumn)
       .some((item) => {
-        const gridAreaSize = itemGridAreaSize(item, 'horizontal', columns, rows, innerNodeSize, (track) => track.baseSize);
+        const gridAreaSize = itemGridAreaSize(
+          item,
+          'horizontal',
+          columns,
+          rows,
+          innerNodeSize,
+          (track) => track.baseSize,
+        );
         const availableSpaceForItem: Size<Opt> = { width: null, height: gridAreaSize.height };
         const newMinContentContribution = itemMinContentContribution(
           item,
@@ -407,7 +424,14 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
       intrinsicRowContributionChanged = items
         .filter((item) => item.crossesIntrinsicColumn)
         .some((item) => {
-          const gridAreaSize = itemGridAreaSize(item, 'vertical', rows, columns, innerNodeSize, (track) => track.baseSize);
+          const gridAreaSize = itemGridAreaSize(
+            item,
+            'vertical',
+            rows,
+            columns,
+            innerNodeSize,
+            (track) => track.baseSize,
+          );
           const availableSpaceForItem: Size<Opt> = { width: gridAreaSize.width, height: null };
           const newMinContentContribution = itemMinContentContribution(
             item,
@@ -454,13 +478,20 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     }
   }
 
-  if ((intrinsicColumnContributionChanged && !hasPercentageColumn) || (intrinsicRowContributionChanged && !hasPercentageRow)) {
+  if (
+    (intrinsicColumnContributionChanged && !hasPercentageColumn) ||
+    (intrinsicRowContributionChanged && !hasPercentageRow)
+  ) {
     const finalColumnSum = columns.reduce((sum, track) => sum + track.baseSize, 0);
     const finalRowSum = rows.reduce((sum, track) => sum + track.baseSize, 0);
 
     if (intrinsicColumnContributionChanged && !hasPercentageColumn) {
       containerBorderBox.width = Math.max(
-        vClamp(resolvedStyleSize.width ?? finalColumnSum + horizontalSum(contentBoxInset), minSize.width, maxSize.width),
+        vClamp(
+          resolvedStyleSize.width ?? finalColumnSum + horizontalSum(contentBoxInset),
+          minSize.width,
+          maxSize.width,
+        ),
         paddingBorderSize.width,
       );
       containerContentBox.width = Math.max(0, containerBorderBox.width - horizontalSum(contentBoxInset));
@@ -532,10 +563,10 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     let running = columnContentRight;
     for (let i = 0; i < columns.length; i++) {
       columnLogicalOffsets[i] = running;
-      running -= columns[columns.length - 1 - i]!.baseSize;
+      running -= (columns[columns.length - 1 - i] ?? unreachable()).baseSize;
     }
   } else {
-    for (let i = 0; i < columns.length; i++) columnLogicalOffsets[i] = columns[i]!.offset;
+    for (let i = 0; i < columns.length; i++) columnLogicalOffsets[i] = (columns[i] ?? unreachable()).offset;
   }
   // Placement mirrors the implicit track counts under RTL (an implicit track
   // added past the flow's end edge lands on the physical left), so the counts
@@ -567,12 +598,12 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
 
   // Position in-flow children
   for (let index = 0; index < items.length; index++) {
-    const item = items[index]!;
+    const item = items[index] ?? unreachable();
     const gridArea: Rect<number> = {
-      top: rows[item.rowIndexes.start + 1]!.offset,
-      bottom: rows[item.rowIndexes.end]!.offset,
-      left: columns[item.columnIndexes.start + 1]!.offset,
-      right: columns[item.columnIndexes.end]!.offset,
+      top: (rows[item.rowIndexes.start + 1] ?? unreachable()).offset,
+      bottom: (rows[item.rowIndexes.end] ?? unreachable()).offset,
+      left: (columns[item.columnIndexes.start + 1] ?? unreachable()).offset,
+      right: (columns[item.columnIndexes.end] ?? unreachable()).offset,
     };
     const [contribution, yPosition, height] = alignAndPositionItem(
       item.node,
@@ -594,7 +625,7 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
   // Position hidden and absolutely positioned children
   let order = items.length;
   for (let index = 0; index < nd.children.length; index++) {
-    const child = nd.children[index]!;
+    const child = nd.children[index] ?? unreachable();
     const childNd = internals(child);
     const childStyle = childNd.style;
 
@@ -631,7 +662,7 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
       const logicalColOffset = (line: Opt): Opt => {
         if (line === null) return null;
         const slot = tryIntoTrackVecIndex(line, absColCounts);
-        return slot !== null ? columnLogicalOffsets[slot]! : null;
+        return slot !== null ? (columnLogicalOffsets[slot] ?? unreachable()) : null;
       };
       const logicalColStart = logicalColOffset(colTracks.start);
       const logicalColEnd = logicalColOffset(colTracks.end);
@@ -647,10 +678,10 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
       };
 
       const gridArea: Rect<number> = {
-        top: maybeRowIndexes.start !== null ? rows[maybeRowIndexes.start]!.offset : border.top,
+        top: maybeRowIndexes.start !== null ? (rows[maybeRowIndexes.start] ?? unreachable()).offset : border.top,
         bottom:
           maybeRowIndexes.end !== null
-            ? rows[maybeRowIndexes.end]!.offset
+            ? (rows[maybeRowIndexes.end] ?? unreachable()).offset
             : containerBorderBox.height - border.bottom - scrollbarGutter.y,
         ...resolveAbsColumnEdges(
           logicalColStart,
@@ -679,10 +710,12 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
 
   // Determine the grid container baseline (first baseline only)
   items.sort((a, b) => a.rowIndexes.start - b.rowIndexes.start);
-  const firstRow = items[0]!.rowIndexes.start;
+  const firstRow = (items[0] ?? unreachable()).rowIndexes.start;
   const firstRowItems = items.filter((item) => item.rowIndexes.start === firstRow);
   const baselineItem =
-    firstRowItems.find((item) => item.alignSelf.keyword === 'baseline' && !item.alignSelf.safe) ?? firstRowItems[0]!;
+    firstRowItems.find((item) => item.alignSelf.keyword === 'baseline' && !item.alignSelf.safe) ??
+    firstRowItems[0] ??
+    unreachable();
   const gridContainerBaseline = baselineItem.yPosition + (baselineItem.baseline ?? baselineItem.height);
 
   return fromSizesAndBaselines(containerBorderBox, itemContentSizeContribution, {
@@ -743,8 +776,8 @@ function reverseNonGutterTracks(tracks: GridTrack[], trackCounts: TrackCounts): 
     let left = 1;
     let right = tracks.length - 2;
     while (left < right) {
-      const tmp = tracks[left]!;
-      tracks[left] = tracks[right]!;
+      const tmp = tracks[left] ?? unreachable();
+      tracks[left] = tracks[right] ?? unreachable();
       tracks[right] = tmp;
       left += 2;
       right = Math.max(right - 2, 0);
@@ -760,8 +793,8 @@ function reverseNonGutterTracks(tracks: GridTrack[], trackCounts: TrackCounts): 
   while (left < right) {
     const li = 2 * left + 1;
     const ri = 2 * right + 1;
-    const tmp = tracks[li]!;
-    tracks[li] = tracks[ri]!;
+    const tmp = tracks[li] ?? unreachable();
+    tracks[li] = tracks[ri] ?? unreachable();
     tracks[ri] = tmp;
     left += 1;
     right = Math.max(right - 1, 0);

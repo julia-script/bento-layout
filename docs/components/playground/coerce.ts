@@ -16,7 +16,6 @@
 // input it never sees (`parseGridPlacement('abc')` yields `{ line: NaN }`), and
 // a playground gets half-typed input on every keystroke.
 
-import valueParser from 'postcss-value-parser';
 import type {
   AlignContent,
   AlignContentKeyword,
@@ -32,6 +31,8 @@ import type {
   StyleInput,
   TrackSizingFunction,
 } from 'bento-layout';
+import valueParser from 'postcss-value-parser';
+import { unreachable } from '../../../src/assert.js';
 
 /** Thrown for any demo value the engine cannot lay out. Caught by <Demo>. */
 export class CoercionError extends Error {
@@ -82,9 +83,7 @@ function finite(n: number, source: string): number {
 
 /** Split a value string into its top-level words, dropping whitespace. */
 function topLevelNodes(input: string): valueParser.Node[] {
-  return valueParser(input.trim()).nodes.filter(
-    (n) => n.type !== 'space' && n.type !== 'div',
-  );
+  return valueParser(input.trim()).nodes.filter((n) => n.type !== 'space' && n.type !== 'div');
 }
 
 /**
@@ -114,13 +113,9 @@ export function coerceLengthPercentage(value: unknown, prop: string): LengthPerc
     case '':
       return n;
     case 'fr':
-      throw new CoercionError(
-        `${prop}: "fr" is only valid in a grid track, not as a ${prop}`,
-      );
+      throw new CoercionError(`${prop}: "fr" is only valid in a grid track, not as a ${prop}`);
     default:
-      throw new CoercionError(
-        `${prop}: unsupported unit "${parsed.unit}" in "${value}" — use px or %`,
-      );
+      throw new CoercionError(`${prop}: unsupported unit "${parsed.unit}" in "${value}" — use px or %`);
   }
 }
 
@@ -154,7 +149,7 @@ export function coerceNumber(value: unknown, prop: string): number {
 function splitSafe(value: string): { safe: boolean; keyword: string } {
   const parts = value.trim().split(/\s+/);
   if (parts.length === 2 && (parts[0] === 'safe' || parts[0] === 'unsafe')) {
-    return { safe: parts[0] === 'safe', keyword: parts[1]! };
+    return { safe: parts[0] === 'safe', keyword: parts[1] ?? unreachable() };
   }
   return { safe: false, keyword: parts[0] ?? '' };
 }
@@ -207,7 +202,7 @@ function coerceMaxTrack(node: valueParser.Node, prop: string): MaxTrackSizingFun
     if (args.length !== 1) {
       throw new CoercionError(`${prop}: fit-content() takes exactly one length`);
     }
-    return { fitContent: coerceLengthPercentage(valueParser.stringify(args[0]!), prop) };
+    return { fitContent: coerceLengthPercentage(valueParser.stringify(args[0] ?? unreachable()), prop) };
   }
 
   const raw = valueParser.stringify(node);
@@ -232,8 +227,8 @@ function coerceTrack(node: valueParser.Node, prop: string): TrackSizingFunction 
       throw new CoercionError(`${prop}: minmax() takes exactly two arguments`);
     }
     return {
-      min: coerceMinTrack(args[0]!, prop),
-      max: coerceMaxTrack(args[1]!, prop),
+      min: coerceMinTrack(args[0] ?? unreachable(), prop),
+      max: coerceMaxTrack(args[1] ?? unreachable(), prop),
     };
   }
 
@@ -273,17 +268,13 @@ export function coerceTrackList(value: unknown, prop: string): GridTemplateCompo
       if (commaAt === -1) {
         throw new CoercionError(`${prop}: repeat() needs a count and a track list`);
       }
-      const countNodes = node.nodes
-        .slice(0, commaAt)
-        .filter((n) => n.type !== 'space' && n.type !== 'div');
-      const trackNodes = node.nodes
-        .slice(commaAt + 1)
-        .filter((n) => n.type !== 'space' && n.type !== 'div');
+      const countNodes = node.nodes.slice(0, commaAt).filter((n) => n.type !== 'space' && n.type !== 'div');
+      const trackNodes = node.nodes.slice(commaAt + 1).filter((n) => n.type !== 'space' && n.type !== 'div');
       if (countNodes.length !== 1 || trackNodes.length === 0) {
         throw new CoercionError(`${prop}: repeat() needs a count and a track list`);
       }
       return {
-        repeat: coerceRepetitionCount(countNodes[0]!, prop),
+        repeat: coerceRepetitionCount(countNodes[0] ?? unreachable(), prop),
         tracks: trackNodes.map((t) => coerceTrack(t, prop)),
       };
     }
@@ -304,7 +295,7 @@ export function coerceGridPlacement(value: unknown, prop: string): GridPlacement
 
   const span = /^span\s+(-?[\d.]+)$/.exec(raw);
   if (span) {
-    const n = finite(parseFloat(span[1]!), `${prop}: ${raw}`);
+    const n = finite(parseFloat(span[1] ?? unreachable()), `${prop}: ${raw}`);
     if (!Number.isInteger(n) || n < 1) {
       throw new CoercionError(`${prop}: span must be a positive integer, got "${raw}"`);
     }
@@ -390,9 +381,7 @@ const COERCERS: Record<string, Coercer> = {
 function coerceShorthand(coercer: Coercer): Coercer {
   return (value, prop) => {
     if (typeof value === 'object' && value !== null && !('percent' in value)) {
-      return Object.fromEntries(
-        Object.entries(value).map(([side, v]) => [side, coercer(v, `${prop}.${side}`)]),
-      );
+      return Object.fromEntries(Object.entries(value).map(([side, v]) => [side, coercer(v, `${prop}.${side}`)]));
     }
     return coercer(value, prop);
   };

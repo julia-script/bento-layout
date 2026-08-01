@@ -6,6 +6,7 @@
 // Chrome, which is acceptable because shrinking only runs on failures — and the
 // pre-shrink tree is kept by the caller as a fallback reproduction.
 
+import { unreachable } from '../../src/assert.js';
 import type { Style } from '../../src/index.js';
 import type { FuzzNode, FuzzTree } from './generate.js';
 
@@ -26,7 +27,7 @@ function cloneTree(tree: FuzzTree): FuzzTree {
 
 function nodeAt(root: FuzzNode, path: Path): FuzzNode {
   let node = root;
-  for (const i of path) node = node.children[i]!;
+  for (const i of path) node = node.children[i] ?? unreachable();
   return node;
 }
 
@@ -45,7 +46,7 @@ function withNodeRemoved(tree: FuzzTree, path: Path): FuzzTree | null {
   if (path.length === 0) return null; // never remove the root
   const next = cloneTree(tree);
   const parent = nodeAt(next.root, path.slice(0, -1));
-  parent.children.splice(path[path.length - 1]!, 1);
+  parent.children.splice(path[path.length - 1] ?? unreachable(), 1);
   return next;
 }
 

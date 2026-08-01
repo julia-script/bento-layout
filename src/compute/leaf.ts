@@ -1,19 +1,13 @@
 // Leaf layout: sizing a childless node, including the measure-callback path.
 
-import {
-  applyAspectRatioClamped,
-  pointNone,
-  rectAdd,
-  sizeZero,
-  sumAxes,
-} from '../geometry.js';
 import type { Size } from '../geometry.js';
-import { vClamp, vMax } from '../math.js';
+import { applyAspectRatioClamped, pointNone, rectAdd, sizeZero, sumAxes } from '../geometry.js';
 import type { Opt } from '../math.js';
-import { asMapDefinite, asMaybeSet, asMaybeSub, maybeResolveSize, resolveRectOrZero } from '../style.js';
+import { vClamp, vMax } from '../math.js';
 import type { AvailableSpace, Style } from '../style.js';
-import { collapsibleMarginZero } from '../tree.js';
+import { asMapDefinite, asMaybeSet, asMaybeSub, maybeResolveSize, resolveRectOrZero } from '../style.js';
 import type { LayoutInput, LayoutOutput, MeasureFunction } from '../tree.js';
+import { collapsibleMarginZero } from '../tree.js';
 
 export function computeLeafLayout(inputs: LayoutInput, style: Style, measureFunction: MeasureFunction): LayoutOutput {
   const { knownDimensions, parentSize, sizingMode, runMode } = inputs;
@@ -179,14 +173,13 @@ export function computeLeafLayout(inputs: LayoutInput, style: Style, measureFunc
   // axis's padding+border before applying the ratio and add the target's back.
   // Under content-box the pb floors therefore stay independent (the content box
   // is 0x0 either way) and these transfers are no-ops on them.
-  const transferToHeight = (w: number): number =>
-    style.boxSizing === 'content-box'
-      ? Math.max(w - pbSum.width, 0) / floorAspectRatio! + pbSum.height
-      : w / floorAspectRatio!;
-  const transferToWidth = (h: number): number =>
-    style.boxSizing === 'content-box'
-      ? Math.max(h - pbSum.height, 0) * floorAspectRatio! + pbSum.width
-      : h * floorAspectRatio!;
+  // The ratio comes in as a parameter rather than being read from the closure:
+  // callers only reach these once they have null-checked it, and taking it as a
+  // `number` is what lets the compiler see that.
+  const transferToHeight = (w: number, ratio: number): number =>
+    style.boxSizing === 'content-box' ? Math.max(w - pbSum.width, 0) / ratio + pbSum.height : w / ratio;
+  const transferToWidth = (h: number, ratio: number): number =>
+    style.boxSizing === 'content-box' ? Math.max(h - pbSum.height, 0) * ratio + pbSum.width : h * ratio;
   // The ratio floors run in both directions, but only into automatic axes. In
   // inherent-size mode the full pb-floored size of the other axis transfers; in
   // content-size mode only the pb floor itself does (style sizes are the
@@ -197,8 +190,9 @@ export function computeLeafLayout(inputs: LayoutInput, style: Style, measureFunc
   const flooredHeight = Math.max(clampedSize.height, pbSum.height);
   const arSourceWidth = sizingMode === 'content-size' ? pbSum.width : flooredWidth;
   const arSourceHeight = sizingMode === 'content-size' ? pbSum.height : flooredHeight;
-  const arHeight = heightIsAutomatic && floorAspectRatio !== null ? transferToHeight(arSourceWidth) : 0;
-  const arWidth = widthIsAutomatic && floorAspectRatio !== null ? transferToWidth(arSourceHeight) : 0;
+  const arHeight =
+    heightIsAutomatic && floorAspectRatio !== null ? transferToHeight(arSourceWidth, floorAspectRatio) : 0;
+  const arWidth = widthIsAutomatic && floorAspectRatio !== null ? transferToWidth(arSourceHeight, floorAspectRatio) : 0;
   // The ratio transfer is a *floor*, but a floor never wins over the box's own
   // max-size: `height: 200; aspect-ratio: 2; max-width: 3` is 3 wide in Chrome,
   // not 400. Re-clamp the transferred value so the max survives the max() above

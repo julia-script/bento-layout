@@ -46,9 +46,7 @@ export function LayoutBox({ node, depth = 0 }: LayoutBoxProps) {
   const { location, size } = node.layout;
   const collapsed = size.width === 0 || size.height === 0;
 
-  const children = node.children.map((child, i) => (
-    <LayoutBox key={i} node={child} depth={depth + 1} />
-  ));
+  const children = node.children.map((child, i) => <LayoutBox key={i} node={child} depth={depth + 1} />);
 
   return (
     <g transform={`translate(${location.x} ${location.y})`}>

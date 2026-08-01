@@ -133,12 +133,8 @@ describe('grid track lists', () => {
 
   it('gives a bare fr an auto minimum', () => {
     // CSS says `1fr` means `minmax(auto, 1fr)`.
-    expect(coerceTrackList('1fr', 'gridTemplateColumns')).toEqual([
-      { min: 'auto', max: { fr: 1 } },
-    ]);
-    expect(coerceTrackList('0.2fr', 'gridTemplateColumns')).toEqual([
-      { min: 'auto', max: { fr: 0.2 } },
-    ]);
+    expect(coerceTrackList('1fr', 'gridTemplateColumns')).toEqual([{ min: 'auto', max: { fr: 1 } }]);
+    expect(coerceTrackList('0.2fr', 'gridTemplateColumns')).toEqual([{ min: 'auto', max: { fr: 0.2 } }]);
   });
 
   it('reads intrinsic keywords', () => {
@@ -150,9 +146,7 @@ describe('grid track lists', () => {
   });
 
   it('reads minmax and fit-content', () => {
-    expect(coerceTrackList('minmax(20px, 40px)', 'gridTemplateColumns')).toEqual([
-      { min: 20, max: 40 },
-    ]);
+    expect(coerceTrackList('minmax(20px, 40px)', 'gridTemplateColumns')).toEqual([{ min: 20, max: 40 }]);
     expect(coerceTrackList('minmax(0px, max-content)', 'gridTemplateColumns')).toEqual([
       { min: 0, max: 'max-content' },
     ]);
@@ -168,9 +162,9 @@ describe('grid track lists', () => {
     expect(coerceTrackList('repeat(3, 1fr)', 'gridTemplateColumns')).toEqual([
       { repeat: 3, tracks: [{ min: 'auto', max: { fr: 1 } }] },
     ]);
-    expect(
-      coerceTrackList('repeat(auto-fill, minmax(100px, 1fr))', 'gridTemplateColumns'),
-    ).toEqual([{ repeat: 'auto-fill', tracks: [{ min: 100, max: { fr: 1 } }] }]);
+    expect(coerceTrackList('repeat(auto-fill, minmax(100px, 1fr))', 'gridTemplateColumns')).toEqual([
+      { repeat: 'auto-fill', tracks: [{ min: 100, max: { fr: 1 } }] },
+    ]);
     expect(coerceTrackList('repeat(auto-fit, 40px)', 'gridTemplateColumns')).toEqual([
       { repeat: 'auto-fit', tracks: [{ min: 40, max: 40 }] },
     ]);
@@ -203,18 +197,10 @@ describe('grid track lists', () => {
 
   it('rejects malformed track syntax', () => {
     // `repeat(3)` is the case a naive indexOf(',') split turns into garbage.
-    expect(() => coerceTrackList('repeat(3)', 'gridTemplateColumns')).toThrow(
-      /needs a count and a track list/,
-    );
-    expect(() => coerceTrackList('repeat(0, 1fr)', 'gridTemplateColumns')).toThrow(
-      /positive integer/,
-    );
-    expect(() => coerceTrackList('minmax(1fr, 2fr)', 'gridTemplateColumns')).toThrow(
-      /not valid as a track minimum/,
-    );
-    expect(() => coerceTrackList('minmax(10px)', 'gridTemplateColumns')).toThrow(
-      /exactly two arguments/,
-    );
+    expect(() => coerceTrackList('repeat(3)', 'gridTemplateColumns')).toThrow(/needs a count and a track list/);
+    expect(() => coerceTrackList('repeat(0, 1fr)', 'gridTemplateColumns')).toThrow(/positive integer/);
+    expect(() => coerceTrackList('minmax(1fr, 2fr)', 'gridTemplateColumns')).toThrow(/not valid as a track minimum/);
+    expect(() => coerceTrackList('minmax(10px)', 'gridTemplateColumns')).toThrow(/exactly two arguments/);
     expect(() => coerceTrackList('2rem', 'gridTemplateColumns')).toThrow(/unsupported unit/);
   });
 });

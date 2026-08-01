@@ -10,13 +10,14 @@ import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import puppeteer from 'puppeteer';
-import { computeLayout } from '../src/index.js';
+import { unreachable } from '../src/assert.js';
 import type { LayoutNode } from '../src/index.js';
-import { parseFixture } from '../tests/harness/fixture.js';
+import { computeLayout } from '../src/index.js';
 import type { ExpectedNode } from '../tests/harness/fixture.js';
-import { generateTestXml } from './gentest.js';
+import { parseFixture } from '../tests/harness/fixture.js';
 import type { FuzzTree } from './fuzz/generate.js';
 import { fuzzTreeToHtml } from './fuzz/serialize.js';
+import { generateTestXml } from './gentest.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SUPPORT_DIR = join(ROOT, 'tests', 'html', 'support');
@@ -39,7 +40,7 @@ function report(node: LayoutNode, expected: ExpectedNode, path: string, lines: s
     `  ${path}: chrome=(${expected.x},${expected.y} ${expected.width}x${expected.height}) ` +
       `engine=(${location.x},${location.y} ${size.width}x${size.height})${differs ? '   *** DIFFERS' : ''}`,
   );
-  node.children.forEach((c, i) => report(c, expected.children[i]!, `${path}/${i}`, lines));
+  node.children.forEach((c, i) => report(c, expected.children[i] ?? unreachable(), `${path}/${i}`, lines));
 }
 
 async function main(): Promise<void> {
@@ -54,7 +55,7 @@ async function main(): Promise<void> {
 
   const browser = await puppeteer.launch({
     headless: true,
-    args: ['--force-color-profile=srgb', ...(process.env['GENTEST_NO_SANDBOX'] ? ['--no-sandbox'] : [])],
+    args: ['--force-color-profile=srgb', ...(process.env.GENTEST_NO_SANDBOX ? ['--no-sandbox'] : [])],
   });
   const page = await browser.newPage();
   await page.setViewport({ width: 1280, height: 800, deviceScaleFactor: 1 });
@@ -66,10 +67,7 @@ async function main(): Promise<void> {
   });
   await page.setContent(html, { waitUntil: 'load' });
   await page.evaluate(() => (document as { fonts?: { ready: Promise<unknown> } }).fonts?.ready);
-  const data = JSON.parse((await page.evaluate('getTestData()')) as string) as Record<
-    string,
-    Record<string, unknown>
-  >;
+  const data = JSON.parse((await page.evaluate('getTestData()')) as string) as Record<string, Record<string, unknown>>;
   await browser.close();
 
   for (const [key, suffix] of VARIANTS) {

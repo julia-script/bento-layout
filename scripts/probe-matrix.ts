@@ -7,17 +7,18 @@
 // Usage: pnpm probe-matrix <dir-of-probe-json>
 //        pnpm probe-matrix <dir> -v   (show geometry for passing probes too)
 
-import { readFileSync, readdirSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import puppeteer from 'puppeteer';
-import { computeLayout } from '../src/index.js';
+import { unreachable } from '../src/assert.js';
 import type { LayoutNode } from '../src/index.js';
-import { parseFixture } from '../tests/harness/fixture.js';
+import { computeLayout } from '../src/index.js';
 import type { ExpectedNode } from '../tests/harness/fixture.js';
-import { generateTestXml } from './gentest.js';
+import { parseFixture } from '../tests/harness/fixture.js';
 import type { FuzzTree } from './fuzz/generate.js';
 import { fuzzTreeToHtml } from './fuzz/serialize.js';
+import { generateTestXml } from './gentest.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SUPPORT_DIR = join(ROOT, 'tests', 'html', 'support');
@@ -45,7 +46,7 @@ function collect(node: LayoutNode, expected: ExpectedNode, path: string, out: Mi
       engine: `(${location.x},${location.y} ${size.width}x${size.height})`,
     });
   }
-  node.children.forEach((c, i) => collect(c, expected.children[i]!, `${path}/${i}`, out));
+  node.children.forEach((c, i) => collect(c, expected.children[i] ?? unreachable(), `${path}/${i}`, out));
 }
 
 async function main(): Promise<void> {
@@ -61,7 +62,7 @@ async function main(): Promise<void> {
 
   const browser = await puppeteer.launch({
     headless: true,
-    args: ['--force-color-profile=srgb', ...(process.env['GENTEST_NO_SANDBOX'] ? ['--no-sandbox'] : [])],
+    args: ['--force-color-profile=srgb', ...(process.env.GENTEST_NO_SANDBOX ? ['--no-sandbox'] : [])],
   });
   const page = await browser.newPage();
   await page.setViewport({ width: 1280, height: 800, deviceScaleFactor: 1 });

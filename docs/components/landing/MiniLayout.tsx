@@ -3,8 +3,8 @@
 // illustration of one — the engine runs fine in Node, so the server can just
 // call it.
 
-import { LayoutNode, computeLayout } from 'bento-layout';
 import type { StyleInput } from 'bento-layout';
+import { computeLayout, LayoutNode } from 'bento-layout';
 
 export interface MiniSpec {
   style: StyleInput;

@@ -1,6 +1,7 @@
 // The CSS block layout algorithm (floats not implemented).
 // Section comments cite the spec steps they implement.
 
+import { unreachable } from '../assert.js';
 import type { Point, Rect, Size } from '../geometry.js';
 import {
   applyAspectRatioClamped,
@@ -10,8 +11,9 @@ import {
   sumAxes,
   transferConstraintToStretchedAxis,
 } from '../geometry.js';
-import { mMax, mSub, vClamp, vMax, vSub } from '../math.js';
 import type { Opt } from '../math.js';
+import { mMax, mSub, vClamp, vMax, vSub } from '../math.js';
+import type { AvailableSpace, Direction, Overflow, Position, Style, TextAlign } from '../style.js';
 import {
   asMaybeSub,
   isScrollContainer,
@@ -20,15 +22,14 @@ import {
   resolveOrZero,
   resolveRectOrZero,
 } from '../style.js';
-import type { AvailableSpace, Direction, Overflow, Position, Style, TextAlign } from '../style.js';
-import type { LayoutNode, CollapsibleMarginSet, Layout, LayoutInput, LayoutOutput, Line } from '../tree.js';
+import type { CollapsibleMarginSet, Layout, LayoutInput, LayoutNode, LayoutOutput, Line } from '../tree.js';
 import {
-  LINE_FALSE,
-  internals,
   collapseWithMargin,
   collapseWithSet,
   collapsibleMarginZero,
   fromOuterSize,
+  internals,
+  LINE_FALSE,
   layoutWithOrder,
   marginSetFromMargin,
   resolveMarginSet,
@@ -136,7 +137,6 @@ export function computeBlockLayout(node: LayoutNode, inputs: LayoutInput, blockC
     ),
   };
 
-
   // Short-circuit layout if the container's size is fully determined and the run mode is ComputeSize
   if (runMode === 'compute-size') {
     if (styledBasedKnownDimensions.width !== null && styledBasedKnownDimensions.height !== null) {
@@ -158,8 +158,13 @@ export function computeBlockLayout(node: LayoutNode, inputs: LayoutInput, blockC
 /** Computes the layout of a block container according to the block layout algorithm */
 function computeInner(node: LayoutNode, inputs: LayoutInput, blockCtx: BlockContext): LayoutOutput {
   const nd = internals(node);
-  const { knownDimensions: knownDimensionsIn, parentSize, availableSpace, runMode, verticalMarginsAreCollapsible } =
-    inputs;
+  const {
+    knownDimensions: knownDimensionsIn,
+    parentSize,
+    availableSpace,
+    runMode,
+    verticalMarginsAreCollapsible,
+  } = inputs;
 
   const style = node.style;
   const rawPadding = style.padding;
@@ -281,7 +286,8 @@ function computeInner(node: LayoutNode, inputs: LayoutInput, blockCtx: BlockCont
     return fromOuterSize({ width: containerOuterWidth, height: 0 });
   }
 
-  const containerPercentageResolutionHeight = knownDimensions.height ?? mMax(size.height, minSize.height) ?? minSize.height;
+  const containerPercentageResolutionHeight =
+    knownDimensions.height ?? mMax(size.height, minSize.height) ?? minSize.height;
 
   // 3. Perform final item layout and return content height
   const resolvedPadding = resolveRectOrZero(rawPadding, containerOuterWidth);
@@ -405,7 +411,7 @@ function computeInner(node: LayoutNode, inputs: LayoutInput, blockCtx: BlockCont
 
   // 5. Perform hidden layout on hidden children
   for (let order = 0; order < nd.children.length; order++) {
-    const child = nd.children[order]!;
+    const child = nd.children[order] ?? unreachable();
     const childNd = internals(child);
     if (childNd.style.display === 'none') {
       childNd.unroundedLayout = layoutWithOrder(order);
@@ -447,10 +453,7 @@ function generateItemList(node: LayoutNode, nodeInnerSize: Size<Opt>): BlockItem
     const isScroll = isScrollContainer(overflow.x) || isScrollContainer(overflow.y);
     const isInSameBfc = isBlock && position !== 'absolute' && !isScroll;
 
-    const childSpecifiedSize = maybeAddSize(
-      maybeResolveSize(childStyle.size, nodeInnerSize),
-      boxSizingAdjustment,
-    );
+    const childSpecifiedSize = maybeAddSize(maybeResolveSize(childStyle.size, nodeInnerSize), boxSizingAdjustment);
     const childRatioSize = applyAspectRatioClamped(
       childSpecifiedSize,
       maybeAddSize(maybeResolveSize(childStyle.minSize, nodeInnerSize), boxSizingAdjustment),
@@ -695,10 +698,7 @@ function performFinalLayoutOnInFlowChildren(
         bottom: maybeResolve(item.inset.bottom, 0),
       };
       const insetOffset: Point<number> = {
-        x:
-          direction === 'rtl'
-            ? (negate(inset.right) ?? inset.left ?? 0)
-            : (inset.left ?? negate(inset.right) ?? 0),
+        x: direction === 'rtl' ? (negate(inset.right) ?? inset.left ?? 0) : (inset.left ?? negate(inset.right) ?? 0),
         y: inset.top ?? negate(inset.bottom) ?? 0,
       };
 

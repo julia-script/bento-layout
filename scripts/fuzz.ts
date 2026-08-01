@@ -17,19 +17,20 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import puppeteer from 'puppeteer';
 import type { Page } from 'puppeteer';
-import { computeLayout } from '../src/index.js';
+import puppeteer from 'puppeteer';
+import { unreachable } from '../src/assert.js';
 import type { LayoutNode } from '../src/index.js';
-import { parseFixture } from '../tests/harness/fixture.js';
+import { computeLayout } from '../src/index.js';
 import type { ExpectedNode } from '../tests/harness/fixture.js';
-import { generateTestXml } from './gentest.js';
-import { countNodes, generateTree, treeRespectsPercentInvariant } from './fuzz/generate.js';
+import { parseFixture } from '../tests/harness/fixture.js';
 import type { FuzzMode, FuzzTree } from './fuzz/generate.js';
+import { countNodes, generateTree, treeRespectsPercentInvariant } from './fuzz/generate.js';
 import { deriveSeed } from './fuzz/prng.js';
-import { signatureHash, treeSignature } from './fuzz/signature.js';
 import { fuzzTreeToHtml } from './fuzz/serialize.js';
 import { shrinkTree } from './fuzz/shrink.js';
+import { signatureHash, treeSignature } from './fuzz/signature.js';
+import { generateTestXml } from './gentest.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SUPPORT_DIR = join(ROOT, 'tests', 'html', 'support');
@@ -54,7 +55,13 @@ export interface Mismatch {
   actual: number;
 }
 
-function collectMismatches(node: LayoutNode, expected: ExpectedNode, path: string, variant: string, out: Mismatch[]): void {
+function collectMismatches(
+  node: LayoutNode,
+  expected: ExpectedNode,
+  path: string,
+  variant: string,
+  out: Mismatch[],
+): void {
   // A display:none node has no box, so Chrome's getBoundingClientRect returns
   // all zeros and the extractor reports x/y as `0 - parentOrigin` — a negative
   // offset that tracks the parent's position rather than any layout decision.
@@ -82,7 +89,13 @@ function collectMismatches(node: LayoutNode, expected: ExpectedNode, path: strin
   // same extraction) — walk the overlap defensively anyway.
   const n = Math.min(node.children.length, expected.children.length);
   for (let i = 0; i < n; i++) {
-    collectMismatches(node.children[i]!, expected.children[i]!, `${path}/${i}`, variant, out);
+    collectMismatches(
+      node.children[i] ?? unreachable(),
+      expected.children[i] ?? unreachable(),
+      `${path}/${i}`,
+      variant,
+      out,
+    );
   }
 }
 
@@ -157,7 +170,7 @@ function argValue(flag: string): string | undefined {
 }
 
 async function main(): Promise<void> {
-  const seed = Number(argValue('--seed') ?? (Date.now() >>> 0));
+  const seed = Number(argValue('--seed') ?? Date.now() >>> 0);
   const iterations = Number(argValue('--iterations') ?? 200);
   const mode = (argValue('--mode') ?? 'mixed') as FuzzMode;
   const only = argValue('--only') !== undefined ? Number(argValue('--only')) : null;
@@ -173,7 +186,7 @@ async function main(): Promise<void> {
 
   const browser = await puppeteer.launch({
     headless: true,
-    args: ['--force-color-profile=srgb', ...(process.env['GENTEST_NO_SANDBOX'] ? ['--no-sandbox'] : [])],
+    args: ['--force-color-profile=srgb', ...(process.env.GENTEST_NO_SANDBOX ? ['--no-sandbox'] : [])],
   });
   const chrome = await browser.version();
   const page = await browser.newPage();

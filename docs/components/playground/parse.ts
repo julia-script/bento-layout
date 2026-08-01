@@ -14,6 +14,7 @@
 import { Parser } from 'acorn';
 import jsx from 'acorn-jsx';
 import { LayoutNode } from 'bento-layout';
+import { unreachable } from '../../../src/assert.js';
 import { CoercionError, coerceStyle } from './coerce.js';
 
 const JsxParser = Parser.extend(jsx());
@@ -66,9 +67,7 @@ const CONSTRUCT_NAMES: Record<string, string> = {
 function reject(node: AstNode, where: string): never {
   const name = CONSTRUCT_NAMES[node.type] ?? node.type;
   // Phrased so it reads correctly for every entry, plural or not.
-  throw new DemoSyntaxError(
-    `${where} cannot use ${name} — demo values must be literals`,
-  );
+  throw new DemoSyntaxError(`${where} cannot use ${name} — demo values must be literals`);
 }
 
 /**
@@ -146,8 +145,7 @@ function elementName(node: AstNode): string {
 
 /** Read a <Node>'s `style` attribute, rejecting anything else on the tag. */
 function elementStyle(node: AstNode): Record<string, unknown> {
-  const attrs = (node as unknown as { openingElement: { attributes: AstNode[] } })
-    .openingElement.attributes;
+  const attrs = (node as unknown as { openingElement: { attributes: AstNode[] } }).openingElement.attributes;
 
   let style: Record<string, unknown> = {};
   for (const attr of attrs) {
@@ -157,9 +155,7 @@ function elementStyle(node: AstNode): Record<string, unknown> {
     const a = attr as unknown as { name: AstNode; value: AstNode | null };
     const name = (a.name as unknown as { name: string }).name;
     if (name !== 'style') {
-      throw new DemoSyntaxError(
-        `<Node> takes only a \`style\` attribute, got \`${name}\``,
-      );
+      throw new DemoSyntaxError(`<Node> takes only a \`style\` attribute, got \`${name}\``);
     }
     if (a.value === null || a.value.type !== 'JSXExpressionContainer') {
       throw new DemoSyntaxError('`style` must be an object, as in style={{width: 100}}');
@@ -180,9 +176,7 @@ function elementChildren(node: AstNode): AstNode[] {
     if (child.type === 'JSXText') {
       const value = (child as unknown as { value: string }).value;
       if (value.trim() === '') return false;
-      throw new DemoSyntaxError(
-        `text is not supported inside <Node> — found "${value.trim().slice(0, 20)}"`,
-      );
+      throw new DemoSyntaxError(`text is not supported inside <Node> — found "${value.trim().slice(0, 20)}"`);
     }
     if (child.type === 'JSXExpressionContainer') {
       const expr = (child as unknown as { expression: AstNode }).expression;
@@ -228,7 +222,7 @@ export function parseDemo(source: string): StyleNode {
   if (body.length === 0) {
     throw new DemoSyntaxError('empty demo — expected a <Layout> element');
   }
-  if (body.length > 1 || body[0]!.type !== 'ExpressionStatement') {
+  if (body.length > 1 || body[0]?.type !== 'ExpressionStatement') {
     throw new DemoSyntaxError('a demo is a single <Layout> element');
   }
 
@@ -242,8 +236,7 @@ export function parseDemo(source: string): StyleNode {
     throw new DemoSyntaxError(`a demo starts with <Layout>, got <${name}>`);
   }
 
-  const attrs = (root as unknown as { openingElement: { attributes: AstNode[] } })
-    .openingElement.attributes;
+  const attrs = (root as unknown as { openingElement: { attributes: AstNode[] } }).openingElement.attributes;
   if (attrs.length > 0) {
     throw new DemoSyntaxError('<Layout> takes no attributes');
   }
@@ -252,7 +245,7 @@ export function parseDemo(source: string): StyleNode {
   if (children.length !== 1) {
     throw new DemoSyntaxError('<Layout> must contain exactly one <Node>');
   }
-  const only = children[0]!;
+  const only = children[0] ?? unreachable();
   if (only.type !== 'JSXElement') reject(only, 'the tree');
   return nodeFromElement(only);
 }
@@ -263,10 +256,7 @@ export function parseDemo(source: string): StyleNode {
  * @throws {@link CoercionError} for a value the engine cannot lay out.
  */
 export function buildTree(node: StyleNode): LayoutNode {
-  return LayoutNode.make(
-    coerceStyle(node.style),
-    node.children.map(buildTree),
-  );
+  return LayoutNode.make(coerceStyle(node.style), node.children.map(buildTree));
 }
 
 /** Parse and build in one step — what <Demo> calls on every edit. */

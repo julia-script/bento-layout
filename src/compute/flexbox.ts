@@ -2,14 +2,15 @@
 // https://www.w3.org/TR/css-flexbox-1/#layout-algorithm
 // Function names and section comments follow the spec's numbered steps.
 
+import { unreachable } from '../assert.js';
 import type { FlexDirection, Point, Rect, Size } from '../geometry.js';
 import {
   applyAspectRatioClamped,
   cross,
   crossAxis,
-  isReverse,
-  isRow as dirIsRow,
   isColumn as dirIsColumn,
+  isRow as dirIsRow,
+  isReverse,
   main,
   mainAxis,
   maybeApplyAspectRatio,
@@ -29,8 +30,9 @@ import {
   withCross,
   withMain,
 } from '../geometry.js';
-import { isNormal, mAdd, mClamp, mMax, mMin, mSub, vClamp, vMax, vMin, vSub } from '../math.js';
 import type { Opt } from '../math.js';
+import { isNormal, mAdd, mClamp, mMax, mMin, mSub, vClamp, vMax, vMin, vSub } from '../math.js';
+import type { AlignContent, AlignItems, AvailableSpace, Direction, JustifyContent, Overflow, Style } from '../style.js';
 import {
   ALIGN_CONTENT_STRETCH,
   ALIGN_STRETCH,
@@ -47,16 +49,7 @@ import {
   resolveRectOrZero,
   resolveSizeOrZero,
 } from '../style.js';
-import type {
-  AlignContent,
-  AlignItems,
-  AvailableSpace,
-  Direction,
-  JustifyContent,
-  Overflow,
-  Style,
-} from '../style.js';
-import type { LayoutNode, LayoutInput, LayoutOutput } from '../tree.js';
+import type { LayoutInput, LayoutNode, LayoutOutput } from '../tree.js';
 import { fromOuterSize, fromSizesAndBaselines, internals, layoutWithOrder } from '../tree.js';
 import {
   applyAlignmentFallback,
@@ -363,7 +356,7 @@ function computePreliminary(node: LayoutNode, inputs: LayoutInput): LayoutOutput
 
   // Hidden layout for display:none children
   for (let order = 0; order < nd.children.length; order++) {
-    const child = nd.children[order]!;
+    const child = nd.children[order] ?? unreachable();
     const childNd = internals(child);
     if (childNd.style.display === 'none') {
       childNd.unroundedLayout = layoutWithOrder(order);
@@ -380,12 +373,14 @@ function computePreliminary(node: LayoutNode, inputs: LayoutInput): LayoutOutput
   // 8.5. Flex Container Baselines: calculate the flex container's first baseline
   // See https://www.w3.org/TR/css-flexbox-1/#flex-baselines
   let firstVerticalBaseline: Opt = null;
-  if (flexLines.length > 0 && flexLines[0]!.items.length > 0) {
-    const firstLine = flexLines[0]!;
+  if (flexLines.length > 0 && (flexLines[0] ?? unreachable()).items.length > 0) {
+    const firstLine = flexLines[0] ?? unreachable();
     const child =
       firstLine.items.find(
         (item) => constants.isColumn || (item.alignSelf.keyword === 'baseline' && !item.alignSelf.safe),
-      ) ?? firstLine.items[0]!;
+      ) ??
+      firstLine.items[0] ??
+      unreachable();
     const offsetVertical = constants.isRow ? child.offsetCross : child.offsetMain;
     firstVerticalBaseline = offsetVertical + child.baseline;
   }
@@ -453,10 +448,7 @@ function computeConstants(style: Style, knownDimensions: Size<Opt>, parentSize: 
     // 3x200 in Chrome for flex, block and grid alike, but a transferred
     // max-height of 1.5 shrank the height instead.
     minSize: maybeAddSize(maybeResolveSize(style.minSize, parentSize), boxSizingAdjustment),
-    maxSize: maybeAddSize(
-      maybeResolveSize(style.maxSize, parentSize),
-      boxSizingAdjustment,
-    ),
+    maxSize: maybeAddSize(maybeResolveSize(style.maxSize, parentSize), boxSizingAdjustment),
     margin,
     border,
     gap,
@@ -485,7 +477,7 @@ function generateAnonymousFlexItems(node: LayoutNode, constants: AlgoConstants):
   const nd = internals(node);
   const items: FlexItem[] = [];
   for (let index = 0; index < nd.children.length; index++) {
-    const child = nd.children[index]!;
+    const child = nd.children[index] ?? unreachable();
     const childStyle = internals(child).style;
     if (childStyle.position === 'absolute') continue;
     if (childStyle.display === 'none') continue;
@@ -745,7 +737,8 @@ function determineFlexBaseSize(
 
     // Floor flex-basis by the padding_border_sum (floors inner_flex_basis at zero)
     // This matches Chrome and Firefox's behaviour despite being a spec violation.
-    const paddingBorderSum = rectMainAxisSum(child.padding, constants.dir) + rectMainAxisSum(child.border, constants.dir);
+    const paddingBorderSum =
+      rectMainAxisSum(child.padding, constants.dir) + rectMainAxisSum(child.border, constants.dir);
     child.flexBasis = Math.max(child.flexBasis, paddingBorderSum);
 
     // The hypothetical main size is the item's flex base size clamped according to its
@@ -841,7 +834,11 @@ function determineFlexBaseSize(
       vMax(child.resolvedMinimumMainSize, main(transferredMinSize, constants.dir)),
       main(paddingBorderAxesSums, constants.dir),
     );
-    const hypotheticalInnerSize = vClamp(child.flexBasis, hypotheticalInnerMinMain, main(transferredMaxSize, constants.dir));
+    const hypotheticalInnerSize = vClamp(
+      child.flexBasis,
+      hypotheticalInnerMinMain,
+      main(transferredMaxSize, constants.dir),
+    );
     const hypotheticalOuterSize = hypotheticalInnerSize + rectMainAxisSum(child.margin, constants.dir);
 
     setMain(child.hypotheticalInnerSize, constants.dir, hypotheticalInnerSize);
@@ -899,7 +896,7 @@ function collectFlexLines(
     let lineLength = 0;
     let index = remaining.length;
     for (let idx = 0; idx < remaining.length; idx++) {
-      const child = remaining[idx]!;
+      const child = remaining[idx] ?? unreachable();
       // Gaps only occur between items (not before the first one or after the last one)
       const gapContribution = idx === 0 ? 0 : mainAxisGap;
       lineLength += main(child.hypotheticalOuterSize, constants.dir) + gapContribution;
@@ -963,9 +960,7 @@ function determineContainerMainSize(
               vMax(child.flexBasis, main(child.minSize, constants.dir)),
               child.resolvedMinimumMainSize,
             );
-            return (
-              sum + Math.max(childMin + rectMainAxisSum(child.margin, constants.dir), paddingBorderSum)
-            );
+            return sum + Math.max(childMin + rectMainAxisSum(child.margin, constants.dir), paddingBorderSum);
           }, 0);
           return Math.max(acc, totalTargetSize + lineMainAxisGap);
         }, 0);
@@ -1026,7 +1021,11 @@ function determineContainerMainSize(
 
             // Known dimensions for child sizing
             const childKnownDimensions: Size<Opt> = withMain(item.size, dir, null);
-            if (item.alignSelf.keyword === 'stretch' && !item.alignSelf.safe && cross(childKnownDimensions, dir) === null) {
+            if (
+              item.alignSelf.keyword === 'stretch' &&
+              !item.alignSelf.safe &&
+              cross(childKnownDimensions, dir) === null
+            ) {
               setCross(
                 childKnownDimensions,
                 dir,
@@ -1042,8 +1041,7 @@ function determineContainerMainSize(
             //   column ->  0 tall, the style height does not
             // so this applies to the block axis only. Same asymmetry the
             // `constants.isRow` branch below already encodes.
-            const measureMode =
-              item.flexBasisIsExplicit && !constants.isRow ? 'content-size' : 'inherent-size';
+            const measureMode = item.flexBasisIsExplicit && !constants.isRow ? 'content-size' : 'inherent-size';
             const contentMainSize =
               measureChildSize(
                 item.node,
@@ -1090,8 +1088,7 @@ function determineContainerMainSize(
                 item.flexBasisIsExplicit && stylePreferred !== null
                   ? Math.min(innerContent, stylePreferred)
                   : innerContent;
-              contentContribution =
-                vClamp(Math.max(suggested, item.flexBasis), styleMin, styleMax) + marginSum;
+              contentContribution = vClamp(Math.max(suggested, item.flexBasis), styleMin, styleMax) + marginSum;
             }
           }
 
@@ -1305,7 +1302,10 @@ function determineHypotheticalCrossSize(
     // Sizes transferred through the aspect ratio clamp the hypothetical cross size —
     // but only when the cross axis's preferred size is auto (css-sizing-4 §5.2.2).
     const crossStyleIsAuto =
-      maybeResolve(cross(internals(child.node).style.size, constants.dir), cross(constants.nodeInnerSize, constants.dir)) === null;
+      maybeResolve(
+        cross(internals(child.node).style.size, constants.dir),
+        cross(constants.nodeInnerSize, constants.dir),
+      ) === null;
     // A *transferred* minimum (AR-derived, not explicitly specified in this axis)
     // is capped by the axis's own explicit maximum (css-sizing-4 §5.2.2; matches
     // Chrome). An explicit minimum still beats the maximum as usual.
@@ -1447,17 +1447,13 @@ function calculateCrossSize(flexLines: FlexLine[], nodeSize: Size<Opt>, constant
   // its content-derived size here. Only applies when the items can actually
   // supply an independent content size.
   const crossFloorsRatherThanFixes =
-    constants.crossIsRatioDerived &&
-    flexLines.every((line) => line.items.every((item) => !item.crossIsArDerived));
+    constants.crossIsRatioDerived && flexLines.every((line) => line.items.every((item) => !item.crossIsArDerived));
   if (!constants.isWrap && cross(nodeSize, constants.dir) !== null && !crossFloorsRatherThanFixes) {
     const crossAxisPaddingBorder = rectCrossAxisSum(constants.contentBoxInset, constants.dir);
     const crossMinSize = cross(constants.minSize, constants.dir);
     const crossMaxSize = cross(constants.maxSize, constants.dir);
-    flexLines[0]!.crossSize =
-      mMax(
-        mSub(mClamp(cross(nodeSize, constants.dir), crossMinSize, crossMaxSize), crossAxisPaddingBorder),
-        0,
-      ) ?? 0;
+    (flexLines[0] ?? unreachable()).crossSize =
+      mMax(mSub(mClamp(cross(nodeSize, constants.dir), crossMinSize, crossMaxSize), crossAxisPaddingBorder), 0) ?? 0;
   } else {
     for (const line of flexLines) {
       const maxBaseline = line.items.reduce((acc, child) => Math.max(acc, child.baseline), 0);
@@ -1480,8 +1476,9 @@ function calculateCrossSize(flexLines: FlexLine[], nodeSize: Size<Opt>, constant
       const crossAxisPaddingBorder = rectCrossAxisSum(constants.contentBoxInset, constants.dir);
       const crossMinSize = cross(constants.minSize, constants.dir);
       const crossMaxSize = cross(constants.maxSize, constants.dir);
-      flexLines[0]!.crossSize = vClamp(
-        flexLines[0]!.crossSize,
+      const firstLine = flexLines[0] ?? unreachable();
+      firstLine.crossSize = vClamp(
+        firstLine.crossSize,
         mSub(crossMinSize, crossAxisPaddingBorder),
         mSub(crossMaxSize, crossAxisPaddingBorder),
       );
@@ -1776,7 +1773,14 @@ function alignFlexLinesPerAlignContent(flexLines: FlexLine[], constants: AlgoCon
   const alignContentMode = applyAlignmentFallback(freeSpace, numLines, constants.alignContent);
 
   const alignLine = (line: FlexLine, i: number): void => {
-    line.offsetCross = computeAlignmentOffset(freeSpace, numLines, gap, alignContentMode, constants.isWrapReverse, i === 0);
+    line.offsetCross = computeAlignmentOffset(
+      freeSpace,
+      numLines,
+      gap,
+      alignContentMode,
+      constants.isWrapReverse,
+      i === 0,
+    );
   };
 
   if (constants.isWrapReverse) {
@@ -1820,11 +1824,7 @@ function calculateFlexItem(
   const effectiveLineOffsetCross = isRtlColumn ? 0 : lineOffsetCross;
 
   const offsetMain = isRtlRow
-    ? totalOffsetMain.value -
-      item.offsetMain -
-      rectMainEnd(item.margin, direction) -
-      mainRelativeInset -
-      size.width
+    ? totalOffsetMain.value - item.offsetMain - rectMainEnd(item.margin, direction) - mainRelativeInset - size.width
     : totalOffsetMain.value + item.offsetMain + rectMainStart(item.margin, direction) + mainRelativeInset;
 
   const offsetCross =
@@ -1982,7 +1982,7 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
   const contentSize = sizeZero();
 
   for (let order = 0; order < nd.children.length; order++) {
-    const child = nd.children[order]!;
+    const child = nd.children[order] ?? unreachable();
     const childNd = internals(child);
     const childStyle = childNd.style;
 
@@ -2142,7 +2142,8 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
       // treat it as if it wasn't set (and thus we default to FlexStart behaviour).
       // The `safe` keyword is deliberately NOT applied here (matches Chrome).
       const keyword = (constants.justifyContent ?? { keyword: 'start', safe: false }).keyword;
-      const startOffset = rectMainStart(constants.contentBoxInset, constants.dir) + rectMainStart(resolvedMargin, constants.dir);
+      const startOffset =
+        rectMainStart(constants.contentBoxInset, constants.dir) + rectMainStart(resolvedMargin, constants.dir);
       const endOffset =
         main(constants.containerSize, constants.dir) -
         rectMainEnd(constants.contentBoxInset, constants.dir) -
@@ -2254,8 +2255,7 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
 
     {
       const sizeContentSizeContribution = {
-        width:
-          overflow.x === 'visible' ? Math.max(finalSize.width, layoutOutput.contentSize.width) : finalSize.width,
+        width: overflow.x === 'visible' ? Math.max(finalSize.width, layoutOutput.contentSize.width) : finalSize.width,
         height:
           overflow.y === 'visible' ? Math.max(finalSize.height, layoutOutput.contentSize.height) : finalSize.height,
       };
