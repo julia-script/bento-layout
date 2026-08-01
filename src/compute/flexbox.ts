@@ -1192,22 +1192,36 @@ function determineContainerMainSize(
           if (diff > 0) {
             item.contentFlexFraction = diff / Math.max(1, item.flexGrow);
           } else if (diff < 0) {
-            const scaledShrinkFactor = Math.max(1, item.flexShrink * item.innerFlexBasis);
-            item.contentFlexFraction = diff / scaledShrinkFactor;
+            // §9.9.1 step 1: divide by the scaled flex shrink factor, "if
+            // dividing by zero, treat the result as negative infinity". An item
+            // that cannot shrink must not drag the line's chosen flex fraction
+            // down — -Infinity loses the `max` in step 2, so the item keeps its
+            // flex base size. Substituting 1 for the zero factor instead made a
+            // `flex: 1 0 320px` item report a desired fraction of -320, which
+            // step 4 then scaled by the basis into -102400 and clamped to 0.
+            const scaledShrinkFactor = item.flexShrink * item.innerFlexBasis;
+            item.contentFlexFraction = scaledShrinkFactor === 0 ? Number.NEGATIVE_INFINITY : diff / scaledShrinkFactor;
           } else {
             item.contentFlexFraction = 0;
           }
         }
 
-        // Add each item's flex base size to the product of its flex factor and the
-        // chosen flex fraction, then clamp.
+        // Add each item's flex base size to the product of its flex factor and
+        // its flex fraction, then clamp.
+        //
+        // §9.9.1 steps 2-4 read as though one *line-wide* chosen fraction (the
+        // greatest) applies to every item, but browsers use each item's own:
+        // two `flex: 1 0 0` items whose contents are 70px and 20px come out
+        // 70+20=90 in Chrome, where the line-wide reading gives 70+70=140.
+        // A -Infinity fraction means an item that cannot shrink, which
+        // contributes nothing and keeps its flex base size.
         const itemMainSizeSum = line.items.reduce((sum, item) => {
-          const flexFraction = item.contentFlexFraction;
+          const flexFraction = Number.isFinite(item.contentFlexFraction) ? item.contentFlexFraction : 0;
 
           let flexContribution: number;
-          if (item.contentFlexFraction > 0) {
+          if (flexFraction > 0) {
             flexContribution = Math.max(1, item.flexGrow) * flexFraction;
-          } else if (item.contentFlexFraction < 0) {
+          } else if (flexFraction < 0) {
             const scaledShrinkFactor = Math.max(1, item.flexShrink) * item.innerFlexBasis;
             flexContribution = scaledShrinkFactor * flexFraction;
           } else {
