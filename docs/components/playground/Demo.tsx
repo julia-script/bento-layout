@@ -66,10 +66,7 @@ const AVAILABLE_WIDTH = 600;
 function Highlighted({ code }: { code: string }) {
   const rendered = useShiki(code, {
     lang: 'jsx',
-    themes: { light: 'github-light', dark: 'github-dark' },
-    // Colors via CSS variables rather than inline light-theme colors, so
-    // fumadocs' `.dark .shiki` rules can switch the palette.
-    defaultColor: false,
+    theme: 'github-light',
     components: {
       // The <pre> is a backdrop for the textarea, so it must not scroll or
       // capture events independently — the textarea on top owns both. Keep

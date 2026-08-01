@@ -33,13 +33,10 @@ export const metadata: Metadata = {
   },
 };
 
-// Paper tokens from global.css, so the browser chrome matches the page in both
-// schemes rather than defaulting to white.
+// Paper token from global.css, so the browser chrome matches the page rather
+// than defaulting to white. Light-only: the site forces one scheme.
 export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: 'hsl(40, 45%, 97%)' },
-    { media: '(prefers-color-scheme: dark)', color: 'hsl(30, 8%, 11%)' },
-  ],
+  themeColor: 'hsl(40, 45%, 97%)',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -55,7 +52,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           precedence="default"
           href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600&display=swap"
         />
-        <RootProvider>{children}</RootProvider>
+        {/* Light-only. The provider stays enabled — `enabled: false` skips
+            ThemeProvider entirely, which would drop forcedTheme with it. */}
+        <RootProvider theme={{ forcedTheme: 'light', enableSystem: false, hotKey: false }}>{children}</RootProvider>
       </body>
     </html>
   );

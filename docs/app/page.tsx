@@ -92,8 +92,7 @@ const FACTS: { n: string; label: string }[] = [
 export default async function HomePage() {
   const code = await highlight(SNIPPET, {
     lang: 'typescript',
-    themes: { light: 'github-light', dark: 'github-dark' },
-    defaultColor: false,
+    theme: 'github-light',
   });
 
   return (
