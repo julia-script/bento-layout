@@ -1,4 +1,4 @@
-// Port of taffy/src/compute/grid/placement.rs — the grid item placement algorithm.
+// The grid item placement algorithm.
 // https://www.w3.org/TR/css-grid-1/#placement
 
 import type { AbsoluteAxis } from '../../geometry.js';
@@ -156,8 +156,8 @@ export function placeGridItems(
     );
   }
 
-  // 3. Determine the number of columns in the implicit grid — already accounted for
-  // by the grid size estimate and expand_to_fit_range (see taffy's comments).
+  // 3. Determine the number of columns in the implicit grid — already accounted
+  // for by the grid size estimate and by expanding the occupancy matrix to fit.
 
   // 4. Position the remaining grid items
   const primaryAxisGridStartLine = implicitStartLine(cellOccupancyMatrix.trackCounts(primaryAxis));
@@ -334,10 +334,9 @@ function placeIndefinitelyPositionedItem(
     // whose implicit grid starts below zero) sits behind the *initial* cursor
     // without anything having been placed yet, and must not skip a track.
     // Comparing against the grid's own start line, rather than the raw cursor,
-    // keeps the wrap heuristic while excluding that case. Taffy compares the
-    // raw cursor (placement.rs `primary_span.start < primary_idx`), which
-    // leaves the first item a track too far along; found by differential
-    // fuzzing — see UPSTREAM_TAFFY.md.
+    // keeps the wrap heuristic while excluding that case. Comparing against the
+    // raw cursor instead leaves the first item a track too far along; found by
+    // differential fuzzing.
     if (gridAutoFlowIsDense(autoFlow)) {
       secondaryIdx = secondaryStartPosition;
     } else {

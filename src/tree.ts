@@ -1,4 +1,4 @@
-// Port of taffy/src/tree/{layout,cache,node}.rs — collapsed for a single concrete
+// The node tree, its layout cache, and layout in/out types — a single concrete
 // GC-managed tree: nodes are plain objects holding style, children, and outputs.
 
 import type { Point, Rect, Size } from './geometry.js';
@@ -11,7 +11,7 @@ export type RunMode = 'perform-layout' | 'compute-size' | 'perform-hidden-layout
 export type SizingMode = 'content-size' | 'inherent-size';
 export type RequestedAxis = 'horizontal' | 'vertical' | 'both';
 
-/** A start/end pair (port of taffy's Line<T>). */
+/** A start/end pair. */
 export interface Line<T> {
   start: T;
   end: T;
@@ -265,7 +265,7 @@ let internalOf!: (node: LayoutNode) => NodeInternal;
  * with, and no `free()` or `destroy()` to remember. Drop a subtree and the
  * garbage collector takes it; a subtree detached from its parent stays fully
  * usable as a standalone tree, so you can lay it out on its own or re-attach it
- * somewhere else. This is deliberately unlike Taffy and Yoga, which both make
+ * somewhere else. This is deliberately unlike the native engines, which make
  * you manage node lifetime by hand.
  *
  * Nodes are opaque. Style changes go through {@link LayoutNode.setStyle},
@@ -308,7 +308,7 @@ export class LayoutNode {
    *
    * @remarks
    * `style` is merged over the defaults, so you pass only what differs. The
-   * defaults are Taffy's rather than CSS's — most visibly `display: 'flex'`
+   * defaults are the engine's own rather than CSS's — most visibly `display: 'flex'`
    * (CSS would say `block`) and `flexShrink: 1` — so a bare `LayoutNode.make()`
    * is an empty flex container, not a block box.
    *
@@ -704,20 +704,18 @@ export function internals(node: LayoutNode): NodeInternal {
   return internalOf(node);
 }
 
-// --- Cache (port of tree/cache.rs)
+// --- Cache
 //
 // Entries hold each key field inline as a primitive and compare them with ===,
-// so a lookup allocates nothing. Taffy packs the same fields into a u64; we
-// compare them separately, which also removes the need for taffy's disambiguation
-// between a known-dimension of v and a definite available-space of v — `kw`/`aw`
-// are distinct fields and cannot collide.
+// so a lookup allocates nothing. Keeping the fields separate rather than packing
+// them into one number also removes any need to disambiguate a known-dimension
+// of v from a definite available-space of v — `kw`/`aw` are distinct fields and
+// cannot collide.
 //
-// Note this is deliberately NOT a literal port of taffy's match predicate.
-// Taffy matches on known_dimensions + available_space alone and additionally
-// accepts an entry whose cached size equals the requested known dimension.
-// Both divergences are load-bearing here: dropping `axis` from the key fails 4
-// grid baseline fixtures, and adopting taffy's cached-size relaxation fails 12
-// more. Only the allocation behaviour is being changed.
+// Two properties of the match predicate are load-bearing and easy to break:
+// `axis` must stay in the key (dropping it fails 4 grid baseline fixtures), and
+// an entry whose cached size merely equals the requested known dimension must
+// NOT be accepted as a hit (that relaxation fails 12 more).
 
 const CACHE_SIZE = 9;
 
@@ -743,7 +741,7 @@ export class Cache {
   private measureEntries: (MeasureEntry | undefined)[] | undefined = undefined;
 
   /**
-   * Cache slots (see taffy tree/cache.rs for the full rationale):
+   * Cache slots, bucketed by which dimensions are known:
    * 0: both known dimensions set; 1-4: one known dimension; 5-8: none.
    */
   private static computeCacheSlot(kw: Opt, kh: Opt, aw: AvailableSpace, ah: AvailableSpace): number {
@@ -784,7 +782,7 @@ export class Cache {
 
     if (input.runMode === 'compute-size') {
       // Measure entries match on knownDimensions/availableSpace and the
-      // x-axis parent size only (taffy masks out the y-axis and axis bits).
+      // x-axis parent size only; the y-axis and axis fields are ignored here.
       const entries = this.measureEntries;
       if (entries === undefined) return null;
       for (let i = 0; i < CACHE_SIZE; i++) {

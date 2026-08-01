@@ -1,13 +1,14 @@
 // Browser conformance fixture generator.
 //
 // Loads each HTML fixture from tests/html/<dir>/ in headless Chrome (Puppeteer),
-// invokes the in-page extractor (tests/html/support/test_helper.js, vendored from
-// Taffy), and serializes the four box-sizing/direction variants to the XML
-// fixture format consumed by tests/fixtures.test.ts.
+// invokes the in-page extractor (tests/html/support/test_helper.js — see the
+// README there for its provenance), and serializes the four
+// box-sizing/direction variants to the XML fixture format consumed by
+// tests/fixtures.test.ts.
 //
-// The XML serialization is a port of taffy's scripts/gentest/src/main.rs writer,
-// targeting byte-parity with the previously vendored fixtures so that diffs
-// after regeneration reflect genuine browser-behavior differences only.
+// The XML writer targets byte-parity with the fixtures as originally generated,
+// so that diffs after regeneration reflect genuine browser-behavior differences
+// only.
 //
 // Usage: pnpm gentest [substring...]   (no args = all fixtures)
 

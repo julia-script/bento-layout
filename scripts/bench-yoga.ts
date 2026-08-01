@@ -2,7 +2,8 @@
 //
 // Only the flexbox scenarios from scripts/bench.ts appear here: Yoga implements
 // flexbox only, so the grid and block-stack scenarios have no counterpart and
-// carry no ratio (same rule BENCHMARKS.md applies to taffy).
+// carry no ratio (the same rule BENCHMARKS.md applies to every cross-engine
+// comparison).
 //
 // Measurement note — this is the whole reason the harness looks like this:
 // Yoga caches layout on the node tree, so calling `calculateLayout` twice on
@@ -65,7 +66,7 @@ function wideYoga(childCount: number): YogaNode {
   return root;
 }
 
-/** taffy's `build_deep_hierarchy`, same shape scripts/bench.ts uses. */
+/** The deep uniform hierarchy, same shape scripts/bench.ts uses. */
 function deepOurs(maxNodes: number, branch: number): LayoutNode {
   const itemStyle = (): StyleInput => ({
     flexGrow: 1,
@@ -221,8 +222,8 @@ const scenarios: [string, () => LayoutNode, () => YogaNode][] = [
   ['flex: wide (100 children)', () => wideOurs(100), () => wideYoga(100)],
   ['flex: wide (1,000 children)', () => wideOurs(1_000), () => wideYoga(1_000)],
   ['flex: wide (10,000 children)', () => wideOurs(10_000), () => wideYoga(10_000)],
-  ['flex: deep taffy-shape (~4,000)', () => deepOurs(4_000, 2), () => deepYoga(4_000, 2)],
-  ['flex: deep taffy-shape (~10,000)', () => deepOurs(10_000, 2), () => deepYoga(10_000, 2)],
+  ['flex: deep uniform (~4,000)', () => deepOurs(4_000, 2), () => deepYoga(4_000, 2)],
+  ['flex: deep uniform (~10,000)', () => deepOurs(10_000, 2), () => deepYoga(10_000, 2)],
 ];
 
 console.log(

@@ -1,7 +1,8 @@
 // Layout engine benchmarks.
 //
-// Mirrors the tree shapes of taffy's criterion benches (wide flat trees, deep
-// nested trees, NxN grids) plus block stacks and a mixed "realistic" tree.
+// Covers the tree shapes other layout engines benchmark (wide flat trees, deep
+// nested trees, NxN grids) plus block stacks and a mixed "realistic" tree, so
+// figures can be compared across engines where the shapes line up.
 // Each scenario reports the median wall time of `computeLayout` over SAMPLES
 // runs after WARMUP runs, on a tree built once (computeLayout clears all
 // caches internally, so every run is a full from-scratch layout).
@@ -33,23 +34,23 @@ function wideFlex(childCount: number): LayoutNode {
 }
 
 /**
- * Port of taffy's `build_deep_hierarchy` (benches/src/lib.rs) as used by its
- * `Deep tree (auto size)` benchmark, so ratios against taffy compare like with
- * like. Every leaf and container gets the same style — `flex_grow: 1` plus a
- * uniform margin — the root is a default style, and layout runs with
- * max-content available space in both axes (taffy passes `(None, None)`).
+ * The standard deep auto-sized hierarchy other engines benchmark, built
+ * node-for-node so cross-engine ratios compare like with like. Every leaf and
+ * container gets the same style — `flexGrow: 1` plus a uniform margin — the
+ * root is a default style, and layout runs with max-content available space in
+ * both axes.
  *
  * Note the single (default row) flex direction: alternating it per level, as
- * `deepFlexAlternating` does, is a much heavier workload and has no counterpart
- * in taffy's suite.
+ * `deepFlexAlternating` does, is a much heavier workload with no counterpart in
+ * other engines' suites.
  */
-function taffyDeepFlex(maxNodes: number, branch: number): LayoutNode {
+function deepFlexUniform(maxNodes: number, branch: number): LayoutNode {
   const itemStyle = (): StyleInput => ({
     flexGrow: 1,
     marginLeft: 10, marginRight: 10, marginTop: 10, marginBottom: 10,
   });
-  // Mirrors taffy's recursion: each level splits `(max_nodes - branch) / branch`
-  // among `branch` children, bottoming out in leaves once the budget is small.
+  // Each level splits `(maxNodes - branch) / branch` among `branch` children,
+  // bottoming out in leaves once the budget is small.
   const buildForest = (budget: number): LayoutNode[] => {
     if (budget <= branch) {
       return Array.from({ length: Math.max(budget, 0) }, () => LayoutNode.make(itemStyle()));
@@ -66,8 +67,8 @@ function taffyDeepFlex(maxNodes: number, branch: number): LayoutNode {
  * Engine-only stress case: alternates flex direction per level, adds padding on
  * every container and a fixed size on every leaf. The alternation forces
  * repeated cross-axis measurement and costs roughly 3.8x the compute-size calls
- * per node that a uniform-direction tree of the same shape does. Taffy has no
- * equivalent benchmark, so this scenario carries no cross-engine ratio.
+ * per node that a uniform-direction tree of the same shape does. No other
+ * engine benchmarks this shape, so it carries no cross-engine ratio.
  */
 function deepFlexAlternating(depth: number, branch: number): LayoutNode {
   const build = (level: number): LayoutNode => {
@@ -139,7 +140,8 @@ function mixedPage(sections: number): LayoutNode {
 /**
  * Describes the tree a scenario measures, so a published figure can state its
  * shape (see BENCHMARKS.md - Methodology). `comparable` marks scenarios whose
- * shape matches a taffy benchmark and may therefore carry a cross-engine ratio.
+ * shape matches another engine's benchmark and may therefore carry a
+ * cross-engine ratio.
  */
 interface Shape {
   depth?: number | 'flat';
@@ -201,17 +203,17 @@ function bench(name: string, tree: LayoutNode, shape: Shape): Result {
 const FLAT: Shape['depth'] = 'flat';
 
 const scenarios: [string, () => LayoutNode, Shape][] = [
-  // Wide/flat trees. Taffy's "Wide tree (2-level hierarchy)" is the comparable case.
+  // Wide/flat trees, comparable to the usual "wide tree (2-level hierarchy)" bench.
   ['flex: wide (10 children)', () => wideFlex(10), { depth: FLAT, flexDirection: 'row (wrap)', style: 'fixed size, margin 1, gap 2', comparable: true }],
   ['flex: wide (100 children)', () => wideFlex(100), { depth: FLAT, flexDirection: 'row (wrap)', style: 'fixed size, margin 1, gap 2', comparable: true }],
   ['flex: wide (1,000 children)', () => wideFlex(1_000), { depth: FLAT, flexDirection: 'row (wrap)', style: 'fixed size, margin 1, gap 2', comparable: true }],
   ['flex: wide (10,000 children)', () => wideFlex(10_000), { depth: FLAT, flexDirection: 'row (wrap)', style: 'fixed size, margin 1, gap 2', comparable: true }],
 
-  // Deep trees matching taffy's `Deep tree (auto size)` shape.
-  ['flex: deep taffy-shape (~4,000 nodes)', () => taffyDeepFlex(4_000, 2), { branch: 2, flexDirection: 'row (uniform)', style: 'flexGrow 1, margin 10', comparable: true }],
-  ['flex: deep taffy-shape (~10,000 nodes)', () => taffyDeepFlex(10_000, 2), { branch: 2, flexDirection: 'row (uniform)', style: 'flexGrow 1, margin 10', comparable: true }],
+  // Deep trees matching the standard `deep tree (auto size)` shape.
+  ['flex: deep uniform (~4,000 nodes)', () => deepFlexUniform(4_000, 2), { branch: 2, flexDirection: 'row (uniform)', style: 'flexGrow 1, margin 10', comparable: true }],
+  ['flex: deep uniform (~10,000 nodes)', () => deepFlexUniform(10_000, 2), { branch: 2, flexDirection: 'row (uniform)', style: 'flexGrow 1, margin 10', comparable: true }],
 
-  // Engine-only stress cases: no taffy counterpart, so no cross-engine ratio.
+  // Engine-only stress cases: no cross-engine counterpart, so no ratio.
   ['flex: deep alternating-axis (stress, depth 10, branch 2)', () => deepFlexAlternating(10, 2), { depth: 10, branch: 2, flexDirection: 'alternating row/column', style: 'flexGrow 1, padding 1, sized leaves', comparable: false }],
   ['flex: deep alternating-axis (stress, depth 7, branch 3)', () => deepFlexAlternating(7, 3), { depth: 7, branch: 3, flexDirection: 'alternating row/column', style: 'flexGrow 1, padding 1, sized leaves', comparable: false }],
 

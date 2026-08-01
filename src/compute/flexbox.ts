@@ -1,5 +1,6 @@
-// Port of taffy/src/compute/flexbox.rs — the CSS Flexible Box Layout algorithm.
-// Function names and section comments follow the Rust source for traceability.
+// The CSS Flexible Box Layout algorithm.
+// https://www.w3.org/TR/css-flexbox-1/#layout-algorithm
+// Function names and section comments follow the spec's numbered steps.
 
 import type { FlexDirection, Point, Rect, Size } from '../geometry.js';
 import {
@@ -177,9 +178,8 @@ interface AlgoConstants {
   /**
    * The cross size came from `aspect-ratio` rather than from a specified size
    * in that axis, making it an *automatic* size (css-sizing-4 §4.2): content
-   * larger than it grows the container instead of overflowing. See
-   * UPSTREAM_TAFFY.md entry 30 for the Chrome matrix and the
-   * scroll-container carve-out.
+   * larger than it grows the container instead of overflowing, except in a
+   * scroll container.
    */
   crossIsRatioDerived: boolean;
 
@@ -199,9 +199,9 @@ export function computeFlexboxLayout(node: LayoutNode, inputs: LayoutInput): Lay
   const boxSizingAdjustment = style.boxSizing === 'content-box' ? paddingBorderSum : sizeZero();
 
   // Min/max stay on their own axis and the ratio derives from the *clamped*
-  // specified size — see block.ts and UPSTREAM_TAFFY.md entry 23. Applying the
-  // ratio first and clamping after (the old order here) transfers a bound onto
-  // the other axis: `height: 200; aspect-ratio: 2; max-width: 3` is 3x200 in
+  // specified size — see the matching note in block.ts. Applying the ratio
+  // first and clamping after transfers a bound onto the other axis:
+  // `height: 200; aspect-ratio: 2; max-width: 3` is 3x200 in
   // Chrome for every display type, not 3x2.
   const minSize = maybeAddSize(maybeResolveSize(style.minSize, parentSize), boxSizingAdjustment);
   const maxSize = maybeAddSize(maybeResolveSize(style.maxSize, parentSize), boxSizingAdjustment);
@@ -328,7 +328,7 @@ function computePreliminary(node: LayoutNode, inputs: LayoutInput): LayoutOutput
   // 9. Handle 'align-content: stretch'.
   handleAlignContentStretch(flexLines, knownDimensions, constants);
 
-  // 10. Collapse visibility:collapse items. (Not implemented — as in taffy.)
+  // 10. Collapse visibility:collapse items. (Not implemented.)
 
   // 11. Determine the used cross size of each flex item.
   determineUsedCrossSize(flexLines, constants);
@@ -447,8 +447,8 @@ function computeConstants(style: Style, knownDimensions: Size<Opt>, parentSize: 
     isColumn,
     isWrap,
     isWrapReverse,
-    // Min/max stay on their own axis — see the matching note in block.ts
-    // (UPSTREAM_TAFFY.md entry 23). Pushing them through the ratio invents a
+    // Min/max stay on their own axis — see the matching note in block.ts.
+    // Pushing them through the ratio invents a
     // bound on the other axis: `height: 200; aspect-ratio: 2; max-width: 3` is
     // 3x200 in Chrome for flex, block and grid alike, but a transferred
     // max-height of 1.5 shrank the height instead.
@@ -630,8 +630,8 @@ function determineFlexBaseSize(
     // Min/max sizes transferred through the aspect ratio are taken into account here
     const crossAxisMarginSum = rectCrossAxisSum(constants.margin, dir);
     // Transferred constraints only apply to axes whose preferred size is auto
-    // (css-sizing-4 §5.2.2; matches Chrome). Taffy clamps unconditionally, which
-    // diverges from the browser when an axis has a definite size.
+    // (css-sizing-4 §5.2.2; matches Chrome). Clamping unconditionally diverges
+    // from the browser when an axis has a definite size.
     const rawStyleSize = maybeResolveSize(childStyle.size, constants.nodeInnerSize);
     const transferredMinSize = maybeApplyAspectRatio(child.minSize, child.aspectRatio);
     const transferredMaxSize = maybeApplyAspectRatio(child.maxSize, child.aspectRatio);
@@ -818,10 +818,10 @@ function determineFlexBaseSize(
         // transferred 10.5 floors the shrink instead of collapsing to the 7px
         // container.
         //
-        // Taffy min's the content suggestion against `child.size` unconditionally
-        // (flexbox.rs:812-813). Because `child.size` already carries the
-        // ratio-derived value, a 0 content size erases the transferred
-        // suggestion entirely and the item shrinks past its ratio.
+        // Min'ing the content suggestion against `child.size` unconditionally
+        // is wrong here: `child.size` already carries the ratio-derived value,
+        // so a 0 content size erases the transferred suggestion entirely and
+        // the item shrinks past its ratio.
         const definiteCross = cross(childKnownDimensions, dir);
         const transferredMain =
           child.aspectRatio !== null && definiteCross !== null
@@ -881,8 +881,8 @@ function collectFlexLines(
     // `flex-wrap: wrap` and a min-content main axis:
     //   row    (40x10 each) -> 40x30   three lines
     //   column (10x40 each) -> ...x120 one line
-    // Taffy applies the split in both axes (flexbox.rs:877), which reports a
-    // column container's min-content height as one item's height.
+    // Applying the split in both axes would report a column container's
+    // min-content height as one item's height.
     if (constants.isRow) {
       return flexItems.map((item) => ({ items: [item], crossSize: 0, offsetCross: 0 }));
     }
@@ -981,7 +981,6 @@ function determineContainerMainSize(
           const stylePreferred = main(item.size, constants.dir);
           const styleMax = main(item.maxSize, constants.dir);
 
-          // (See the taffy source for the spec-vs-browser rationale here.)
           const clampingBasis = mMax(item.flexBasis, stylePreferred);
           // In a column with an explicit `flex-basis`, the style main size is
           // the §4.5 *specified size suggestion* — a cap on the automatic
@@ -1063,12 +1062,10 @@ function determineContainerMainSize(
             // came out 144 (2x72) where Chrome gives 72; a column with 60px of
             // vertical border came out 120 where Chrome gives 63.
             //
-            // Taffy has the same `.max(main_content_box_inset)` on both branches
-            // (flexbox.rs:1076-1083) and its comment calls the row/column
-            // asymmetry "somewhat bizarre... not found by reading the spec, but
-            // by trial and error". The asymmetry that *is* real is the
-            // `max(item.flex_basis)` in the column branch; the inset floor is
-            // not, and removing it leaves `flex_basis_unconstraint_row`/
+            // The row/column asymmetry here is easy to get wrong: the part that
+            // *is* real is the `max(item.flexBasis)` in the column branch. An
+            // inset floor on both branches is not, and removing it leaves
+            // `flex_basis_unconstraint_row`/
             // `_column` — the gentests that comment cites — passing.
             if (constants.isRow) {
               contentContribution = vClamp(contentMainSize, styleMin, styleMax);

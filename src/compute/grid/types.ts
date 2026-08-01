@@ -1,7 +1,7 @@
-// Port of taffy/src/compute/grid/types/* — GridTrack, TrackCounts,
-// CellOccupancyMatrix, GridItem, and origin-zero coordinate helpers.
+// Grid data structures — GridTrack, TrackCounts, CellOccupancyMatrix, GridItem,
+// and origin-zero coordinate helpers.
 //
-// Coordinate systems (see taffy grid_track_counts.rs for the full docs):
+// Coordinate systems:
 // - "CSS Grid Line": 1-based, negative counts from the end, 0 invalid
 // - "OriginZero" (oz): explicit grid's start line is 0 (plain numbers here)
 // - "TrackVec index": even indices are lines/gutters, odd indices are tracks
@@ -678,7 +678,7 @@ function itemKnownDimensions(item: GridItem, gridAreaSize: Size<Opt>): Size<Opt>
   };
 }
 
-/** Grid area size estimate for child sizing (see taffy grid_item.rs for the spec refs) */
+/** Grid area size estimate for child sizing (css-grid-1 §12) */
 export function itemGridAreaSize(
   item: GridItem,
   axis: AbsoluteAxis,
@@ -854,8 +854,8 @@ export function itemMinimumContribution(
 
   // The size suggestions are clamped by the item's own min/max size in the
   // affected axis (css-grid-1 §6.6 / css-sizing-3 §5.2.1), with the usual
-  // min-beats-max precedence. Taffy omits this clamp, so `width: 40px;
-  // max-width: 10px` contributed 40 to the track where Chrome contributes 10
+  // min-beats-max precedence. Without this clamp, `width: 40px;
+  // max-width: 10px` contributes 40 to the track where Chrome contributes 10
   // (and 20 when a `min-width: 20px` overrides the max). The content-based
   // branch above measures with the clamp already applied, so re-clamping it
   // here is a no-op for that path.
@@ -879,8 +879,8 @@ export function itemMinimumContribution(
   // container's free space instead of the pb sum: Chrome sizes the track to 20
   // for a `padding: 10% 20px` scroll item in a 7px grid (percentages drop to 0
   // at this stage and re-resolve against the final area later), the engine
-  // sized it to 7. Taffy has no such floor (grid_item.rs minimum_contribution),
-  // though its flexbox §4.5 equivalent does floor by padding_border.
+  // sized it to 7. The flexbox §4.5 equivalent floors by padding+border in the
+  // same way.
   return Math.max(mMin(size, limit) as number, absGet(paddingBorderSize, axis));
 }
 

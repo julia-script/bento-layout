@@ -1,5 +1,5 @@
-// Port of taffy/src/geometry.rs (subset needed for flexbox).
-// Size/Rect/Point are plain objects; axis helpers take the flex-direction.
+// Geometry primitives. Size/Rect/Point are plain objects; axis helpers take
+// the flex-direction.
 
 /**
  * A width/height pair.
@@ -164,7 +164,7 @@ export function maybeApplyAspectRatio(s: Size<number | null>, aspectRatio: numbe
  * instead takes its size from content or from a specified value, the transfer
  * must not apply: `max-width: 40; aspect-ratio: 2` around 60px of text is
  * 40x60, not 40x20, and `width: 80` with `max-height: 20` stays 80 wide.
- * Taffy transfers unconditionally, so it caps overflowing content too.
+ * Transferring unconditionally would cap overflowing content too.
  */
 export function transferConstraintToStretchedAxis(
   constraint: Size<number | null>,
@@ -193,11 +193,9 @@ export function transferConstraintToStretchedAxis(
  * 55px of vertical border is 180x175 in Chrome (content 120x120), not 180x180.
  * Omit for border-box, where the ratio already relates the border boxes.
  *
- * Taffy has no equivalent parameter because it never needs one: it applies the
- * ratio to the resolved *content-box* size and adds the box-sizing adjustment
- * afterwards (`leaf.rs:47-50`, `block.rs:90-96`). This port reordered those
- * steps to clamp before deriving (entry 23 — min/max must stay on their own
- * axis), which silently moved the ratio onto border-box values. Keep both
+ * The parameter exists because of the step order here: clamping before
+ * deriving (min/max must stay on their own axis) moves the ratio onto
+ * border-box values, where applying it directly would be wrong. Keep both
  * properties: clamp first, but relate the content boxes.
  */
 export function applyAspectRatioClamped(

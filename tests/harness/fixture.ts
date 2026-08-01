@@ -1,4 +1,4 @@
-// Fixture XML parser + tree builder — port of taffy/tests/xml.rs (flexbox subset).
+// Fixture XML parser + tree builder.
 
 import { XMLParser } from 'fast-xml-parser';
 import { LayoutNode } from '../../src/index.js';
@@ -211,7 +211,7 @@ function isSingleTrack(c: GridTemplateComponent): c is TrackSizingFunction {
   return !('repeat' in c);
 }
 
-// --- Grid attribute parsing (mirrors taffy's cssparser-based FromCss impls)
+// --- Grid attribute parsing
 
 /** Split a track list on top-level whitespace (parens protect their contents) */
 function splitTopLevel(input: string): string[] {

@@ -1,4 +1,4 @@
-// Direct unit tests for grid placement coordinates (mirrors taffy's placement tests).
+// Direct unit tests for grid placement coordinates.
 
 import { describe, expect, it } from 'vitest';
 import { LayoutNode } from '../src/index.js';

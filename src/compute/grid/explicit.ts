@@ -1,4 +1,5 @@
-// Port of taffy/src/compute/grid/explicit_grid.rs (named lines omitted).
+// The explicit grid: track counts and sizes from grid-template-* (named lines
+// not implemented).
 
 import type { AbsoluteAxis } from '../../geometry.js';
 import { vMax } from '../../math.js';

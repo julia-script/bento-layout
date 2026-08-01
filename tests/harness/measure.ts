@@ -1,4 +1,4 @@
-// Port of taffy/tests/common/src/lib.rs — the standard test measure functions,
+// The standard test measure functions,
 // including Ahem-font text measurement (each glyph is a 10x10 square, wrapping
 // at zero-width-space boundaries).
 

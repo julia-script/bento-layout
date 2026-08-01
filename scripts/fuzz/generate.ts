@@ -211,9 +211,9 @@ interface GenContext {
    * Whether the containing block is definite per axis. Percentages are only
    * generated where they resolve against a definite size: resolving them
    * against an indefinite (max-content-sized) ancestor is the cyclic-percentage
-   * area css-sizing-3 §5.2 leaves loosely defined, where the engine (like
-   * taffy) resolves against indefinite as zero while Chrome re-resolves after
-   * layout. Documented as a known divergence class in KNOWN_DIVERGENCES.md;
+   * area css-sizing-3 §5.2 leaves loosely defined, where the engine resolves
+   * against indefinite as zero while Chrome re-resolves after layout.
+   * Documented as a known divergence class in KNOWN_DIVERGENCES.md;
    * the corpus follows the same convention.
    */
   wDef: boolean;

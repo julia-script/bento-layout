@@ -13,18 +13,19 @@ Figures below were taken with `BENCH_WINDOW_MS=3000`.
 > ### Retraction
 >
 > An earlier revision of this file reported that branching deep flex trees were
-> **~75–90× slower than Rust taffy** and attributed it to "redundant measure
-> passes or cache misses specific to nested alternating-axis containers".
+> **~75–90× slower than the Rust engine below** and attributed it to "redundant
+> measure passes or cache misses specific to nested alternating-axis
+> containers".
 >
 > **That figure is withdrawn.** It was measured on a tree shape with no
-> counterpart in taffy's benchmark suite: our deep-tree builder alternated
+> counterpart in the reference suite: our deep-tree builder alternated
 > `flexDirection` at every level and added padding on containers plus fixed
-> sizes on leaves, none of which taffy's `Deep tree (auto size)` bench does.
+> sizes on leaves, none of which the `Deep tree (auto size)` bench does.
 > Alternating the axis alone costs roughly 3.8× the compute-size calls per node
 > that a uniform-direction tree of the same shape does, so the comparison was
-> measuring our extra work against taffy's lighter tree.
+> measuring our extra work against a lighter tree.
 >
-> On taffy's actual shape the gap measured **~7–8×** at the time of the
+> On the matching shape the gap measured **~7–8×** at the time of the
 > retraction, and **~5.6–6×** after the cache fix described in
 > [Reading](#reading). The accompanying diagnosis was also wrong: the dominant
 > cost was per-lookup allocation in the measurement cache, not redundant
@@ -32,7 +33,8 @@ Figures below were taken with `BENCH_WINDOW_MS=3000`.
 
 ## Comparable scenarios
 
-These use tree shapes matching a taffy benchmark, so the ratios are meaningful.
+These use tree shapes matching a published cross-engine benchmark, so the
+ratios are meaningful.
 
 | Scenario | Nodes | Median | Iters/s | Throughput |
 |---|--:|--:|--:|--:|
@@ -40,8 +42,8 @@ These use tree shapes matching a taffy benchmark, so the ratios are meaningful.
 | flex: wide (100 children) | 101 | 0.08 ms | 12,204 | 1.20M nodes/s |
 | flex: wide (1,000 children) | 1,001 | 0.79 ms | 1,109 | 1.26M nodes/s |
 | flex: wide (10,000 children) | 10,001 | 27.9 ms | 42.8 | 358k nodes/s |
-| flex: deep taffy-shape (~4,000) | 3,071 | 30.3 ms | 31.0 | 101k nodes/s |
-| flex: deep taffy-shape (~10,000) | 8,191 | 77.6 ms | 12.7 | 106k nodes/s |
+| flex: deep uniform (~4,000) | 3,071 | 30.3 ms | 31.0 | 101k nodes/s |
+| flex: deep uniform (~10,000) | 8,191 | 77.6 ms | 12.7 | 106k nodes/s |
 | grid: 10×10 | 101 | 1.19 ms | 1,904 | 85k nodes/s |
 | grid: 32×32 | 1,025 | 5.87 ms | 178 | 175k nodes/s |
 | grid: 100×100 | 10,001 | 81.1 ms | 12.3 | 123k nodes/s |
@@ -51,12 +53,12 @@ These use tree shapes matching a taffy benchmark, so the ratios are meaningful.
 | Scenario | Shape |
 |---|---|
 | flex: wide | flat, row + wrap, fixed leaf size, margin 1, gap 2 |
-| flex: deep taffy-shape | branch 2, uniform row direction, `flexGrow: 1` + margin 10, default-style root, max-content available space — a node-for-node port of taffy's `build_deep_hierarchy` (3,071 / 8,191 nodes, matching taffy's own budget undershoot) |
+| flex: deep uniform | branch 2, uniform row direction, `flexGrow: 1` + margin 10, default-style root, max-content available space — built node-for-node to match the standard deep-hierarchy benchmark (3,071 / 8,191 nodes, reproducing its budget undershoot) |
 | grid: N×N | flat, `auto`/`1fr` tracks both axes, gap 2 |
 
 ## Engine-only scenarios
 
-No taffy counterpart, so **no cross-engine ratio is published for these**. They
+No cross-engine counterpart, so **no ratio is published for these**. They
 are retained because they exercise paths the comparable set does not, and the
 alternating-axis trees are the most sensitive regression detectors in the suite.
 
@@ -83,7 +85,8 @@ harness), same M1 Max.
 | Deep tree (auto size), 12-level / ~4k | 5.4 ms | 30.3 ms | ~5.6× |
 | Deep tree (auto size), 14-level / ~10k | 12.8 ms | 77.6 ms | ~6× |
 
-Taffy also benchmarks a 100-level "super deep" single chain (0.50 ms). An
+The reference suite also benchmarks a 100-level "super deep" single chain
+(0.50 ms). An
 earlier revision of this file paired it with a 2.0 ms figure for a ~4× ratio,
 but no such scenario exists in `scripts/bench.ts` — that number came from a
 builder that has since been removed, so it is not reproducible and has been
@@ -97,12 +100,13 @@ before republishing that comparison.
 - **Deep trees cost more than wide ones** (~106k vs ~358k nodes/s). Misses per
   node grow roughly linearly with depth (about +6 per level), so total work is
   ~O(n·depth). This is inherent to measure-based flex sizing rather than a
-  defect — taffy shows the same growth, which is why the ratio stays bounded.
+  defect — the native engine shows the same growth, which is why the ratio
+  stays bounded.
 - **The dominant JS-side cost was allocation, not algorithm.** Profiling the
-  taffy-shaped deep tree found the measurement cache allocating three template
+  deep uniform tree found the measurement cache allocating three template
   strings plus a key object on every lookup and a six-object result on every
   hit — about 1.8M short-lived objects per layout run on an 8,191-node tree
-  (~218 per node). Taffy's cache compares packed primitives and allocates
+  (~218 per node). A native cache compares packed primitives and allocates
   nothing. Making our lookups and hits allocation-free took the deep-tree ratio
   from ~7–8× to ~5.6–6× and raised profiled throughput ~42% (57 → 81 iterations
   in a fixed window), with GC scavenges down ~20%.

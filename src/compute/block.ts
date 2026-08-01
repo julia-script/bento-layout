@@ -1,6 +1,5 @@
-// Port of taffy/src/compute/block.rs — the CSS block layout algorithm
-// (float_layout paths omitted; no vendored fixture exercises floats).
-// Function names and section comments follow the Rust source for traceability.
+// The CSS block layout algorithm (floats not implemented).
+// Section comments cite the spec steps they implement.
 
 import type { Point, Rect, Size } from '../geometry.js';
 import {
@@ -434,9 +433,9 @@ function generateItemList(node: LayoutNode, nodeInnerSize: Size<Opt>): BlockItem
     const aspectRatio = childStyle.aspectRatio;
     // Padding and border percentages resolve against the containing block's
     // INLINE size on all four sides — vertical ones included (css-box-3 §4).
-    // Resolving top/bottom against the block size (as taffy does by passing the
-    // full Size here) inflates vertical padding whenever the container is
-    // taller than it is wide; found by differential fuzzing.
+    // Resolving top/bottom against the block size instead inflates vertical
+    // padding whenever the container is taller than it is wide; found by
+    // differential fuzzing.
     const padding = resolveRectOrZero(childStyle.padding, nodeInnerSize.width);
     const border = resolveRectOrZero(childStyle.border, nodeInnerSize.width);
     const pbSum = sumAxes(rectAdd(padding, border));
@@ -567,8 +566,8 @@ function performFinalLayoutOnInFlowChildren(
     resolvedContentBoxInset.top + resolvedContentBoxInset.bottom,
   );
   const parentSize: Size<Opt> = { width: containerInnerWidth, height: containerPercentageResolutionHeight };
-  // Vertical available space in block flow is indefinite — MaxContent is
-  // taffy's representation of "indefinite".
+  // Vertical available space in block flow is indefinite — 'max-content' is
+  // how that is represented here.
   const availableSpace: Size<AvailableSpace> = { width: containerInnerWidth, height: 'max-content' };
 
   let inflowContentSize = sizeZero();

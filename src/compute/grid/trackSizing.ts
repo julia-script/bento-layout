@@ -1,4 +1,4 @@
-// Port of taffy/src/compute/grid/track_sizing.rs — the CSS Grid track sizing algorithm.
+// The CSS Grid track sizing algorithm.
 // https://www.w3.org/TR/css-grid-1/#layout-algorithm
 
 import type { AbsoluteAxis, Size } from '../../geometry.js';
@@ -167,7 +167,7 @@ export function determineIfItemCrossesFlexibleOrIntrinsicTracks(
   }
 }
 
-/** Contribution helpers shared by the intrinsic sizing steps (IntrinsicSizeMeasurer in taffy) */
+/** Contribution helpers shared by the intrinsic sizing steps */
 interface ItemSizer {
   minContentContribution(item: GridItem, axisTracks: GridTrack[]): number;
   maxContentContribution(item: GridItem, axisTracks: GridTrack[]): number;

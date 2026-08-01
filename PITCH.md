@@ -35,9 +35,7 @@ margins, absolute positioning, RTL, `box-sizing`, gaps, alignment including
 `safe` variants, and scrollbar gutters. All three modes compose in one tree —
 a grid inside a flex row inside a block page is the normal case, not a special
 one. Leaf nodes take a measure callback so text and images report their own
-size. The algorithms preserve Taffy's structure (`src/compute/` maps
-module-by-module to Taffy's), which keeps upstream fixes easy to carry over.
-It deliberately does not paint, own a DOM, or parse CSS strings — it computes
+size. It deliberately does not paint, own a DOM, or parse CSS strings — it computes
 geometry, full stop. **Useful alone for:** anyone positioning boxes outside a
 browser's layout pass — canvas/WebGL UIs, TUIs, document generators.
 
@@ -83,10 +81,10 @@ your options each carry a tax:
   npm package is C++ compiled to a base64-encoded WebAssembly blob behind an
   async loader, with asm.js as the synchronous fallback. Sound engineering for
   its goals; real friction for bundlers, edge runtimes, and quick starts.
-- **Taffy** (DioxusLabs) has excellent flexbox, grid, and block algorithms —
-  this project began from them — but it is a Rust crate serving Rust UI
-  toolkits. Using it from JavaScript means a WASM build and a binding layer,
-  with the allocation and lifetime bookkeeping that implies.
+- **The Rust engines** have excellent flexbox, grid, and block algorithms, but
+  they are crates serving Rust UI toolkits. Using one
+  from JavaScript means a WASM build and a binding layer, with the allocation
+  and lifetime bookkeeping that implies.
 - **Hand-rolled layout math** is where many canvas and PDF projects actually
   land, and it is a slow leak: each new alignment mode or percentage edge case
   is another divergence from what CSS-trained intuition expects.
@@ -95,9 +93,9 @@ bento-layout fills the specific gap those leave: one plain-TypeScript package
 where flexbox, grid, and block all work, verified against a browser, that
 installs and runs with the ceremony of `lodash`. The engines above are better
 choices when their strengths are your constraints — Yoga when you are in the
-React Native ecosystem, Taffy when you are writing Rust. This is the choice
-for when you are writing TypeScript and want layout to be a small, boring
-dependency.
+React Native ecosystem, a Rust crate when you are writing Rust. This is the
+choice for when you are writing TypeScript and want layout to be a small,
+boring dependency.
 
 ## Why "just TypeScript" earns its keep
 
@@ -115,15 +113,12 @@ The absence of a native core is not a compromise here; it is the feature.
 - **Debuggable to the bottom.** A wrong position is a breakpoint in readable
   TypeScript, not a wall at a compiled frame.
 
-And the engine's provenance is a strength stated plainly: its algorithms began
-from Taffy's, the reference that made it possible — Taffy's module structure
-is preserved precisely so upstream fixes transfer. It has since grown well
-past that origin: conformance is defined by pinned
-Chrome rather than by Taffy's expectations, the browser-oracle fuzzer and WPT
-scoreboard are original infrastructure Taffy does not have, and divergences
-where Chrome and Taffy disagree are resolved in Chrome's favor — with each
-Taffy-inherited bug found this way logged in `UPSTREAM_TAFFY.md` with a
-minimized reproduction and spec citation, so the fixes can flow back upstream.
+And correctness is anchored to something external rather than to another
+implementation: conformance is defined by a pinned Chrome, and the
+browser-oracle fuzzer and WPT scoreboard exist to keep that claim measured
+rather than asserted. Where any other engine and the browser disagree, the
+browser wins — which is what lets this one fix inherited bugs instead of
+faithfully reproducing them.
 
 ## Goals
 
@@ -138,9 +133,6 @@ minimized reproduction and spec citation, so the fixes can flow back upstream.
 - **Verification that outruns hand-written tests**: keep the differential
   fuzzer and WPT scoreboard maturing alongside the engine, so correctness
   claims stay measured rather than asserted.
-- **Credit flowing upstream**: bugs inherited from Taffy get minimized
-  reproductions and spec citations in `UPSTREAM_TAFFY.md`, staged for filing
-  upstream once confirmed.
 
 ## Non-goals
 
@@ -158,9 +150,9 @@ minimized reproduction and spec citation, so the fixes can flow back upstream.
   grid lines/`grid-template-areas`, and subgrid are not implemented today;
   scope is chosen so that what *is* claimed is browser-verified rather than
   approximate.
-- **Taffy API compatibility** — the algorithms track upstream where it helps
-  correctness, but the API is designed for TypeScript idioms (GC lifetimes,
-  structural types, per-property merge), not for symmetry with the Rust crate.
+- **API compatibility with another engine** — the API is designed for
+  TypeScript idioms (GC lifetimes, structural types, per-property merge), not
+  for symmetry with any existing flexbox or grid implementation.
 
 ## Audience
 
@@ -188,3 +180,11 @@ minimized reproduction and spec citation, so the fixes can flow back upstream.
 - A fuzz campaign at the documented default budget produces no new findings at
   the current tolerance — and when it does, each finding lands as a permanent
   committed fixture.
+
+## Acknowledgements
+
+[Taffy](https://github.com/DioxusLabs/taffy) (MIT) was a major reference while
+this engine was being built, and the debt is worth stating plainly. The engine
+has since gone its own way — conformance is defined by Chrome, and the
+algorithms, API, and verification infrastructure have diverged substantially —
+but the early going was much easier for having it to read.

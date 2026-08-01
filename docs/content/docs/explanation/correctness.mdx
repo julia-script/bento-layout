@@ -46,12 +46,10 @@ Two properties make it useful rather than noisy:
   committed as ordinary conformance fixtures, so a fuzz finding can never
   regress silently.
 
-The fuzzer found real bugs inherited from the reference implementation —
-cases absent from Taffy's own fixture corpus, which is why its suite
-passes. Each is recorded in `UPSTREAM_TAFFY.md` with the minimized
-reproduction, the Chrome-vs-engine numbers, and a spec citation, staged for
-filing upstream once confirmed against Rust Taffy itself. Correctness debts
-flow back to the project this one started from.
+The fuzzer has found real bugs — including ones the hand-written corpora of
+existing engines miss entirely, which is why those suites pass. Each is
+recorded with its minimized reproduction, the Chrome-vs-engine numbers, and
+a spec citation.
 
 ## The WPT scoreboard
 
@@ -76,12 +74,12 @@ matching Chrome would require multi-pass relayout) and zero fixture-level
 entries. "Zero silent divergence" is the invariant the whole pipeline
 exists to keep.
 
-## Why not just trust the port?
+## Why not just trust another implementation?
 
-The algorithms began as a port of Taffy's, and Taffy is good — but "the
-port matches the original" and "the original matches the browser" are
-different claims, and only the second one matters to someone whose
-CSS-trained intuition is the real spec. Defining conformance against
-Chrome, not against Taffy, is what lets the engine fix inherited bugs
-instead of faithfully reproducing them — and what makes its correctness
-claim measurable: run `pnpm test` and count.
+Existing engines are good — but "this engine matches that one" and "that
+one matches the browser" are different claims, and only the second one
+matters to someone whose CSS-trained intuition is the real spec. Defining
+conformance against Chrome, rather than against another implementation, is
+what lets this engine fix inherited bugs instead of faithfully reproducing
+them — and what makes its correctness claim measurable: run `pnpm test` and
+count.

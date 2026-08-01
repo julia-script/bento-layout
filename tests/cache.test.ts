@@ -53,15 +53,15 @@ describe('Cache', () => {
     expect(cache.get(baseInput({ availableSpace: { width: 'min-content', height: 'min-content' } }))).toBeNull();
     expect(cache.get(baseInput({ availableSpace: { width: 'max-content', height: 'max-content' } }))).toBeNull();
     expect(cache.get(baseInput({ parentSize: { width: 999, height: 200 } }))).toBeNull();
-    // `axis` is part of our key though not taffy's: dropping it regresses grid
-    // baseline fixtures, so it is pinned here.
+    // `axis` is part of the key: dropping it regresses grid baseline fixtures,
+    // so it is pinned here.
     expect(cache.get(baseInput({ axis: 'horizontal' }))).toBeNull();
   });
 
   it('ignores parentSize.height for compute-size but not for perform-layout', () => {
     const cache = new Cache();
 
-    // compute-size masks the y-axis parent size (taffy tree/cache.rs does the same).
+    // compute-size masks the y-axis parent size.
     const measure = baseInput();
     cache.store(measure, output(7, 20));
     expect(cache.get(baseInput({ parentSize: { width: 100, height: 999 } }))).not.toBeNull();
@@ -74,9 +74,9 @@ describe('Cache', () => {
   });
 
   it('does not serve a known-dimension from a matching cached size', () => {
-    // Taffy additionally accepts an entry whose cached size equals the requested
-    // known dimension. Adopting that relaxation regresses 12 fixtures here, so
-    // the stricter predicate is deliberate.
+    // Also accepting an entry whose cached size merely equals the requested
+    // known dimension regresses 12 fixtures, so the stricter predicate is
+    // deliberate.
     const cache = new Cache();
     cache.store(baseInput(), output(7, 20));
     expect(cache.get(baseInput({ knownDimensions: { width: 7, height: 20 } }))).toBeNull();

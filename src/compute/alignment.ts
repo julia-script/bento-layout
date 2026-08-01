@@ -1,4 +1,4 @@
-// Port of taffy/src/compute/common/alignment.rs and content_size.rs
+// Alignment fallbacks and content-size accumulation, shared by all layout modes.
 
 import type { Point, Size } from '../geometry.js';
 import type { AlignContent, AlignContentKeyword, AlignItems, AlignItemsKeyword, Overflow } from '../style.js';

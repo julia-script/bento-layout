@@ -1,5 +1,5 @@
-// Port of the layout dispatch in taffy/src/tree/taffy_tree.rs (compute_child_layout)
-// plus compute_cached_layout and compute_hidden_layout from compute/mod.rs.
+// Layout dispatch: routes a child to its display mode's algorithm, through the
+// layout cache, with `display: none` short-circuited.
 
 import type { Size } from '../geometry.js';
 import { sizeGetAbs } from '../geometry.js';
@@ -43,9 +43,8 @@ export function computeChildLayout(node: LayoutNode, inputs: LayoutInput, blockC
     // Unlike empty flex/block containers (which size like leaves), an empty
     // grid still sizes to its explicit tracks — `grid-template-rows: 120px`
     // makes it 120px tall with no items (css-grid-1 §5.1; matches Chrome).
-    // Taffy routes childless grids to leaf layout, which drops the tracks;
-    // found by differential fuzzing. Text leaves (measure fn) stay on the
-    // leaf path.
+    // Routing childless grids to leaf layout drops the tracks; found by
+    // differential fuzzing. Text leaves (measure fn) stay on the leaf path.
     output = computeGridLayout(node, inputs);
   } else if (nd.children.length > 0) {
     output = computeFlexboxLayout(node, inputs);

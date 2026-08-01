@@ -1,4 +1,4 @@
-// Port of taffy/src/compute/grid/mod.rs — the grid layout orchestrator.
+// The grid layout orchestrator.
 // Phases: resolve explicit grid → place items → size tracks → align & position.
 
 import type { Rect, Size } from '../../geometry.js';
@@ -271,7 +271,7 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     columns,
     items,
     (track) => track.baseSize,
-    false, // TODO(taffy): baseline alignment in the vertical axis
+    false, // TODO: baseline alignment in the vertical axis
   );
   const initialRowSum = rows.reduce((sum, track) => sum + track.baseSize, 0);
   innerNodeSize.height = innerNodeSize.height ?? initialRowSum;

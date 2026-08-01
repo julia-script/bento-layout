@@ -20,8 +20,8 @@ to 200 and does not re-resolve.
 
 **Spec:** css-sizing-3 §5.2 leaves cyclic percentage resolution loosely
 defined ("behaves as auto" in cyclic cases); Chrome effectively re-resolves
-after layout. Matching Chrome would require multi-pass relayout, which the
-engine (like Taffy) does not implement.
+after layout. Matching Chrome would require multi-pass relayout, which this
+engine does not implement.
 
 **Fuzzer handling:** the generator only emits percentages where the containing
 block is definite (`GenContext.wDef/hDef` in scripts/fuzz/generate.ts), and the
@@ -32,7 +32,7 @@ the same convention.
 
 _No fixture-level divergences — all generated fixtures pass._
 
-Historical note: the engine originally inherited a divergence from Taffy where
+Historical note: the engine originally had a divergence where
 aspect-ratio-transferred min/max constraints were applied even to axes with a
 definite preferred size (css-sizing-4 §5.2.2 says they only apply to auto
 axes). Found by the first authored fixture batch and fixed in the engine to

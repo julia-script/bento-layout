@@ -1,8 +1,8 @@
 // Scrollbar gutter reservation (the `scrollbarWidth` style knob).
 //
 // Browser fixtures are generated in headless Chrome, which has 0-width overlay
-// scrollbars, so gutter reservation is covered here instead: these mirror the
-// pre-regeneration Taffy fixtures that were generated with 15px scrollbars.
+// scrollbars, so gutter reservation is covered here instead: these mirror
+// earlier fixtures that were generated with 15px scrollbars.
 
 import { describe, expect, it } from 'vitest';
 import { computeLayout, LayoutNode } from '../src/index.js';

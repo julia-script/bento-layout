@@ -1,4 +1,4 @@
-// Port of taffy/src/compute/grid/alignment.rs — track alignment and final item positioning.
+// Track alignment and final item positioning.
 
 import type { Rect, Size } from '../../geometry.js';
 import { maybeApplyAspectRatio, rectAdd, sumAxes } from '../../geometry.js';
@@ -21,7 +21,7 @@ import type { GridTrack } from './types.js';
 const ALIGN_START: AlignItems = { keyword: 'start', safe: false };
 const ALIGN_STRETCH_LOCAL: AlignItems = { keyword: 'stretch', safe: false };
 
-/** AlignContentKeyword::reversed() from taffy's style/alignment.rs */
+/** The align-content keyword that means the same thing in a reversed axis. */
 function reversedKeyword(keyword: AlignContentKeyword): AlignContentKeyword {
   switch (keyword) {
     case 'start':

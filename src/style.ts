@@ -1,5 +1,5 @@
-// Port of taffy/src/style/* (flexbox subset).
-// Lengths are discriminated unions instead of taffy's bit-packed CompactLength:
+// Style data model: the resolved properties layout reads.
+// Lengths are discriminated unions rather than a packed numeric encoding:
 //   number            → absolute length (px)
 //   { percent: n }    → percentage as a 0..1 fraction
 //   'auto'            → keyword auto
@@ -237,7 +237,7 @@ export type JustifyContent = AlignContent;
  * container or an item. `flexGrow` on a grid item, or `gridRow` on a flex item,
  * is simply ignored rather than an error.
  *
- * The defaults are Taffy's, not CSS's. The three that surprise people:
+ * The defaults are the engine's own, not CSS's. The three that surprise people:
  * `display` is `'flex'` (CSS: `block`), `boxSizing` is `'border-box'` (CSS:
  * `content-box`), and `flexShrink` is `1`, so items shrink below their basis
  * unless told otherwise.
@@ -920,8 +920,8 @@ export function resolveRectOrZero(r: Rect<LengthPercentageAuto>, context: Opt): 
  *
  * NOTE: correct for `inset`, wrong for padding/margin/border — those resolve
  * against the inline size on all four sides (css-box-3 §4). Using it for
- * padding was a real bug (see UPSTREAM_TAFFY.md entry 5). Currently unused;
- * a candidate for removal in the pre-publish API review.
+ * padding was a real bug. Currently unused; a candidate for removal in the
+ * pre-publish API review.
  */
 export function resolveRectOrZeroPerAxis(r: Rect<LengthPercentageAuto>, context: Size<Opt>): Rect<number> {
   return {

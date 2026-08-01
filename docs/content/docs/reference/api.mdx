@@ -70,7 +70,7 @@ static make(style?: StyleInput, children?: readonly LayoutNode[]): LayoutNode;
 
 `make` is the constructor as a static method, for use in expressions. The
 style is merged over the defaults, so pass only what differs. Note the
-defaults are Taffy's, not CSS's — most visibly `display: 'flex'` (see
+defaults are the engine's own, not CSS's — most visibly `display: 'flex'` (see
 [Style properties](/docs/reference/style-properties#defaults)). Passing
 `children` is equivalent to calling `appendChild` for each in order, with
 the same reparenting and cycle rules.

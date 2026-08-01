@@ -1,4 +1,4 @@
-// Port of taffy/src/compute/leaf.rs (block-layout margin-collapsing paths dropped).
+// Leaf layout: sizing a childless node, including the measure-callback path.
 
 import {
   applyAspectRatioClamped,
@@ -48,8 +48,8 @@ export function computeLeafLayout(inputs: LayoutInput, style: Style, measureFunc
     // The ratio derives the automatic axis from the *used* value of the
     // specified one, so each specified axis is clamped by its own min/max first:
     // `width: 200; aspect-ratio: 2; max-width: 3` is 3x2 in Chrome (the height
-    // follows the clamped 3), not 3x100. Taffy applies the ratio to the raw
-    // style size, so the derived axis keeps following the pre-clamp value.
+    // follows the clamped 3), not 3x100. Applying the ratio to the raw style
+    // size instead leaves the derived axis following the pre-clamp value.
     const styleSize = applyAspectRatioClamped(
       maybeAdd(rawStyleSize, boxSizingAdjustment),
       rawMinSize,
@@ -67,9 +67,8 @@ export function computeLeafLayout(inputs: LayoutInput, style: Style, measureFunc
     // `styleSize` above and by the ratio floor below), never the axis itself,
     // so content that overflows the ratio still wins — `max-width: 40;
     // aspect-ratio: 2` around 60px of text is 40x60 in Chrome, not 40x20, while
-    // the same box empty is 40x20 either way. Taffy transfers onto
-    // min_size/max_size, so it caps the content and also re-derives axes that
-    // have a size of their own.
+    // the same box empty is 40x20 either way. Transferring onto min/max would
+    // cap the content and also re-derive axes that have a size of their own.
     nodeMinSize = rawMinSize;
     nodeMaxSize = rawMaxSize;
   }
@@ -162,9 +161,9 @@ export function computeLeafLayout(inputs: LayoutInput, style: Style, measureFunc
   // An aspect-ratio floor keeps the height in ratio with the (possibly clamped)
   // used width — but only when the height is otherwise automatic. A definite
   // height (from the parent or an explicit style height) wins over the ratio
-  // (css-sizing-4 §5: aspect-ratio produces the automatic size only). Taffy
-  // applies this floor unconditionally, which diverges from Chrome for a leaf
-  // with aspect-ratio plus both dimensions definite; found by differential
+  // (css-sizing-4 §5: aspect-ratio produces the automatic size only).
+  // Applying the floor unconditionally diverges from Chrome for a leaf with
+  // aspect-ratio plus both dimensions definite; found by differential
   // fuzzing (tests/html/fuzz-found).
   const heightIsAutomatic = knownDimensions.height === null && !styleHeightIsDefinite;
   const widthIsAutomatic = knownDimensions.width === null && !styleWidthIsDefinite;

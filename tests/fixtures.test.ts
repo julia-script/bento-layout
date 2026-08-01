@@ -1,5 +1,5 @@
-// Conformance suite: runs every vendored Taffy flex fixture against this port.
-// Expectations were generated from Chrome — see tests/fixtures/TAFFY_COMMIT.
+// Conformance suite: runs every fixture in tests/fixtures/ against the engine.
+// Expectations were generated from Chrome — see tests/fixtures/CHROME_VERSION.
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';

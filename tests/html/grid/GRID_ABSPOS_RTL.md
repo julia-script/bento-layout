@@ -75,6 +75,3 @@ specifying auto".
 - Each fixture's own `direction` composes with the harness's four variants, so
   `X_ltr` and `X_rtl` are **not** duplicates.
 - Rows never mirror and share the same code path with an identity conversion.
-
-Upstream Taffy has the same defect (`grid/mod.rs:571-619`); see
-UPSTREAM_TAFFY.md entry #26.

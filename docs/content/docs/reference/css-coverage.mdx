@@ -73,18 +73,14 @@ class-level entry and no fixture-level ones:
   block that is itself sized by its contents (max-content sizing) is
   loosely specified (css-sizing-3 §5.2, "behaves as auto" in cyclic cases).
   Chrome effectively re-resolves such percentages after layout; this engine
-  (like Taffy) resolves them as indefinite during intrinsic sizing and does
+  resolves them as indefinite during intrinsic sizing and does
   not re-run layout. Matching Chrome would require multi-pass relayout.
   In practice: give the containing block a definite size and percentages
   resolve identically to Chrome.
 
-Where Chrome and Taffy disagree, this engine follows Chrome — each
-Taffy-inherited bug found that way is logged in `UPSTREAM_TAFFY.md` with a
-minimized reproduction and spec citation, staged for filing upstream.
-
 ## Defaults differ from CSS
 
-The style defaults are Taffy's: `display: 'flex'` (CSS: `block`) and
+The style defaults are the engine's own: `display: 'flex'` (CSS: `block`) and
 `boxSizing: 'border-box'` (CSS: `content-box`) are the two that change
 geometry relative to a stylesheet author's expectations. See
 [Style properties](/docs/reference/style-properties#defaults).

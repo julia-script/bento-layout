@@ -32,16 +32,16 @@ If you want spec-grade flexbox *and* CSS Grid in a JavaScript project today,
 your options each carry a tax. **Yoga** is the battle-tested standard, but
 every published release is flexbox-only (Grid is an open, unmerged PR:
 [facebook/yoga#1865](https://github.com/facebook/yoga/pull/1865)), and the
-npm package is C++-compiled WASM behind an async loader. **Taffy** has
-excellent flexbox, grid, and block algorithms — this project began from
-them — but it is a Rust crate; using it from JS means a WASM build and a
-binding layer with manual lifetime bookkeeping. **Hand-rolled layout math**
-is a slow leak: every alignment mode and percentage edge case is another
-divergence from CSS-trained intuition.
+npm package is C++-compiled WASM behind an async loader. **The Rust
+engines** have excellent flexbox, grid, and block algorithms, but using one
+from JS means a WASM build and a binding layer with manual lifetime
+bookkeeping. **Hand-rolled layout math** is a slow leak: every alignment
+mode and percentage edge case is another divergence from CSS-trained
+intuition.
 
 bento-layout fills the gap those leave: one plain-TypeScript package where
 flexbox, grid, and block all work, verified against a browser, that installs
-and runs with the ceremony of `lodash`. Yoga and Taffy remain better choices
+and runs with the ceremony of `lodash`. Those engines remain better choices
 when their strengths are your constraints — React Native, or Rust. This is
 the choice for when you are writing TypeScript and want layout to be a
 small, boring dependency.
@@ -70,8 +70,7 @@ it and let the GC take it.
 
 ## Conformance: Chrome is the oracle
 
-Correctness is defined as agreement with a pinned Chrome, not with the
-reference implementation the algorithms came from:
+Correctness is defined as agreement with a pinned Chrome:
 
 - **5,304 conformance fixtures** — geometry extracted from headless Chrome
   by an in-repo pipeline (`pnpm gentest`) and asserted at 0.1px tolerance,
@@ -88,13 +87,6 @@ reference implementation the algorithms came from:
   fixed or documented with a spec citation in
   [KNOWN_DIVERGENCES.md](KNOWN_DIVERGENCES.md) — currently one class-level
   entry (cyclic percentage resolution) and no fixture-level ones.
-
-The algorithms began from [Taffy](https://github.com/DioxusLabs/taffy)'s,
-and `src/compute/` preserves Taffy's module structure so upstream fixes
-transfer. Where Chrome and Taffy disagree, this engine follows Chrome; each
-Taffy-inherited bug found that way is logged in
-[UPSTREAM_TAFFY.md](UPSTREAM_TAFFY.md) with a minimized reproduction and
-spec citation, staged for filing upstream.
 
 ## Documentation
 
@@ -115,9 +107,17 @@ reference, and the conformance story — lives in the [docs site](docs/)
 - **The full CSS layout surface** — floats, inline layout, `calc()`, named
   grid lines/areas, and subgrid are out of scope, so that what *is* claimed
   is browser-verified rather than approximate.
-- **Taffy API compatibility** — the API is designed for TypeScript idioms
-  (GC lifetimes, structural types, per-property merge), not for symmetry
-  with the Rust crate.
+- **Matching another engine's API** — the API is designed for TypeScript
+  idioms (GC lifetimes, structural types, per-property merge), not for
+  symmetry with any existing engine.
+
+## Acknowledgements
+
+[Taffy](https://github.com/DioxusLabs/taffy) (MIT) was a major reference
+while this engine was being built, and the debt is worth stating plainly.
+The engine has since gone its own way — conformance is defined by Chrome,
+and the algorithms, API, and verification infrastructure have diverged
+substantially — but the early going was much easier for having it to read.
 
 ## License
 

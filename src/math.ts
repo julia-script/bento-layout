@@ -1,6 +1,6 @@
-// Port of taffy/src/util/math.rs. `null` plays the role of Rust's `None`.
+// Arithmetic over optional numbers — `null` is the absent value.
 //
-// Two families, matching the Rust impls:
+// Two families:
 //   m*  — lhs is Option<f32>  (rhs may be Option or plain number; identical semantics)
 //   v*  — lhs is f32, rhs is Option<f32>
 
@@ -72,7 +72,7 @@ export function isNormal(v: number): boolean {
   return Number.isFinite(v) && Math.abs(v) >= F32_MIN_POSITIVE;
 }
 
-/** taffy's sys::round is `(value + 0.5).floor()` — identical to JS Math.round. */
+/** Rounds half toward positive infinity, i.e. `(value + 0.5).floor()`. */
 export function round(v: number): number {
   return Math.round(v);
 }

@@ -13,10 +13,10 @@ your options each carry a tax:
   behind an async loader, with asm.js as the synchronous fallback. Sound
   engineering for its goals; real friction for bundlers, edge runtimes, and
   quick starts.
-- **Taffy** (DioxusLabs) has excellent flexbox, grid, and block algorithms —
-  this project began from them — but it is a Rust crate serving Rust UI
-  toolkits. Using it from JavaScript means a WASM build and a binding layer,
-  with the allocation and lifetime bookkeeping that implies.
+- **The Rust engines** have excellent flexbox, grid, and block algorithms,
+  but they are crates serving Rust UI toolkits. Using one from JavaScript
+  means a WASM build and a binding layer, with the allocation and lifetime
+  bookkeeping that implies.
 - **Hand-rolled layout math** is where many canvas and PDF projects actually
   land, and it is a slow leak: each new alignment mode or percentage edge
   case is another divergence from what CSS-trained intuition expects.
@@ -25,9 +25,9 @@ bento-layout fills the specific gap those leave: one plain-TypeScript
 package where flexbox, grid, and block all work, verified against a
 browser, that installs and runs with the ceremony of `lodash`. The engines
 above are better choices when their strengths are your constraints — Yoga
-when you are in the React Native ecosystem, Taffy when you are writing
-Rust. This is the choice for when you are writing TypeScript and want
-layout to be a small, boring dependency.
+when you are in the React Native ecosystem, a Rust crate when you are
+writing Rust. This is the choice for when you are writing TypeScript and
+want layout to be a small, boring dependency.
 
 ## What the absence of a native core buys
 
@@ -55,8 +55,8 @@ because it was.
 
 Parity with native performance is not the target, and chasing it would
 trade away the plain-TypeScript simplicity that is the point. On tree
-shapes that match Taffy's own benchmarks, the engine currently measures
-roughly 6× slower than the Rust original — while still laying out on the
+shapes the Rust engines also benchmark, this one currently measures
+roughly 6× slower than native — while still laying out on the
 order of a hundred thousand to a million nodes per second on a laptop,
 depending on tree shape. For the UI trees this library is for, layout is
 not the frame budget. The repository's `BENCHMARKS.md` keeps the current
@@ -64,19 +64,21 @@ measurements, methodology, and their limits.
 
 ## An engine, not a port
 
-The algorithms began from Taffy's, the reference that made this possible —
-`src/compute/` maps module-by-module onto Taffy's structure precisely so
-upstream fixes transfer. It has since grown past that origin in the way
-that matters: conformance is defined by a pinned Chrome rather than by
-Taffy's expectations, the browser-oracle fuzzer and WPT scoreboard are
-original infrastructure Taffy does not have, and where Chrome and Taffy
-disagree, the divergence is resolved in Chrome's favor — with each
-Taffy-inherited bug logged with a minimized reproduction and spec citation
-in `UPSTREAM_TAFFY.md`, so the fixes can flow back upstream.
+Correctness here is anchored to a browser rather than to another
+implementation: conformance is defined by a pinned Chrome, and the
+browser-oracle fuzzer and WPT scoreboard exist to keep that claim measured
+rather than asserted. Where any other engine and the browser disagree, the
+browser wins — which is what lets this one fix inherited bugs instead of
+faithfully reproducing them.
 [How correctness is verified](/docs/explanation/correctness) tells that
 story in full.
 
 The API is likewise designed for TypeScript idioms — GC lifetimes,
-structural types, per-property merge — not for symmetry with the Rust
-crate. Taffy compatibility is a non-goal; correctness compatibility with
-the browser is the goal.
+structural types, per-property merge — not for symmetry with any existing
+engine. Matching another implementation's API is a non-goal; correctness
+compatibility with the browser is the goal.
+
+[Taffy](https://github.com/DioxusLabs/taffy) (MIT) was a major reference
+while this engine was being built, and the debt is worth stating plainly.
+The engine has since gone its own way, but the early going was much easier
+for having it to read.

@@ -1,5 +1,5 @@
-// Port of taffy/src/compute/grid/implicit_grid.rs — estimates grid size for
-// pre-sizing the CellOccupancyMatrix (a necessary step in auto-placement).
+// Estimates grid size for pre-sizing the CellOccupancyMatrix (a necessary step
+// in auto-placement).
 
 import type { Direction, Style } from '../../style.js';
 import {
@@ -28,11 +28,10 @@ export interface OzOffsets {
  * origin are not materialized — the lines coalesce. (E.g. `grid-row: -3/auto`
  * in a template-less grid yields ONE row, not a row plus an empty trailing
  * one.) Modeling negative implicit tracks as contiguous down to the origin —
- * as this function did, following taffy — produces phantom empty tracks;
- * found by differential fuzzing. Note taffy documents this estimate as a
- * pre-sizing optimisation with final counts coming from placement, so the
- * upstream defect may not live in the equivalent function (see
- * UPSTREAM_TAFFY.md). The offset translates all line placements forward so the maximum
+ * as this function once did — produces phantom empty tracks; found by
+ * differential fuzzing. This estimate is only a pre-sizing optimisation, with
+ * the final counts coming from placement.
+ * The offset translates all line placements forward so the maximum
  * occupied end line is 0, which removes the phantom while keeping the
  * line→track-index arithmetic unchanged. Offsets are computed in raw
  * (pre-RTL-mirror) coordinates so track counts stay direction-independent.

@@ -1,6 +1,4 @@
 // Public API: plain-object node trees + computeLayout.
-// Root layout and rounding are ports of compute_root_layout / round_layout
-// from taffy/src/compute/mod.rs.
 
 import type { Size } from './geometry.js';
 import { applyAspectRatioClamped } from './geometry.js';
@@ -191,8 +189,8 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
   //   + overflow: hidden -> h=104  (BFC)
   //   position: absolute -> h=104
   //   display: flex      -> h=104
-  // Taffy passes LINE_FALSE here, so a root never collapsed at all and its
-  // height absorbed the child margins.
+  // Passing false on both edges here would mean a root never collapsed at all,
+  // and its height would absorb the child margins.
   const rootMarginsCollapse: Line<boolean> = { start: true, end: true };
 
   // Recursively compute node layout
