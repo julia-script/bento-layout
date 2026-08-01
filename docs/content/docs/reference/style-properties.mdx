@@ -5,8 +5,8 @@ description: Every style property — types, defaults, shorthands, and the struc
 
 Styles are plain data. Keys are CSS longhand names in camelCase — the same
 spelling as `element.style` and React inline styles — and values are
-structured TypeScript, not CSS strings: `10` for pixels, `{ percent: 0.5 }`
-for 50%, `'auto'` for the keyword. There is no CSS parser in the library, so
+structured TypeScript, not CSS strings: `10` for pixels, `'50%'` for a
+percentage, `'auto'` for the keyword. There is no CSS parser in the library, so
 multi-value string shorthands (`padding: '10px 20px'`, `flex: '1 1 auto'`)
 do not exist; the uniform shorthands below do.
 
@@ -25,16 +25,18 @@ do not exist; the uniform shorthands below do.
 
 | Type | Forms | Used by |
 | --- | --- | --- |
-| `LengthPercentage` | `number` (px), `{ percent: number }` | padding, border, gaps |
+| `LengthPercentage` | `number` (px), `'50%'` | padding, border, gaps |
 | `LengthPercentageAuto` | ...plus `'auto'` | margin, inset |
 | `Dimension` | same as `LengthPercentageAuto` | width/height, min/max, flexBasis |
 | `AvailableSpace` | `number`, `'min-content'`, `'max-content'` | `computeLayout`, measure functions |
 
-**Percentages are fractions, not 0–100 numbers**: `{ percent: 0.5 }` is
-50%, and `{ percent: 50 }` is 5000% — the single most common mistake when
-writing styles by hand. Percentages resolve against the containing block,
-and for `padding`, `margin`, and `border` they resolve against its *width*
-on all four sides, per CSS.
+A percentage is a number followed by `%`, and that is the whole of the string
+syntax — no `calc()`, no units besides `%`. A malformed one (`'fifty%'`) is a
+type error, and throws `InvalidStyleError` where the style is set if it slips
+past the compiler.
+
+Percentages resolve against the containing block, and for `padding`, `margin`,
+and `border` they resolve against its *width* on all four sides, per CSS.
 
 ## Defaults
 
@@ -234,7 +236,7 @@ The single-value CSS track forms translate mechanically:
 | CSS | Structured |
 | --- | --- |
 | `100px` | `{ min: 100, max: 100 }` |
-| `25%` | `{ min: { percent: 0.25 }, max: { percent: 0.25 } }` |
+| `25%` | `{ min: '25%', max: '25%' }` |
 | `auto` | `{ min: 'auto', max: 'auto' }` |
 | `1fr` | `{ min: 'auto', max: { fr: 1 } }` |
 | `minmax(100px, 1fr)` | `{ min: 100, max: { fr: 1 } }` |

@@ -5,7 +5,7 @@
 // shape and nothing downstream of resolveStyle knows they exist.
 
 import { describe, expect, it } from 'vitest';
-import { LayoutNode, computeLayout } from '../src/index.js';
+import { InvalidStyleError, LayoutNode, computeLayout } from '../src/index.js';
 import { resolveStyle } from '../src/style.js';
 
 const SPACE = { width: 'max-content', height: 'max-content' } as const;
@@ -142,6 +142,78 @@ describe('through the public API', () => {
     const root = LayoutNode.make({ width: 200, height: 200 }, [child]);
     computeLayout(root, SPACE);
     expect(child.layout.location).toEqual({ x: 75, y: 75 });
+  });
+
+  it('maps percentage strings to the engine 0..1 fraction', () => {
+    // Input takes the CSS spelling; the engine and node.style only ever hold
+    // the fraction, so '50%' and { percent: 0.5 } are the same style.
+    expect(resolveStyle({ width: '50%' }).size.width).toEqual({ percent: 0.5 });
+    expect(resolveStyle({ width: '12.5%' }).size.width).toEqual({ percent: 0.125 });
+    expect(resolveStyle({ flexBasis: '100%' }).flexBasis).toEqual({ percent: 1 });
+    // Through a shorthand, uniform and per-side alike.
+    expect(resolveStyle({ padding: '10%' }).padding).toEqual({
+      top: { percent: 0.1 },
+      right: { percent: 0.1 },
+      bottom: { percent: 0.1 },
+      left: { percent: 0.1 },
+    });
+    expect(resolveStyle({ margin: { top: '25%' } }).margin.top).toEqual({ percent: 0.25 });
+    // Keyword strings end in no '%', so they are untouched.
+    expect(resolveStyle({ width: 'auto', margin: 'auto' }).size.width).toBe('auto');
+  });
+
+  it('lays out a percentage string as the fraction it names', () => {
+    const child = LayoutNode.make({ width: '50%', height: 100 });
+    const root = LayoutNode.make({ width: 200, height: 200 }, [child]);
+    computeLayout(root, SPACE);
+    expect(child.layout.size.width).toBe(100);
+  });
+
+  it('maps percentage strings at every depth of a grid track', () => {
+    expect(resolveStyle({ gridTemplateColumns: [{ min: '25%', max: '25%' }] }).gridTemplateColumns).toEqual([
+      { min: { percent: 0.25 }, max: { percent: 0.25 } },
+    ]);
+    // Inside fit-content(), and inside repeat()'s nested tracks.
+    expect(
+      resolveStyle({
+        gridTemplateRows: [
+          { min: 'auto', max: { fitContent: '50%' } },
+          { repeat: 3, tracks: [{ min: '10%', max: { fr: 1 } }] },
+        ],
+        gridAutoColumns: [{ min: 'min-content', max: '75%' }],
+      }),
+    ).toMatchObject({
+      gridTemplateRows: [
+        { min: 'auto', max: { fitContent: { percent: 0.5 } } },
+        { repeat: 3, tracks: [{ min: { percent: 0.1 }, max: { fr: 1 } }] },
+      ],
+      gridAutoColumns: [{ min: 'min-content', max: { percent: 0.75 } }],
+    });
+  });
+
+  it("copies grid tracks so the caller's input is left alone", () => {
+    const track = { min: '50%', max: { fr: 1 } } as const;
+    const input = { gridTemplateColumns: [track] };
+    const style = resolveStyle(input);
+    // Converting must not write through to what the caller still holds, and
+    // the node must not be reachable from it either.
+    expect(track.min).toBe('50%');
+    expect(style.gridTemplateColumns[0]).not.toBe(track);
+  });
+
+  it('lays out a percentage-string grid track as the fraction it names', () => {
+    const child = LayoutNode.make({});
+    const grid = LayoutNode.make(
+      { display: 'grid', width: 400, height: 100, gridTemplateColumns: [{ min: '25%', max: '25%' }] },
+      [child],
+    );
+    computeLayout(grid, SPACE);
+    expect(child.layout.size.width).toBe(100);
+  });
+
+  it('rejects a malformed percentage instead of resolving it to NaN', () => {
+    expect(() => LayoutNode.make({ width: 'fifty%' as never })).toThrow(InvalidStyleError);
+    expect(() => resolveStyle({ width: '%' as never })).toThrow(InvalidStyleError);
   });
 
   it('leaves node.style in the resolved longhand shape', () => {

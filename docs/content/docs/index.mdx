@@ -31,10 +31,10 @@ the middle node `flexGrow: 2`.
 </Layout>`}
 </Demo>
 
-Demos accept CSS-shaped strings (`'100px'`, `'50%'`, `'1fr'`) because the
+Demos accept CSS-shaped strings (`'100px'`, `'1fr'`, `minmax()`) because the
 playground ships a small CSS-ish parser. The library itself deliberately does
-not: in your code, values are structured data — `100`, `{ percent: 0.5 }`,
-`{ fr: 1 }` — so the engine's input stays unambiguous. The
+not: in your code, values are structured data — `100`, `'50%'`, `{ fr: 1 }` —
+so the engine's input stays unambiguous. The
 [style reference](/docs/reference/style-properties) covers the whole
 vocabulary.
 

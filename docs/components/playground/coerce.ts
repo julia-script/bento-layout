@@ -1,11 +1,13 @@
 // CSS-shaped strings -> engine style values, for demo source only.
 //
-// The library's `StyleInput` is deliberately structured-only (`10`, not
-// `'10px'`; `{ percent: 0.5 }`, not `'50%'`). Written that way a demo stops
-// looking like CSS and starts looking like a config file, so demo source gets
-// this coercion layer. It lives here rather than in `src/` on purpose: a
-// playground can be far less careful than a published API, and the library
-// states it ships no CSS parser.
+// The library's `StyleInput` is deliberately structured-only apart from
+// percentages: `10`, not `'10px'`, and no `minmax()` or `1fr` strings. (`'50%'`
+// it does take, and maps to `{ percent: 0.5 }` itself — this layer's `%` case
+// now agrees with the engine rather than compensating for it.) Written fully
+// structured a demo stops looking like CSS and starts looking like a config
+// file, so demo source gets this coercion layer. It lives here rather than in
+// `src/` on purpose: a playground can be far less careful than a published API,
+// and the library states it ships no CSS parser.
 //
 // Semantics carry over from tests/harness/fixture.ts, which is the version with
 // 4417 browser-generated fixtures behind it: a bare `fr` and `fit-content()`
