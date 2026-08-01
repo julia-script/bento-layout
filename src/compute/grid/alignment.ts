@@ -1,5 +1,6 @@
 // Track alignment and final item positioning.
 
+import { unreachable } from '../../assert.js';
 import type { Rect, Size } from '../../geometry.js';
 import { maybeApplyAspectRatio, rectAdd, sumAxes } from '../../geometry.js';
 import type { Opt } from '../../math.js';
@@ -15,7 +16,7 @@ import {
   resolveSelfAlignmentSafety,
 } from '../alignment.js';
 import { measureChildSizeBoth, performChildLayout } from '../dispatch.js';
-import type { GridTrack } from './types.js';
+import type { GridItem, GridTrack } from './types.js';
 import { maybeApplyAspectRatioUsed } from './types.js';
 
 const ALIGN_START: AlignItems = { keyword: 'start', safe: false };
@@ -89,6 +90,11 @@ export function alignTracks(
 /**
  * Align and size a grid item into its final position.
  * Returns [contentSizeContribution, yPosition, height].
+ *
+ * `justifyBaselineOffset` is the Major-group logical inline offset for
+ * `justify-self: baseline` (`trackBaseline - synthesizedBaseline`), or `null`
+ * to fall back to start (css-align-3 §6.1 / Blink when the item is alone in
+ * its column baseline-sharing group).
  */
 export function alignAndPositionItem(
   node: LayoutNode,
@@ -97,6 +103,7 @@ export function alignAndPositionItem(
   containerAlignmentStyles: { horizontal: AlignItems | null; vertical: AlignItems | null },
   baselineShim: number,
   direction: Direction,
+  justifyBaselineOffset: number | null = null,
 ): [Size<number>, number, number] {
   const gridAreaSize = { width: gridArea.right - gridArea.left, height: gridArea.bottom - gridArea.top };
 
@@ -261,6 +268,7 @@ export function alignAndPositionItem(
     { start: margin.left, end: margin.right },
     0,
     direction,
+    justifyBaselineOffset,
   );
   const [y, yMargin] = alignItemWithinArea(
     { start: gridArea.top, end: gridArea.bottom },
@@ -271,6 +279,7 @@ export function alignAndPositionItem(
     { start: margin.top, end: margin.bottom },
     baselineShim,
     'ltr',
+    null,
   );
 
   const scrollbarSize = {
@@ -312,6 +321,8 @@ export function alignItemWithinArea(
   margin: { start: Opt; end: Opt },
   baselineShim: number,
   direction: Direction,
+  /** When non-null, `baseline` uses this logical offset instead of falling back to start. */
+  baselineAlignOffset: number | null = null,
 ): [number, { start: number; end: number }] {
   // Calculate grid area dimension in the axis
   const nonAutoMargin = { start: (margin.start ?? 0) + baselineShim, end: margin.end ?? 0 };
@@ -342,11 +353,31 @@ export function alignItemWithinArea(
 
   // Compute offset in the axis
   let alignmentBasedOffset: number;
-  switch (alignmentKeyword) {
-    // Baseline alignment currently treated as "start"
+  // css-align-3 §6.1: first-baseline self-alignment. In a multi-item column
+  // sharing group, `baselineAlignOffset` is Blink's Major-group delta
+  // (`trackBaseline - synthesizedBaseline`) — the border-box offset from the
+  // area's inline-start. Margins that participate (block-start in the
+  // orthogonal baseline writing mode) are already folded into that delta, so
+  // we must not also add resolvedMargin.start. Alone in the group, the offset
+  // is null and we fall back to safe start (same §).
+  //
+  // Chrome, two items in one column with `justify-items: baseline`, widths 30
+  // and 20, RTL: both land at x=70 (the wider item's start edge), not at
+  // start-per-item (70 and 80). LTR synthesizes every baseline to 0
+  // (vertical-lr is flipped-lines), so the delta collapses to the max
+  // margin-left and both items share that x.
+  const baselineOffset = alignmentKeyword === 'baseline' ? baselineAlignOffset : null;
+  const effectiveKeyword =
+    baselineOffset !== null ? 'baseline' : alignmentKeyword === 'baseline' ? 'start' : alignmentKeyword;
+  switch (effectiveKeyword) {
+    case 'baseline': {
+      // `baselineOffset` is narrowed non-null by effectiveKeyword === 'baseline'.
+      const logicalOffset = baselineOffset ?? 0;
+      alignmentBasedOffset = direction === 'rtl' ? gridAreaSize - resolvedSize - logicalOffset : logicalOffset;
+      break;
+    }
     case 'start':
     case 'flex-start':
-    case 'baseline':
     case 'stretch':
       alignmentBasedOffset =
         direction === 'rtl' ? gridAreaSize - resolvedSize - resolvedMargin.end : resolvedMargin.start;
@@ -386,6 +417,73 @@ export function alignItemWithinArea(
   }
 
   return [start, resolvedMargin];
+}
+
+/**
+ * Resolve `justify-self: baseline` offsets for items that share a column.
+ *
+ * css-align-3 §6.1 / css-grid-1 §11: a grid item with `justify-self: baseline`
+ * participates in baseline self-alignment in its startmost column. Blink reads
+ * that baseline in an orthogonal writing mode (vertical-lr in LTR, vertical-rl
+ * in RTL — `DetermineBaselineWritingMode` with `is_parallel_context=false`).
+ * Horizontal-tb items never expose a real first baseline in that mode
+ * (`LogicalBoxFragment::FirstBaseline` returns null when writing modes differ),
+ * so every baseline is synthesized:
+ *   - vertical-lr is flipped-lines → alphabetic synth = 0
+ *   - vertical-rl → alphabetic synth = block-size = the item's physical width
+ * The Major-group alignment offset is `trackBaseline - synthesizedBaseline`,
+ * where `trackBaseline` is the max of `(synth + margin.block-start)` and
+ * block-start in the baseline WM is margin-left (LTR) / margin-right (RTL).
+ *
+ * Must run after items have a final border-box width (a prior layout pass).
+ * Single-item groups leave `justifyBaselineOffset` null so positioning falls
+ * back to start.
+ */
+export function resolveJustifyBaselineOffsetsFromLaidOut(
+  items: GridItem[],
+  direction: Direction,
+  columns: GridTrack[],
+): void {
+  const groups = new Map<number, GridItem[]>();
+  for (const item of items) {
+    if (item.justifySelf.keyword !== 'baseline' || item.justifySelf.safe) continue;
+    const key = item.columnIndexes.start;
+    const list = groups.get(key);
+    if (list !== undefined) list.push(item);
+    else groups.set(key, [item]);
+  }
+
+  for (const group of groups.values()) {
+    if (group.length <= 1) continue;
+
+    const synths: number[] = [];
+    const stored: number[] = [];
+    for (const item of group) {
+      const width = internals(item.node).unroundedLayout.size.width;
+      // Orthogonal synth: LTR→vertical-lr (flipped-lines)→0; RTL→vertical-rl→width.
+      // Confirmed against Chrome 151: widths 30+20 in RTL share x=70; in LTR both
+      // sit at x=0 (synth collapses, only margin-left differentiates).
+      const synth = direction === 'ltr' ? 0 : width;
+      const areaWidth = Math.max(
+        (columns[item.columnIndexes.end] ?? unreachable()).offset -
+          (columns[item.columnIndexes.start + 1] ?? unreachable()).offset,
+        0,
+      );
+      // block-start margin in the baseline writing mode (Blink GetExtraMarginForBaseline).
+      const extraMargin =
+        direction === 'ltr' ? resolveOrZero(item.margin.left, areaWidth) : resolveOrZero(item.margin.right, areaWidth);
+      synths.push(synth);
+      stored.push(synth + extraMargin);
+    }
+
+    const trackBaseline = stored.reduce((a, b) => Math.max(a, b), 0);
+    group.forEach((item, i) => {
+      // Blink ComputeBaselineOffset (Major): track - synthesized (extra margin
+      // stays in the track max, so it shifts every item equally — matching the
+      // LTR margin-left:5 vs 15 case where both land at x=15).
+      item.justifyBaselineOffset = trackBaseline - (synths[i] ?? 0);
+    });
+  }
 }
 
 // --- local helpers
