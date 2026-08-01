@@ -68,6 +68,11 @@ interface BlockItem {
    */
   widthIsRatioDerived: boolean;
 
+  /** Child's own `aspect-ratio` and `box-sizing`, for the inset-floor transfer
+   *  in the stretch-width decision below. */
+  aspectRatio: number | null;
+  boxSizing: Style['boxSizing'];
+
   overflow: Point<Overflow>;
   scrollbarWidth: number;
 
@@ -467,6 +472,8 @@ function generateItemList(node: LayoutNode, nodeInnerSize: Size<Opt>): BlockItem
       // size of its own is never re-derived from the other axis's constraint.
       size: childRatioSize,
       widthIsRatioDerived: childSpecifiedSize.width === null && childRatioSize.width !== null,
+      aspectRatio,
+      boxSizing: childStyle.boxSizing,
       // A block child in normal flow stretches its inline axis only, so that is
       // the one axis a constraint may transfer into. See
       // transferConstraintToStretchedAxis.
@@ -645,8 +652,32 @@ function performFinalLayoutOnInFlowChildren(
           );
           itemWidth = Math.max(itemWidth, minContentWidth);
         }
+        // Under `box-sizing: border-box` a box is never smaller than its own
+        // padding+border, so that floor is a height even with no specified
+        // height, min-height, or content — and the ratio transfers it into the
+        // inline axis. It *floors* the stretch fit rather than replacing it:
+        // Chrome, a block child with `aspect-ratio: .5; padding: 320px 0 20px`
+        // (a 340 height floor, so 170 wide through the ratio), as the parent's
+        // content width varies — 20 -> 170x340, 170 -> 170x340, 171 -> 171x342,
+        // 300 -> 300x600. Past the derived width the stretch fit wins and the
+        // height follows it back through the ratio.
+        // Content-box is excluded: there the ratio relates the content boxes,
+        // which are 0x0 here, so the transfer is a no-op (fixture
+        // fuzz_ar_contentbox keeps its stretch width).
+        const ratioInsetFloorWidth =
+          itemWidth === null &&
+          item.aspectRatio !== null &&
+          item.boxSizing === 'border-box' &&
+          item.size.height === null &&
+          item.paddingBorderSum.height > 0
+            ? item.paddingBorderSum.height * item.aspectRatio
+            : 0;
         const withWidth: Size<Opt> = {
-          width: vClamp(itemWidth ?? stretchWidth, item.minSize.width, item.maxSize.width),
+          width: vClamp(
+            Math.max(itemWidth ?? stretchWidth, ratioInsetFloorWidth),
+            item.minSize.width,
+            item.maxSize.width,
+          ),
           height: item.size.height,
         };
         return sizeMaybeClamp(withWidth, item.minSize, item.maxSize);
