@@ -1897,6 +1897,20 @@ function determineUsedCrossSize(flexLines: FlexLine[], constants: AlgoConstants)
         cross(child.targetSize, constants.dir) + rectCrossAxisSum(child.margin, constants.dir),
       );
     }
+
+    // Blink treats an aspect-ratio container with an automatic cross minimum
+    // as cross-indefinite, and relays out a row when an item's used margin box
+    // expands it (FlexLayoutAlgorithm::GiveItemsFinalPositionAndSize). Do this
+    // before cross-axis alignment so both the container size and item offsets
+    // see the enlarged line. Chrome, a 200x50 ratio container around a
+    // stretched item with 100px top padding, grows the line and container to
+    // 100px; the same item without that inset remains 50px.
+    if (constants.crossIsRatioDerived) {
+      line.crossSize = line.items.reduce(
+        (lineExtent, item) => Math.max(lineExtent, cross(item.outerTargetSize, constants.dir)),
+        line.crossSize,
+      );
+    }
   }
 }
 
@@ -2105,43 +2119,13 @@ function determineContainerCrossSize(flexLines: FlexLine[], nodeSize: Size<Opt>,
   const minCrossSize = cross(constants.minSize, constants.dir);
   const maxCrossSize = cross(constants.maxSize, constants.dir);
   // A ratio-derived cross size floors the container rather than fixing it
-  // (css-sizing-4 §4.2), so content taller than it wins — but only when that
-  // content is genuinely independent. An item whose own cross size came from
-  // its own ratio derives it from a main size that depends on this very cross
-  // size, so letting it floor here is circular: Chrome keeps `aspect-ratio: 4`
-  // at 200x50 around a `aspect-ratio: 1` item, while a plain 100px-tall block
-  // in the same slot grows it to 200x100.
+  // (css-sizing-4 §4.2). determineUsedCrossSize has already expanded lines by
+  // any larger used item margin boxes, matching Blink's row relayout pass.
   const contentCrossSize = totalLineCrossSize + totalCrossAxisGap + paddingBorderSum;
   const specifiedCross = cross(nodeSize, constants.dir);
-  const contentIsIndependent = flexLines.every((line) => line.items.every((item) => !item.crossIsArDerived));
-  // An ar-derived item's *margins* are not themselves ar-derived, so they floor
-  // the container even when its size cannot. Chrome, `aspect-ratio: 4` at 200
-  // wide around an `aspect-ratio: 1` item: 200x50 with no margins (the item's
-  // own 200x50 is circular, so it cannot grow the box), but 200x100 once that
-  // item has a 100px bottom margin — the margin is independent of the ratio and
-  // pushes the content box down. Excluding the whole item lost the margin too.
-  const independentCrossSize = contentIsIndependent
-    ? contentCrossSize
-    : flexLines.reduce(
-        (acc, line) =>
-          Math.max(
-            acc,
-            line.items.reduce(
-              (sum, item) =>
-                sum +
-                (item.crossIsArDerived
-                  ? rectCrossAxisSum(item.margin, constants.dir)
-                  : cross(item.outerTargetSize, constants.dir)),
-              0,
-            ),
-          ),
-        0,
-      ) +
-      totalCrossAxisGap +
-      paddingBorderSum;
   const resolvedCross =
     specifiedCross !== null && constants.crossIsRatioDerived
-      ? Math.max(specifiedCross, independentCrossSize)
+      ? Math.max(specifiedCross, contentCrossSize)
       : (specifiedCross ?? contentCrossSize);
   const outerContainerSize = Math.max(
     vClamp(resolvedCross, minCrossSize, maxCrossSize),

@@ -1,0 +1,13 @@
+<test name="fuzz_flex_ratio_used_item_expands_line__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="rtl" position="absolute" width="120px" aspect-ratio="1">
+      <div direction="rtl" aspect-ratio="0.5" margin-top="10%" margin-left="0px" margin-bottom="97px" margin-right="3px" padding-top="90%" padding-left="10%" padding-bottom="1px" padding-right="90%"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="120" height="218">
+      <node x="-3" y="12" width="120" height="109"/>
+    </node>
+  </expectations>
+</test>

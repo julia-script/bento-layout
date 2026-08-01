@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found (rehydrated 20260731 batch). A ratio-derived flex container's
+  stretched child is floored by its vertical padding, making the used margin
+  box 218px tall even though the initial line and container are 120px. Chrome
+  expands both to 218px; the engine kept the root at 120px.
+  Regenerate the XML fixtures with:
+  pnpm gentest fuzz_flex_ratio_used_item_expands_line
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: a used flex item expands a ratio-derived line
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="width: 120px; height: auto; aspect-ratio: 1;">
+  <div style="aspect-ratio: 0.5; margin: 10% 3px 97px 0; padding: 90% 90% 1px 10%;"></div>
+</div>
+
+</body>
+</html>
