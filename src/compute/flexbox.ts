@@ -163,6 +163,10 @@ interface AlgoConstants {
 
   minSize: Size<Opt>;
   maxSize: Size<Opt>;
+  /** The container's own ratio and box-sizing — the cross-axis inset floor
+   *  transfers through the ratio into the main size (determineContainerMainSize). */
+  aspectRatio: number | null;
+  boxSizing: Style['boxSizing'];
   margin: Rect<number>;
   border: Rect<number>;
   contentBoxInset: Rect<number>;
@@ -457,6 +461,8 @@ function computeConstants(style: Style, knownDimensions: Size<Opt>, parentSize: 
       maybeResolveSize(style.maxSize, parentSize),
       boxSizingAdjustment,
     ),
+    aspectRatio,
+    boxSizing: style.boxSizing,
     margin,
     border,
     gap,
@@ -1211,9 +1217,30 @@ function determineContainerMainSize(
       return mainSize + mainContentBoxInset;
     })();
 
+  // The container's *cross*-axis padding+border is itself a cross size — a box
+  // is never smaller than its own insets — and `aspect-ratio` transfers it into
+  // the main axis. Without this the container floored at its main inset sum
+  // alone: an `aspect-ratio: 2` row with 440px of vertical border and 47px of
+  // horizontal border came out 47x440 where Chrome gives 880x440 (=440x2). The
+  // same tree with no children was already correct, because leaf layout applies
+  // this floor (src/compute/leaf.ts) — the divergence appeared the moment the
+  // node became a flex container.
+  //
+  // Border-box only: under content-box the ratio relates the *content* boxes,
+  // which the insets sit outside of, so there is nothing to transfer.
+  const crossInsetFloor =
+    constants.boxSizing === 'content-box' ? 0 : rectCrossAxisSum(constants.contentBoxInset, constants.dir);
+  const ratioMainFloor =
+    constants.aspectRatio === null || crossInsetFloor === 0
+      ? 0
+      : constants.isRow
+        ? crossInsetFloor * constants.aspectRatio
+        : crossInsetFloor / constants.aspectRatio;
+
   outerMainSize = Math.max(
     vClamp(outerMainSize, main(constants.minSize, constants.dir), main(constants.maxSize, constants.dir)),
     mainContentBoxInset - pointMainValue(constants.scrollbarGutter, constants.dir),
+    ratioMainFloor,
   );
 
   const innerMainSize = Math.max(outerMainSize - mainContentBoxInset, 0);
