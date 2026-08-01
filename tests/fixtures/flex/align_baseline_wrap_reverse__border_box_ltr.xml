@@ -1,0 +1,59 @@
+<test name="align_baseline_wrap_reverse__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="ltr" position="absolute" flex-direction="column" align-items="flex-start">
+      <div direction="ltr" flex-wrap="wrap-reverse" align-items="baseline" width="320px" height="55px">
+        <div direction="ltr" width="5px" height="5px"/>
+      </div>
+      <div direction="ltr" flex-wrap="wrap-reverse" align-items="baseline" width="320px" height="55px">
+        <text direction="ltr">
+          H
+        </text>
+        <div direction="ltr" width="5px" height="20px"/>
+      </div>
+      <div direction="ltr" flex-wrap="wrap-reverse" align-items="baseline" width="320px" height="55px">
+        <div direction="ltr" width="5px" height="5px"/>
+        <text direction="ltr">
+          H
+        </text>
+      </div>
+      <div direction="ltr" flex-wrap="wrap-reverse" align-items="baseline" width="320px" height="55px">
+        <text direction="ltr">
+          H
+        </text>
+        <text direction="ltr" margin-top="3px">
+          H
+        </text>
+      </div>
+      <div direction="ltr" flex-wrap="wrap" align-items="baseline" width="320px" height="55px">
+        <text direction="ltr">
+          H
+        </text>
+        <div direction="ltr" width="5px" height="20px"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="320" height="275">
+      <node x="0" y="0" width="320" height="55">
+        <node x="0" y="50" width="5" height="5"/>
+      </node>
+      <node x="0" y="55" width="320" height="55">
+        <node x="0" y="45" width="10" height="10"/>
+        <node x="10" y="33" width="5" height="20"/>
+      </node>
+      <node x="0" y="110" width="320" height="55">
+        <node x="0" y="48" width="5" height="5"/>
+        <node x="5" y="45" width="10" height="10"/>
+      </node>
+      <node x="0" y="165" width="320" height="55">
+        <node x="0" y="45" width="10" height="10"/>
+        <node x="10" y="45" width="10" height="10"/>
+      </node>
+      <node x="0" y="220" width="320" height="55">
+        <node x="0" y="12" width="10" height="10"/>
+        <node x="10" y="0" width="5" height="20"/>
+      </node>
+    </node>
+  </expectations>
+</test>

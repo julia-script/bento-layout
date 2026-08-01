@@ -1790,6 +1790,22 @@ function resolveCrossAxisAutoMargins(flexLines: FlexLine[], constants: AlgoConst
     const lineCrossSize = line.crossSize;
     const maxBaseline = line.items.reduce((acc, child) => Math.max(acc, child.baseline), 0);
 
+    // Under `wrap-reverse` the cross-start edge is the line's *end* (§5.2), so
+    // the baseline-aligned group hangs from the bottom instead of the top. The
+    // group moves as a unit — its items stay aligned to one another — so the
+    // whole thing shifts by the gap between the group's lowest margin-box edge
+    // and the line's end. Computed per line because it depends on every
+    // participating item, not just the one being placed.
+    const baselineGroupShift = ((): number => {
+      if (!constants.isWrapReverse || !constants.isRow) return 0;
+      let groupEnd = 0;
+      for (const child of line.items) {
+        if (child.alignSelf.keyword !== 'baseline' || child.alignSelf.safe) continue;
+        groupEnd = Math.max(groupEnd, maxBaseline - child.baseline + cross(child.outerTargetSize, constants.dir));
+      }
+      return lineCrossSize - groupEnd;
+    })();
+
     for (const child of line.items) {
       const freeSpace = lineCrossSize - cross(child.outerTargetSize, constants.dir);
       // Auto margins absorb only *positive* free space (css-flexbox-1 §8.1).
@@ -1839,7 +1855,7 @@ function resolveCrossAxisAutoMargins(flexLines: FlexLine[], constants: AlgoConst
         }
       } else {
         // 14. Align all flex items along the cross-axis.
-        child.offsetCross = alignFlexItemsAlongCrossAxis(child, freeSpace, maxBaseline, constants);
+        child.offsetCross = alignFlexItemsAlongCrossAxis(child, freeSpace, maxBaseline, baselineGroupShift, constants);
       }
     }
   }
@@ -1853,6 +1869,7 @@ function alignFlexItemsAlongCrossAxis(
   child: FlexItem,
   freeSpace: number,
   maxBaseline: number,
+  baselineGroupShift: number,
   constants: AlgoConstants,
 ): number {
   const crossAxisShouldReverse = constants.isColumn && constants.layoutDirection === 'rtl';
@@ -1873,7 +1890,15 @@ function alignFlexItemsAlongCrossAxis(
       return freeSpace / 2;
     case 'baseline':
       if (constants.isRow) {
-        return maxBaseline - child.baseline;
+        // `wrap-reverse` swaps cross-start and cross-end (css-flexbox-1 §5.2),
+        // so the baseline-aligned group sits against the line's end edge. The
+        // group translates as a unit — items stay aligned to each other's
+        // baselines — so every member takes the same per-line shift and keeps
+        // its offset within the group. Chrome, a 55px line holding text beside
+        // a 20px box: y=12/0 under `wrap`, y=45/33 under `wrap-reverse`, both
+        // moved by the same 33. Mirroring each offset individually instead
+        // would swap them to 33/45 and invert the alignment.
+        return maxBaseline - child.baseline + baselineGroupShift;
       } else {
         // Baseline alignment is treated as flex-start alignment in columns.
         const baselineColumnShouldReverse = crossAxisShouldReverse && !constants.isWrap;
