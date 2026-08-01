@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Absolute grid start line uses the far edge of its aligned gutter</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; width: 100px; height: 20px; grid-template-columns: 20px 20px; column-gap: 5px; justify-content: space-between;">
+  <div style="position: absolute; grid-column: 2 / 3;"></div>
+</div>
+
+</body>
+</html>

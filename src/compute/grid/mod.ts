@@ -641,7 +641,16 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     let running = columnContentRight;
     for (let i = 0; i < columns.length; i++) {
       columnLogicalOffsets[i] = running;
-      running -= (columns[columns.length - 1 - i] ?? unreachable()).baseSize;
+      const physicalIndex = columns.length - 1 - i;
+      const track = columns[physicalIndex] ?? unreachable();
+      // Distributed track alignment effectively thickens the gutter at the
+      // next track's offset. Its raw base size therefore cannot rebuild the
+      // RTL flow table (`gap: 5px; space-between` can make this 60px).
+      const effectiveSize =
+        physicalIndex % 2 === 0 && physicalIndex + 1 < columns.length
+          ? (columns[physicalIndex + 1] ?? unreachable()).offset - track.offset
+          : track.baseSize;
+      running -= effectiveSize;
     }
   } else {
     for (let i = 0; i < columns.length; i++) columnLogicalOffsets[i] = (columns[i] ?? unreachable()).offset;
@@ -737,13 +746,19 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
       // line outside the grid "is instead treated as specifying auto"
       // (css-grid-1 §9.1), which resolveAbsColumnEdges turns into the container
       // edge the flow leaves open.
-      const logicalColOffset = (line: Opt): Opt => {
+      const logicalColOffset = (line: Opt, isStart: boolean): Opt => {
         if (line === null) return null;
         const slot = tryIntoTrackVecIndex(line, absColCounts);
-        return slot !== null ? (columnLogicalOffsets[slot] ?? unreachable()) : null;
+        if (slot === null) return null;
+        // Gutters make grid lines thick (css-grid-1 §10.1): a start edge uses
+        // the far side of the line's gutter, while an end edge uses its near
+        // side. Blink expresses the same split as TrackStartOffset versus
+        // TrackEndOffset. The last line has no following gutter/track slot.
+        const edgeSlot = isStart && slot + 1 < columnLogicalOffsets.length ? slot + 1 : slot;
+        return columnLogicalOffsets[edgeSlot] ?? unreachable();
       };
-      const logicalColStart = logicalColOffset(colTracks.start);
-      const logicalColEnd = logicalColOffset(colTracks.end);
+      const logicalColStart = logicalColOffset(colTracks.start, true);
+      const logicalColEnd = logicalColOffset(colTracks.end, false);
 
       const rowPlacementOz = ozLineTranslateAbs(
         placementLineIntoOriginZero(childStyle.gridRow, finalRowCounts.explicit),
@@ -756,7 +771,10 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
       };
 
       const gridArea: Rect<number> = {
-        top: maybeRowIndexes.start !== null ? (rows[maybeRowIndexes.start] ?? unreachable()).offset : border.top,
+        top:
+          maybeRowIndexes.start !== null
+            ? (rows[maybeRowIndexes.start + 1] ?? rows[maybeRowIndexes.start] ?? unreachable()).offset
+            : border.top,
         bottom:
           maybeRowIndexes.end !== null
             ? (rows[maybeRowIndexes.end] ?? unreachable()).offset
