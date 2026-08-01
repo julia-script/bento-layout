@@ -1,0 +1,13 @@
+<test name="flex_wrap_stretch_aspect_ratio_main_size__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div box-sizing="content-box" direction="rtl" position="absolute" flex-wrap="wrap" width="97px" height="20px">
+      <div box-sizing="content-box" direction="rtl" aspect-ratio="3"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="97" height="20">
+      <node x="97" y="0" width="0" height="20"/>
+    </node>
+  </expectations>
+</test>

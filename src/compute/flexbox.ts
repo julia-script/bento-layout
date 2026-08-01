@@ -729,12 +729,17 @@ function determineFlexBaseSize(
       mClamp(cross(childKnownDimensions, dir), cross(transferredMinSize, dir), cross(transferredMaxSize, dir)),
     );
     if (
+      !constants.isWrap &&
       child.alignSelf.keyword === 'stretch' &&
       !child.alignSelf.safe &&
       !rectCrossStart(child.marginIsAuto, constants.dir) &&
       !rectCrossEnd(child.marginIsAuto, constants.dir) &&
       cross(childKnownDimensions, dir) === null
     ) {
+      // Only a single-line container makes this stretched size definite during
+      // flex-base calculation (css-flexbox-1 §9.8; Blink gates the same path on
+      // !is_multi_line_). A wrapping 97x20 row with an empty 3:1 item has a 0px
+      // base in Chrome; transferring the future 20px line stretch made it 60px.
       // Floor the stretched cross size by the item's own cross padding+border:
       // a box never shrinks below its insets, so stretching to a smaller
       // container leaves a *used* cross size larger than the space offered —
