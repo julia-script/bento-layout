@@ -343,9 +343,15 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
   innerNodeSize.height = innerNodeSize.height ?? initialRowSum;
 
   // 6b. Compute container size
+  // Blink passes the resolved inline size into ComputeBlockSizeForFragment,
+  // which uses it for an automatic aspect-ratio block size. Keep the same
+  // transfer when the size became definite through the caller rather than a
+  // style declaration (css-sizing-4 §4.2). Chrome 151: an empty two-column
+  // grid whose only inline extent is a 17px gutter and aspect-ratio is .5 is
+  // 17x34; without derivedFromKnown here the second root pass stayed 17x0.
   const resolvedStyleSize: Size<Opt> = {
-    width: knownDimensions.width ?? preferredSize.width,
-    height: knownDimensions.height ?? preferredSize.height,
+    width: knownDimensions.width ?? preferredSize.width ?? derivedFromKnown.width,
+    height: knownDimensions.height ?? preferredSize.height ?? derivedFromKnown.height,
   };
 
   // See the matching note in block.ts: a height that came from `aspect-ratio`

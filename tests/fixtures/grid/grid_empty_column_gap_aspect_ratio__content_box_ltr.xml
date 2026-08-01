@@ -1,0 +1,9 @@
+<test name="grid_empty_column_gap_aspect_ratio__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" box-sizing="content-box" direction="ltr" position="absolute" aspect-ratio="0.5" column-gap="17px" grid-template-columns="fit-content(200px) fit-content(7px)"/>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="17" height="34"/>
+  </expectations>
+</test>
