@@ -851,9 +851,31 @@ function determineFlexBaseSize(
           child.aspectRatio !== null && definiteCross !== null
             ? transferThroughRatio(definiteCross, child, dir, 'cross-to-main')
             : null;
+        // The cap is the *specified* main size, and it has to be compared in
+        // the same box as the values it caps. `rawStyleSize` is the style
+        // value, which under `box-sizing: content-box` measures the content box
+        // while `transferredMain`/`minContentMainSize` are border-box, so the
+        // comparison lost the ratio by exactly the inset sum: Chrome gives a
+        // content-box row item with `width: 320; height: 1; aspect-ratio: 1.5`
+        // and 327px of horizontal border a width of 329 (the 1px content height
+        // transfers to 1.5 of content; 328.5 rounds to 329), where capping at
+        // the raw 320 fell back to the 327 border floor.
+        //
+        // `child.size` is not the fix: it already carries the ratio-derived
+        // value, so using it caps the content suggestion by the ratio and the
+        // item shrinks past its content — WPT flex-aspect-ratio-051 (`height:
+        // 100%; aspect-ratio: .5` around a 100px child) expects 100, the
+        // min-content contribution, not the derived 50. Add the box-sizing
+        // adjustment to the *specified* size instead, so the cap stays "the
+        // width the author wrote" and only the box changes.
+        const specifiedMain = main(rawStyleSize, dir);
+        const specifiedMainBorderBox =
+          specifiedMain !== null && childStyle.boxSizing === 'content-box'
+            ? specifiedMain + main(paddingBorderAxesSums, dir)
+            : specifiedMain;
         const sizeSuggestion =
           transferredMain !== null
-            ? mMin(Math.max(transferredMain, minContentMainSize), main(rawStyleSize, dir))
+            ? mMin(Math.max(transferredMain, minContentMainSize), specifiedMainBorderBox)
             : mMin(minContentMainSize, main(child.size, dir));
         const clampedMinContentSize = mMin(sizeSuggestion, main(transferredMaxSize, dir)) as number;
         return vMax(clampedMinContentSize, main(paddingBorderAxesSums, dir));
