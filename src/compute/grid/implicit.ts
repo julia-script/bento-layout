@@ -98,17 +98,26 @@ export function computeGridSizeEstimate(
     rowMaxSpan = Math.max(rowMaxSpan, childRowSpan);
   }
 
-  const negativeImplicitInlineTracks = impliedNegativeImplicitTracks(colMin);
+  let negativeImplicitInlineTracks = impliedNegativeImplicitTracks(colMin);
   const explicitInlineTracks = explicitColCount;
   let positiveImplicitInlineTracks = impliedPositiveImplicitTracks(colMax, explicitColCount);
   const negativeImplicitBlockTracks = impliedNegativeImplicitTracks(rowMin);
   const explicitBlockTracks = explicitRowCount;
   let positiveImplicitBlockTracks = impliedPositiveImplicitTracks(rowMax, explicitRowCount);
 
-  // Adjust positive track estimates for spans that don't fit
+  // Adjust inline track estimates for spans that don't fit.
   const totInlineTracks = negativeImplicitInlineTracks + explicitInlineTracks + positiveImplicitInlineTracks;
   if (totInlineTracks < colMaxSpan) {
-    positiveImplicitInlineTracks = colMaxSpan - explicitInlineTracks - negativeImplicitInlineTracks;
+    if (direction === 'rtl') {
+      // Placement is mirrored into physical oz coordinates later, so the part
+      // of an indefinite span that extends past the explicit grid's logical
+      // end occupies negative tracks in RTL. Chrome 151, two explicit columns
+      // plus `grid-column: span 3`, wraps the next item to x=60 at width=60;
+      // reserving the extra track on the positive side put it at x=120/width=0.
+      negativeImplicitInlineTracks = colMaxSpan - explicitInlineTracks - positiveImplicitInlineTracks;
+    } else {
+      positiveImplicitInlineTracks = colMaxSpan - explicitInlineTracks - negativeImplicitInlineTracks;
+    }
   }
 
   const totBlockTracks = negativeImplicitBlockTracks + explicitBlockTracks + positiveImplicitBlockTracks;

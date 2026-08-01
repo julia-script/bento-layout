@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, minimized from finding d7e3325e
+  date: 2026-08-01
+  chrome: Chrome/151.0.7922.47
+  Grid §8 defines indexes and placement in flow-relative coordinates. An
+  indefinite span wider than the explicit grid grows toward logical end; once
+  mirrored into the engine's physical RTL coordinates, its extra implicit
+  track is on the negative side. Reserving it on the positive side made the
+  following auto-placed item collapse beyond the right edge.
+  Regenerate with: pnpm gentest fuzz_grid_rtl_oversized_span_track_side
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: oversized RTL grid spans reserve tracks on the mirrored side</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; width: 120px; height: 60px; grid-template-columns: 1fr 1fr;">
+  <div style="grid-column: span 3;"></div>
+  <div></div>
+</div>
+
+</body>
+</html>
