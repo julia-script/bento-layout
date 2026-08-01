@@ -1514,7 +1514,14 @@ function resolveFlexibleLengths(line: FlexLine, constants: AlgoConstants): void 
     for (const child of unfrozen) {
       const resolvedMinMain: Opt = child.resolvedMinimumMainSize;
       const maxMain = main(child.maxSize, constants.dir);
-      const clamped = Math.max(vClamp(main(child.targetSize, constants.dir), resolvedMinMain, maxMain), 0);
+      // This engine stores target sizes as border-box values, so §9.7's
+      // "floor its content-box size at zero" is a padding+border floor here.
+      // Blink stores the content size separately and clamps that to zero.
+      const paddingBorderFloor = rectMainAxisSum(rectAdd(child.padding, child.border), constants.dir);
+      const clamped = Math.max(
+        vClamp(main(child.targetSize, constants.dir), resolvedMinMain, maxMain),
+        paddingBorderFloor,
+      );
       child.violation = clamped - main(child.targetSize, constants.dir);
       setMain(child.targetSize, constants.dir, clamped);
       setMain(

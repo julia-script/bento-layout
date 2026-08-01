@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Flex target content size is floored at zero before alignment</title>
+</head>
+<body>
+
+<div id="test-root" style="max-width: 10px; max-height: 120px; justify-content: center;">
+  <div style="width: 40px; height: auto; border: solid; border-width: 3px 10px 7px 120px; overflow-x: hidden; overflow-y: scroll;"></div>
+</div>
+
+</body>
+</html>
