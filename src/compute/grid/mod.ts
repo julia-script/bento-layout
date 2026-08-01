@@ -250,10 +250,21 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
 
   const hasBaselineAlignedItem = items.some((item) => item.alignSelf.keyword === 'baseline' && !item.alignSelf.safe);
 
+  // `min-width`/`min-height` are border-box, but the track sizer measures the
+  // *inner* grid: it compares this against a sum of track base sizes and uses
+  // it as a percentage basis, both content-box quantities. Passing the border
+  // box added the container's insets on top of them — Chrome gives a grid with
+  // `min-height: 500` and 321px of vertical border a height of 500, where this
+  // stretched the auto row to 500 and then added the border for 821.
+  const innerMinSize: Size<Opt> = {
+    width: mSub(minSize.width, horizontalSum(contentBoxInset)),
+    height: mSub(minSize.height, verticalSum(contentBoxInset)),
+  };
+
   // Inline axis
   trackSizingAlgorithm(
     'horizontal',
-    minSize.width,
+    innerMinSize.width,
     maxSize.width,
     justifyContent,
     alignContent,
@@ -273,7 +284,7 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
   // Block axis
   trackSizingAlgorithm(
     'vertical',
-    minSize.height,
+    innerMinSize.height,
     maxSize.height,
     alignContent,
     justifyContent,
