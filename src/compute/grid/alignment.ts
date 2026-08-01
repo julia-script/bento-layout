@@ -15,7 +15,7 @@ import {
   resolveAbsoluteAxis,
   resolveSelfAlignmentSafety,
 } from '../alignment.js';
-import { measureChildSizeBoth, performChildLayout } from '../dispatch.js';
+import { measureChildSize, measureChildSizeBoth, performChildLayout } from '../dispatch.js';
 import type { GridTrack } from './types.js';
 import { maybeApplyAspectRatioUsed, transferMinSizeThroughAspectRatio } from './types.js';
 
@@ -201,6 +201,33 @@ export function alignAndPositionItem(
     position !== 'absolute'
   ) {
     width = gridAreaMinusItemMarginsSize.width;
+  } else if (
+    resolvedStyleSize.width === null &&
+    (justifySelf !== null || containerAlignmentStyles.horizontal !== null) &&
+    alignmentStyles.horizontal.keyword !== 'stretch' &&
+    position !== 'absolute'
+  ) {
+    // css-grid-1 §6.6: every other self-alignment value makes an automatic
+    // inline size fit-content. Measure contributions before final layout so a
+    // descendant's flex-basis cannot masquerade as the grid item's used width.
+    const measureKnownSize = { width: null, height: inherentSize.height };
+    const minContentWidth = measureChildSize(
+      node,
+      measureKnownSize,
+      gridAreaSize,
+      { width: 'min-content', height: gridAreaMinusItemMarginsSize.height },
+      'content-size',
+      'horizontal',
+    );
+    const maxContentWidth = measureChildSize(
+      node,
+      measureKnownSize,
+      gridAreaSize,
+      { width: 'max-content', height: gridAreaMinusItemMarginsSize.height },
+      'content-size',
+      'horizontal',
+    );
+    width = Math.max(minContentWidth, Math.min(Math.max(gridAreaMinusItemMarginsSize.width, 0), maxContentWidth));
   }
   // Reapply aspect ratio after stretch/absolute width adjustments (used
   // border-box values, so the transfer must respect box-sizing)

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found (rehydrated 20260731 batch). A non-stretched grid item with an
+  automatic inline size is fit-content. Its descendant's flex-basis does not
+  contribute to either intrinsic width, so Chrome keeps the item at the 0px
+  grid-area width; final layout incorrectly reused the 97px basis as its width.
+  Regenerate the XML fixtures with:
+  pnpm gentest fuzz_grid_nonstretch_item_uses_fit_content
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: a non-stretched grid item uses fit-content sizing
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid;">
+  <div style="justify-self: start;">
+    <div style="flex-basis: 97px;"></div>
+  </div>
+</div>
+
+</body>
+</html>
