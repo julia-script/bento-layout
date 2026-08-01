@@ -1,0 +1,15 @@
+<test name="grid_span_2_zero_contribution_non_spanned_track__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" direction="ltr" position="absolute" grid-template-columns="auto auto">
+      <div direction="ltr" width="20px" height="10px" grid-column-start="1" grid-column-end="span 2"/>
+      <div direction="ltr" grid-column-start="1"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="20" height="10">
+      <node x="0" y="0" width="20" height="10"/>
+      <node x="0" y="10" width="0" height="0"/>
+    </node>
+  </expectations>
+</test>

@@ -400,9 +400,15 @@ function resolveIntrinsicTrackSizes(
     // 2. Size tracks to fit non-spanning items (optimized single-span case)
     const batchSpan = lineSpan(itemPlacement(batch[0] ?? unreachable(), axis));
     if (!isFlex && batchSpan === 1) {
+      // Tracks this batch sized. A track is sized by its own single-span items,
+      // so once they have been considered its growth limit is settled — even if
+      // they all contributed 0. Telling that apart from "no items at all", where
+      // the limit stays genuinely infinite, is what the flush below needs.
+      const sizedByThisBatch = new Set<GridTrack>();
       for (const item of batch) {
         const trackIndex = itemPlacementIndexes(item, axis).start + 1;
         const track = axisTracks[trackIndex] ?? unreachable();
+        sizedByThisBatch.add(track);
         const min = track.minTrackSizingFunction;
 
         // Handle base sizes
@@ -486,6 +492,20 @@ function resolveIntrinsicTrackSizes(
             track.growthLimit === Infinity
               ? track.growthLimitPlannedIncrease
               : Math.max(track.growthLimit, track.growthLimitPlannedIncrease);
+        } else if (track.growthLimit === Infinity && sizedByThisBatch.has(track)) {
+          // Every single-span item in this track contributed 0. Its growth
+          // limit resolves to that contribution rather than staying infinite:
+          // a track whose own items are all zero-sized has nothing left to
+          // grow it, so a later spanning item must not treat it as unlimited
+          // and take an equal share of the distributed space.
+          //
+          // Recorded separately from `growthLimit` because "limited at 0" and
+          // "no items at all" have to stay distinguishable — see the guard in
+          // distributeSpaceUpToLimits, which only honours this when some other
+          // spanned track is still growable. When every spanned track is
+          // limited, the spec's "distribute space beyond limits" step applies
+          // and they all grow equally again.
+          track.limitedByZeroContribution = true;
         }
         track.infinitelyGrowable = false;
         track.growthLimitPlannedIncrease = 0;
@@ -708,6 +728,17 @@ function distributeItemSpaceToBaseSize(
 
   // Skip if there is no space or no affected tracks
   if (space === 0 || !tracks.some(affected)) return;
+
+  // A track whose own single-span items all contributed 0 is held at its base
+  // size, but only while a track without that handicap can absorb the space
+  // instead. If every affected track is in that state there is nothing to
+  // prefer, so they all grow equally (the spec's "distribute space beyond
+  // limits" step) and the flag is ignored.
+  const wasAffected = affected;
+  const zeroLimited = (track: GridTrack): boolean => track.limitedByZeroContribution && wasAffected(track);
+  if (tracks.some(zeroLimited) && tracks.some((t) => wasAffected(t) && !zeroLimited(t))) {
+    affected = (track) => wasAffected(track) && !zeroLimited(track);
+  }
 
   const getBaseSize = (track: GridTrack): number => track.baseSize;
 
