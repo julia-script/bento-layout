@@ -7,9 +7,9 @@
 // boxes between one computed state and the next, so the animation the visitor
 // watches *is* the engine re-running — not a canned keyframe of it.
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { LayoutNode, computeLayout } from 'bento-layout';
 import type { StyleInput } from 'bento-layout';
+import { computeLayout, LayoutNode } from 'bento-layout';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 /** Fixed tray size in engine units; scaled to the container with a transform. */
 const TRAY_W = 560;
@@ -221,9 +221,15 @@ export function BentoHero() {
   }, []);
 
   return (
+    // Presentational wrapper: hovering (or tabbing into) the hero pauses the
+    // decorative cycle. It activates nothing, so it gets no role — but focus
+    // has to pause it too, or keyboard users can't hold a frame still.
+    // biome-ignore lint/a11y/noStaticElementInteractions: hover/focus only pauses an animation; not a control.
     <div
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={() => setPaused(false)}
     >
       <div ref={stageRef} className="bh-stage" style={{ height: (TRAY_H + 32) * scale }}>
         <div
@@ -239,11 +245,7 @@ export function BentoHero() {
         >
           {boxes.map((b) =>
             b.depth === 0 ? (
-              <div
-                key={b.id}
-                className="bh-tray"
-                style={{ left: b.x + 16, top: b.y + 16, width: b.w, height: b.h }}
-              />
+              <div key={b.id} className="bh-tray" style={{ left: b.x + 16, top: b.y + 16, width: b.w, height: b.h }} />
             ) : (
               <div
                 key={b.id}
@@ -278,8 +280,8 @@ export function BentoHero() {
       </div>
 
       <p className="mt-2 text-xs text-fd-muted-foreground">
-        {nodeCount} nodes, laid out by the engine in {ms < 0.05 ? '<0.05' : ms.toFixed(2)}&thinsp;ms —
-        the boxes only transition between its computed positions.
+        {nodeCount} nodes, laid out by the engine in {ms < 0.05 ? '<0.05' : ms.toFixed(2)}&thinsp;ms — the boxes only
+        transition between its computed positions.
       </p>
     </div>
   );
