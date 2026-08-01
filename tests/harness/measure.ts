@@ -10,16 +10,24 @@ export type WritingMode = 'horizontal' | 'vertical';
 const ZWS = '​';
 const H_WIDTH = 10;
 const H_HEIGHT = 10;
+/** Ahem puts its alphabetic baseline 0.8em below the em box's top, so a 10px
+ *  cell has its baseline at 8. Confirmed against Chrome: a 100px-tall probe
+ *  baseline-aligned beside 10px Ahem text has its bottom edge 8px below the
+ *  text's top. */
+const H_BASELINE = 8;
 
 export function ahemTextMeasure(textContent: string, writingMode: WritingMode): MeasureFunction {
   return (knownDimensions, availableSpace) => {
+    // Vertical writing modes have no horizontal baseline to report.
+    const baseline = writingMode === 'horizontal' ? H_BASELINE : undefined;
     if (knownDimensions.width !== null && knownDimensions.height !== null) {
-      return { width: knownDimensions.width, height: knownDimensions.height };
+      return { width: knownDimensions.width, height: knownDimensions.height, baseline };
     }
     const computed = measureAhem(textContent, writingMode, knownDimensions, availableSpace);
     return {
       width: knownDimensions.width ?? computed.width,
       height: knownDimensions.height ?? computed.height,
+      baseline,
     };
   };
 }

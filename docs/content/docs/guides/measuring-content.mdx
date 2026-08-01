@@ -26,7 +26,8 @@ Two rules govern when it runs:
 ## Follow the contract
 
 A measure function receives `(knownDimensions, availableSpace)` and returns a
-content-box size in pixels. Read the arguments in order:
+content-box size in pixels, optionally with a [`baseline`](#report-a-baseline-for-text).
+Read the arguments in order:
 
 1. **`knownDimensions` is authoritative.** A non-`null` axis has already been
    decided by styles or the layout algorithm; returning anything else for it
@@ -79,7 +80,12 @@ function measureParagraph(text: string, lineHeight = 22): MeasureFunction {
       }
       lineWidth += w;
     }
-    return { width, height: known.height ?? lines * lineHeight };
+    return {
+      width,
+      height: known.height ?? lines * lineHeight,
+      // First line's baseline, for `align-items: baseline`.
+      baseline: lineHeight * 0.8,
+    };
   };
 }
 
@@ -107,6 +113,31 @@ laid out as fixed sizes, since demos on this site cannot carry callbacks:
   </Node>
 </Layout>`}
 </Demo>
+
+## Report a baseline for text
+
+`align-items: baseline` lines items up by the baseline of their first line of
+text. The engine cannot see inside your content, so a measure function that
+handles text should say where that baseline sits — the distance from the top
+of the returned content box down to the first line's alphabetic baseline:
+
+```typescript
+return { width, height, baseline: ascent };
+```
+
+For most fonts the ascent is roughly 0.8 of the font size, but take it from
+your text engine's metrics rather than guessing. In a browser,
+`TextMetrics.fontBoundingBoxAscent` from `CanvasRenderingContext2D.measureText`
+gives it directly.
+
+Content with no text — an image, an icon, a chart — should leave `baseline`
+off. The engine then synthesizes one from the box's bottom border edge, which
+is what CSS requires of a box with no baseline of its own, so an image sits
+with its bottom on the text baseline of its siblings.
+
+Getting this wrong is invisible until someone uses `baseline` alignment: every
+box reports its bottom edge, so a row of text of different sizes aligns by
+descender instead of by baseline, and the text looks a pixel or two off.
 
 ## Measure images
 
@@ -164,7 +195,7 @@ layout. Memoize on the inputs that matter:
 
 ```typescript
 function cached(measure: MeasureFunction): MeasureFunction {
-  const memo = new Map<string, { width: number; height: number }>();
+  const memo = new Map<string, ReturnType<MeasureFunction>>();
   return (known, available) => {
     const key = `${known.width}|${known.height}|${available.width}|${available.height}`;
     let out = memo.get(key);

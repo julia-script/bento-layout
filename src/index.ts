@@ -62,7 +62,7 @@ export type {
   TrackSizingFunctionInput,
 } from './style.js';
 export { InvalidStyleError } from './style.js';
-export type { Layout, MeasureFunction } from './tree.js';
+export type { Layout, MeasuredContent, MeasureFunction } from './tree.js';
 export { LayoutNode } from './tree.js';
 
 /** Options for {@link computeLayout}. */

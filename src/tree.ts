@@ -195,10 +195,16 @@ export const layoutWithOrder = (order: number): Layout => ({
  * padding and border. Expect several calls per layout with different
  * constraints, so keep the function pure and inexpensive.
  *
+ * For text, also return a `baseline` — the distance from the top of the
+ * content box down to the first line's alphabetic baseline. Without it the
+ * engine has to synthesize one from the box's bottom edge, and
+ * `align-items: baseline` lines boxes up by their bottoms instead of by their
+ * text. Content with no text (an image, an icon) should omit it.
+ *
  * @param knownDimensions - Axes already resolved, `null` where still open.
  * @param availableSpace - Room available on each unresolved axis, as a number
  *   or an intrinsic-sizing keyword.
- * @returns The content size in pixels.
+ * @returns The content size in pixels, optionally with a `baseline`.
  *
  * @example
  * A fixed-size leaf, the simplest useful case.
@@ -226,13 +232,34 @@ export const layoutWithOrder = (order: number): Layout => ({
  *     else width = Math.min(available.width, maxWidth);
  *
  *     const lines = Math.max(1, Math.ceil(maxWidth / Math.max(width, longestWord)));
- *     return { width, height: known.height ?? lines * lineHeight };
+ *     const height = known.height ?? lines * lineHeight;
+ *     // First line's baseline, so `align-items: baseline` can align the text.
+ *     return { width, height, baseline: lineHeight * 0.8 };
  *   };
  *
  * const paragraph = LayoutNode.make().setMeasure(measureText('hello wrapping world'));
  * ```
  */
-export type MeasureFunction = (knownDimensions: Size<Opt>, availableSpace: Size<AvailableSpace>) => Size<number>;
+export type MeasureFunction = (knownDimensions: Size<Opt>, availableSpace: Size<AvailableSpace>) => MeasuredContent;
+
+/**
+ * What a {@link MeasureFunction} reports back: the content size, plus an
+ * optional first baseline for text.
+ *
+ * `baseline` is the distance in pixels from the **top of the returned content
+ * box** down to the first line's alphabetic baseline. Return it whenever the
+ * content has real text, so `align-items: baseline` can line that text up with
+ * text in sibling boxes.
+ *
+ * Omit it (or return a bare `Size`) for content with no text — an image, an
+ * icon, a canvas. Layout then synthesizes a baseline from the box's bottom
+ * border edge, which is what CSS requires for a box with no baseline of its own
+ * (css-flexbox-1 §8.3).
+ */
+export interface MeasuredContent extends Size<number> {
+  /** Distance from the top of the content box to the first text baseline. */
+  baseline?: number | undefined;
+}
 
 /**
  * Engine-side view of a node's state; `LayoutNode` holds one as its private

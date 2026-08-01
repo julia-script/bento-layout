@@ -1,6 +1,6 @@
 // Leaf layout: sizing a childless node, including the measure-callback path.
 
-import type { Size } from '../geometry.js';
+import type { Point, Size } from '../geometry.js';
 import { applyAspectRatioClamped, pointNone, rectAdd, sizeZero, sumAxes } from '../geometry.js';
 import type { Opt } from '../math.js';
 import { vClamp, vMax } from '../math.js';
@@ -224,13 +224,21 @@ export function computeLeafLayout(inputs: LayoutInput, style: Style, measureFunc
     height: Math.max(flooredHeight, vClamp(arHeight, null, nodeMaxSize.height)),
   };
 
+  // A measure function reports its baseline relative to the content box, so
+  // shift it past the top padding and border to make it border-box relative —
+  // which is what every consumer of `firstBaselines` expects. Content with no
+  // text returns no baseline; layout then synthesizes one (css-flexbox-1 §8.3).
+  const measuredBaseline = measuredSize.baseline;
+  const firstBaselines: Point<Opt> =
+    measuredBaseline === undefined ? pointNone() : { x: null, y: measuredBaseline + padding.top + border.top };
+
   return {
     size,
     contentSize: {
       width: measuredSize.width + padding.left + padding.right,
       height: measuredSize.height + padding.top + padding.bottom,
     },
-    firstBaselines: pointNone(),
+    firstBaselines,
     topMargin: collapsibleMarginZero(),
     bottomMargin: collapsibleMarginZero(),
     marginsCanCollapseThrough:
