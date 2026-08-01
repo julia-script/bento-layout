@@ -179,6 +179,8 @@ interface AlgoConstants {
    * scroll container.
    */
   crossIsRatioDerived: boolean;
+  /** Width was resolved from column-item intrinsic contributions before flexing. */
+  crossIsIntrinsicColumn: boolean;
 
   containerSize: Size<number>;
   innerContainerSize: Size<number>;
@@ -256,7 +258,8 @@ export function computeFlexboxLayout(node: LayoutNode, inputs: LayoutInput): Lay
 /** Compute a preliminary size for an item */
 function computePreliminary(node: LayoutNode, inputs: LayoutInput): LayoutOutput {
   const nd = internals(node);
-  const { knownDimensions, parentSize, availableSpace: outerAvailableSpace, runMode } = inputs;
+  const { knownDimensions: inputKnownDimensions, parentSize, availableSpace: outerAvailableSpace, runMode } = inputs;
+  const knownDimensions = { ...inputKnownDimensions };
 
   // Define some general constants we will need for the remainder of the algorithm.
   const constants = computeConstants(nd.style, knownDimensions, parentSize);
@@ -266,7 +269,32 @@ function computePreliminary(node: LayoutNode, inputs: LayoutInput): LayoutOutput
   // 9.1. Initial Setup
 
   // 1. Generate anonymous flex items as described in §4 Flex Items.
-  const flexItems = generateAnonymousFlexItems(node, constants);
+  let flexItems = generateAnonymousFlexItems(node, constants);
+
+  // Blink resolves the intrinsic inline size of a non-wrapping column before
+  // flexing (FlexLayoutAlgorithm::ComputeMinMaxSizes). Do that two-pass setup
+  // when an aspect-ratio item makes the ordering observable; otherwise its
+  // flex-grown height feeds back into the width. css-flexbox-1 §9.9.2 defines
+  // the width from item contributions, not from their post-flexed main sizes.
+  if (
+    constants.isColumn &&
+    !constants.isWrap &&
+    flexItems.some((child) => child.aspectRatio !== null) &&
+    cross(constants.nodeOuterSize, constants.dir) === null &&
+    typeof cross(outerAvailableSpace, constants.dir) !== 'number'
+  ) {
+    const intrinsicOuterCross = determineIntrinsicColumnCrossSize(flexItems, constants, outerAvailableSpace);
+    const intrinsicInnerCross = Math.max(
+      intrinsicOuterCross - rectCrossAxisSum(constants.contentBoxInset, constants.dir),
+      0,
+    );
+    setCross(knownDimensions, constants.dir, intrinsicOuterCross);
+    setCross(constants.nodeOuterSize, constants.dir, intrinsicOuterCross);
+    setCross(constants.nodeInnerSize, constants.dir, intrinsicInnerCross);
+    constants.crossIsIntrinsicColumn = true;
+    // Percentage child styles resolve only after the intrinsic width is known.
+    flexItems = generateAnonymousFlexItems(node, constants);
+  }
 
   // 9.2. Line Length Determination
 
@@ -422,6 +450,35 @@ function computePreliminary(node: LayoutNode, inputs: LayoutInput): LayoutOutput
   });
 }
 
+function determineIntrinsicColumnCrossSize(
+  flexItems: FlexItem[],
+  constants: AlgoConstants,
+  availableSpace: Size<AvailableSpace>,
+): number {
+  const largestContribution = flexItems.reduce(
+    (largest, child) =>
+      Math.max(
+        largest,
+        measureChildSize(
+          child.node,
+          { width: null, height: null },
+          constants.nodeInnerSize,
+          availableSpace,
+          'inherent-size',
+          'horizontal',
+        ) +
+          child.margin.left +
+          child.margin.right,
+      ),
+    0,
+  );
+  const inset = rectCrossAxisSum(constants.contentBoxInset, constants.dir);
+  return Math.max(
+    vClamp(largestContribution + inset, constants.minSize.width, constants.maxSize.width),
+    inset - constants.scrollbarGutter.x,
+  );
+}
+
 /** Compute constants that can be reused during the flexbox algorithm. */
 function computeConstants(style: Style, knownDimensions: Size<Opt>, parentSize: Size<Opt>): AlgoConstants {
   const dir = style.flexDirection;
@@ -497,6 +554,7 @@ function computeConstants(style: Style, knownDimensions: Size<Opt>, parentSize: 
       cross(nodeOuterSize, dir) !== null &&
       cross(maybeResolveSize(style.size, parentSize), dir) === null &&
       !isScrollContainer(isRow ? style.overflow.y : style.overflow.x),
+    crossIsIntrinsicColumn: false,
     containerSize: sizeZero(),
     innerContainerSize: sizeZero(),
   };
@@ -1524,10 +1582,29 @@ function determineHypotheticalCrossSize(
     // `targetSize` is always a border-box value, so dividing it directly is
     // correct only under border-box (same defect as the leaf floor in
     // src/compute/leaf.ts).
-    const arDerivedCross =
+    const flexedMainDerivedCross =
       child.aspectRatio !== null
         ? transferThroughRatio(main(child.targetSize, constants.dir), child, constants.dir, 'main-to-cross')
         : null;
+    // Blink's non-wrapping column intrinsic-width path takes each child's
+    // inline contribution directly (ComputeMinMaxSizes), before main-axis flex
+    // growth. Feeding the post-flexed height back through the ratio is circular:
+    // Chrome keeps an empty 1:2 item at width 0 in a 10px-tall `flex-grow: 1`
+    // column, not 5px. css-flexbox-1 §9.9.2 likewise defines this cross size in
+    // terms of item contributions.
+    const intrinsicColumnCross =
+      constants.crossIsIntrinsicColumn && crossStyleIsAuto
+        ? measureChildSize(
+            child.node,
+            { width: null, height: null },
+            constants.nodeInnerSize,
+            availableSpace,
+            'inherent-size',
+            'horizontal',
+          )
+        : null;
+    const arDerivedCross =
+      child.aspectRatio !== null && intrinsicColumnCross !== null ? intrinsicColumnCross : flexedMainDerivedCross;
 
     // Read the *style* cross size, not `child.size`: the latter has already had
     // the ratio applied (generateAnonymousFlexItems), so an item with only a

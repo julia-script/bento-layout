@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Column intrinsic width does not derive from a flex-grown main size</title>
+</head>
+<body>
+
+<div id="test-root" style="width: auto; height: 10px; flex-direction: column;">
+  <div style="aspect-ratio: 0.5; flex-grow: 1;"></div>
+</div>
+
+</body>
+</html>
