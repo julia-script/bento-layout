@@ -316,6 +316,7 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     items,
     (track, parentSizeOpt) => trackDefiniteValue(track.maxTrackSizingFunction, parentSizeOpt),
     hasBaselineAlignedItem,
+    direction,
   );
   const initialColumnSum = columns.reduce((sum, track) => sum + track.baseSize, 0);
   innerNodeSize.width = innerNodeSize.width ?? initialColumnSum;
@@ -336,6 +337,7 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     items,
     (track) => track.baseSize,
     false, // TODO: baseline alignment in the vertical axis
+    direction,
   );
   const initialRowSum = rows.reduce((sum, track) => sum + track.baseSize, 0);
   innerNodeSize.height = innerNodeSize.height ?? initialRowSum;
@@ -474,6 +476,7 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
       items,
       (track) => track.baseSize,
       hasBaselineAlignedItem,
+      direction,
     );
   }
 
@@ -542,6 +545,7 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
         items,
         (track) => track.baseSize,
         false,
+        direction,
       );
     }
   }

@@ -343,10 +343,20 @@ export function alignItemWithinArea(
   // Compute offset in the axis
   let alignmentBasedOffset: number;
   switch (alignmentKeyword) {
-    // Baseline alignment currently treated as "start"
+    case 'baseline':
+      // css-align-3 baseline-export synthesizes an inline-axis baseline from
+      // the line-under border edge. For horizontal text that edge is physical
+      // left in RTL (vertical-rl), not logical inline-start: Chrome 151 places
+      // a 20px RTL baseline item at x=0 in a 50px intrinsic grid area. An
+      // absolutely positioned item has no baseline-sharing group and therefore
+      // uses the normal self-start fallback instead (x=80 in a 100px RTL area).
+      alignmentBasedOffset =
+        position === 'absolute' && direction === 'rtl'
+          ? gridAreaSize - resolvedSize - resolvedMargin.end
+          : resolvedMargin.start;
+      break;
     case 'start':
     case 'flex-start':
-    case 'baseline':
     case 'stretch':
       alignmentBasedOffset =
         direction === 'rtl' ? gridAreaSize - resolvedSize - resolvedMargin.end : resolvedMargin.start;

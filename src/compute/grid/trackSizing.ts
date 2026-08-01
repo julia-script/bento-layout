@@ -5,7 +5,7 @@ import { unreachable } from '../../assert.js';
 import type { AbsoluteAxis, Size } from '../../geometry.js';
 import type { Opt } from '../../math.js';
 import { mMin } from '../../math.js';
-import type { AlignContent, AvailableSpace } from '../../style.js';
+import type { AlignContent, AvailableSpace, Direction } from '../../style.js';
 import {
   isScrollContainer,
   maxDefiniteLimit,
@@ -179,6 +179,7 @@ function makeItemSizer(
   otherAxisTracks: GridTrack[],
   innerNodeSize: Size<Opt>,
   getTrackSizeEstimate: (track: GridTrack, availableSpace: Opt) => Opt,
+  direction: Direction,
 ): ItemSizer {
   const gridAreaSize = (item: GridItem, axisTracks: GridTrack[]): Size<Opt> =>
     itemGridAreaSizeCached(item, axis, axisTracks, otherAxisTracks, innerNodeSize, getTrackSizeEstimate);
@@ -197,7 +198,21 @@ function makeItemSizer(
       const availableSpace: Size<Opt> = { ...areaSize };
       absSetLocal(availableSpace, axis, null);
       const marginAxisSums = itemMarginsAxisSumsWithBaselineShims(item, availableSpace.width);
-      const contribution = itemMaxContentContributionCached(item, axis, areaSize, availableSpace);
+      let contribution = itemMaxContentContributionCached(item, axis, areaSize, availableSpace);
+      if (
+        axis === 'horizontal' &&
+        direction === 'rtl' &&
+        item.justifySelf.keyword === 'baseline' &&
+        !item.justifySelf.safe
+      ) {
+        // css-align-3 baseline-export makes a horizontal box use vertical-rl
+        // for inline-axis baseline synthesis under RTL, so its line-under
+        // baseline moves with its width. Blink 151 measures the track baseline
+        // at min-content, then adds that contribution-specific delta as the
+        // css-grid-1 §11.5.1 baseline shim: 140px max-content text with a 50px
+        // min-content width gets a 50 - 140 = -90px shim and contributes 50px.
+        contribution = itemMinContentContributionCached(item, axis, areaSize, availableSpace);
+      }
       return contribution + absGet(marginAxisSums, axis);
     },
     minimumContribution(item, axisTracks) {
@@ -233,6 +248,7 @@ export function trackSizingAlgorithm(
   items: GridItem[],
   getTrackSizeEstimate: (track: GridTrack, availableSpace: Opt) => Opt,
   hasBaselineAlignedItem: boolean,
+  direction: Direction,
 ): void {
   // 11.4 Initialise Track sizes
   const percentageBasis = absGet(innerNodeSize, axis) ?? axisMinSize;
@@ -270,6 +286,7 @@ export function trackSizingAlgorithm(
     absGet(availableGridSpace, axis),
     innerNodeSize,
     getTrackSizeEstimate,
+    direction,
   );
 
   // 11.6. Maximise Tracks
@@ -378,6 +395,7 @@ function resolveIntrinsicTrackSizes(
   axisAvailableGridSpace: AvailableSpace,
   innerNodeSize: Size<Opt>,
   getTrackSizeEstimate: (track: GridTrack, availableSpace: Opt) => Opt,
+  direction: Direction,
 ): void {
   // Step 1 (baseline shims) is already done — see resolveItemBaselines.
 
@@ -386,7 +404,7 @@ function resolveIntrinsicTrackSizes(
 
   const axisInnerNodeSize = absGet(innerNodeSize, axis);
   const flexFactorSum = axisTracks.reduce((sum, track) => sum + flexFactor(track), 0);
-  const itemSizer = makeItemSizer(axis, otherAxisTracks, innerNodeSize, getTrackSizeEstimate);
+  const itemSizer = makeItemSizer(axis, otherAxisTracks, innerNodeSize, getTrackSizeEstimate, direction);
 
   const itemOverflow = (item: GridItem): boolean =>
     isScrollContainer(axis === 'horizontal' ? item.overflow.x : item.overflow.y);
