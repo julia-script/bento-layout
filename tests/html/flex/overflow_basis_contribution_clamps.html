@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Test description
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="flex-direction: column; align-items: flex-start;">
+  <div>
+    <div style="overflow-x: hidden; flex-basis: 20px; height: 5px;"></div>
+  </div>
+  <div>
+    <div style="overflow-x: hidden; flex-basis: 20px; flex-shrink: 0; height: 5px;"></div>
+  </div>
+  <div>
+    <div style="overflow-x: hidden; flex-basis: 20px; height: 5px;">HHHH</div>
+  </div>
+  <div>
+    <div style="flex-basis: 20px; height: 5px;">HHHH</div>
+  </div>
+  <div>
+    <div style="overflow-x: hidden; flex-basis: 20px; flex-grow: 1; height: 5px;">HHHH</div>
+  </div>
+</div>
+
+</body>
+</html>

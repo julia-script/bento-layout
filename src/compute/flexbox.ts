@@ -1132,8 +1132,6 @@ function determineContainerMainSize(
               rectMainAxisSum(item.margin, constants.dir);
           } else if (maxMainSize <= minMainSize) {
             contentContribution = minMainSize + rectMainAxisSum(item.margin, constants.dir);
-          } else if (itemIsScrollContainer(item)) {
-            contentContribution = item.flexBasis + rectMainAxisSum(item.margin, constants.dir);
           } else {
             // Parent size for child sizing
             const crossAxisParentSize = cross(constants.nodeInnerSize, dir);
@@ -1197,7 +1195,20 @@ function determineContainerMainSize(
             // `flex_basis_unconstraint_row`/
             // `_column` — the gentests that comment cites — passing.
             if (constants.isRow) {
-              contentContribution = vClamp(contentMainSize, styleMin, styleMax);
+              // §9.9.3: the contribution is "capped by the item's flex base
+              // size if the item is not growable, floored by [it] if the item
+              // is not shrinkable, and then further clamped by the item's
+              // min/max main size". `minMainSize`/`maxMainSize` above carry
+              // exactly those basis bounds on top of the style min/max, so
+              // clamping by them applies both halves at once.
+              //
+              // The cap only bites when the automatic minimum does not already
+              // hold the item open, which is why it shows up on scroll
+              // containers: §4.5 gives them a zero automatic minimum. Chrome,
+              // 40px of text with `flex-basis: 20px; flex: 0 1`, contributes
+              // its full 28.89 when overflow is visible but exactly the 20px
+              // cap once the item scrolls or clips.
+              contentContribution = vClamp(contentMainSize, minMainSize, maxMainSize);
             } else {
               // With an explicit `flex-basis`, the style main size is the §4.5
               // *specified size suggestion*: it caps the content-based minimum
@@ -1214,7 +1225,19 @@ function determineContainerMainSize(
               // column item with `flex-basis: 3; margin: 20px ... 200px` came
               // out 0 tall (container 220) where Chrome keeps the 3 (223).
               const marginSum = rectMainAxisSum(item.margin, constants.dir);
-              const innerContent = contentMainSize - marginSum;
+              // A scroll container holds nothing open: §4.5 gives it a zero
+              // automatic minimum, so its content contributes nothing and only
+              // its own box remains. Chrome, taffy issue 696 — a
+              // `flex-basis: 0` column item with `overflow: hidden`, 20px
+              // padding and 200px of content — is 40 tall (the padding alone)
+              // where the same tree with `overflow: visible` is 240.
+              //
+              // Row items reach the equivalent rule through `minMainSize` in
+              // the branch above; the column branch floors by the *specified*
+              // size suggestion instead, which a scroll container does not get.
+              const innerContent = itemIsScrollContainer(item)
+                ? Math.min(contentMainSize - marginSum, item.resolvedMinimumMainSize)
+                : contentMainSize - marginSum;
               const suggested =
                 item.flexBasisIsExplicit && stylePreferred !== null
                   ? Math.min(innerContent, stylePreferred)
