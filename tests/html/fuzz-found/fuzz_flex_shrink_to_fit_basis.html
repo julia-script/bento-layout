@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: shrink-to-fit flex container ignores shrinkable flex-basis
+  date: 2026-08-01
+  chrome: Chrome/151.0.7922.47
+  When a flex container's main size is unknown but available space is definite
+  (e.g. a grid item with justify-items: start), shrink-to-fit summed flex bases.
+  A shrinkable empty flex-basis: 55px item sized the container to 55 where Chrome
+  gives 0. Stretch hid the bug by forcing the used size to the track. The fix
+  applies the same §9.9.3 contribution clamps as intrinsic sizing: explicit
+  basis replaces the style main size, floors only when non-shrinkable, caps
+  when non-growable.
+  Regenerate the XML fixtures with: pnpm gentest fuzz_flex_shrink_to_fit_basis
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: shrink-to-fit flex ignores shrinkable flex-basis (fuzz_flex_shrink_to_fit_basis)
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+  <!-- Empty shrinkable basis collapses -->
+  <div style="display: grid; justify-items: start;">
+    <div style="display: flex;">
+      <div style="flex-basis: 55px;"></div>
+    </div>
+  </div>
+  <!-- Non-shrinkable basis is kept -->
+  <div style="display: grid; justify-items: start;">
+    <div style="display: flex;">
+      <div style="flex-basis: 55px; flex-shrink: 0;"></div>
+    </div>
+  </div>
+  <!-- Style width still contributes when basis is auto -->
+  <div style="display: grid; justify-items: start;">
+    <div style="display: flex;">
+      <div style="width: 55px;"></div>
+    </div>
+  </div>
+  <!-- Explicit basis replaces width when non-growable -->
+  <div style="display: grid; justify-items: start;">
+    <div style="display: flex;">
+      <div style="flex-basis: 10px; width: 55px;"></div>
+    </div>
+  </div>
+
+  <!-- Style max-* clamps the preferred size -->
+  <div style="display: grid; justify-items: start;">
+    <div style="display: flex;">
+      <div style="width: 200px; height: 120px; max-width: 1px;"></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

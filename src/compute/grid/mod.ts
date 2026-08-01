@@ -21,7 +21,7 @@ import {
 import type { LayoutInput, LayoutNode, LayoutOutput } from '../../tree.js';
 import { fromOuterSize, fromSizesAndBaselines, internals, layoutWithOrder } from '../../tree.js';
 import { performChildLayout } from '../dispatch.js';
-import { alignAndPositionItem, alignTracks } from './alignment.js';
+import { alignAndPositionItem, alignTracks, resolveJustifyBaselineOffsetsFromLaidOut } from './alignment.js';
 import type { AutoRepeatStrategy } from './explicit.js';
 import { computeExplicitGridSizeInAxis, initializeGridTracks } from './explicit.js';
 import { computeGridSizeEstimate } from './implicit.js';
@@ -664,31 +664,47 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
 
   const containerAlignmentStyles = { horizontal: justifyItems, vertical: alignItems };
 
-  // Position in-flow children
-  for (let index = 0; index < items.length; index++) {
-    const item = items[index] ?? unreachable();
-    const gridArea: Rect<number> = {
-      top: (rows[item.rowIndexes.start + 1] ?? unreachable()).offset,
-      bottom: (rows[item.rowIndexes.end] ?? unreachable()).offset,
-      left: (columns[item.columnIndexes.start + 1] ?? unreachable()).offset,
-      right: (columns[item.columnIndexes.end] ?? unreachable()).offset,
-    };
-    const [contribution, yPosition, height] = alignAndPositionItem(
-      item.node,
-      index,
-      gridArea,
-      containerAlignmentStyles,
-      item.baselineShim,
-      direction,
-    );
-    item.yPosition = yPosition;
-    item.height = height;
+  const needsJustifyBaseline = items.some((item) => item.justifySelf.keyword === 'baseline' && !item.justifySelf.safe);
 
-    itemContentSizeContribution = {
-      width: Math.max(itemContentSizeContribution.width, contribution.width),
-      height: Math.max(itemContentSizeContribution.height, contribution.height),
-    };
+  // `justify-self: baseline` needs final border-box widths before its Major-group
+  // offsets can be resolved (orthogonal synth uses width under RTL). Lay out once
+  // with start fallback, resolve offsets, then position for real.
+  const positionInFlow = (useJustifyBaselineOffsets: boolean): Size<number> => {
+    let contribution = { width: 0, height: 0 };
+    for (let index = 0; index < items.length; index++) {
+      const item = items[index] ?? unreachable();
+      const gridArea: Rect<number> = {
+        top: (rows[item.rowIndexes.start + 1] ?? unreachable()).offset,
+        bottom: (rows[item.rowIndexes.end] ?? unreachable()).offset,
+        left: (columns[item.columnIndexes.start + 1] ?? unreachable()).offset,
+        right: (columns[item.columnIndexes.end] ?? unreachable()).offset,
+      };
+      const [itemContribution, yPosition, height] = alignAndPositionItem(
+        item.node,
+        index,
+        gridArea,
+        containerAlignmentStyles,
+        item.baselineShim,
+        direction,
+        useJustifyBaselineOffsets ? item.justifyBaselineOffset : null,
+      );
+      item.yPosition = yPosition;
+      item.height = height;
+      contribution = {
+        width: Math.max(contribution.width, itemContribution.width),
+        height: Math.max(contribution.height, itemContribution.height),
+      };
+    }
+    return contribution;
+  };
+
+  if (needsJustifyBaseline) {
+    positionInFlow(false);
+    resolveJustifyBaselineOffsetsFromLaidOut(items, direction, columns);
   }
+
+  // Position in-flow children
+  itemContentSizeContribution = positionInFlow(true);
 
   // Position hidden and absolutely positioned children
   let order = items.length;

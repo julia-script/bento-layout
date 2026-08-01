@@ -451,6 +451,13 @@ export interface GridItem {
   justifySelf: AlignItems;
   baseline: Opt;
   baselineShim: number;
+  /**
+   * Logical inline offset for `justify-self: baseline` in a multi-item column
+   * group: `trackBaseline - synthesizedBaseline` (Blink `ComputeBaselineOffset`
+   * for the Major group). `null` when the item is not in such a group and
+   * should fall back to start. See `resolveJustifyBaselineOffsets`.
+   */
+  justifyBaselineOffset: number | null;
 
   /** Placement as GridTrackVec indices */
   rowIndexes: LineOf<number>;
@@ -498,6 +505,7 @@ export function newGridItem(
     justifySelf: style.justifySelf ?? parentJustifyItems,
     baseline: null,
     baselineShim: 0,
+    justifyBaselineOffset: null,
     rowIndexes: { start: 0, end: 0 },
     columnIndexes: { start: 0, end: 0 },
     crossesFlexibleRow: false,

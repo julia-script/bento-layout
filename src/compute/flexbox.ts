@@ -1042,18 +1042,43 @@ function determineContainerMainSize(
     ((): number => {
       const mainAvs = main(availableSpace, dir);
       if (typeof mainAvs === 'number') {
+        // Shrink-to-fit against a definite available main size (non-stretched
+        // grid item, abspos with auto insets, root under a viewport, …).
+        // Summing flex bases here made a shrinkable empty `flex-basis: 55px`
+        // item size the container to 55 where Chrome gives 0. Mirror the
+        // §9.9.3 contribution clamps used below: an explicit basis replaces the
+        // style main size, floors only when non-shrinkable, and caps when
+        // non-growable — so `width: 55` alone stays 55, `flex-basis: 10; width:
+        // 55` becomes 10, and a shrinkable empty basis collapses to the
+        // content/automatic minimum (0 when empty, text size when not).
         const longestLineLength = lines.reduce((acc, line) => {
           const lineMainAxisGap = sumAxisGaps(main(constants.gap, constants.dir), line.items.length);
           const totalTargetSize = line.items.reduce((sum, child) => {
             const paddingBorderSum = rectMainAxisSum(rectAdd(child.padding, child.border), constants.dir);
-            return (
-              sum +
-              Math.max(
-                vMax(child.flexBasis, main(child.minSize, constants.dir)) +
-                  rectMainAxisSum(child.margin, constants.dir),
-                paddingBorderSum,
-              )
+            const stylePreferred = main(child.size, constants.dir);
+            const styleMin = main(child.minSize, constants.dir);
+            const styleMax = main(child.maxSize, constants.dir);
+            const clampingBasis = child.flexBasisIsExplicit
+              ? child.flexBasis
+              : (mMax(child.flexBasis, stylePreferred) ?? child.flexBasis);
+            const flexBasisMin = child.flexShrink === 0 ? clampingBasis : null;
+            const flexBasisMax = child.flexGrow === 0 ? clampingBasis : null;
+            const minMainSize = Math.max(
+              mMax(styleMin, flexBasisMin) ?? flexBasisMin ?? child.resolvedMinimumMainSize,
+              child.resolvedMinimumMainSize,
             );
+            // Include style max-* (Chrome, width:200; max-width:1 → contributes 1).
+            const maxMainSize = mMin(styleMax, flexBasisMax) ?? flexBasisMax ?? Infinity;
+            let preferred =
+              stylePreferred !== null ? Math.max(Math.min(stylePreferred, maxMainSize), minMainSize) : minMainSize;
+            // Column + explicit basis: the contribution loop below floors by the
+            // basis even when the item can shrink (row does not). Abspos column
+            // `flex-basis: 150; flex-shrink: 1` with `max-height: 100` must still
+            // report 150 here so the max-height clamp yields 100, not 0.
+            if (!constants.isRow && child.flexBasisIsExplicit) {
+              preferred = Math.max(preferred, child.flexBasis);
+            }
+            return sum + Math.max(preferred + rectMainAxisSum(child.margin, constants.dir), paddingBorderSum);
           }, 0);
           return Math.max(acc, totalTargetSize + lineMainAxisGap);
         }, 0);
@@ -1080,10 +1105,7 @@ function determineContainerMainSize(
             // to 0 when empty and to 24 (its text) with content, but keeps the
             // 10 once `flex-shrink: 0`.
             const basisFloor = child.flexShrink === 0 ? child.flexBasis : 0;
-            const childMin = vMax(
-              vMax(basisFloor, main(child.minSize, constants.dir)),
-              child.resolvedMinimumMainSize,
-            );
+            const childMin = vMax(vMax(basisFloor, main(child.minSize, constants.dir)), child.resolvedMinimumMainSize);
             return sum + Math.max(childMin + rectMainAxisSum(child.margin, constants.dir), paddingBorderSum);
           }, 0);
           return Math.max(acc, totalTargetSize + lineMainAxisGap);
