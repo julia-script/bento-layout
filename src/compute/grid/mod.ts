@@ -2,7 +2,7 @@
 // Phases: resolve explicit grid → place items → size tracks → align & position.
 
 import type { Rect, Size } from '../../geometry.js';
-import { applyAspectRatioClamped, rectAdd, sumAxes } from '../../geometry.js';
+import { applyAspectRatioClamped, maybeApplyAspectRatio, rectAdd, sumAxes } from '../../geometry.js';
 import { mClamp, mSub, vClamp } from '../../math.js';
 import type { Opt } from '../../math.js';
 import {
@@ -119,10 +119,22 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     height: mapDefinite(constrainedAvailableSpace.height, (space) => space - verticalSum(contentBoxInset)),
   };
 
+  // css-sizing-4: a definite size in one axis transfers through `aspect-ratio`.
+  // `preferredSize` above can only transfer between *style* sizes, so a grid
+  // whose width is definite solely because the caller said so (both style axes
+  // `auto`) never got its ratio-derived height and fell back to the content
+  // height. Flex and block layout already do this (the `derivedFromKnown` step
+  // in flexbox.ts); a grid root with `aspect-ratio: .5` around a `min-width: 97`
+  // item was 97x10 in Chrome's 97x194.
+  const derivedFromKnown = maybeApplyAspectRatio(knownDimensions, aspectRatio);
+
   const outerNodeSize: Size<Opt> = {
-    width: vMaxOpt(mClamp(knownDimensions.width ?? preferredSize.width, minSize.width, maxSize.width), paddingBorderSize.width),
+    width: vMaxOpt(
+      mClamp(knownDimensions.width ?? preferredSize.width ?? derivedFromKnown.width, minSize.width, maxSize.width),
+      paddingBorderSize.width,
+    ),
     height: vMaxOpt(
-      mClamp(knownDimensions.height ?? preferredSize.height, minSize.height, maxSize.height),
+      mClamp(knownDimensions.height ?? preferredSize.height ?? derivedFromKnown.height, minSize.height, maxSize.height),
       paddingBorderSize.height,
     ),
   };
