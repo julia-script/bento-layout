@@ -106,6 +106,8 @@ interface FlexItem {
   flexBasis: number;
   /** `flex-basis` was specified (not `auto`), so it replaces the style main size. */
   flexBasisIsExplicit: boolean;
+  /** The used flex basis came from a definite basis, main size, or ratio transfer. */
+  flexBasisIsDefinite: boolean;
   innerFlexBasis: number;
   violation: number;
   frozen: boolean;
@@ -606,6 +608,7 @@ function generateAnonymousFlexItems(node: LayoutNode, constants: AlgoConstants):
       flexShrink: childStyle.flexShrink,
       flexBasis: 0,
       flexBasisIsExplicit: false,
+      flexBasisIsDefinite: false,
       innerFlexBasis: 0,
       violation: 0,
       frozen: false,
@@ -857,6 +860,7 @@ function determineFlexBaseSize(
           ? transferThroughRatio(transferSource, child, dir, 'cross-to-main')
           : null;
       const definiteFlexBasis = flexBasis ?? mainSize ?? transferredMain;
+      child.flexBasisIsDefinite = definiteFlexBasis !== null;
       if (definiteFlexBasis !== null) return definiteFlexBasis;
 
       // C/E. Otherwise, size the item into the available space using its used flex basis
@@ -1351,7 +1355,20 @@ function determineContainerMainSize(
           } else {
             flexContribution = 0;
           }
-          const size = item.flexBasis + flexContribution;
+          // css-flexbox-1 §9.9.1 substitutes the hypothetical main size when
+          // an item with a definite basis cannot move toward its intrinsic
+          // contribution. Blink's ComputeMinMaxSizeOfRowContainer performs
+          // the same `cant_move` check. This matters when min/max clamps the
+          // basis itself: `flex-basis: 10px; flex-shrink: 0; max-width: 7px`
+          // contributes 7px in Chrome, not the unclamped 10px basis.
+          const hypotheticalInner = main(item.hypotheticalInnerSize, constants.dir);
+          const cantMoveToContribution =
+            item.flexBasisIsDefinite &&
+            ((item.flexShrink === 0 && hypotheticalInner < item.flexBasis) ||
+              (item.flexGrow === 0 && hypotheticalInner > item.flexBasis));
+          const size = cantMoveToContribution
+            ? main(item.hypotheticalOuterSize, constants.dir)
+            : item.flexBasis + flexContribution;
           setMain(item.outerTargetSize, constants.dir, size);
           setMain(item.targetSize, constants.dir, size);
           return sum + size;
