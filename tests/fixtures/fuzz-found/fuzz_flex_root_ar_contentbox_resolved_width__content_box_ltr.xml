@@ -1,0 +1,13 @@
+<test name="fuzz_flex_root_ar_contentbox_resolved_width__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div box-sizing="content-box" direction="ltr" position="absolute" aspect-ratio="1.5" padding-top="10px" padding-left="120px" padding-bottom="40px" padding-right="30px">
+      <div box-sizing="content-box" direction="ltr"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="150" height="50">
+      <node x="120" y="10" width="0" height="0"/>
+    </node>
+  </expectations>
+</test>

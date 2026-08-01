@@ -231,7 +231,16 @@ export function computeFlexboxLayout(node: LayoutNode, inputs: LayoutInput): Lay
   // style axes `auto`) never got its ratio-derived height and fell back to the
   // content height — collapsing an `aspect-ratio` flex container to 0 as soon
   // as it had any child. Block layout already does this (block.ts).
-  const derivedFromKnown = sizeMaybeClamp(maybeApplyAspectRatio(knownDimensions, aspectRatio), minSize, maxSize);
+  // `knownDimensions` are border-box sizes, but a content-box ratio relates
+  // the content boxes (css-sizing-4 §4.1). Strip the source-axis insets before
+  // transferring and add the destination-axis insets back. Chrome 151 sizes an
+  // auto-width root with 150px inline insets, 50px block insets and ratio 1.5
+  // to 150x50 in content-box mode, not 150x100.
+  const derivedFromKnown = sizeMaybeClamp(
+    applyAspectRatioClamped(knownDimensions, minSize, maxSize, aspectRatio, boxSizingAdjustment),
+    minSize,
+    maxSize,
+  );
 
   // The size of the container should be floored by the padding and border
   const styledBasedKnownDimensions: Size<Opt> = {
