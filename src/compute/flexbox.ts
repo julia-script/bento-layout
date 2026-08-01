@@ -695,10 +695,21 @@ function determineFlexBaseSize(
       !rectCrossEnd(child.marginIsAuto, constants.dir) &&
       cross(childKnownDimensions, dir) === null
     ) {
+      // Floor the stretched cross size by the item's own cross padding+border:
+      // a box never shrinks below its insets, so stretching to a smaller
+      // container leaves a *used* cross size larger than the space offered —
+      // and it is the used size the ratio transfers from. Chrome, a row item
+      // with `aspect-ratio: 1.5; padding: 100% 0 97px` in a 120x97 container:
+      // the percentage resolves against the inline size to 120, so the item is
+      // 217 tall and 326 wide (=217x1.5), where transferring the container's
+      // 97 gave 146.
       setCross(
         childKnownDimensions,
         dir,
-        mSub(asIntoOption(crossAxisAvailableSpace), rectCrossAxisSum(child.margin, dir)),
+        mMax(
+          mSub(asIntoOption(crossAxisAvailableSpace), rectCrossAxisSum(child.margin, dir)),
+          rectCrossAxisSum(rectAdd(child.padding, child.border), dir),
+        ),
       );
     }
 
