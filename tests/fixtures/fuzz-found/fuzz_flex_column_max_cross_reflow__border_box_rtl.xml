@@ -1,0 +1,15 @@
+<test name="fuzz_flex_column_max_cross_reflow__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="rtl" position="absolute" flex-direction="column-reverse" max-width="20px">
+      <text direction="rtl">
+        HH​HHHHH​HHH
+      </text>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="20" height="30">
+      <node x="0" y="0" width="20" height="30"/>
+    </node>
+  </expectations>
+</test>

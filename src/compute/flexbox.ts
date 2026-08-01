@@ -711,7 +711,19 @@ function determineAvailableSpace(
           verticalSum(constants.contentBoxInset),
         );
 
-  return { width, height };
+  // A column item's automatic inline size is fit-content when that inline
+  // size is needed to determine its block-axis flex base (§9.2 step 3E).
+  // Preserve a max-content constraint in general, but when the column itself
+  // has a definite max cross size Blink uses that inner maximum as the
+  // fit-content available space for both flex-base and hypothetical-cross
+  // measurement. Chrome, `max-width: 20px` around text with a 50px
+  // min-content width, measures 50x30 before stretch rather than 100x10.
+  const maxInnerColumnWidth =
+    constants.isColumn && width === 'max-content' && constants.maxSize.width !== null
+      ? Math.max(constants.maxSize.width - horizontalSum(constants.contentBoxInset), 0)
+      : width;
+
+  return { width: maxInnerColumnWidth, height };
 }
 
 /**

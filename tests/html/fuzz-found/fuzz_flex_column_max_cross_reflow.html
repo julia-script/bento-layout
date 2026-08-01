@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: batch seed=20260731, finding=7527dd45 (mode=flex)
+  chrome: Chrome/151.0.7922.47
+  A column item's automatic cross size is fit-content when it determines the
+  block-axis flex base. The container's 20px max-width therefore constrains
+  text measurement and produces three 10px lines; measuring at max-content and
+  clamping only the final width incorrectly retained a one-line 10px height.
+  Regenerate with: pnpm gentest fuzz_flex_column_max_cross_reflow
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: column max cross-size reflows flex-item content</title>
+</head>
+<body>
+
+<div id="test-root" style="max-width: 20px; flex-direction: column-reverse;">
+  <div>HH&#8203;HHHHH&#8203;HHH</div>
+</div>
+
+</body>
+</html>
