@@ -183,8 +183,5 @@ faithfully reproducing them.
 
 ## Acknowledgements
 
-[Taffy](https://github.com/DioxusLabs/taffy) (MIT) was a major reference while
-this engine was being built, and the debt is worth stating plainly. The engine
-has since gone its own way — conformance is defined by Chrome, and the
-algorithms, API, and verification infrastructure have diverged substantially —
-but the early going was much easier for having it to read.
+Thanks to [Taffy](https://github.com/DioxusLabs/taffy) (MIT), a major reference
+while this engine was being built.
