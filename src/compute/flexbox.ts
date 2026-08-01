@@ -1143,7 +1143,13 @@ function determineContainerMainSize(
         return lines.length > 1 ? Math.max(size, mainAvs) : size;
       }
 
-      if (mainAvs === 'min-content' && constants.isWrap) {
+      // Keep this shortcut to wrapping rows. Under a min-content constraint
+      // they put each item on its own line, so the largest minimum contribution
+      // determines the container (§9.9.1). A wrapping *column* stays on one
+      // line and must use the regular contribution path below: Chrome sizes
+      // preferred-height items of 120px and 320px to 440px (450px with a 10px
+      // gap), while this minimum-only shortcut collapses both empty items to 0.
+      if (mainAvs === 'min-content' && constants.isWrap && constants.isRow) {
         const longestLineLength = lines.reduce((acc, line) => {
           const lineMainAxisGap = sumAxisGaps(main(constants.gap, constants.dir), line.items.length);
           const totalTargetSize = line.items.reduce((sum, child) => {

@@ -1,0 +1,17 @@
+<test name="fuzz_column_wrap_mincontent_uses_preferred_size__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" box-sizing="content-box" direction="ltr" position="absolute" grid-auto-rows="min-content">
+      <div box-sizing="content-box" direction="ltr" flex-direction="column-reverse" flex-wrap="wrap">
+        <div box-sizing="content-box" direction="ltr" width="3px" height="320px"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="3" height="320">
+      <node x="0" y="0" width="3" height="320">
+        <node x="0" y="0" width="3" height="320"/>
+      </node>
+    </node>
+  </expectations>
+</test>

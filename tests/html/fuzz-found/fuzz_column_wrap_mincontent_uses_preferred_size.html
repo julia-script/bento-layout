@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found (rehydrated 20260731 batch). A wrapping column measured under a
+  min-content block constraint keeps an item's preferred main size. The
+  row-only minimum shortcut discarded that 320px height and collapsed to 0.
+  Regenerate the XML fixtures with:
+  pnpm gentest fuzz_column_wrap_mincontent_uses_preferred_size
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: column wrap min-content uses the preferred main size
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; grid-auto-rows: min-content;">
+  <div style="flex-direction: column-reverse; flex-wrap: wrap;">
+    <div style="width: 3px; height: 320px;"></div>
+  </div>
+</div>
+
+</body>
+</html>
