@@ -22,7 +22,6 @@ import {
   rectMainStart,
   setCross,
   setMain,
-  sizeFromCross,
   sizeMax,
   sizeZero,
   sumAxes,
@@ -628,9 +627,24 @@ function determineFlexBaseSize(
   for (const child of flexItems) {
     const childStyle = internals(child.node).style;
 
-    // Parent size for child sizing
+    // Parent size for child sizing.
+    //
+    // The main axis is withheld from the *style size* resolution — a percentage
+    // size in an axis must not feed its own contribution in that axis (see the
+    // `styleMinMainSize` note below) — but percentage padding and border always
+    // resolve against the container's inline size, which is definite here and
+    // independent of the item, so zeroing them is wrong. `content-size` mode
+    // reads `parentSize` only for padding/border/margin (leaf.ts nulls the
+    // style sizes outright), so the measure below can be handed the full size
+    // while the cycle stays closed.
+    //
+    // Chrome, a 3px-wide row containing a text item with
+    // `padding-left: 55; padding-right: 50%`: the item is 107 wide (50 of text
+    // + 55 + 1.5, rounded), where dropping the 50% gave 105. The error is not
+    // always small — a 100px-wide row with `padding-right: 50%` around the same
+    // text is 100 in Chrome and came out 50 here.
     const crossAxisParentSize = cross(constants.nodeInnerSize, dir);
-    const childParentSize = sizeFromCross(dir, crossAxisParentSize);
+    const childInsetParentSize: Size<Opt> = { ...constants.nodeInnerSize };
 
     // Available space for child sizing
     // Min/max sizes transferred through the aspect ratio are taken into account here
@@ -777,7 +791,7 @@ function determineFlexBaseSize(
       return measureChildSize(
         child.node,
         childKnownDimensions,
-        childParentSize,
+        childInsetParentSize,
         childAvailableSpace,
         'content-size',
         mainAxis(dir),
@@ -823,7 +837,7 @@ function determineFlexBaseSize(
           return measureChildSize(
             child.node,
             contentMeasureKnownDimensions,
-            childParentSize,
+            childInsetParentSize,
             childAvailableSpace,
             'content-size',
             mainAxis(dir),
