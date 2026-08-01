@@ -1,0 +1,15 @@
+<test name="fuzz_grid_baseline_percent_padding_uses_area__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" box-sizing="content-box" direction="rtl" position="absolute" align-items="baseline" width="200px" height="17px" grid-template-columns="80px 120px">
+      <div box-sizing="content-box" direction="rtl" padding-top="20px" padding-bottom="30%"/>
+      <div box-sizing="content-box" direction="rtl"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="200" height="17">
+      <node x="120" y="0" width="80" height="44"/>
+      <node x="0" y="44" width="120" height="0"/>
+    </node>
+  </expectations>
+</test>

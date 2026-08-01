@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found (rehydrated 20260731 batch). Synthesized grid-item baselines use
+  the item's grid-area width as the containing block for percentage padding,
+  not the grid container's full width. Regenerate the XML fixtures with:
+  pnpm gentest fuzz_grid_baseline_percent_padding_uses_area
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: grid baseline percentage padding uses the grid area
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; width: 200px; height: 17px; grid-template-columns: 80px 120px; align-items: baseline;">
+  <div style="padding-top: 20px; padding-bottom: 30%;"></div>
+  <div></div>
+</div>
+
+</body>
+</html>

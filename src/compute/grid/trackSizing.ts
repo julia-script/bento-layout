@@ -254,13 +254,15 @@ export function trackSizingAlgorithm(
   const percentageBasis = absGet(innerNodeSize, axis) ?? axisMinSize;
   initializeTrackSizes(axisTracks, percentageBasis);
 
-  // 11.5.1 Shim item baselines
-  if (hasBaselineAlignedItem) {
-    resolveItemBaselines(axis, items, innerNodeSize);
-  }
+  // Baseline shims depend on the grid item's containing-block width, so they
+  // are resolved after this axis's tracks have their used sizes below.
+  const resolveBaselines = (): void => {
+    if (hasBaselineAlignedItem) resolveItemBaselines(axis, axisTracks, items, innerNodeSize);
+  };
 
   // If all tracks have base_size = growth_limit, skip the rest
   if (axisTracks.every((track) => track.baseSize === track.growthLimit)) {
+    resolveBaselines();
     return;
   }
 
@@ -306,6 +308,8 @@ export function trackSizingAlgorithm(
   if (axisAlignment.keyword === 'stretch' && !axisAlignment.safe) {
     stretchAutoTracks(axisTracks, axisMinSize, axisAvailableSpaceForExpansion);
   }
+
+  resolveBaselines();
 }
 
 /** Flush planned base size increases after a round of space distribution */
@@ -344,7 +348,12 @@ function initializeTrackSizes(axisTracks: GridTrack[], axisInnerNodeSize: Opt): 
 }
 
 /** 11.5.1 Shim baseline-aligned items so their contributions reflect baseline alignment */
-function resolveItemBaselines(axis: AbsoluteAxis, items: GridItem[], innerNodeSize: Size<Opt>): void {
+function resolveItemBaselines(
+  axis: AbsoluteAxis,
+  axisTracks: GridTrack[],
+  items: GridItem[],
+  innerNodeSize: Size<Opt>,
+): void {
   // Sort items by other-axis (row) start position so we can iterate rows
   const otherAxis = absOther(axis);
   items.sort((a, b) => itemPlacement(a, otherAxis).start - itemPlacement(b, otherAxis).start);
@@ -365,17 +374,28 @@ function resolveItemBaselines(axis: AbsoluteAxis, items: GridItem[], innerNodeSi
 
     // Compute baselines of all items in the row
     for (const item of rowItems) {
+      // css-align-3 baseline-export synthesizes a grid item's baseline from
+      // its border edge, so first lay it out against its actual containing
+      // block. Chrome 151: 20px + 30% block padding in an 80px grid area gives
+      // a 44px baseline, even when the grid container itself is 200px wide.
+      const range = itemTrackRangeExcludingLines(item, axis);
+      const gridAreaAxisSize = axisTracks
+        .slice(range.start, range.end)
+        .reduce((sum, track) => sum + track.baseSize + track.contentAlignmentAdjustment, 0);
+      const gridAreaSize = { ...innerNodeSize };
+      absSetLocal(gridAreaSize, axis, gridAreaAxisSize);
+
       const measuredSizeAndBaselines = performChildLayout(
         item.node,
         { width: null, height: null },
-        innerNodeSize,
+        gridAreaSize,
         { width: 'min-content', height: 'min-content' },
         'inherent-size',
       );
 
       const baseline = measuredSizeAndBaselines.firstBaselines.y;
       const height = measuredSizeAndBaselines.size.height;
-      item.baseline = (baseline ?? height) + resolveOrZero(item.margin.top, innerNodeSize.width);
+      item.baseline = (baseline ?? height) + resolveOrZero(item.margin.top, gridAreaSize.width);
     }
 
     // Compute max baseline and shims
