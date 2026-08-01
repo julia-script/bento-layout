@@ -876,15 +876,20 @@ function determineFlexBaseSize(
     );
     if (
       !constants.isWrap &&
+      (cross(constants.nodeInnerSize, dir) !== null || constants.aspectRatio !== null) &&
       child.alignSelf.keyword === 'stretch' &&
       !child.alignSelf.safe &&
       !rectCrossStart(child.marginIsAuto, constants.dir) &&
       !rectCrossEnd(child.marginIsAuto, constants.dir) &&
       cross(childKnownDimensions, dir) === null
     ) {
-      // Only a single-line container makes this stretched size definite during
-      // flex-base calculation (css-flexbox-1 §9.8; Blink gates the same path on
-      // !is_multi_line_). A wrapping 97x20 row with an empty 3:1 item has a 0px
+      // Only a single-line container with its own definite cross size makes
+      // this stretched size definite during flex-base calculation
+      // (css-flexbox-1 §9.8; Blink gates the same path on !is_multi_line_ and
+      // is_cross_size_definite_). Numeric available space from an ancestor is
+      // not enough: an auto-height nested row constrained only by min-height
+      // stretches its ratio child later, without changing the child's main
+      // size. A wrapping 97x20 row with an empty 3:1 item likewise has a 0px
       // base in Chrome; transferring the future 20px line stretch made it 60px.
       // Floor the stretched cross size by the item's own cross padding+border:
       // a box never shrinks below its insets, so stretching to a smaller
@@ -2307,9 +2312,40 @@ function calculateFlexItem(
   direction: FlexDirection,
   layoutDirection: Direction,
 ): void {
+  const itemInternals = internals(item.node);
+  const itemStyle = itemInternals.style;
+  const resolvedCrossStyle = maybeResolve(cross(itemStyle.size, direction), cross(nodeInnerSize, direction));
+  const resolvedCrossMin = maybeResolve(cross(itemStyle.minSize, direction), cross(nodeInnerSize, direction));
+  const resolvedCrossMax = maybeResolve(cross(itemStyle.maxSize, direction), cross(nodeInnerSize, direction));
+  const crossIsFixedByMinMax =
+    resolvedCrossMin !== null && resolvedCrossMax !== null && resolvedCrossMax <= resolvedCrossMin;
+  const stretches =
+    item.alignSelf.keyword === 'stretch' &&
+    !item.alignSelf.safe &&
+    !rectCrossStart(item.marginIsAuto, direction) &&
+    !rectCrossEnd(item.marginIsAuto, direction);
+  const knownDimensions = { width: item.targetSize.width, height: item.targetSize.height };
+
+  // Preserve an auto cross size when a non-stretched, ratio-less nested
+  // container merely lands on its explicit minimum. Blink supplies the line
+  // cross size as available space in this case, not as a fixed fragment size.
+  // Keeping it known makes the nested container treat that minimum as a
+  // definite pre-flex stretch source, feeding a descendant's ratio back into
+  // its main size contrary to css-flexbox §9.4 step 11.
+  if (
+    resolvedCrossStyle === null &&
+    resolvedCrossMin !== null &&
+    !crossIsFixedByMinMax &&
+    itemStyle.aspectRatio === null &&
+    itemInternals.children.length > 0 &&
+    !stretches
+  ) {
+    setCross(knownDimensions, direction, null);
+  }
+
   const layoutOutput = performChildLayout(
     item.node,
-    { width: item.targetSize.width, height: item.targetSize.height },
+    knownDimensions,
     nodeInnerSize,
     { width: containerSize.width, height: containerSize.height },
     'content-size',
