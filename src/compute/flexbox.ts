@@ -1782,6 +1782,8 @@ function resolveCrossAxisAutoMargins(flexLines: FlexLine[], constants: AlgoConst
       // The alignment branch below is deliberately NOT floored — overflow
       // alignment needs the true negative value.
       const autoMarginSpace = Math.max(freeSpace, 0);
+      // A column's cross axis is horizontal, so `direction: rtl` reverses it.
+      const isRtlCross = constants.isColumn && constants.layoutDirection === 'rtl';
 
       if (rectCrossStart(child.marginIsAuto, constants.dir) && rectCrossEnd(child.marginIsAuto, constants.dir)) {
         if (constants.isRow) {
@@ -1793,10 +1795,31 @@ function resolveCrossAxisAutoMargins(flexLines: FlexLine[], constants: AlgoConst
         }
       } else if (rectCrossStart(child.marginIsAuto, constants.dir)) {
         if (constants.isRow) child.margin.top = autoMarginSpace;
-        else child.margin.left = autoMarginSpace;
+        // An RTL column measures the cross axis from the right edge, but the
+        // item is positioned later from `margin.left`. While free space is
+        // positive the two agree (the auto margin fills the gap). When it is
+        // negative the auto margin floors at 0 and the *other* margin still
+        // has to place the box, so the left margin has to carry the whole
+        // offset: `containerCross - itemCross - marginRight`, which is allowed
+        // to go negative. Chrome, a 10px item in a 40px RTL column with
+        // `margin-left: auto; margin-right: 97`, is at x = -67 (40-10-97),
+        // where flooring alone pinned it to 0.
+        else if (isRtlCross) {
+          child.margin.left = lineCrossSize - cross(child.targetSize, constants.dir) - child.margin.right;
+        } else {
+          child.margin.left = autoMarginSpace;
+        }
       } else if (rectCrossEnd(child.marginIsAuto, constants.dir)) {
         if (constants.isRow) child.margin.bottom = autoMarginSpace;
         else child.margin.right = autoMarginSpace;
+        // Mirror of the case above: with the *end* margin auto and the start
+        // margin overflowing, an RTL column still places from the right edge,
+        // so the start margin must be rewritten to the equivalent left offset.
+        // Chrome puts a 10px item with `margin-left: 97; margin-right: auto`
+        // in a 40px RTL column at x = 30 (40-10-0), not 97.
+        if (!constants.isRow && isRtlCross) {
+          child.margin.left = lineCrossSize - cross(child.targetSize, constants.dir) - child.margin.right;
+        }
       } else {
         // 14. Align all flex items along the cross-axis.
         child.offsetCross = alignFlexItemsAlongCrossAxis(child, freeSpace, maxBaseline, constants);
