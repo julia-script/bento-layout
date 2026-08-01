@@ -16,7 +16,7 @@ import {
 } from '../alignment.js';
 import { measureChildSizeBoth, performChildLayout } from '../dispatch.js';
 import type { GridTrack } from './types.js';
-import { maybeApplyAspectRatioUsed } from './types.js';
+import { maybeApplyAspectRatioUsed, transferMinSizeThroughAspectRatio } from './types.js';
 
 const ALIGN_START: AlignItems = { keyword: 'start', safe: false };
 const ALIGN_STRETCH_LOCAL: AlignItems = { keyword: 'stretch', safe: false };
@@ -135,12 +135,21 @@ export function alignAndPositionItem(
   const resolvedStyleSize = maybeResolveSize(style.size, gridAreaSize);
   const inherentSize = maybeAddSize(maybeApplyAspectRatio(resolvedStyleSize, aspectRatio), boxSizingAdjustment);
   const minSizeRaw = maybeAddSize(maybeResolveSize(style.minSize, gridAreaSize), boxSizingAdjustment);
-  const minSize = maybeApplyAspectRatio(
-    {
-      width: vMax(minSizeRaw.width ?? paddingBorderSize.width, paddingBorderSize.width),
-      height: vMax(minSizeRaw.height ?? paddingBorderSize.height, paddingBorderSize.height),
-    },
+  const minSizeBase = {
+    width: vMax(minSizeRaw.width ?? paddingBorderSize.width, paddingBorderSize.width),
+    height: vMax(minSizeRaw.height ?? paddingBorderSize.height, paddingBorderSize.height),
+  };
+  // css-sizing-4 §4.4 transfers min/max constraints through a preferred
+  // aspect ratio before applying them. Do both directions independently: a
+  // 98x97 border box at ratio .5 gets a 196px transferred minimum height,
+  // while ratio 2 gets a 194px transferred minimum width. For content-box the
+  // same padding/border minima transfer back to themselves.
+  const minSize = transferMinSizeThroughAspectRatio(
+    minSizeBase,
+    resolvedStyleSize,
     aspectRatio,
+    style.boxSizing,
+    paddingBorderSize,
   );
   const maxSize = maybeAddSize(
     maybeApplyAspectRatio(maybeResolveSize(style.maxSize, gridAreaSize), aspectRatio),

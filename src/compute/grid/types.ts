@@ -617,6 +617,32 @@ export function maybeApplyAspectRatioUsed(
   return { ...size };
 }
 
+/** css-sizing-4 §4.4 min-size transfers for a box with a preferred ratio. */
+export function transferMinSizeThroughAspectRatio(
+  minSize: Size<number>,
+  resolvedStyleSize: Size<Opt>,
+  aspectRatio: number | null,
+  boxSizing: BoxSizing,
+  paddingBorderSize: Size<number>,
+): Size<number> {
+  const fromWidth = maybeApplyAspectRatioUsed(
+    { width: minSize.width, height: null },
+    aspectRatio,
+    boxSizing,
+    paddingBorderSize,
+  );
+  const fromHeight = maybeApplyAspectRatioUsed(
+    { width: null, height: minSize.height },
+    aspectRatio,
+    boxSizing,
+    paddingBorderSize,
+  );
+  return {
+    width: resolvedStyleSize.width === null ? Math.max(minSize.width, fromHeight.width ?? 0) : minSize.width,
+    height: resolvedStyleSize.height === null ? Math.max(minSize.height, fromWidth.height ?? 0) : minSize.height,
+  };
+}
+
 function itemKnownDimensions(item: GridItem, gridAreaSize: Size<Opt>): Size<Opt> {
   const margins = itemMarginsAxisSumsWithBaselineShims(item, gridAreaSize.width);
 
@@ -635,13 +661,18 @@ function itemKnownDimensions(item: GridItem, gridAreaSize: Size<Opt>): Size<Opt>
   };
   const paddingBorderSize = sumAxes(rectAdd(padding, border));
   const boxSizingAdjustment = item.boxSizing === 'content-box' ? paddingBorderSize : { width: 0, height: 0 };
-  const inherentSize = maybeAddSize(
-    maybeApplyAspectRatio(maybeResolveSize(item.size, gridAreaSize), aspectRatio),
-    boxSizingAdjustment,
-  );
-  const minSize = maybeAddSize(
-    maybeApplyAspectRatio(maybeResolveSize(item.minSize, gridAreaSize), aspectRatio),
-    boxSizingAdjustment,
+  const resolvedStyleSize = maybeResolveSize(item.size, gridAreaSize);
+  const inherentSize = maybeAddSize(maybeApplyAspectRatio(resolvedStyleSize, aspectRatio), boxSizingAdjustment);
+  const minSizeRaw = maybeAddSize(maybeResolveSize(item.minSize, gridAreaSize), boxSizingAdjustment);
+  const minSize = transferMinSizeThroughAspectRatio(
+    {
+      width: Math.max(minSizeRaw.width ?? paddingBorderSize.width, paddingBorderSize.width),
+      height: Math.max(minSizeRaw.height ?? paddingBorderSize.height, paddingBorderSize.height),
+    },
+    resolvedStyleSize,
+    aspectRatio,
+    item.boxSizing,
+    paddingBorderSize,
   );
   const maxSize = maybeAddSize(
     maybeApplyAspectRatio(maybeResolveSize(item.maxSize, gridAreaSize), aspectRatio),
