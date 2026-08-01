@@ -2194,9 +2194,37 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
     );
     let knownDimensions = sizeMaybeClamp(styleSize, minSize, maxSize);
 
+    // Opposing insets only *stretch* the box in the axis alignment governs when
+    // the alignment is stretch — the default. `align-self: center | start | end`
+    // leaves the size auto and instead positions the box inside the band the
+    // insets describe. Chrome, an empty abspos child with `top: 10; bottom: 10`
+    // in a 100px-tall row container:
+    //   align-self: stretch (or unset) -> y=10, height 80
+    //   align-self: start              -> y=10, height  0
+    //   align-self: center             -> y=50, height  0
+    //   align-self: end                -> y=90, height  0
+    // The engine stretched to 80 for every keyword. `align-items: center` on
+    // the container does not do this (the child is not a flex item, so it takes
+    // the container's alignment only as its static-position default), which is
+    // why this reads the child's own `align-self`.
+    //
+    // Main axis is unaffected: only the cross axis is aligned, so a row's width
+    // still fills between left/right regardless of `align-self`.
+    // Cross axis is vertical in a row, horizontal in a column.
+    //
+    // The child's OWN `align-self` decides this, not the container's
+    // `align-items`: an abspos child is not a flex item, so it inherits the
+    // container's alignment only as a static-position default and keeps
+    // stretching between its insets. Chrome, `align-items: center` on the
+    // container with `top: 10; bottom: 10` on the child, is still y=10 h=80 —
+    // reading the resolved `alignSelf` here collapsed it to y=50 h=0.
+    const crossStretches = (childStyle.alignSelf ?? { keyword: 'stretch' }).keyword === 'stretch';
+    const fillHeightFromInsets = constants.isRow ? crossStretches : true;
+    const fillWidthFromInsets = constants.isRow ? true : crossStretches;
+
     // Fill in width from left/right and reapply aspect ratio if:
     //   - Width is not already known  - Item has both left and right inset properties set
-    if (knownDimensions.width === null && left !== null && right !== null) {
+    if (knownDimensions.width === null && left !== null && right !== null && fillWidthFromInsets) {
       const newWidthRaw = vSub(vSub(insetRelativeSize.width, margin.left), margin.right) - left - right;
       knownDimensions.width = Math.max(newWidthRaw, 0);
       knownDimensions = sizeMaybeClamp(maybeApplyAspectRatio(knownDimensions, aspectRatio), minSize, maxSize);
@@ -2204,7 +2232,7 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
 
     // Fill in height from top/bottom and reapply aspect ratio if:
     //   - Height is not already known  - Item has both top and bottom inset properties set
-    if (knownDimensions.height === null && top !== null && bottom !== null) {
+    if (knownDimensions.height === null && top !== null && bottom !== null && fillHeightFromInsets) {
       const newHeightRaw = vSub(vSub(insetRelativeSize.height, margin.top), margin.bottom) - top - bottom;
       knownDimensions.height = Math.max(newHeightRaw, 0);
       knownDimensions = sizeMaybeClamp(maybeApplyAspectRatio(knownDimensions, aspectRatio), minSize, maxSize);
@@ -2355,7 +2383,52 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
 
     // Apply cross-axis alignment
     let offsetCross: number;
-    if (startCross !== null || endCross !== null) {
+    // Both insets set but the box was not stretched to fill them (a non-stretch
+    // `align-self`, see `fillHeightFromInsets` above): the band the insets
+    // describe becomes the alignment container, and the box is aligned inside
+    // it rather than pinned to its start edge. Chrome, an empty abspos child
+    // with `top: 10; bottom: 10` in a 100px row: `start` -> y=10, `center` ->
+    // y=50, `end` -> y=90, all with height 0.
+    //
+    // Only when the cross size is *automatic*. A specified size leaves nothing
+    // for alignment to distribute — the insets pin the box at the start edge.
+    // WPT abspos_align-self-with-flex-grid-parent: `align-self: center` with
+    // `top/left/bottom/right: 0` and an explicit `width/height: 100px` expects
+    // (0,0), not a centered box.
+    const crossSizeIsAuto =
+      cross(maybeResolveSize(childStyle.size, insetRelativeSize), constants.dir) === null;
+    const alignsWithinInsetBand =
+      startCross !== null &&
+      endCross !== null &&
+      !crossStretches &&
+      crossSizeIsAuto &&
+      alignSelf.keyword !== 'baseline';
+    if (alignsWithinInsetBand) {
+      const bandStart =
+        (startCross as number) +
+        rectCrossStart(constants.border, constants.dir) +
+        crossStartScrollbarOffset +
+        rectCrossStart(resolvedMargin, constants.dir);
+      const bandEnd =
+        cross(constants.containerSize, constants.dir) -
+        rectCrossEnd(constants.border, constants.dir) -
+        crossEndScrollbarOffset -
+        cross(finalSize, constants.dir) -
+        (endCross as number) -
+        rectCrossEnd(resolvedMargin, constants.dir);
+      const keyword = resolveSelfAlignmentSafety(alignSelf, bandEnd < bandStart);
+      const atEnd = keyword === 'end' || keyword === 'flex-end';
+      const atStart = keyword === 'start' || keyword === 'flex-start';
+      offsetCross = atEnd
+        ? crossAxisFlexStartReversed
+          ? bandStart
+          : bandEnd
+        : atStart
+          ? crossAxisFlexStartReversed
+            ? bandEnd
+            : bandStart
+          : (bandStart + bandEnd) / 2;
+    } else if (startCross !== null || endCross !== null) {
       if (crossIsRtl && endCross !== null) {
         offsetCross =
           cross(constants.containerSize, constants.dir) -
