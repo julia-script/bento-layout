@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found (rehydrated 20260731 batch). In column auto-flow, `auto / 1`
+  occupies the implicit row immediately before line 1. That negative row and
+  the explicit row are enough to fit the following two-row span, so the span
+  overlaps the first item and must wrap into the second column. The engine's
+  estimate omitted the end-only item's occupied row and created a phantom
+  positive row, leaving both items in the zero-width first column.
+  Regenerate the XML fixtures with:
+  pnpm gentest fuzz_grid_auto_end_line_reserves_track
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: an auto-start grid item reserves the track before its end line
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; grid-template-columns: 0 10px; grid-template-rows: 1px; grid-auto-flow: column;">
+  <div style="grid-row: auto / 1;"></div>
+  <div style="grid-row: auto / span 2;"></div>
+</div>
+
+</body>
+</html>

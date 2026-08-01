@@ -166,7 +166,9 @@ function childMinLineMaxLineSpan(
   } else if (ozIsLine(start)) {
     min = start.line;
   } else if (ozIsLine(end)) {
-    min = ozIsSpan(start) ? end.line - start.span : end.line;
+    // `auto / L` occupies L-1 → L; counting from L creates a phantom
+    // positive track when a later auto-placed item has the largest span.
+    min = ozIsSpan(start) ? end.line - start.span : end.line - 1;
   }
 
   let max = 0;
