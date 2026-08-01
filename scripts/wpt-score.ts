@@ -8,13 +8,13 @@
 // Output is deterministic: sorted, no timestamps, no durations — two runs over
 // unchanged inputs print identical text.
 
-import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { computeLayout } from '../src/index.js';
 import type { LayoutNode } from '../src/index.js';
-import { parseFixture } from '../tests/harness/fixture.js';
+import { computeLayout } from '../src/index.js';
 import type { ExpectedNode } from '../tests/harness/fixture.js';
+import { parseFixture } from '../tests/harness/fixture.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const FIXTURES_ROOT = join(ROOT, 'tests', 'fixtures', 'wpt');
@@ -69,7 +69,9 @@ function run(): void {
   for (const suite of SUITES) {
     const dir = join(FIXTURES_ROOT, suite);
     if (!existsSync(dir)) continue;
-    for (const file of readdirSync(dir).filter((f) => f.endsWith('.xml')).sort()) {
+    for (const file of readdirSync(dir)
+      .filter((f) => f.endsWith('.xml'))
+      .sort()) {
       const name = file.replace(/\.xml$/, '');
       let passed = false;
       let error: string | undefined;
@@ -104,7 +106,9 @@ function run(): void {
     const rows = results.filter((r) => r.suite === suite);
     if (rows.length === 0) continue;
     const p = rows.filter((r) => r.passed).length;
-    console.log(`  ${suite.padEnd(14)} ${String(p).padStart(4)}/${String(rows.length).padEnd(5)} ${((p / rows.length) * 100).toFixed(0).padStart(3)}%`);
+    console.log(
+      `  ${suite.padEnd(14)} ${String(p).padStart(4)}/${String(rows.length).padEnd(5)} ${((p / rows.length) * 100).toFixed(0).padStart(3)}%`,
+    );
   }
 
   reportCorpusCoverage();

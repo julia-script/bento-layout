@@ -1,6 +1,6 @@
-import Link from 'next/link';
-import type { Metadata } from 'next';
 import { highlight } from 'fumadocs-core/highlight';
+import type { Metadata } from 'next';
+import Link from 'next/link';
 import { BentoHero } from '@/components/landing/BentoHero';
 import { CopyCommand } from '@/components/landing/CopyCommand';
 import { MiniLayout, type MiniSpec } from '@/components/landing/MiniLayout';
@@ -118,10 +118,12 @@ export default async function HomePage() {
               <br />
               neatly in its place.
             </h1>
-            <p className="ld-rise mt-5 max-w-md text-pretty text-fd-muted-foreground" style={{ ['--rise' as string]: 2 }}>
-              Flexbox, CSS Grid, and block layout in plain TypeScript. Style data goes in, pixel
-              positions come out — no WASM to load, no async init, no node lifecycles to manage.
-              Verified against Chrome.
+            <p
+              className="ld-rise mt-5 max-w-md text-pretty text-fd-muted-foreground"
+              style={{ ['--rise' as string]: 2 }}
+            >
+              Flexbox, CSS Grid, and block layout in plain TypeScript. Style data goes in, pixel positions come out — no
+              WASM to load, no async init, no node lifecycles to manage. Verified against Chrome.
             </p>
             <div className="ld-rise mt-8 flex flex-wrap items-center gap-4" style={{ ['--rise' as string]: 3 }}>
               <Link
@@ -154,12 +156,10 @@ export default async function HomePage() {
           <div className="ld-divider mx-auto max-w-3xl">
             <span className="ld-divider-mark" />
           </div>
-          <h2 className="ld-display mt-10 text-center text-3xl text-fd-foreground">
-            Three modes, one tree
-          </h2>
+          <h2 className="ld-display mt-10 text-center text-3xl text-fd-foreground">Three modes, one tree</h2>
           <p className="mx-auto mt-3 max-w-xl text-center text-fd-muted-foreground">
-            A grid inside a flex row inside a block page is the normal case, not a special one.
-            Each preview below is computed by the engine on the server, as this page renders.
+            A grid inside a flex row inside a block page is the normal case, not a special one. Each preview below is
+            computed by the engine on the server, as this page renders.
           </p>
         </Reveal>
         <div className="mt-12 grid gap-6 md:grid-cols-3">
@@ -181,14 +181,11 @@ export default async function HomePage() {
       <section className="mx-auto max-w-6xl px-6 py-20">
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <Reveal>
-            <h2 className="ld-display text-3xl text-fd-foreground">
-              The whole setup, ten lines
-            </h2>
+            <h2 className="ld-display text-3xl text-fd-foreground">The whole setup, ten lines</h2>
             <p className="mt-4 text-fd-muted-foreground">
-              Nodes are ordinary JavaScript objects with ordinary lifetimes — an unreferenced
-              subtree is just garbage collected. No engine instance to register with, no{' '}
-              <code className="text-fd-foreground">free()</code> to remember, and it runs the same
-              in Node, a browser, a worker, or an edge runtime.
+              Nodes are ordinary JavaScript objects with ordinary lifetimes — an unreferenced subtree is just garbage
+              collected. No engine instance to register with, no <code className="text-fd-foreground">free()</code> to
+              remember, and it runs the same in Node, a browser, a worker, or an edge runtime.
             </p>
             <ul className="mt-6 space-y-3 text-sm text-fd-muted-foreground">
               {[
@@ -234,33 +231,24 @@ export default async function HomePage() {
           <Reveal>
             <h2 className="ld-display text-3xl text-fd-foreground">Chrome is the oracle</h2>
             <p className="mt-4 text-fd-muted-foreground">
-              Correctness is defined as agreement with a pinned Chrome. An in-repo pipeline
-              extracts geometry from the real browser into replayable fixtures, and a
-              differential fuzzer generates random trees, compares the engine against Chrome,
-              and shrinks every disagreement to a minimal reproduction. When this engine says a
-              box is at <code className="text-fd-foreground">x: 137</code>, that is where Chrome
-              puts it too.
+              Correctness is defined as agreement with a pinned Chrome. An in-repo pipeline extracts geometry from the
+              real browser into replayable fixtures, and a differential fuzzer generates random trees, compares the
+              engine against Chrome, and shrinks every disagreement to a minimal reproduction. When this engine says a
+              box is at <code className="text-fd-foreground">x: 137</code>, that is where Chrome puts it too.
             </p>
             <p className="mt-4 text-fd-muted-foreground">
-              The job of a layout engine is to be <em>correct and invisible</em> — a small,
-              boring dependency that installs with the ceremony of <code>lodash</code>.
+              The job of a layout engine is to be <em>correct and invisible</em> — a small, boring dependency that
+              installs with the ceremony of <code>lodash</code>.
             </p>
             <p className="mt-6 text-sm">
-              <Link
-                href="/docs/explanation/correctness"
-                className="text-fd-primary underline underline-offset-4"
-              >
+              <Link href="/docs/explanation/correctness" className="text-fd-primary underline underline-offset-4">
                 How conformance is measured →
               </Link>
             </p>
           </Reveal>
           <Reveal delay={150}>
             {/* Generated illustration; decorative, so empty alt. */}
-            <img
-              src="/bento-illustration.png"
-              alt=""
-              className="mx-auto w-full max-w-sm rounded-2xl"
-            />
+            <img src="/bento-illustration.png" alt="" className="mx-auto w-full max-w-sm rounded-2xl" />
           </Reveal>
         </div>
       </section>
@@ -271,9 +259,7 @@ export default async function HomePage() {
           <div className="ld-divider mx-auto max-w-3xl">
             <span className="ld-divider-mark" />
           </div>
-          <h2 className="ld-display mt-12 text-3xl text-fd-foreground">
-            Ready when you are.
-          </h2>
+          <h2 className="ld-display mt-12 text-3xl text-fd-foreground">Ready when you are.</h2>
           <p className="mx-auto mt-3 max-w-md text-fd-muted-foreground">
             One import, zero dependencies, layout on the next line.
           </p>

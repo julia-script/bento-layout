@@ -9,7 +9,7 @@ const libSrc = fileURLToPath(new URL('../src', import.meta.url));
 
 export default defineConfig({
   resolve: {
-    alias: { 'bento-layout': libSrc + '/index.ts' },
+    alias: { 'bento-layout': `${libSrc}/index.ts` },
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
   },
   test: {

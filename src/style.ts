@@ -1123,9 +1123,6 @@ export const ALIGN_CONTENT_STRETCH: AlignContent = { keyword: 'stretch', safe: f
  */
 export class InvalidStyleError extends Error {
   override readonly name = 'InvalidStyleError';
-  constructor(message: string, options?: { cause?: unknown }) {
-    super(message, options);
-  }
 }
 
 // --- Grid style types (port of style/grid.rs, unnamed-track subset)
@@ -1151,10 +1148,7 @@ export type MinTrackSizingFunction = LengthPercentage | 'auto' | 'min-content' |
  * space in proportion to `n` (CSS `1fr`), and `{ fitContent: limit }` for a
  * track that sizes to its content but stops at `limit` (CSS `fit-content()`).
  */
-export type MaxTrackSizingFunction =
-  | MinTrackSizingFunction
-  | { fr: number }
-  | { fitContent: LengthPercentage };
+export type MaxTrackSizingFunction = MinTrackSizingFunction | { fr: number } | { fitContent: LengthPercentage };
 
 /** {@link MinTrackSizingFunction} as written in input, where `'50%'` is also legal. */
 export type MinTrackSizingFunctionInput = LengthPercentageInput | 'auto' | 'min-content' | 'max-content';
@@ -1230,9 +1224,7 @@ export type RepetitionCount = number | 'auto-fill' | 'auto-fit';
  * // tracks: 200px sidebar, then 150px-minimum columns filling the remaining 600px
  * ```
  */
-export type GridTemplateComponent =
-  | TrackSizingFunction
-  | { repeat: RepetitionCount; tracks: TrackSizingFunction[] };
+export type GridTemplateComponent = TrackSizingFunction | { repeat: RepetitionCount; tracks: TrackSizingFunction[] };
 
 /** {@link GridTemplateComponent} as written in input, where `'50%'` is also legal. */
 export type GridTemplateComponentInput =
@@ -1304,10 +1296,7 @@ export function minIsIntrinsic(min: MinTrackSizingFunction): boolean {
 
 export function maxIsIntrinsic(max: MaxTrackSizingFunction): boolean {
   return (
-    max === 'auto' ||
-    max === 'min-content' ||
-    max === 'max-content' ||
-    (typeof max === 'object' && 'fitContent' in max)
+    max === 'auto' || max === 'min-content' || max === 'max-content' || (typeof max === 'object' && 'fitContent' in max)
   );
 }
 
@@ -1320,8 +1309,7 @@ export function maxIsMaxOrFitContent(max: MaxTrackSizingFunction): boolean {
   return max === 'max-content' || (typeof max === 'object' && 'fitContent' in max);
 }
 
-export const maxIsFr = (max: MaxTrackSizingFunction): max is { fr: number } =>
-  typeof max === 'object' && 'fr' in max;
+export const maxIsFr = (max: MaxTrackSizingFunction): max is { fr: number } => typeof max === 'object' && 'fr' in max;
 
 export const maxIsFitContent = (max: MaxTrackSizingFunction): max is { fitContent: LengthPercentage } =>
   typeof max === 'object' && 'fitContent' in max;

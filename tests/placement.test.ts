@@ -1,12 +1,12 @@
 // Direct unit tests for grid placement coordinates.
 
 import { describe, expect, it } from 'vitest';
-import { LayoutNode } from '../src/index.js';
-import type { GridPlacement, Style } from '../src/index.js';
 import { computeGridSizeEstimate } from '../src/compute/grid/implicit.js';
 import { placeGridItems } from '../src/compute/grid/placement.js';
-import { CellOccupancyMatrix } from '../src/compute/grid/types.js';
 import type { GridItem } from '../src/compute/grid/types.js';
+import { CellOccupancyMatrix } from '../src/compute/grid/types.js';
+import type { GridPlacement, Style } from '../src/index.js';
+import { LayoutNode } from '../src/index.js';
 
 const START = { keyword: 'start', safe: false } as const;
 
@@ -19,9 +19,11 @@ function runPlacement(
   const children = childPlacements.map((p, index) => ({
     index,
     node: LayoutNode.make({
-        gridColumnStart: p.col[0], gridColumnEnd: p.col[1],
-        gridRowStart: p.row[0], gridRowEnd: p.row[1],
-      }),
+      gridColumnStart: p.col[0],
+      gridColumnEnd: p.col[1],
+      gridRowStart: p.row[0],
+      gridRowEnd: p.row[1],
+    }),
   }));
   const [colCounts, rowCounts] = computeGridSizeEstimate(
     explicitColCount,
@@ -39,19 +41,19 @@ function runPlacement(
 describe('grid placement', () => {
   it('definite line placements', () => {
     const items = runPlacement(4, 4, [{ col: [{ line: 1 }, { line: 3 }], row: [{ line: 1 }, { line: 2 }] }]);
-    expect(items[0]!.column).toEqual({ start: 0, end: 2 });
-    expect(items[0]!.row).toEqual({ start: 0, end: 1 });
+    expect(items[0]?.column).toEqual({ start: 0, end: 2 });
+    expect(items[0]?.row).toEqual({ start: 0, end: 1 });
   });
 
   it('negative line placement counts from end', () => {
     // -1 is the end line of a 4-track explicit grid → oz line 4
     const items = runPlacement(4, 4, [{ col: [{ line: 1 }, { line: -1 }], row: [{ line: 1 }, 'auto'] }]);
-    expect(items[0]!.column).toEqual({ start: 0, end: 4 });
+    expect(items[0]?.column).toEqual({ start: 0, end: 4 });
   });
 
   it('span placements', () => {
     const items = runPlacement(4, 4, [{ col: [{ line: 2 }, { span: 2 }], row: ['auto', 'auto'] }]);
-    expect(items[0]!.column).toEqual({ start: 1, end: 3 });
+    expect(items[0]?.column).toEqual({ start: 1, end: 3 });
   });
 
   it('auto placement flows row-wise', () => {
@@ -61,12 +63,12 @@ describe('grid placement', () => {
       { col: auto, row: auto },
       { col: auto, row: auto },
     ]);
-    expect(items[0]!.column).toEqual({ start: 0, end: 1 });
-    expect(items[0]!.row).toEqual({ start: 0, end: 1 });
-    expect(items[1]!.column).toEqual({ start: 1, end: 2 });
-    expect(items[1]!.row).toEqual({ start: 0, end: 1 });
-    expect(items[2]!.column).toEqual({ start: 0, end: 1 });
-    expect(items[2]!.row).toEqual({ start: 1, end: 2 });
+    expect(items[0]?.column).toEqual({ start: 0, end: 1 });
+    expect(items[0]?.row).toEqual({ start: 0, end: 1 });
+    expect(items[1]?.column).toEqual({ start: 1, end: 2 });
+    expect(items[1]?.row).toEqual({ start: 0, end: 1 });
+    expect(items[2]?.column).toEqual({ start: 0, end: 1 });
+    expect(items[2]?.row).toEqual({ start: 1, end: 2 });
   });
 
   it('dense packing backfills gaps', () => {
@@ -83,9 +85,9 @@ describe('grid placement', () => {
       'row-dense',
     );
     // Second item (span 2) doesn't fit in the single free cell of row 1 → row 2
-    expect(items[1]!.row).toEqual({ start: 1, end: 2 });
+    expect(items[1]?.row).toEqual({ start: 1, end: 2 });
     // Third item (span 1) backfills the free cell at col 1, row 1
-    expect(items[2]!.column).toEqual({ start: 0, end: 1 });
-    expect(items[2]!.row).toEqual({ start: 0, end: 1 });
+    expect(items[2]?.column).toEqual({ start: 0, end: 1 });
+    expect(items[2]?.row).toEqual({ start: 0, end: 1 });
   });
 });

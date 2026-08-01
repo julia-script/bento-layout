@@ -21,7 +21,10 @@ describe('scrollbar gutter reservation', () => {
 
   it('flex: vertical scrollbar consumes inline space in a row', () => {
     const a = LayoutNode.make({ flexGrow: 1 });
-    const root = LayoutNode.make({ width: 100, height: 50, overflowX: 'visible', overflowY: 'scroll', scrollbarWidth: 15 }, [a]);
+    const root = LayoutNode.make(
+      { width: 100, height: 50, overflowX: 'visible', overflowY: 'scroll', scrollbarWidth: 15 },
+      [a],
+    );
     computeLayout(root, { width: 'max-content', height: 'max-content' });
     expect(a.layout.size.width).toBe(85);
     expect(a.layout.size.height).toBe(50);
@@ -29,12 +32,17 @@ describe('scrollbar gutter reservation', () => {
 
   it('flex rtl: vertical scrollbar gutter is reserved on the left', () => {
     const a = LayoutNode.make({ flexGrow: 1 });
-    const root = LayoutNode.make({
+    const root = LayoutNode.make(
+      {
         direction: 'rtl',
-        width: 100, height: 50,
-        overflowX: 'visible', overflowY: 'scroll',
+        width: 100,
+        height: 50,
+        overflowX: 'visible',
+        overflowY: 'scroll',
         scrollbarWidth: 15,
-      }, [a]);
+      },
+      [a],
+    );
     computeLayout(root, { width: 'max-content', height: 'max-content' });
     expect(a.layout.size.width).toBe(85);
     expect(a.layout.location.x).toBe(15);
@@ -49,14 +57,18 @@ describe('scrollbar gutter reservation', () => {
 
   it('grid: scroll container reserves gutters for track sizing', () => {
     const child = LayoutNode.make();
-    const root = LayoutNode.make({
+    const root = LayoutNode.make(
+      {
         display: 'grid',
-        width: 100, height: 100,
+        width: 100,
+        height: 100,
         gridTemplateColumns: [{ min: 'auto', max: { fr: 1 } }],
         gridTemplateRows: [{ min: 'auto', max: { fr: 1 } }],
         ...SCROLL,
         scrollbarWidth: 15,
-      }, [child]);
+      },
+      [child],
+    );
     computeLayout(root, { width: 'max-content', height: 'max-content' });
     expect(child.layout.size).toEqual({ width: 85, height: 85 });
   });

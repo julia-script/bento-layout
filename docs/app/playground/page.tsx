@@ -1,7 +1,7 @@
-import Link from 'next/link';
 import type { Metadata } from 'next';
-import { Demo } from '@/components/playground/Demo';
+import Link from 'next/link';
 import { SiteNav } from '@/components/landing/SiteNav';
+import { Demo } from '@/components/playground/Demo';
 
 const SEED = `<Layout>
   <Node style={{width: '480px', height: '260px', display: 'flex',
@@ -28,9 +28,8 @@ export default function PlaygroundPage() {
         <header className="mb-6">
           <h1 className="ld-display text-3xl">Playground</h1>
           <p className="mt-2 text-fd-muted-foreground">
-            Edit the tree on the left; the engine lays it out on the right. Sizes accept
-            CSS-shaped strings such as <code>100px</code>, <code>50%</code>, and{' '}
-            <code>1fr</code>. See the{' '}
+            Edit the tree on the left; the engine lays it out on the right. Sizes accept CSS-shaped strings such as{' '}
+            <code>100px</code>, <code>50%</code>, and <code>1fr</code>. See the{' '}
             <Link href="/docs" className="text-fd-foreground underline">
               docs
             </Link>{' '}

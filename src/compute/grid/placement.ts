@@ -6,9 +6,11 @@ import type { AlignItems, Direction, GridAutoFlow, Style } from '../../style.js'
 import { gridAutoFlowIsDense, gridAutoFlowPrimaryAxis } from '../../style.js';
 import type { LayoutNode } from '../../tree.js';
 import { internals } from '../../tree.js';
+import type { OzOffsets } from './implicit.js';
+import type { CellOccupancyState, GridItem, LineOf, OzGridPlacement } from './types.js';
 import {
-  CellOccupancyMatrix,
   absOther,
+  type CellOccupancyMatrix,
   implicitEndLine,
   implicitStartLine,
   newGridItem,
@@ -17,8 +19,6 @@ import {
   ozResolveDefiniteGridLines,
   placementLineIntoOriginZero,
 } from './types.js';
-import type { CellOccupancyState, GridItem, LineOf, OzGridPlacement } from './types.js';
-import type { OzOffsets } from './implicit.js';
 
 /** Translate line placements by an axis coalescing offset (see implicit.ts). */
 function ozLineTranslate(line: LineOf<OzGridPlacement>, offset: number): LineOf<OzGridPlacement> {
@@ -300,11 +300,7 @@ function placeIndefinitelyPositionedItem(
   const primaryAxisGridEndLine = implicitEndLine(cellOccupancyMatrix.trackCounts(primaryAxis));
   const secondaryAxisGridStartLine = implicitStartLine(cellOccupancyMatrix.trackCounts(secondaryAxis));
   const secondaryAxisGridEndLine = implicitEndLine(cellOccupancyMatrix.trackCounts(secondaryAxis));
-  const primaryStartPosition = searchStartLine(
-    primaryAxisGridStartLine,
-    primaryAxisGridEndLine,
-    primaryAxisIsReversed,
-  );
+  const primaryStartPosition = searchStartLine(primaryAxisGridStartLine, primaryAxisGridEndLine, primaryAxisIsReversed);
   const secondaryStartPosition = searchStartLine(
     secondaryAxisGridStartLine,
     secondaryAxisGridEndLine,
@@ -403,8 +399,7 @@ function recordGridPlacement(
   cellOccupancyMatrix.markAreaAs(primaryAxis, primarySpan, secondarySpan, placementType);
 
   // Create grid item
-  const [colSpan, rowSpan] =
-    primaryAxis === 'horizontal' ? [primarySpan, secondarySpan] : [secondarySpan, primarySpan];
+  const [colSpan, rowSpan] = primaryAxis === 'horizontal' ? [primarySpan, secondarySpan] : [secondarySpan, primarySpan];
   items.push(
     newGridItem(
       child.node,

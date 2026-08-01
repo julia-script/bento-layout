@@ -3,7 +3,7 @@
 // Scroll reveal: adds data-in once the element enters the viewport. All the
 // motion lives in CSS (.ld-reveal), including the reduced-motion opt-out.
 
-import { useEffect, useRef, type ReactNode } from 'react';
+import { type ReactNode, useEffect, useRef } from 'react';
 
 export function Reveal({
   children,
@@ -34,11 +34,7 @@ export function Reveal({
   }, []);
 
   return (
-    <div
-      ref={ref}
-      className={`ld-reveal ${className ?? ''}`}
-      style={{ ['--reveal-delay' as string]: `${delay}ms` }}
-    >
+    <div ref={ref} className={`ld-reveal ${className ?? ''}`} style={{ ['--reveal-delay' as string]: `${delay}ms` }}>
       {children}
     </div>
   );

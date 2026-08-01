@@ -1,15 +1,14 @@
 // Layout dispatch: routes a child to its display mode's algorithm, through the
 // layout cache, with `display: none` short-circuited.
 
-import type { Size } from '../geometry.js';
+import type { AbsoluteAxis, Size } from '../geometry.js';
 import { sizeGetAbs } from '../geometry.js';
-import type { AbsoluteAxis } from '../geometry.js';
 import type { Opt } from '../math.js';
 import type { AvailableSpace } from '../style.js';
-import type { LayoutNode, LayoutInput, LayoutOutput, Line, SizingMode } from '../tree.js';
-import { LINE_FALSE, internals, layoutOutputHidden, layoutWithOrder } from '../tree.js';
-import { computeBlockLayout } from './block.js';
+import type { LayoutInput, LayoutNode, LayoutOutput, Line, SizingMode } from '../tree.js';
+import { internals, LINE_FALSE, layoutOutputHidden, layoutWithOrder } from '../tree.js';
 import type { BlockContext } from './block.js';
+import { computeBlockLayout } from './block.js';
 import { computeFlexboxLayout } from './flexbox.js';
 import { computeGridLayout } from './grid/mod.js';
 import { computeLeafLayout } from './leaf.js';

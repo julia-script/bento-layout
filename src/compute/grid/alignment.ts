@@ -2,11 +2,11 @@
 
 import type { Rect, Size } from '../../geometry.js';
 import { maybeApplyAspectRatio, rectAdd, sumAxes } from '../../geometry.js';
-import { mClamp, vMax } from '../../math.js';
 import type { Opt } from '../../math.js';
-import { maybeResolve, maybeResolveSize, resolveOrZero } from '../../style.js';
+import { mClamp, vMax } from '../../math.js';
 import type { AlignContent, AlignContentKeyword, AlignItems, Direction, Position } from '../../style.js';
-import type { LayoutNode, Layout } from '../../tree.js';
+import { maybeResolve, maybeResolveSize, resolveOrZero } from '../../style.js';
+import type { Layout, LayoutNode } from '../../tree.js';
 import { internals } from '../../tree.js';
 import {
   applyAlignmentFallback,
@@ -15,8 +15,8 @@ import {
   resolveSelfAlignmentSafety,
 } from '../alignment.js';
 import { measureChildSizeBoth, performChildLayout } from '../dispatch.js';
-import { maybeApplyAspectRatioUsed } from './types.js';
 import type { GridTrack } from './types.js';
+import { maybeApplyAspectRatioUsed } from './types.js';
 
 const ALIGN_START: AlignItems = { keyword: 'start', safe: false };
 const ALIGN_STRETCH_LOCAL: AlignItems = { keyword: 'stretch', safe: false };
@@ -58,7 +58,7 @@ export function alignTracks(
   // Count non-collapsed tracks (not counting gutters)
   let numTracks = 0;
   for (let i = 1; i < tracks.length; i += 2) {
-    if (!tracks[i]!.isCollapsed) numTracks++;
+    if (!tracks[i]?.isCollapsed) numTracks++;
   }
 
   // Grid layout treats gaps as full tracks; gap = 0 here. Grid layout is never flex-reversed.
@@ -191,7 +191,12 @@ export function alignAndPositionItem(
   }
   // Reapply aspect ratio after stretch/absolute width adjustments (used
   // border-box values, so the transfer must respect box-sizing)
-  let size = maybeApplyAspectRatioUsed({ width, height: inherentSize.height }, aspectRatio, style.boxSizing, paddingBorderSize);
+  let size = maybeApplyAspectRatioUsed(
+    { width, height: inherentSize.height },
+    aspectRatio,
+    style.boxSizing,
+    paddingBorderSize,
+  );
 
   let height = size.height;
   if (height === null) {
@@ -365,10 +370,7 @@ export function alignItemWithinArea(
 
   let start = gridArea.start + offsetWithinArea;
   if (position === 'relative') {
-    const relativeInset =
-      direction === 'rtl'
-        ? (negate(inset.end) ?? inset.start)
-        : (inset.start ?? negate(inset.end));
+    const relativeInset = direction === 'rtl' ? (negate(inset.end) ?? inset.start) : (inset.start ?? negate(inset.end));
     start += relativeInset ?? 0;
   }
 
