@@ -1045,8 +1045,16 @@ function determineContainerMainSize(
             // size of 0 and its items' content never contributed. The general
             // path below already uses resolvedMinimumMainSize, which carries
             // the §4.5 automatic minimum.
+            //
+            // The flex base size is a floor only for an item that cannot shrink
+            // — the same test the general path applies via `flexBasisMin`.
+            // A shrinkable item gives up its basis under a min-content
+            // constraint: Chrome sizes `flex-basis: 10px` with default shrink
+            // to 0 when empty and to 24 (its text) with content, but keeps the
+            // 10 once `flex-shrink: 0`.
+            const basisFloor = child.flexShrink === 0 ? child.flexBasis : 0;
             const childMin = vMax(
-              vMax(child.flexBasis, main(child.minSize, constants.dir)),
+              vMax(basisFloor, main(child.minSize, constants.dir)),
               child.resolvedMinimumMainSize,
             );
             return sum + Math.max(childMin + rectMainAxisSum(child.margin, constants.dir), paddingBorderSum);

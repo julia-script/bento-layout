@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+  flex-wrap min-content: a shrinkable flex-basis is not a floor
+  Regenerate the XML fixtures with: pnpm gentest fuzz_wrap_mincontent_shrinkable_basis
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found conformance mismatch (fuzz_wrap_mincontent_shrinkable_basis)
+  </title>
+</head>
+<body>
+
+<div id="test-root">
+  <div style="flex-wrap: wrap;">
+    <div style="flex-basis: 10px;"></div>
+  </div>
+  <div style="flex-wrap: wrap;">
+    <div style="flex-basis: 10px; flex-shrink: 0;"></div>
+  </div>
+  <div style="flex-wrap: wrap;">
+    <div style="min-width: 5px; min-height: auto; flex-basis: 10px;"></div>
+  </div>
+</div>
+
+</body>
+</html>
