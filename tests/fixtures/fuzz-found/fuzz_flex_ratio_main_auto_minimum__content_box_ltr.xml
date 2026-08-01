@@ -1,0 +1,15 @@
+<test name="fuzz_flex_ratio_main_auto_minimum__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div box-sizing="content-box" direction="ltr" position="absolute" flex-direction="column" width="0px" aspect-ratio="1">
+      <text box-sizing="content-box" direction="ltr">
+        H
+      </text>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="0" height="10">
+      <node x="0" y="0" width="0" height="10"/>
+    </node>
+  </expectations>
+</test>

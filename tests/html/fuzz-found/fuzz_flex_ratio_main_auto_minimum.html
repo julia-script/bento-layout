@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: matrix-derived from the rehydrated 20260731 batch (mode=flex)
+  chrome: Chrome/151.0.7922.47
+  A ratio-derived automatic main size has a min-content automatic minimum.
+  The zero-width ratio source therefore produces a 10px-tall column container
+  around its 10px text item rather than fixing the container height at zero.
+  Regenerate with: pnpm gentest fuzz_flex_ratio_main_auto_minimum
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: ratio-derived flex main size has an automatic minimum</title>
+</head>
+<body>
+
+<div id="test-root" style="width: 0; height: auto; aspect-ratio: 1; flex-direction: column;">
+  <div>H</div>
+</div>
+
+</body>
+</html>

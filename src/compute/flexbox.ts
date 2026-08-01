@@ -193,6 +193,7 @@ interface AlgoConstants {
 export function computeFlexboxLayout(node: LayoutNode, inputs: LayoutInput): LayoutOutput {
   const { knownDimensions, parentSize, runMode } = inputs;
   const style = internals(node).style;
+  const dir = style.flexDirection;
 
   const aspectRatio = style.aspectRatio;
   const padding = resolveRectOrZero(style.padding, parentSize.width);
@@ -207,15 +208,10 @@ export function computeFlexboxLayout(node: LayoutNode, inputs: LayoutInput): Lay
   // Chrome for every display type, not 3x2.
   const minSize = maybeAddSize(maybeResolveSize(style.minSize, parentSize), boxSizingAdjustment);
   const maxSize = maybeAddSize(maybeResolveSize(style.maxSize, parentSize), boxSizingAdjustment);
+  const resolvedStyleSize = maybeAddSize(maybeResolveSize(style.size, parentSize), boxSizingAdjustment);
   const clampedStyleSize: Size<Opt> =
     inputs.sizingMode === 'inherent-size'
-      ? applyAspectRatioClamped(
-          maybeAddSize(maybeResolveSize(style.size, parentSize), boxSizingAdjustment),
-          minSize,
-          maxSize,
-          aspectRatio,
-          boxSizingAdjustment,
-        )
+      ? applyAspectRatioClamped(resolvedStyleSize, minSize, maxSize, aspectRatio, boxSizingAdjustment)
       : { width: null, height: null };
 
   // If both min and max in a given axis are set and max <= min then this determines the size in that axis
@@ -252,10 +248,37 @@ export function computeFlexboxLayout(node: LayoutNode, inputs: LayoutInput): Lay
       mMax(minMaxDefiniteSize.height ?? clampedStyleSize.height ?? derivedFromKnown.height, paddingBorderSum.height),
   };
 
+  // Remember when the automatic main size came from the ratio rather than the
+  // parent. CSS Sizing 4 §4.2 gives that ratio-dependent axis an automatic
+  // min-content floor; a parent-imposed flexed size must remain authoritative.
+  // Clamp the derived value on its own axis now as well: ratio transfer happens
+  // after the source axis is clamped, so an explicit min/max on the dependent
+  // axis cannot participate until after transfer.
+  const mainIsRatioDerived =
+    aspectRatio !== null &&
+    main(knownDimensions, dir) === null &&
+    main(resolvedStyleSize, dir) === null &&
+    main(styledBasedKnownDimensions, dir) !== null;
+  if (mainIsRatioDerived) {
+    setMain(
+      styledBasedKnownDimensions,
+      dir,
+      vClamp(main(styledBasedKnownDimensions, dir) ?? 0, main(minSize, dir), main(maxSize, dir)),
+    );
+  }
+  const ratioMainAutoMinApplies =
+    mainIsRatioDerived &&
+    main(minSize, dir) === null &&
+    !isScrollContainer(dirIsRow(dir) ? style.overflow.x : style.overflow.y);
+
   // Short-circuit layout if the container's size is fully determined by the container's size and the run mode
   // is ComputeSize (and thus the container's size is all that we're interested in)
   if (runMode === 'compute-size') {
-    if (styledBasedKnownDimensions.width !== null && styledBasedKnownDimensions.height !== null) {
+    if (
+      styledBasedKnownDimensions.width !== null &&
+      styledBasedKnownDimensions.height !== null &&
+      !ratioMainAutoMinApplies
+    ) {
       return fromOuterSize({ width: styledBasedKnownDimensions.width, height: styledBasedKnownDimensions.height });
     }
     // We can also short-circuit if the width is known and only the width has been requested.
@@ -264,11 +287,11 @@ export function computeFlexboxLayout(node: LayoutNode, inputs: LayoutInput): Lay
     }
   }
 
-  return computePreliminary(node, { ...inputs, knownDimensions: styledBasedKnownDimensions });
+  return computePreliminary(node, { ...inputs, knownDimensions: styledBasedKnownDimensions }, ratioMainAutoMinApplies);
 }
 
 /** Compute a preliminary size for an item */
-function computePreliminary(node: LayoutNode, inputs: LayoutInput): LayoutOutput {
+function computePreliminary(node: LayoutNode, inputs: LayoutInput, ratioMainAutoMinApplies: boolean): LayoutOutput {
   const nd = internals(node);
   const { knownDimensions: inputKnownDimensions, parentSize, availableSpace: outerAvailableSpace, runMode } = inputs;
   const knownDimensions = { ...inputKnownDimensions };
@@ -328,9 +351,39 @@ function computePreliminary(node: LayoutNode, inputs: LayoutInput): LayoutOutput
   // and then re-resolve gaps based on newly determined size
   const knownInnerMainSize = main(constants.nodeInnerSize, constants.dir);
   if (knownInnerMainSize !== null) {
-    const outerMainSize = knownInnerMainSize + rectMainAxisSum(constants.contentBoxInset, constants.dir);
-    setMain(constants.innerContainerSize, constants.dir, knownInnerMainSize);
+    const mainContentBoxInset = rectMainAxisSum(constants.contentBoxInset, constants.dir);
+    let outerMainSize = knownInnerMainSize + mainContentBoxInset;
+
+    if (ratioMainAutoMinApplies) {
+      // CSS Sizing 4 §4.2: the automatic minimum in a ratio-dependent
+      // axis is min-content (capped by max-size). Blink feeds a column flex
+      // container's `max_sum_hypothetical_main_size` to
+      // ComputeBlockSizeForFragment; its inline-size path applies the same
+      // floor for rows. Chrome, a zero-sized ratio source around one 10px text
+      // item therefore becomes 10px in the main axis, while overflow:hidden or
+      // an explicit min-size of zero leaves it at zero; max-size:5 caps it at 5.
+      const intrinsicInnerMain = flexLines.reduce((largest, line) => {
+        const itemSum = line.items.reduce((sum, item) => sum + main(item.hypotheticalOuterSize, constants.dir), 0);
+        const gapSum = sumAxisGaps(main(constants.gap, constants.dir), line.items.length);
+        return Math.max(largest, itemSum + gapSum);
+      }, 0);
+      outerMainSize = vClamp(
+        Math.max(outerMainSize, intrinsicInnerMain + mainContentBoxInset),
+        main(constants.minSize, constants.dir),
+        main(constants.maxSize, constants.dir),
+      );
+    }
+
+    const innerMainSize = Math.max(outerMainSize - mainContentBoxInset, 0);
+    setMain(constants.nodeOuterSize, constants.dir, outerMainSize);
+    setMain(constants.nodeInnerSize, constants.dir, innerMainSize);
+    setMain(constants.innerContainerSize, constants.dir, innerMainSize);
     setMain(constants.containerSize, constants.dir, outerMainSize);
+
+    // Intrinsic percentage gaps contribute zero to the floor above, then
+    // resolve against the resulting definite content box for layout.
+    const newGap = maybeResolve(main(nd.style.gap, constants.dir), innerMainSize) ?? 0;
+    setMain(constants.gap, constants.dir, newGap);
   } else {
     // Sets constants.container_size and constants.outer_container_size
     determineContainerMainSize(availableSpace, flexLines, constants);
