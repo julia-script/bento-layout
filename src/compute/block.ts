@@ -309,9 +309,11 @@ function computeInner(node: LayoutNode, inputs: LayoutInput, blockCtx: BlockCont
     knownDimensions.height ?? mMax(size.height, minSize.height) ?? minSize.height;
 
   // 3. Perform final item layout and return content height
-  const resolvedPadding = resolveRectOrZero(rawPadding, containerOuterWidth);
-  const resolvedBorder = resolveRectOrZero(rawBorder, containerOuterWidth);
-  const resolvedContentBoxInset = rectAdd(rectAdd(resolvedPadding, resolvedBorder), scrollbarGutter);
+  // Percentage padding resolves against the containing block's inline size,
+  // not this box's eventual width (css-box-3 §4). Keep the values resolved
+  // from `parentSize` above: Chrome 151 resolves 1% to 0.55px for an auto-sized
+  // 321px block in a 55px flex container, not to 3.21px from the block itself.
+  const resolvedContentBoxInset = rectAdd(rectAdd(padding, border), scrollbarGutter);
 
   const finalLayoutResult = performFinalLayoutOnInFlowChildren(
     runMode,
@@ -410,7 +412,7 @@ function computeInner(node: LayoutNode, inputs: LayoutInput, blockCtx: BlockCont
   }
 
   // 4. Layout absolutely positioned children
-  const absolutePositionInset = rectAdd(resolvedBorder, scrollbarGutter);
+  const absolutePositionInset = rectAdd(border, scrollbarGutter);
   const absolutePositionArea = {
     width: finalOuterSize.width - absolutePositionInset.left - absolutePositionInset.right,
     height: finalOuterSize.height - absolutePositionInset.top - absolutePositionInset.bottom,

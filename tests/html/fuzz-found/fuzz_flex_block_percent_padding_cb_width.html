@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, minimized from finding 212ac9c8
+  date: 2026-08-01
+  chrome: Chrome/151.0.7922.47
+  Percentage padding resolves against the containing block's inline size. The
+  block flex item is 320.55px wide because its left padding overflows a 55px
+  container, but its 1% right padding remains 0.55px; it must not be re-resolved
+  as 3.2055px against the item itself. That self-resolution shifted the nested
+  child left in RTL while LTR happened to hide the error.
+  Regenerate with: pnpm gentest fuzz_flex_block_percent_padding_cb_width
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: block flex item resolves percentage padding against its containing block
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="width: 55px; height: 17px;">
+  <div style="display: block; padding: 3px 1% 320px 320px;">
+    <div></div>
+  </div>
+</div>
+
+</body>
+</html>

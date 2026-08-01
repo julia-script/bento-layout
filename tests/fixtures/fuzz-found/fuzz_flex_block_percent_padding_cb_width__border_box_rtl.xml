@@ -1,0 +1,17 @@
+<test name="fuzz_flex_block_percent_padding_cb_width__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="rtl" position="absolute" width="55px" height="17px">
+      <div display="block" direction="rtl" padding-top="3px" padding-left="320px" padding-bottom="320px" padding-right="1%">
+        <div direction="rtl"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="55" height="17">
+      <node x="-266" y="0" width="321" height="323">
+        <node x="320" y="3" width="0" height="0"/>
+      </node>
+    </node>
+  </expectations>
+</test>
