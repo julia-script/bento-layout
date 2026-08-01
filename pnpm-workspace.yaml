@@ -1,0 +1,10 @@
+# pnpm 11 fails the install outright when a dependency's build script is
+# neither approved nor refused (ERR_PNPM_IGNORED_BUILDS), so the decision has
+# to be recorded here rather than left implicit.
+#
+# esbuild: vitest bundles the test files with it, so its binary is required.
+# puppeteer is deliberately absent — it is only used by the gentest/fuzz
+# scripts against real Chrome, never by `pnpm test`, so CI skips the ~150MB
+# Chromium download.
+onlyBuiltDependencies:
+  - esbuild
