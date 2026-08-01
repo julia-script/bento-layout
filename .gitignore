@@ -6,3 +6,8 @@ docs/next-env.d.ts
 *.tsbuildinfo
 
 .history/
+
+# Fuzz batches are regenerable (`pnpm fuzz-batch`) and run to several MB. A
+# batch is a local working target, not a shared artifact — the findings that
+# matter get promoted to fixtures under tests/fixtures/fuzz-found/ instead.
+tests/fuzz-batches/

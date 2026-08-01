@@ -71,7 +71,17 @@ pnpm fuzz-batch-status          # re-judge the batch; no browser, ~2s
 pnpm fuzz-triage '<tree-json>'  # per-node chrome-vs-engine geometry
 ```
 
-`fuzz-batch-status` clusters open findings by *where* the geometry differs, so
-the largest cluster is the highest-leverage single fix. Work top-down. Chrome's
-verdict is frozen into each finding at collection time, so a batch stays a
-fixed target while you fix against it.
+Chrome's verdict is frozen into each finding at collection time, so a batch
+stays a fixed target while you fix against it — and `fuzz-batch-status` needs no
+browser, which is what makes it usable in a tight loop.
+
+Batches are **git-ignored**: they run to several MB and are regenerable from
+their seed (`pnpm fuzz-batch --seed <n>`), so they are a local working target,
+not a shared artifact. A finding worth keeping gets promoted to a real fixture
+under `tests/fixtures/fuzz-found/` via `pnpm fuzz` + `pnpm gentest`, which is
+what actually guards against regressions.
+
+`fuzz-batch-status` clusters open findings by *where* the geometry differs
+(node paths, axes, displays). Work top-down, but **do not read cluster size as
+fix value**: clusters are heterogeneous, and a 65-finding cluster twice yielded
+only two fixes because several unrelated causes shared a node path.
