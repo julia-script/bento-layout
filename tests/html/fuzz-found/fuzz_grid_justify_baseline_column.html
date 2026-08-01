@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: justify-items/justify-self baseline column sharing group
+  date: 2026-08-01
+  chrome: Chrome/151.0.7922.47
+  Engine treated justify-*: baseline as start. In a multi-item column sharing
+  group Chrome positions from Blink's Major-group delta (trackBaseline -
+  synthesizedBaseline), reading baselines in an orthogonal writing mode
+  (vertical-lr in LTR, vertical-rl in RTL). Horizontal items always synthesize:
+  LTR → 0 (flipped-lines), RTL → border-box width, plus the block-start margin
+  in that mode. Two items of widths 30 and 20 in a 100px column under RTL both
+  land at x=70, not at start-per-item (70 and 80). LTR margin-left differences
+  shift the whole group to the max margin-left.
+  Regenerate the XML fixtures with: pnpm gentest fuzz_grid_justify_baseline_column
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: justify-items baseline aligns items in a column sharing group (fuzz_grid_justify_baseline_column)
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+  <!-- RTL-sensitive: different widths share the wider item's start edge -->
+  <div style="display: grid; grid-template-columns: 100px; justify-items: baseline;">
+    <div style="width: 30px; height: 40px;"></div>
+    <div style="width: 20px; height: 20px;"></div>
+  </div>
+  <!-- LTR-sensitive: margin-left participates in the orthogonal synth -->
+  <div style="display: grid; grid-template-columns: 100px; justify-items: baseline;">
+    <div style="width: 30px; height: 40px; margin-left: 5px;"></div>
+    <div style="width: 20px; height: 20px; margin-left: 15px;"></div>
+  </div>
+  <!-- justify-self on items, same column group -->
+  <div style="display: grid; grid-template-columns: 100px;">
+    <div style="width: 30px; height: 40px; justify-self: baseline;"></div>
+    <div style="width: 20px; height: 20px; justify-self: baseline;"></div>
+  </div>
+</div>
+
+</body>
+</html>
