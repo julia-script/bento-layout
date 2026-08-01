@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Automatic cross margin disables flex baseline alignment</title>
+</head>
+<body>
+
+<div id="test-root" style="width: 120px; height: 0; align-items: baseline;">
+  <div style="margin: auto 60% 3px 1px; padding: 120px 10px 7px 200px;"></div>
+  <div></div>
+</div>
+
+</body>
+</html>

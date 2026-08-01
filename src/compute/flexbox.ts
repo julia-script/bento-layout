@@ -580,6 +580,20 @@ function generateAnonymousFlexItems(node: LayoutNode, constants: AlgoConstants):
     const border = resolveRectOrZero(childStyle.border, constants.nodeInnerSize.width);
     const pbSum = sumAxes(rectAdd(padding, border));
     const boxSizingAdjustment = childStyle.boxSizing === 'content-box' ? pbSum : sizeZero();
+    const marginIsAuto = {
+      left: childStyle.margin.left === 'auto',
+      right: childStyle.margin.right === 'auto',
+      top: childStyle.margin.top === 'auto',
+      bottom: childStyle.margin.bottom === 'auto',
+    };
+    const specifiedAlignSelf = childStyle.alignSelf ?? constants.alignItems;
+    // An auto cross-axis margin makes align-self ineffective (css-flexbox-1
+    // §8.1). Blink resolves the item's alignment to flex-start at this point,
+    // before baseline groups and stretch sizing are constructed.
+    const alignSelf: AlignItems =
+      rectCrossStart(marginIsAuto, constants.dir) || rectCrossEnd(marginIsAuto, constants.dir)
+        ? { keyword: 'flex-start', safe: false }
+        : specifiedAlignSelf;
     items.push({
       node: child,
       order: index,
@@ -593,15 +607,10 @@ function generateAnonymousFlexItems(node: LayoutNode, constants: AlgoConstants):
 
       inset: maybeResolveRectPerAxis(childStyle.inset, constants.nodeInnerSize),
       margin: resolveRectOrZero(childStyle.margin, constants.nodeInnerSize.width),
-      marginIsAuto: {
-        left: childStyle.margin.left === 'auto',
-        right: childStyle.margin.right === 'auto',
-        top: childStyle.margin.top === 'auto',
-        bottom: childStyle.margin.bottom === 'auto',
-      },
+      marginIsAuto,
       padding,
       border,
-      alignSelf: childStyle.alignSelf ?? constants.alignItems,
+      alignSelf,
       overflow: { ...childStyle.overflow },
       scrollbarWidth: childStyle.scrollbarWidth,
       flexGrow: childStyle.flexGrow,

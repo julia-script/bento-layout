@@ -1,0 +1,15 @@
+<test name="flex_auto_cross_margin_disables_baseline_alignment__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="rtl" position="absolute" align-items="baseline" width="120px" height="0px">
+      <div direction="rtl" margin-top="auto" margin-left="1px" margin-bottom="3px" margin-right="60%" padding-top="120px" padding-left="200px" padding-bottom="7px" padding-right="10px"/>
+      <div direction="rtl"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="120" height="0">
+      <node x="-162" y="0" width="210" height="127"/>
+      <node x="-163" y="0" width="0" height="0"/>
+    </node>
+  </expectations>
+</test>
