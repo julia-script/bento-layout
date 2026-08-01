@@ -15,7 +15,8 @@ const SEED = `<Layout>
 </Layout>`;
 
 export const metadata: Metadata = {
-  title: 'Playground | bento-layout',
+  // Bare title; the root layout's template appends "| bento-layout".
+  title: 'Playground',
   description: 'Edit a layout tree and see bento-layout lay it out.',
 };
 
