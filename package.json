@@ -1,10 +1,30 @@
 {
   "name": "bento-layout",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.1.1",
   "description": "Lightweight CSS flexbox, grid, and block layout engine in plain TypeScript — no WASM, no dependencies",
   "type": "module",
   "license": "MIT",
+  "author": "Julia Ortiz <contato@juliaortiz.com.br>",
+  "homepage": "https://bento.jlort.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/julia-script/bento-layout.git"
+  },
+  "bugs": {
+    "url": "https://github.com/julia-script/bento-layout/issues"
+  },
+  "keywords": [
+    "flexbox",
+    "grid",
+    "block-layout",
+    "layout",
+    "layout-engine",
+    "css",
+    "typescript",
+    "zero-dependency",
+    "taffy",
+    "yoga"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

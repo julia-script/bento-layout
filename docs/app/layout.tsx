@@ -1,6 +1,43 @@
 import './global.css';
 import { RootProvider } from 'fumadocs-ui/provider/next';
+import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
+
+const SITE = 'https://bento.jlort.com';
+const DESCRIPTION =
+  'A layout engine for TypeScript: style data in, pixel positions out. Flexbox, grid, and block layout with no WASM, no async loader, and no dependencies.';
+
+// metadataBase is what makes the OG image URLs absolute. Without it Next emits
+// root-relative paths and most link-preview scrapers reject them, which fails
+// silently — the tags are present, the card is blank.
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE),
+  title: {
+    // Pages set a bare title ("Getting Started"); this appends the project.
+    template: '%s | bento-layout',
+    default: 'bento-layout — flexbox, grid & block layout in plain TypeScript',
+  },
+  description: DESCRIPTION,
+  applicationName: 'bento-layout',
+  openGraph: {
+    type: 'website',
+    siteName: 'bento-layout',
+    url: SITE,
+    title: 'bento-layout — flexbox, grid & block layout in plain TypeScript',
+    description: DESCRIPTION,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'bento-layout — flexbox, grid & block layout in plain TypeScript',
+    description: DESCRIPTION,
+  },
+};
+
+// Paper token from global.css, so the browser chrome matches the page rather
+// than defaulting to white. Light-only: the site forces one scheme.
+export const viewport: Viewport = {
+  themeColor: 'hsl(40, 45%, 97%)',
+};
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
@@ -15,7 +52,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           precedence="default"
           href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600&display=swap"
         />
-        <RootProvider>{children}</RootProvider>
+        {/* Light-only. The provider stays enabled — `enabled: false` skips
+            ThemeProvider entirely, which would drop forcedTheme with it. */}
+        <RootProvider theme={{ forcedTheme: 'light', enableSystem: false, hotKey: false }}>
+          {children}
+        </RootProvider>
       </body>
     </html>
   );

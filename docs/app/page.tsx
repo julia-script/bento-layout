@@ -8,7 +8,9 @@ import { Reveal } from '@/components/landing/Reveal';
 import { BentoMark, SiteNav } from '@/components/landing/SiteNav';
 
 export const metadata: Metadata = {
-  title: 'bento-layout — flexbox, grid & block layout in plain TypeScript',
+  // absolute: the title already names the project, so skip the root template's
+  // "| bento-layout" suffix rather than repeating it.
+  title: { absolute: 'bento-layout — flexbox, grid & block layout in plain TypeScript' },
   description:
     'A layout engine for TypeScript: style data in, pixel positions out. No WASM, no async loader, no node lifecycles. Verified against Chrome.',
 };
@@ -90,8 +92,7 @@ const FACTS: { n: string; label: string }[] = [
 export default async function HomePage() {
   const code = await highlight(SNIPPET, {
     lang: 'typescript',
-    themes: { light: 'github-light', dark: 'github-dark' },
-    defaultColor: false,
+    theme: 'github-light',
   });
 
   return (

@@ -1,0 +1,76 @@
+# Publishes bento-layout to npm via Trusted Publishing (GitHub Actions OIDC).
+#
+# There is no NPM_TOKEN. npm exchanges this workflow's short-lived OIDC token
+# for publish rights, which also produces a provenance attestation tying the
+# tarball to the commit and run below.
+#
+# The npm-side Trusted Publisher is bound to this exact filename
+# (release.yml) and to julia-script/bento-layout. Renaming this file breaks
+# publishing until the publisher config is updated to match.
+name: release
+
+# Tag-triggered, not push-to-main: publishing is an explicit, auditable act,
+# and ordinary commits must never publish.
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      # Required for the OIDC exchange. Without it npm falls back to looking
+      # for a token and the publish fails.
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: 'https://registry.npmjs.org'
+
+      # Trusted Publishing needs npm >= 11.5.1. Older npm silently ignores the
+      # OIDC flow, so assert loudly here rather than failing obscurely later.
+      - name: Verify npm supports Trusted Publishing
+        run: |
+          npm install -g npm@latest
+          V="$(npm --version)"
+          echo "npm $V"
+          node -e '
+            const v = process.argv[1];
+            const [maj, min, patch] = v.split(".").map(Number);
+            const ok = maj > 11 || (maj === 11 && (min > 5 || (min === 5 && patch >= 1)));
+            if (!ok) { console.error(`npm ${v} < 11.5.1 — Trusted Publishing unsupported`); process.exit(1); }
+            console.log(`npm ${v} supports Trusted Publishing`);
+          ' "$V"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Release gates. A failure in any of these stops the job before publish.
+      - name: Build
+        run: pnpm build
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      # Recorded in the run log so the published contents are auditable after
+      # the fact.
+      - name: Inspect tarball contents
+        run: npm pack --dry-run
+
+      # Must be npm, not pnpm: pnpm's publish path does not perform the OIDC
+      # exchange and would fail to authenticate.
+      - name: Publish to npm
+        run: npm publish --provenance --access public

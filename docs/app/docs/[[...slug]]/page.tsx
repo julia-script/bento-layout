@@ -39,8 +39,23 @@ export async function generateMetadata(props: {
   const page = source.getPage(params.slug);
   if (!page) notFound();
 
+  // Each page's own card, built by app/docs-og/[...slug]/route.tsx. Resolved
+  // against metadataBase in the root layout, so scrapers get absolute URLs.
+  const image = `/docs-og/${[...(params.slug ?? []), 'image.png'].join('/')}`;
+
   return {
     title: page.data.title,
     description: page.data.description,
+    openGraph: {
+      title: page.data.title,
+      description: page.data.description,
+      images: image,
+    },
+    twitter: {
+      card: 'summary_large_image' as const,
+      title: page.data.title,
+      description: page.data.description,
+      images: image,
+    },
   };
 }
