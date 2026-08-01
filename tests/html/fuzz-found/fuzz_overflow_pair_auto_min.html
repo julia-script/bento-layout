@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, minimized from finding 674c8c04
+  date: 2026-08-01
+  chrome: Chrome/151.0.7922.47
+  Grid §6.6 and Flexbox §4.5 use the computed overflow value when deciding
+  whether an automatic minimum is content-based. If either specified axis is
+  hidden/scroll, visible or clip on the other axis computes to a scrollable
+  value too. This makes the grid item 4px tall and lets the flex item shrink
+  from its 120px min-content width to 20px.
+  Regenerate with: pnpm gentest fuzz_overflow_pair_auto_min
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: automatic minimum sizes use the computed overflow pair</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block; width: 120px;">
+  <div style="display: grid; height: 10px; grid-template-rows: fit-content(40%);">
+    <div style="overflow-x: hidden; overflow-y: clip;">HHHH&#8203;HHHHH&#8203;HHH</div>
+  </div>
+  <div style="display: flex; width: 20px; height: 20px;">
+    <div style="overflow-x: clip; overflow-y: hidden;">HHHHHHHHHHHH</div>
+  </div>
+</div>
+
+</body>
+</html>

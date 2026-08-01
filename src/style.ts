@@ -1049,8 +1049,17 @@ export function maybeResolveRectPerAxis(r: Rect<LengthPercentageAuto>, context: 
 
 export const isScrollContainer = (o: Overflow): boolean => o === 'hidden' || o === 'scroll';
 
-/** Overflow::maybe_into_automatic_min_size */
-export const overflowAutoMinSize = (o: Overflow): Opt => (isScrollContainer(o) ? 0 : null);
+/**
+ * Automatic minimum implied by the computed overflow pair.
+ *
+ * CSS Grid §6.6 and Flexbox §4.5 test the computed overflow value. When
+ * one specified axis is `hidden`/`scroll`, a `visible` or `clip` value on the
+ * other axis computes to a scrollable value too. Chrome 151 therefore shrinks
+ * a row flex item with `overflow: { x: 'clip', y: 'hidden' }` to 20px where
+ * its min-content width is 120px.
+ */
+export const overflowAutoMinSize = (overflow: Point<Overflow>): Opt =>
+  isScrollContainer(overflow.x) || isScrollContainer(overflow.y) ? 0 : null;
 
 // --- AvailableSpace helpers (port of style/available_space.rs + math impls)
 

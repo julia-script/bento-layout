@@ -920,9 +920,7 @@ function determineFlexBaseSize(
 
     // Note: the `parent_size` in the main axis is deliberately not set (percentage size in an
     // axis should not contribute to a min-content contribution in that same axis).
-    const styleMinMainSize =
-      main(child.minSize, dir) ??
-      main({ width: overflowAutoMinSize(child.overflow.x), height: overflowAutoMinSize(child.overflow.y) }, dir);
+    const styleMinMainSize = main(child.minSize, dir) ?? overflowAutoMinSize(child.overflow);
 
     child.resolvedMinimumMainSize =
       styleMinMainSize ??
@@ -988,21 +986,9 @@ function determineFlexBaseSize(
         // is wrong here: `child.size` already carries the ratio-derived value,
         // so a 0 content size erases the transferred suggestion entirely and
         // the item shrinks past its ratio.
-        // A non-visible overflow on the *cross* axis removes the transferred
-        // suggestion: the suggestion exists to keep content in ratio, and an
-        // axis that clips has no content to preserve (css-flexbox §4.5 gives a
-        // scroll container an automatic minimum of zero). The axis that matters
-        // is the one the size transfers *from* — Chrome, `aspect-ratio: 2` in a
-        // 20x97 row, is 20 wide with `overflow-y: hidden` but 194 with
-        // `overflow-x: hidden`, and this suppressed neither.
-        const crossOverflowClips =
-          cross(
-            { width: overflowAutoMinSize(child.overflow.x), height: overflowAutoMinSize(child.overflow.y) },
-            dir,
-          ) !== null;
         const definiteCross = cross(childKnownDimensions, dir) ?? cross(child.minSize, dir);
         const transferredMain =
-          child.aspectRatio !== null && definiteCross !== null && !crossOverflowClips
+          child.aspectRatio !== null && definiteCross !== null
             ? transferThroughRatio(definiteCross, child, dir, 'cross-to-main')
             : null;
         // The cap is the *specified* main size, and it has to be compared in
@@ -1177,10 +1163,7 @@ function determineContainerMainSize(
             // to 0 when empty and to 24 (its text) with content, but keeps the
             // 10 once `flex-shrink: 0`.
             const basisFloor = child.flexShrink === 0 ? child.flexBasis : 0;
-            const childMin = vMax(
-              vMax(basisFloor, main(child.minSize, constants.dir)),
-              child.resolvedMinimumMainSize,
-            );
+            const childMin = vMax(vMax(basisFloor, main(child.minSize, constants.dir)), child.resolvedMinimumMainSize);
             return sum + Math.max(childMin + rectMainAxisSum(child.margin, constants.dir), paddingBorderSum);
           }, 0);
           return Math.max(acc, totalTargetSize + lineMainAxisGap);

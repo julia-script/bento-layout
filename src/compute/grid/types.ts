@@ -932,7 +932,7 @@ export function itemMinimumContribution(
       ),
       axis,
     ) ??
-    overflowAutoMinSize(absGet({ width: item.overflow.x, height: item.overflow.y }, axis));
+    overflowAutoMinSize(item.overflow);
 
   if (size === null) {
     // Automatic minimum size. See https://www.w3.org/TR/css-grid-1/#min-size-auto
