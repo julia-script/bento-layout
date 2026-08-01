@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: batch seed=20260731, finding=b7841991 (mode=grid)
+  chrome: Chrome/151.0.7922.47
+  Aspect-ratio min-size transfers apply only to an indefinite destination
+  constraint. The first item therefore keeps its definite 1px width instead of
+  accepting 97px * .5; the second accepts that transfer because width is auto,
+  but caps it at its definite 20px max-width.
+  Regenerate with: pnpm gentest fuzz_grid_ratio_min_transfer_constraints
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: grid ratio min-size transfers respect destination constraints</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; grid-template-columns: auto auto;">
+  <div style="width: 1px; height: 3px; min-height: 97px; aspect-ratio: 0.5;"></div>
+  <div style="width: auto; height: 3px; min-height: 97px; max-width: 20px; aspect-ratio: 0.5;"></div>
+</div>
+
+</body>
+</html>

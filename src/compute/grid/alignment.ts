@@ -130,7 +130,9 @@ export function alignAndPositionItem(
 
   const resolvedStyleSize = maybeResolveSize(style.size, gridAreaSize);
   const inherentSize = maybeAddSize(maybeApplyAspectRatio(resolvedStyleSize, aspectRatio), boxSizingAdjustment);
-  const minSizeRaw = maybeAddSize(maybeResolveSize(style.minSize, gridAreaSize), boxSizingAdjustment);
+  const resolvedMinSize = maybeResolveSize(style.minSize, gridAreaSize);
+  const resolvedMaxSize = maybeResolveSize(style.maxSize, gridAreaSize);
+  const minSizeRaw = maybeAddSize(resolvedMinSize, boxSizingAdjustment);
   const minSizeBase = {
     width: vMax(minSizeRaw.width ?? paddingBorderSize.width, paddingBorderSize.width),
     height: vMax(minSizeRaw.height ?? paddingBorderSize.height, paddingBorderSize.height),
@@ -142,13 +144,15 @@ export function alignAndPositionItem(
   // same padding/border minima transfer back to themselves.
   const minSize = transferMinSizeThroughAspectRatio(
     minSizeBase,
+    resolvedMinSize,
     resolvedStyleSize,
+    resolvedMaxSize,
     aspectRatio,
     style.boxSizing,
     paddingBorderSize,
   );
   const maxSize = transferMaxSizeThroughAspectRatio(
-    maybeResolveSize(style.maxSize, gridAreaSize),
+    resolvedMaxSize,
     resolvedStyleSize,
     minSize,
     aspectRatio,

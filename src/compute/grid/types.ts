@@ -642,7 +642,9 @@ export function maybeApplyAspectRatioUsed(
 /** css-sizing-4 §4.4 min-size transfers for a box with a preferred ratio. */
 export function transferMinSizeThroughAspectRatio(
   minSize: Size<number>,
+  resolvedMinSize: Size<Opt>,
   resolvedStyleSize: Size<Opt>,
+  resolvedMaxSize: Size<Opt>,
   aspectRatio: number | null,
   boxSizing: BoxSizing,
   paddingBorderSize: Size<number>,
@@ -659,9 +661,17 @@ export function transferMinSizeThroughAspectRatio(
     boxSizing,
     paddingBorderSize,
   );
+  const boxSizingAdjustment = boxSizing === 'content-box' ? paddingBorderSize : { width: 0, height: 0 };
+  const maxSize = maybeAddSize(resolvedMaxSize, boxSizingAdjustment);
   return {
-    width: resolvedStyleSize.width === null ? Math.max(minSize.width, fromHeight.width ?? 0) : minSize.width,
-    height: resolvedStyleSize.height === null ? Math.max(minSize.height, fromWidth.height ?? 0) : minSize.height,
+    width:
+      resolvedStyleSize.width === null && resolvedMinSize.width === null
+        ? Math.max(minSize.width, Math.min(fromHeight.width ?? 0, maxSize.width ?? Infinity))
+        : minSize.width,
+    height:
+      resolvedStyleSize.height === null && resolvedMinSize.height === null
+        ? Math.max(minSize.height, Math.min(fromWidth.height ?? 0, maxSize.height ?? Infinity))
+        : minSize.height,
   };
 }
 
@@ -700,19 +710,23 @@ function itemKnownDimensions(item: GridItem, gridAreaSize: Size<Opt>): Size<Opt>
   const boxSizingAdjustment = item.boxSizing === 'content-box' ? paddingBorderSize : { width: 0, height: 0 };
   const resolvedStyleSize = maybeResolveSize(item.size, gridAreaSize);
   const inherentSize = maybeAddSize(maybeApplyAspectRatio(resolvedStyleSize, aspectRatio), boxSizingAdjustment);
-  const minSizeRaw = maybeAddSize(maybeResolveSize(item.minSize, gridAreaSize), boxSizingAdjustment);
+  const resolvedMinSize = maybeResolveSize(item.minSize, gridAreaSize);
+  const resolvedMaxSize = maybeResolveSize(item.maxSize, gridAreaSize);
+  const minSizeRaw = maybeAddSize(resolvedMinSize, boxSizingAdjustment);
   const minSize = transferMinSizeThroughAspectRatio(
     {
       width: Math.max(minSizeRaw.width ?? paddingBorderSize.width, paddingBorderSize.width),
       height: Math.max(minSizeRaw.height ?? paddingBorderSize.height, paddingBorderSize.height),
     },
+    resolvedMinSize,
     resolvedStyleSize,
+    resolvedMaxSize,
     aspectRatio,
     item.boxSizing,
     paddingBorderSize,
   );
   const maxSize = transferMaxSizeThroughAspectRatio(
-    maybeResolveSize(item.maxSize, gridAreaSize),
+    resolvedMaxSize,
     resolvedStyleSize,
     minSize,
     aspectRatio,
@@ -916,23 +930,22 @@ export function itemMinimumContribution(
   const border = resolveGridInsets(item.border, gridAreaSize.width);
   const paddingBorderSize = sumAxes(rectAdd(padding, border));
   const boxSizingAdjustment = item.boxSizing === 'content-box' ? paddingBorderSize : { width: 0, height: 0 };
+  const resolvedStyleSize = maybeResolveSize(item.size, gridAreaSize);
+  const resolvedMinSize = maybeResolveSize(item.minSize, gridAreaSize);
+  const resolvedMaxSize = maybeResolveSize(item.maxSize, gridAreaSize);
+  const preferredSize = maybeAddSize(maybeApplyAspectRatio(resolvedStyleSize, item.aspectRatio), boxSizingAdjustment);
+  const minimumSize = maybeAddSize(resolvedMinSize, boxSizingAdjustment);
+  const maximumSize = maybeAddSize(resolvedMaxSize, boxSizingAdjustment);
+  const transferredMinimumSize = maybeAddSize(
+    maybeApplyAspectRatio(resolvedMinSize, item.aspectRatio),
+    boxSizingAdjustment,
+  );
+  const transferredMaximumSize = maybeAddSize(
+    maybeApplyAspectRatio(resolvedMaxSize, item.aspectRatio),
+    boxSizingAdjustment,
+  );
 
-  let size =
-    absGet(
-      maybeAddSize(
-        maybeApplyAspectRatio(maybeResolveSize(item.size, gridAreaSize), item.aspectRatio),
-        boxSizingAdjustment,
-      ),
-      axis,
-    ) ??
-    absGet(
-      maybeAddSize(
-        maybeApplyAspectRatio(maybeResolveSize(item.minSize, gridAreaSize), item.aspectRatio),
-        boxSizingAdjustment,
-      ),
-      axis,
-    ) ??
-    overflowAutoMinSize(item.overflow);
+  let size = absGet(preferredSize, axis) ?? absGet(transferredMinimumSize, axis) ?? overflowAutoMinSize(item.overflow);
 
   if (size === null) {
     // Automatic minimum size. See https://www.w3.org/TR/css-grid-1/#min-size-auto
@@ -957,20 +970,27 @@ export function itemMinimumContribution(
   // (and 20 when a `min-width: 20px` overrides the max). The content-based
   // branch above measures with the clamp already applied, so re-clamping it
   // here is a no-op for that path.
-  const minSize = absGet(
-    maybeAddSize(
-      maybeApplyAspectRatio(maybeResolveSize(item.minSize, gridAreaSize), item.aspectRatio),
-      boxSizingAdjustment,
-    ),
-    axis,
-  );
-  const maxSize = absGet(
-    maybeAddSize(
-      maybeApplyAspectRatio(maybeResolveSize(item.maxSize, gridAreaSize), item.aspectRatio),
-      boxSizingAdjustment,
-    ),
-    axis,
-  );
+  const preferredAxisSize = absGet(preferredSize, axis);
+  const minimumAxisSize = absGet(minimumSize, axis);
+  const maximumAxisSize = absGet(maximumSize, axis);
+  const transferredMinimumAxisSize = absGet(transferredMinimumSize, axis);
+  const transferredMaximumAxisSize = absGet(transferredMaximumSize, axis);
+
+  // Transferred constraints apply only to an indefinite destination and are
+  // bounded by definite constraints already present in that axis (CSS Sizing 4
+  // §4.4). Chrome keeps a grid item's `width: 1px` contribution at 1px when
+  // `min-height: 97px; aspect-ratio: .5` would otherwise transfer 48.5px; with
+  // `width: auto; max-width: 20px`, the same transfer is capped at 20px.
+  const transferredMinConstraint =
+    minimumAxisSize === null && preferredAxisSize === null && transferredMinimumAxisSize !== null
+      ? Math.min(transferredMinimumAxisSize, maximumAxisSize ?? Infinity)
+      : null;
+  const minSize = minimumAxisSize ?? transferredMinConstraint;
+  const transferredMaxConstraint =
+    maximumAxisSize === null && preferredAxisSize === null && transferredMaximumAxisSize !== null
+      ? Math.max(transferredMaximumAxisSize, minimumAxisSize ?? 0, minSize ?? 0)
+      : null;
+  const maxSize = maximumAxisSize ?? transferredMaxConstraint;
   size = vClamp(size, minSize, maxSize);
 
   // The size suggestion is additionally clamped by the maximum size in the affected axis.
