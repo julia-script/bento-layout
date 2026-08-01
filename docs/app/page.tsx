@@ -104,7 +104,9 @@ export default async function HomePage() {
         <div className="relative z-10 mx-auto grid max-w-6xl items-center gap-12 px-6 pb-20 pt-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-10 lg:pt-16">
           <div>
             <p className="ld-rise text-sm tracking-widest text-fd-primary" style={{ ['--rise' as string]: 0 }}>
-              層 · A LAYOUT ENGINE FOR TYPESCRIPT
+              {/* "layer" — the stacking this engine does, and a stroke pattern
+                  that reads as stacked even if you cannot read it. */}
+              <span lang="ja">層</span> · A LAYOUT ENGINE FOR TYPESCRIPT
             </p>
             <h1
               className="ld-display ld-rise mt-4 text-balance text-4xl leading-tight text-fd-foreground sm:text-5xl"
@@ -273,6 +275,15 @@ export default async function HomePage() {
           <p className="mx-auto mt-3 max-w-md text-fd-muted-foreground">
             One import, zero dependencies, layout on the next line.
           </p>
+          {/* Said just before you start eating. Romaji only — glossing the
+              meaning would be explaining the joke. */}
+          <p className="mt-6 text-sm text-fd-muted-foreground">
+            <span lang="ja" className="ld-display text-base text-fd-foreground">
+              いただきます
+            </span>
+            <span className="mx-2 opacity-50">·</span>
+            itadakimasu
+          </p>
           <div className="mt-8 flex justify-center gap-4">
             <Link
               href="/docs"
@@ -295,6 +306,11 @@ export default async function HomePage() {
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-8 text-sm text-fd-muted-foreground">
           <span className="flex items-center gap-2">
             <BentoMark className="opacity-70" />
+            {/* The name, in the characters it comes from. */}
+            <span lang="ja" className="ld-display text-fd-foreground">
+              弁当
+            </span>
+            <span className="opacity-50">·</span>
             bento-layout · MIT
           </span>
           <span className="flex gap-6">
