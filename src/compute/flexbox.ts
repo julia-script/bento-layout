@@ -1290,7 +1290,13 @@ function determineContainerMainSize(
               // 40px of text with `flex-basis: 20px; flex: 0 1`, contributes
               // its full 28.89 when overflow is visible but exactly the 20px
               // cap once the item scrolls or clips.
-              contentContribution = vClamp(contentMainSize, minMainSize, maxMainSize);
+              // Blink adds the main-axis margins only after choosing and
+              // clamping the item's border-box contribution. Clamping the
+              // already-outer size lets a large end margin disappear behind
+              // a small flex-basis cap: an empty item with `flex-basis: 7px`
+              // and 203px of horizontal margins contributes 203px, not 7px.
+              const marginSum = rectMainAxisSum(item.margin, constants.dir);
+              contentContribution = vClamp(contentMainSize - marginSum, minMainSize, maxMainSize) + marginSum;
             } else {
               // With an explicit `flex-basis`, the style main size is the §4.5
               // *specified size suggestion*: it caps the content-based minimum
