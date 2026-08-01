@@ -714,9 +714,20 @@ function determineFlexBaseSize(
       //    Chrome and was 0 here.
       const mainSize = main(child.size, dir);
       const crossKnown = cross(childKnownDimensions, dir);
+      // A cross *min*-size is just as definite a source for the transfer as a
+      // cross size, and it is the only one left when the item has no cross size
+      // and nothing stretches it. The measure below cannot recover it: it runs
+      // in `content-size` mode, which by protocol nulls the item's own ratio and
+      // min/max styles, so the item would report its content (0) and the
+      // container's contribution would lose the ratio entirely. Chrome, a row
+      // item whose only styles are `min-height: 200; aspect-ratio: 2`: the
+      // container is 400 wide, not 0. `min-width` needs no such case — the main
+      // axis floors the basis through `resolvedMinimumMainSize` below.
+      const crossMin = cross(child.minSize, dir);
+      const transferSource = crossKnown ?? crossMin;
       const transferredMain =
-        mainSize === null && child.aspectRatio !== null && crossKnown !== null
-          ? transferThroughRatio(crossKnown, child, dir, 'cross-to-main')
+        mainSize === null && child.aspectRatio !== null && transferSource !== null
+          ? transferThroughRatio(transferSource, child, dir, 'cross-to-main')
           : null;
       const definiteFlexBasis = flexBasis ?? mainSize ?? transferredMain;
       if (definiteFlexBasis !== null) return definiteFlexBasis;
@@ -981,7 +992,16 @@ function determineContainerMainSize(
           const stylePreferred = main(item.size, constants.dir);
           const styleMax = main(item.maxSize, constants.dir);
 
-          const clampingBasis = mMax(item.flexBasis, stylePreferred);
+          // An explicit `flex-basis` *replaces* the style main size as the flex
+          // base size (css-flexbox §9.2.3), so it also replaces it when capping
+          // the contribution — raising the cap to the style size would report a
+          // size the item can never reach. Chrome, a row item with
+          // `width: 120; flex-basis: 17` (shrink 1, grow 0): max-content is 17,
+          // not 120; same in a column with `height: 120; flex-basis: 17`.
+          // Only when the basis is *not* explicit does the style size stand in.
+          const clampingBasis = item.flexBasisIsExplicit
+            ? item.flexBasis
+            : mMax(item.flexBasis, stylePreferred);
           // In a column with an explicit `flex-basis`, the style main size is
           // the §4.5 *specified size suggestion* — a cap on the automatic
           // minimum, never a floor. Both WPT siblings state it as a min():
