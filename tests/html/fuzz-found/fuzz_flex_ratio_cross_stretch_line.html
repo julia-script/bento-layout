@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: batch seed=20260731, finding=3044aa6b (mode=flex)
+  chrome: Chrome/151.0.7922.47
+  A flex container with a definite width and aspect ratio keeps its 2px
+  ratio-derived cross size. Its default-stretched text child is laid out into
+  that line and overflows rather than growing the container to its 10px
+  intrinsic height.
+  Regenerate with: pnpm gentest fuzz_flex_ratio_cross_stretch_line
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: ratio-derived flex cross size contains stretch</title>
+</head>
+<body>
+
+<div id="test-root" style="width: 1px; height: auto; aspect-ratio: 0.5;">
+  <div>H</div>
+</div>
+
+</body>
+</html>

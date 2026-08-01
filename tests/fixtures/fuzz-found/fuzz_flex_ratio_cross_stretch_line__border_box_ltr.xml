@@ -1,0 +1,15 @@
+<test name="fuzz_flex_ratio_cross_stretch_line__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="ltr" position="absolute" width="1px" aspect-ratio="0.5">
+      <text direction="ltr">
+        H
+      </text>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="1" height="2">
+      <node x="0" y="0" width="10" height="2"/>
+    </node>
+  </expectations>
+</test>

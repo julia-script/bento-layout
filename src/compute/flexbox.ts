@@ -1914,18 +1914,78 @@ function determineUsedCrossSize(flexLines: FlexLine[], constants: AlgoConstants)
       );
     }
 
-    // Blink treats an aspect-ratio container with an automatic cross minimum
-    // as cross-indefinite, and relays out a row when an item's used margin box
-    // expands it (FlexLayoutAlgorithm::GiveItemsFinalPositionAndSize). Do this
-    // before cross-axis alignment so both the container size and item offsets
-    // see the enlarged line. Chrome, a 200x50 ratio container around a
-    // stretched item with 100px top padding, grows the line and container to
-    // 100px; the same item without that inset remains 50px.
+    // Blink treats the ratio-derived cross size as the size of a definite
+    // single line: ordinary stretched content is laid out into it and may
+    // overflow, but does not enlarge it. Non-stretched items and hard stretch
+    // floors (min-size, padding/border, margins) can still grow the line.
+    // Chrome, `width: 1px; aspect-ratio: .5` around a stretched 10px-high text
+    // item stays 1x2; `align-items: flex-start` grows to 10px, and a stretched
+    // item with `min-height: 20px` grows to 20px. This mirrors Blink's
+    // GiveItemsFinalPositionAndSize guard for a definite single-line cross size.
     if (constants.crossIsRatioDerived) {
-      line.crossSize = line.items.reduce(
-        (lineExtent, item) => Math.max(lineExtent, cross(item.outerTargetSize, constants.dir)),
-        line.crossSize,
+      const ratioOuterCross = vClamp(
+        cross(constants.nodeOuterSize, constants.dir) ?? 0,
+        cross(constants.minSize, constants.dir),
+        cross(constants.maxSize, constants.dir),
       );
+      const ratioInnerCross = Math.max(ratioOuterCross - rectCrossAxisSum(constants.contentBoxInset, constants.dir), 0);
+      line.crossSize = line.items.reduce((lineExtent, item) => {
+        const itemStyle = internals(item.node).style;
+        const stretches =
+          item.alignSelf.keyword === 'stretch' &&
+          !item.alignSelf.safe &&
+          !rectCrossStart(item.marginIsAuto, constants.dir) &&
+          !rectCrossEnd(item.marginIsAuto, constants.dir) &&
+          cross(itemStyle.size, constants.dir) === 'auto';
+        if (!stretches) return Math.max(lineExtent, cross(item.outerTargetSize, constants.dir));
+
+        const hardFloor =
+          Math.max(
+            cross(item.minSize, constants.dir) ?? 0,
+            rectCrossAxisSum(rectAdd(item.padding, item.border), constants.dir),
+          ) + rectCrossAxisSum(item.margin, constants.dir);
+        return Math.max(lineExtent, hardFloor);
+      }, ratioInnerCross);
+
+      // The first pass above sized stretch targets from the intrinsic line.
+      // Reapply stretch against the ratio-derived line we just rebuilt; Blink
+      // likewise lays final children out with the definite line cross size.
+      for (const item of line.items) {
+        const itemStyle = internals(item.node).style;
+        const stretches =
+          item.alignSelf.keyword === 'stretch' &&
+          !item.alignSelf.safe &&
+          !rectCrossStart(item.marginIsAuto, constants.dir) &&
+          !rectCrossEnd(item.marginIsAuto, constants.dir) &&
+          cross(itemStyle.size, constants.dir) === 'auto';
+        if (!stretches) continue;
+
+        const padding = resolveRectOrZero(itemStyle.padding, constants.nodeInnerSize.width);
+        const border = resolveRectOrZero(itemStyle.border, constants.nodeInnerSize.width);
+        const pbSum = sumAxes(rectAdd(padding, border));
+        const boxSizingAdjustment = itemStyle.boxSizing === 'content-box' ? pbSum : sizeZero();
+        const maxSizeIgnoringAspectRatio = maybeAddSize(
+          maybeResolveSize(itemStyle.maxSize, constants.nodeInnerSize),
+          boxSizingAdjustment,
+        );
+        setCross(
+          item.targetSize,
+          constants.dir,
+          Math.max(
+            vClamp(
+              line.crossSize - rectCrossAxisSum(item.margin, constants.dir),
+              cross(item.minSize, constants.dir),
+              cross(maxSizeIgnoringAspectRatio, constants.dir),
+            ),
+            rectCrossAxisSum(rectAdd(item.padding, item.border), constants.dir),
+          ),
+        );
+        setCross(
+          item.outerTargetSize,
+          constants.dir,
+          cross(item.targetSize, constants.dir) + rectCrossAxisSum(item.margin, constants.dir),
+        );
+      }
     }
   }
 }
