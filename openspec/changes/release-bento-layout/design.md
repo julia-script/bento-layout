@@ -227,6 +227,29 @@ project can be deleted, the domain detached, the repo made private, and the tag 
 A published npm version is effectively permanent — which is why it sits behind an explicit
 tag and a dry-run inspection.
 
+## Deviation: how 0.1.0 was published
+
+npm's Trusted Publisher UI lives on a package's settings page, and that page
+does not exist until the package does — so a first release cannot be published
+by a trusted publisher. The deadlock:
+
+```
+   trusted publisher UI ──needs──▶ package exists
+             ▲                           │
+             └───────needs───────────────┘
+```
+
+`0.1.0` was therefore published manually from a local machine, purely to create
+the package. The publisher was configured immediately after, and `0.1.1` was
+released through CI — install, build, typecheck, 5387 tests, then publish — and
+carries a SLSA provenance attestation naming this repo, `release.yml`, and the
+run that built it.
+
+Consequence: **`0.1.0` has no provenance attestation; `0.1.1` and everything
+after does.** The `package-distribution` spec's provenance requirement holds for
+every version except the bootstrap one. No long-lived token was ever created or
+stored, so that requirement holds without exception.
+
 ## Resolved Questions
 
 - **Repo name: `julia-script/bento-layout`.** Chosen over `flexboxjs` to match the

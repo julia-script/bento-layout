@@ -31,15 +31,15 @@ Plan for the dependency graph.
 
 ## 4. [USER] Configure npm Trusted Publishing
 
-- [ ] 4.1 **[USER]** On npmjs.com, add a Trusted Publisher for `bento-layout`: GitHub Actions, org `julia-script`, repo `bento-layout`, workflow `release.yml`. Since the package does not exist yet, this is configured as a pending publisher on the package name. Assistant pauses here and confirms before proceeding to task 5.
+- [x] 4.1 **[USER]** On npmjs.com, add a Trusted Publisher for `bento-layout`: GitHub Actions, org `julia-script`, repo `bento-layout`, workflow `release.yml`. Since the package does not exist yet, this is configured as a pending publisher on the package name. Assistant pauses here and confirms before proceeding to task 5.
 
 ## 5. Publish the package
 
-- [ ] 5.1 Tag `v0.1.0` and push the tag
-- [ ] 5.2 Watch the run (`gh run watch`); if it 403s at publish, the publisher config does not match — delete the tag, correct it, re-tag. No version is consumed by a failed publish
-- [ ] 5.3 Confirm `npm view bento-layout` resolves and reports version `0.1.0`
-- [ ] 5.4 Confirm the npm package page shows the provenance attestation linking to the source commit and workflow run
-- [ ] 5.5 Install the published package into a scratch directory and import it, confirming the runtime entry and type declarations both resolve
+- [x] 5.1 Tag `v0.1.0` and push the tag
+- [x] 5.2 Watch the run (`gh run watch`); if it 403s at publish, the publisher config does not match — delete the tag, correct it, re-tag. No version is consumed by a failed publish
+- [x] 5.3 Confirm `npm view bento-layout` resolves and reports version `0.1.0`
+- [x] 5.4 Confirm the npm package page shows the provenance attestation linking to the source commit and workflow run
+- [x] 5.5 Install the published package into a scratch directory and import it, confirming the runtime entry and type declarations both resolve
 
 ## 6. Vercel project
 
@@ -76,5 +76,5 @@ Plan for the dependency graph.
 - [x] 9.3 Check the live landing page and one deep doc link through a social preview validator; confirm populated cards with distinct titles
 - [x] 9.4 Fetch `/robots.txt` and `/sitemap.xml` on the live domain; confirm the sitemap lists all 15 routes as absolute URLs
 - [x] 9.5 Confirm the favicon and apple-touch icon both serve rather than 404
-- [ ] 9.6 Confirm the npm page's repository and homepage links resolve to the live repo and live site — closing the loop that made ordering matter
+- [x] 9.6 Confirm the npm page's repository and homepage links resolve to the live repo and live site — closing the loop that made ordering matter
 - [x] 9.7 Merge a trivial docs change to `main` and confirm it auto-deploys to the custom domain
