@@ -72,9 +72,9 @@ Plan for the dependency graph.
 ## 9. Verify the release
 
 - [x] 9.1 Build locally and confirm the OG images render at 1200×630 with legible text, not a blank or fallback card
-- [ ] 9.2 Deploy and confirm every page's rendered markup carries absolute OG image URLs on the `bento.jlort.com` origin
-- [ ] 9.3 Check the live landing page and one deep doc link through a social preview validator; confirm populated cards with distinct titles
-- [ ] 9.4 Fetch `/robots.txt` and `/sitemap.xml` on the live domain; confirm the sitemap lists all 15 routes as absolute URLs
-- [ ] 9.5 Confirm the favicon and apple-touch icon both serve rather than 404
+- [x] 9.2 Deploy and confirm every page's rendered markup carries absolute OG image URLs on the `bento.jlort.com` origin
+- [x] 9.3 Check the live landing page and one deep doc link through a social preview validator; confirm populated cards with distinct titles
+- [x] 9.4 Fetch `/robots.txt` and `/sitemap.xml` on the live domain; confirm the sitemap lists all 15 routes as absolute URLs
+- [x] 9.5 Confirm the favicon and apple-touch icon both serve rather than 404
 - [ ] 9.6 Confirm the npm page's repository and homepage links resolve to the live repo and live site — closing the loop that made ordering matter
-- [ ] 9.7 Merge a trivial docs change to `main` and confirm it auto-deploys to the custom domain
+- [x] 9.7 Merge a trivial docs change to `main` and confirm it auto-deploys to the custom domain
