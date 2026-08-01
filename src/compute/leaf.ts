@@ -141,9 +141,30 @@ export function computeLeafLayout(inputs: LayoutInput, style: Style, measureFunc
     ),
   };
 
-  // Measure node
+  // Measure node.
+  //
+  // A measure function sizes *content*, so both its inputs must be content-box
+  // values. `availableSpace` above already subtracts `contentBoxInset`;
+  // `knownDimensions` arrives as a border-box size (callers pass border-box
+  // values — see `child.targetSize` in flexbox.ts, "always a border-box value")
+  // and is treated as one again when it becomes `clampedSize` below, so it has
+  // to be converted on the way in rather than forwarded raw. Forwarding it gave
+  // the content the padding as extra room: Chrome, a row item with
+  // `padding: 0 17px 0 7px; flex-basis: 3` wrapping `HHHH<zwsp>H` in Ahem, is
+  // 64x20 — two lines, since the 40px content box holds only four glyphs — and
+  // this reported 64x10 by measuring the text against the full 64.
+  const knownContentSize: Size<Opt> = {
+    width:
+      knownDimensions.width !== null
+        ? Math.max(knownDimensions.width - contentBoxInset.left - contentBoxInset.right, 0)
+        : null,
+    height:
+      knownDimensions.height !== null
+        ? Math.max(knownDimensions.height - contentBoxInset.top - contentBoxInset.bottom, 0)
+        : null,
+  };
   const measuredSize = measureFunction(
-    runMode === 'compute-size' ? { ...knownDimensions } : { width: null, height: null },
+    runMode === 'compute-size' ? knownContentSize : { width: null, height: null },
     availableSpace,
   );
   const clampedSize = {
