@@ -984,19 +984,38 @@ function performAbsoluteLayoutOnAbsoluteChildren(
 
     const widthAutoMarginCount = (margin.left === null ? 1 : 0) + (margin.right === null ? 1 : 0);
     const heightAutoMarginCount = (margin.top === null ? 1 : 0) + (margin.bottom === null ? 1 : 0);
+
+    // CSS2 §10.6.4 / §10.4.3: an auto margin on an absolutely positioned box
+    // only absorbs free space when the axis is fully constrained — i.e. NONE of
+    // start-inset / size / end-inset is auto, so the equation
+    //   top + margins + borders + padding + height + bottom = containing block
+    // has a free variable to solve for. Every other branch of that section
+    // reads "set 'auto' values for 'margin-*' to 0" before solving.
+    //
+    // Testing only the *opposing* inset was not enough: with
+    // `margin-top: auto; margin-bottom: 17px` and no top/bottom at all, the
+    // fallback made free space the containing block's height, so the margin
+    // absorbed 80 of a 97px parent and pushed the box to y=80 where Chrome
+    // leaves it at y=0. Chrome matches the spec across the axis: y=0 with no
+    // insets, y=5 with `top` only, y=75 with `bottom` only, but y=55 once
+    // top+bottom+height are all set (and centered at 38.5 with both margins
+    // auto).
+    const widthFullyConstrained = left !== null && right !== null && styleSize.width !== null;
+    const heightFullyConstrained = top !== null && bottom !== null && styleSize.height !== null;
+
+    // "...solve the equation under the extra constraint that the two margins
+    // get equal values, unless this would make them negative, in which case
+    // when direction is 'ltr' set 'margin-left' to zero and solve for
+    // 'margin-right'". Only the start margin is forced to zero, so an
+    // over-large box hangs off the end edge rather than being centred on
+    // negative margins: a 72px box in a 52px parent with `left: 10; right: 20`
+    // and both margins auto sits at x=10, not x=-15.
+    const splitOrZero = (free: number, count: number, constrained: boolean): number =>
+      !constrained || count === 0 ? 0 : count === 2 && free < 0 ? 0 : free / count;
+
     const autoMarginSize: Size<number> = {
-      width:
-        widthAutoMarginCount === 2 && (styleSize.width === null || styleSize.width >= freeSpace.width)
-          ? 0
-          : widthAutoMarginCount > 0
-            ? freeSpace.width / widthAutoMarginCount
-            : 0,
-      height:
-        heightAutoMarginCount === 2 && (styleSize.height === null || styleSize.height >= freeSpace.height)
-          ? 0
-          : heightAutoMarginCount > 0
-            ? freeSpace.height / heightAutoMarginCount
-            : 0,
+      width: splitOrZero(freeSpace.width, widthAutoMarginCount, widthFullyConstrained),
+      height: splitOrZero(freeSpace.height, heightAutoMarginCount, heightFullyConstrained),
     };
     const autoMargin: Rect<number> = {
       left: margin.left !== null ? 0 : autoMarginSize.width,

@@ -1,0 +1,25 @@
+<test name="absolute_auto_margin_only_absorbs_when_axis_constrained__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div box-sizing="content-box" direction="rtl" width="400px" height="97px">
+      <div box-sizing="content-box" direction="rtl" position="absolute" width="10px" margin-top="auto" margin-bottom="17px" left="0px"/>
+      <div box-sizing="content-box" direction="rtl" position="absolute" width="10px" height="20px" margin-top="auto" margin-bottom="17px" left="20px"/>
+      <div box-sizing="content-box" direction="rtl" position="absolute" width="10px" margin-top="auto" margin-bottom="17px" top="5px" left="40px"/>
+      <div box-sizing="content-box" direction="rtl" position="absolute" width="10px" margin-top="auto" margin-bottom="17px" left="60px" bottom="5px"/>
+      <div box-sizing="content-box" direction="rtl" position="absolute" width="10px" margin-top="auto" margin-bottom="17px" top="5px" left="80px" bottom="5px"/>
+      <div box-sizing="content-box" direction="rtl" position="absolute" width="10px" height="20px" margin-top="auto" margin-bottom="17px" top="5px" left="100px" bottom="5px"/>
+      <div box-sizing="content-box" direction="rtl" position="absolute" width="10px" height="20px" margin-top="auto" margin-bottom="auto" top="0px" left="120px" bottom="0px"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="400" height="97">
+      <node x="0" y="0" width="10" height="0"/>
+      <node x="20" y="0" width="10" height="20"/>
+      <node x="40" y="5" width="10" height="0"/>
+      <node x="60" y="75" width="10" height="0"/>
+      <node x="80" y="5" width="10" height="70"/>
+      <node x="100" y="55" width="10" height="20"/>
+      <node x="120" y="39" width="10" height="20"/>
+    </node>
+  </expectations>
+</test>
