@@ -1545,7 +1545,16 @@ function determineContainerMainSize(
               // a small flex-basis cap: an empty item with `flex-basis: 7px`
               // and 203px of horizontal margins contributes 203px, not 7px.
               const marginSum = rectMainAxisSum(item.margin, constants.dir);
-              contentContribution = vClamp(contentMainSize - marginSum, minMainSize, maxMainSize) + marginSum;
+              // The raw intrinsic contribution is the larger of the item's
+              // content size and its definite preferred size (§9.9.3). Blink's
+              // ComputeMinAndMaxContentContribution resolves LogicalWidth
+              // before applying the flex-factor and min/max clamps. Chrome, an
+              // empty `width: 20px; flex-grow: 2` item therefore makes its
+              // auto-width flex parent 20px wide even inside a 1px outer row;
+              // using its empty content alone collapsed both nested boxes to
+              // 1px. Keep the margins outside this comparison and the clamps.
+              const intrinsicContribution = Math.max(contentMainSize - marginSum, stylePreferred ?? 0);
+              contentContribution = vClamp(intrinsicContribution, minMainSize, maxMainSize) + marginSum;
             } else {
               // With an explicit `flex-basis`, the style main size is the §4.5
               // *specified size suggestion*: it caps the content-based minimum

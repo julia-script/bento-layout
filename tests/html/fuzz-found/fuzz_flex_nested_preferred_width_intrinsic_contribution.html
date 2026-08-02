@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=502ec94e (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Flexbox §9.9.3 uses the larger of an item's content size and its
+  preferred size for its intrinsic contribution before applying flex clamps.
+  Regenerate with: pnpm gentest fuzz_flex_nested_preferred_width_intrinsic_contribution
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: nested flex intrinsic contribution includes preferred width</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex; width: 1px; height: 200px;">
+  <div style="display: flex;">
+    <div style="width: 20px; flex-grow: 2;"></div>
+  </div>
+</div>
+
+</body>
+</html>
