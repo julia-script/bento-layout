@@ -1,0 +1,13 @@
+<test name="fuzz_grid_percent_margin_row_contribution__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" box-sizing="content-box" direction="rtl" position="absolute" width="55px">
+      <div box-sizing="content-box" direction="rtl" aspect-ratio="2" margin-top="200px" margin-left="90%" margin-bottom="auto" margin-right="0px"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="55" height="203">
+      <node x="50" y="200" width="5" height="3"/>
+    </node>
+  </expectations>
+</test>

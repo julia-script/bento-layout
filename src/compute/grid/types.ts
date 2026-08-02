@@ -605,11 +605,11 @@ export function itemSpannedFixedTrackLimit(
   return limit;
 }
 
-/** Resolved margin axis sums (plus baseline shim). Horizontal percentage margins resolve against zero. */
+/** Resolved margin axis sums (plus baseline shim). Indefinite percentage margins resolve against zero. */
 export function itemMarginsAxisSumsWithBaselineShims(item: GridItem, innerNodeWidth: Opt): Size<number> {
   return sumAxes({
-    left: resolveOrZero(item.margin.left, 0),
-    right: resolveOrZero(item.margin.right, 0),
+    left: resolveOrZero(item.margin.left, innerNodeWidth),
+    right: resolveOrZero(item.margin.right, innerNodeWidth),
     top: resolveOrZero(item.margin.top, innerNodeWidth) + item.baselineShim,
     bottom: resolveOrZero(item.margin.bottom, innerNodeWidth),
   });

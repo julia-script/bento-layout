@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=506c7584 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Grid §11.8 resolves row contributions using the already-sized columns as
+  inline available space, so an inline percentage margin reduces the width
+  that transfers through the item's aspect ratio.
+  Regenerate with: pnpm gentest fuzz_grid_percent_margin_row_contribution
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: grid percentage margin row contribution</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; width: 55px;">
+  <div style="aspect-ratio: 2; margin: 200px 0 auto 90%;"></div>
+</div>
+
+</body>
+</html>
