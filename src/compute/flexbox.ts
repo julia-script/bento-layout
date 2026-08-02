@@ -359,13 +359,18 @@ function computePreliminary(node: LayoutNode, inputs: LayoutInput, ratioMainAuto
 
   // Blink resolves the intrinsic inline size of a non-wrapping column before
   // flexing (FlexLayoutAlgorithm::ComputeMinMaxSizes). Do that two-pass setup
-  // when an aspect-ratio item makes the ordering observable; otherwise its
-  // flex-grown height feeds back into the width. css-flexbox-1 §9.9.2 defines
-  // the width from item contributions, not from their post-flexed main sizes.
+  // when an item subtree contains an aspect ratio: a descendant's ratio can
+  // make the ordering observable even when the direct flex item has no ratio.
+  // css-flexbox-1 §9.9.2 defines the width from item contributions, not from
+  // their post-flexed main sizes.
+  const subtreeHasAspectRatio = (item: LayoutNode): boolean => {
+    const itemInternals = internals(item);
+    return itemInternals.style.aspectRatio !== null || itemInternals.children.some(subtreeHasAspectRatio);
+  };
   if (
     constants.isColumn &&
     !constants.isWrap &&
-    flexItems.some((child) => child.aspectRatio !== null) &&
+    flexItems.some((child) => subtreeHasAspectRatio(child.node)) &&
     cross(constants.nodeOuterSize, constants.dir) === null &&
     typeof cross(outerAvailableSpace, constants.dir) !== 'number'
   ) {
@@ -630,8 +635,12 @@ function determineIntrinsicColumnCrossSize(
     0,
   );
   const inset = rectCrossAxisSum(constants.contentBoxInset, constants.dir);
+  const ratioInsetFloor =
+    constants.aspectRatio !== null && constants.boxSizing === 'border-box'
+      ? main(constants.paddingBorderSize, constants.dir) * constants.aspectRatio
+      : 0;
   return Math.max(
-    vClamp(largestContribution + inset, constants.minSize.width, constants.maxSize.width),
+    vClamp(Math.max(largestContribution + inset, ratioInsetFloor), constants.minSize.width, constants.maxSize.width),
     inset - constants.scrollbarGutter.x,
   );
 }

@@ -1,0 +1,17 @@
+<test name="fuzz_flex_column_intrinsic_cross_nested_ratio__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="flex" direction="ltr" position="absolute" flex-direction="column-reverse">
+      <div display="flex" direction="ltr" flex-basis="20px">
+        <div direction="ltr" aspect-ratio="1"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="0" height="20">
+      <node x="0" y="0" width="0" height="20">
+        <node x="0" y="0" width="20" height="20"/>
+      </node>
+    </node>
+  </expectations>
+</test>
