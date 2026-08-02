@@ -541,7 +541,15 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     const parentHeightIndefinite = typeof availableSpace.height !== 'number';
     rerunRowSizing = parentHeightIndefinite && hasPercentageRow;
 
-    if (!rerunRowSizing) {
+    if (!rerunRowSizing && !intrinsicColumnContributionChanged) {
+      // Blink 7922 does not start a second row dependency pass merely because
+      // its additional column pass changed an item's inline contribution.
+      // CompleteTrackSizingAlgorithm records the item row span after the
+      // first row pass and repeats both axes only when finalizing that row
+      // geometry changes the span. Chrome therefore keeps the first-pass row
+      // for cyclic percentage padding: with 320px inline padding and ratio 3,
+      // padding-bottom from 0%..100% produces row heights 108, 108, 108, 167,
+      // 247, 327 while the finally wider item is allowed to overflow it.
       intrinsicRowContributionChanged = items
         .filter((item) => item.crossesIntrinsicColumn)
         .some((item) => {

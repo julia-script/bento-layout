@@ -1,0 +1,17 @@
+<test name="fuzz_grid_cyclic_padding_first_row_pass__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="rtl" position="absolute">
+      <div display="grid" direction="rtl" width="40px">
+        <div direction="rtl" aspect-ratio="3" padding-top="7px" padding-left="1%" padding-bottom="30%" padding-right="320px"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="40" height="108">
+      <node x="0" y="0" width="40" height="108">
+        <node x="-283" y="0" width="323" height="108"/>
+      </node>
+    </node>
+  </expectations>
+</test>

@@ -1,0 +1,17 @@
+<test name="fuzz_grid_cyclic_padding_first_row_pass__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div box-sizing="content-box" direction="ltr" position="absolute">
+      <div display="grid" box-sizing="content-box" direction="ltr" width="40px">
+        <div box-sizing="content-box" direction="ltr" aspect-ratio="3" padding-top="7px" padding-left="1%" padding-bottom="30%" padding-right="320px"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="40" height="103">
+      <node x="0" y="0" width="40" height="103">
+        <node x="0" y="0" width="608" height="283"/>
+      </node>
+    </node>
+  </expectations>
+</test>

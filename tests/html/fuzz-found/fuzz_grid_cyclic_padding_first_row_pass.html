@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=44ab2241 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Grid §12 sizes rows using the column sizes from its preceding inline
+  pass. Blink 7922 does not repeat that row pass merely because an additional
+  column pass widened an aspect-ratio item; the wider item overflows the
+  first-pass row instead of feeding its percentage padding back into the row.
+  Regenerate with: pnpm gentest fuzz_grid_cyclic_padding_first_row_pass
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: cyclic grid padding keeps first row pass</title>
+</head>
+<body>
+
+<div id="test-root">
+  <div style="display: grid; width: 40px;">
+    <div style="aspect-ratio: 3; padding: 7px 320px 30% 1%;"></div>
+  </div>
+</div>
+
+</body>
+</html>
