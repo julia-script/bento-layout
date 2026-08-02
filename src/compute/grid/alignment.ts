@@ -178,8 +178,12 @@ export function alignAndPositionItem(
   );
   const explicitBlockAlignment = alignSelf ?? containerAlignmentStyles.vertical;
   const hasHorizontalAutoMargin = style.margin.left === 'auto' || style.margin.right === 'auto';
+  // Sizing 4 §4.2 only makes an automatic preferred axis ratio-dependent.
+  // With both axes specified (`width: 0%; height: 0%`), the ratio has no
+  // effect, so §4.3 cannot install an automatic min-content inline floor.
   const ratioAutoMinInlineApplies =
     aspectRatio !== null &&
+    resolvedStyleSize.width === null &&
     style.minSize.width === 'auto' &&
     overflow.x === 'visible' &&
     (overflow.y === 'visible' || overflow.y === 'clip') &&
