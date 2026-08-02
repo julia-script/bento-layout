@@ -218,6 +218,7 @@ export function alignAndPositionItem(
     width: vMaybeSub(vMaybeSub(gridAreaSize.width, margin.left), margin.right),
     height: vMaybeSub(vMaybeSub(gridAreaSize.height, margin.top), margin.bottom) - baselineShim,
   };
+  const hasHorizontalAutoMargin = margin.left === null || margin.right === null;
 
   // css-align-3#justify-self-property makes a non-stretched automatic inline
   // size fit-content, while css-sizing-4#aspect-ratio-automatic transfers a
@@ -269,13 +270,18 @@ export function alignAndPositionItem(
   } else if (
     width === null &&
     resolvedStyleSize.width === null &&
-    (justifySelf !== null || containerAlignmentStyles.horizontal !== null) &&
-    alignmentStyles.horizontal.keyword !== 'stretch' &&
+    (hasHorizontalAutoMargin ||
+      ((justifySelf !== null || containerAlignmentStyles.horizontal !== null) &&
+        alignmentStyles.horizontal.keyword !== 'stretch')) &&
     position !== 'absolute'
   ) {
     // css-grid-1 §6.6: every other self-alignment value makes an automatic
-    // inline size fit-content. Measure contributions before final layout so a
-    // descendant's flex-basis cannot masquerade as the grid item's used width.
+    // inline size fit-content. Grid §10.2 gives auto margins precedence over
+    // self-alignment, so they also retain fit-content behavior instead of the
+    // implicit stretch default. Blink 7922's AxisEdgeFromItemPosition leaves
+    // `kFitContent` set when either auto margin selects the alignment edge.
+    // Measure contributions before final layout so a descendant's flex-basis
+    // cannot masquerade as the grid item's used width.
     const measureKnownSize = { width: null, height: inherentSize.height };
     const minContentWidth = measureChildSize(
       node,

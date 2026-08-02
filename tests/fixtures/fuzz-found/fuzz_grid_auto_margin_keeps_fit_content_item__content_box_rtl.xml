@@ -1,0 +1,17 @@
+<test name="fuzz_grid_auto_margin_keeps_fit_content_item__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" box-sizing="content-box" direction="rtl" position="absolute">
+      <div box-sizing="content-box" direction="rtl" margin-top="1px" margin-left="97px" margin-bottom="17px" margin-right="auto">
+        <div box-sizing="content-box" direction="rtl" flex-basis="200px"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="97" height="18">
+      <node x="97" y="1" width="0" height="0">
+        <node x="0" y="0" width="0" height="0"/>
+      </node>
+    </node>
+  </expectations>
+</test>

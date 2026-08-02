@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: seed=20260731 index=604 (mode=mixed), id=110f59de
+  date: 2026-08-02
+  chrome: Chrome/151.0.7922.47
+  An auto margin takes precedence over the grid item's implicit stretch
+  alignment (css-grid-1 §10.2), but it does not make an automatic inline size
+  unconstrained. Blink 7922 keeps AutoSizeBehavior::kFitContent when an auto
+  margin chooses the alignment edge. Here the empty flex child's 200px
+  flex-basis is not an intrinsic contribution, so the grid item remains 0px.
+  Regenerate the XML fixtures with:
+  pnpm gentest fuzz_grid_auto_margin_keeps_fit_content_item
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: grid auto margin keeps automatic item fit-content</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid;">
+  <div style="margin: 1px auto 17px 97px;">
+    <div style="flex-basis: 200px;"></div>
+  </div>
+</div>
+
+</body>
+</html>
