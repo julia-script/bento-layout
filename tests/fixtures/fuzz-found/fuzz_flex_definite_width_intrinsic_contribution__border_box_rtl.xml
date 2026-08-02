@@ -1,0 +1,17 @@
+<test name="fuzz_flex_definite_width_intrinsic_contribution__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="rtl" position="absolute" height="0px" aspect-ratio="1">
+      <div direction="rtl" flex-grow="1" width="0px" height="1px">
+        <div direction="rtl" aspect-ratio="1"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="0" height="0">
+      <node x="0" y="0" width="0" height="1">
+        <node x="-1" y="0" width="1" height="1"/>
+      </node>
+    </node>
+  </expectations>
+</test>
