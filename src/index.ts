@@ -508,6 +508,10 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
         availableSpace,
         'inherent-size',
         rootMarginsCollapse,
+        // This automatic minimum is now the resolved inline size used for the
+        // final pass. Preserve that provenance so a wrapped column does not
+        // replace it with the sum of its newly formed line widths.
+        { width: true, height: false },
       );
     }
   }
