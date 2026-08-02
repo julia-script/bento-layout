@@ -1,0 +1,21 @@
+<test name="fuzz_flex_basis_ignores_max_during_shrink__content_box_ltr" use-rounding="true">
+  <viewport width="1280px" height="800px"/>
+  <input>
+    <div box-sizing="content-box" direction="ltr" position="absolute" width="200px">
+      <div box-sizing="content-box" direction="ltr" width="3px" max-width="1px"/>
+      <text box-sizing="content-box" direction="ltr">
+        HHHHHHHHHH​HH
+      </text>
+      <text box-sizing="content-box" direction="ltr">
+        HHHHHHHH​HH
+      </text>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="200" height="20">
+      <node x="0" y="0" width="1" height="20"/>
+      <node x="1" y="0" width="109" height="20"/>
+      <node x="110" y="0" width="90" height="20"/>
+    </node>
+  </expectations>
+</test>

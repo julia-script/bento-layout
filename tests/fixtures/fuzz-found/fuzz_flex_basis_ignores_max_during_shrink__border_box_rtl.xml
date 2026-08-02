@@ -1,0 +1,21 @@
+<test name="fuzz_flex_basis_ignores_max_during_shrink__border_box_rtl" use-rounding="true">
+  <viewport width="1280px" height="800px"/>
+  <input>
+    <div direction="rtl" position="absolute" width="200px">
+      <div direction="rtl" width="3px" max-width="1px"/>
+      <text direction="rtl">
+        HHHHHHHHHH​HH
+      </text>
+      <text direction="rtl">
+        HHHHHHHH​HH
+      </text>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="200" height="20">
+      <node x="199" y="0" width="1" height="20"/>
+      <node x="90" y="0" width="109" height="20"/>
+      <node x="0" y="0" width="90" height="20"/>
+    </node>
+  </expectations>
+</test>

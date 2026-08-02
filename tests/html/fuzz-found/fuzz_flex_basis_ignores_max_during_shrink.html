@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: reduced from 20260802 viewport campaign finding=a0129aec (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Flexbox §9.2 ignores min/max main sizes while determining the flex base size;
+  they clamp the separate hypothetical size. Blink's LineFlexer likewise keeps
+  base_content_size distinct from hypothetical_content_size.
+  Regenerate with: pnpm gentest fuzz_flex_basis_ignores_max_during_shrink
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: flex base size ignores max main size during shrink</title>
+</head>
+<body>
+
+<div
+  id="test-root"
+  data-test-page-viewport-width="1280"
+  data-test-page-viewport-height="800"
+  style="width: 200px;"
+>
+  <div style="width: 3px; max-width: 1px;"></div>
+  <div>HHHHHHHHHH&#x200b;HH</div>
+  <div>HHHHHHHH&#x200b;HH</div>
+</div>
+
+</body>
+</html>

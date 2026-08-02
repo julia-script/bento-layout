@@ -1313,7 +1313,17 @@ function determineFlexBaseSize(
         mainSize === null && child.aspectRatio !== null && transferSource !== null
           ? transferThroughRatio(transferSource, child, dir, 'cross-to-main')
           : null;
-      const definiteFlexBasis = flexBasis ?? (child.flexBasisIsExplicit ? null : mainSize) ?? transferredMain;
+      // Flexbox §9.2 determines the flex base size while ignoring the item's
+      // min/max main sizes; those constraints only clamp the hypothetical main
+      // size below. When the author supplied the main size, `child.size` has
+      // already been min/max-clamped, so prefer the raw border-box value here.
+      // Keep `child.size` as the fallback for a main size derived through an
+      // aspect ratio from the opposite axis. Chrome, in a 20px column with a
+      // 4px gap, treats `height: 3px; max-height: 2px` as a 3px flex base and a
+      // 2px hypothetical size, yielding final item heights 14px and 2px.
+      const preferredMainForFlexBasis = specifiedMainBorderBox ?? mainSize;
+      const definiteFlexBasis =
+        flexBasis ?? (child.flexBasisIsExplicit ? null : preferredMainForFlexBasis) ?? transferredMain;
       child.flexBasisIsDefinite = definiteFlexBasis !== null;
       if (definiteFlexBasis !== null) return definiteFlexBasis;
 
