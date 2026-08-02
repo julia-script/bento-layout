@@ -1,0 +1,21 @@
+<test name="fuzz_grid_auto_margin_ratio_block_stretch__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="rtl" position="absolute">
+      <div direction="rtl">
+        <div display="grid" direction="rtl" width="3px" height="120px">
+          <div direction="rtl" aspect-ratio="1.5" margin-top="10%" margin-left="auto" margin-bottom="30%" margin-right="5%"/>
+        </div>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="3" height="120">
+      <node x="0" y="0" width="3" height="120">
+        <node x="0" y="0" width="3" height="120">
+          <node x="-78" y="18" width="72" height="48"/>
+        </node>
+      </node>
+    </node>
+  </expectations>
+</test>

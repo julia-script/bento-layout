@@ -163,6 +163,7 @@ export function alignAndPositionItem(
     paddingBorderSize,
   );
   const explicitBlockAlignment = alignSelf ?? containerAlignmentStyles.vertical;
+  const hasHorizontalAutoMargin = style.margin.left === 'auto' || style.margin.right === 'auto';
   const ratioAutoMinInlineApplies =
     aspectRatio !== null &&
     style.minSize.width === 'auto' &&
@@ -184,18 +185,25 @@ export function alignAndPositionItem(
     minSize = { ...minSize, width: Math.max(minSize.width, Math.min(minContentWidth, maxSize.width ?? Infinity)) };
   }
 
+  // css-grid-1 §6.6: with an explicitly stretched block axis, `normal` inline
+  // alignment must not become explicit stretch for an aspect-ratio item.
+  // Chrome 151 gives a 3:1 item in a 72x120 area a 360px width; explicit
+  // inline stretch still gives 72px. Preserve implicit inline stretch when
+  // both axes are normal: a 2:1 item in a 100x100 area is 100x50 in Chrome.
+  // An inline auto margin also suppresses that axis's implicit stretch before
+  // resolving the other axis (Grid §10.2). Blink 7922's
+  // AxisEdgeFromItemPosition returns a non-stretch edge for the auto margin;
+  // Chrome then block-stretches a 1.5:1 item in a 180x120 area with 18px/54px
+  // block margins to 72x48, rather than collapsing it to 0x0.
+  const normalInlineAlignmentUsesStart =
+    inherentSize.width !== null ||
+    (aspectRatio !== null && (explicitBlockAlignment?.keyword === 'stretch' || hasHorizontalAutoMargin));
+
   // Resolve default alignment styles if set on neither the parent nor the node itself
   const horizontalAlignment =
     justifySelf ??
     containerAlignmentStyles.horizontal ??
-    // css-grid-1 §6.6: with an explicitly stretched block axis, `normal` inline
-    // alignment must not become explicit stretch for an aspect-ratio item.
-    // Chrome 151 gives a 3:1 item in a 72x120 area a 360px width; explicit
-    // inline stretch still gives 72px. Preserve implicit inline stretch when
-    // both axes are normal: a 2:1 item in a 100x100 area is 100x50 in Chrome.
-    (inherentSize.width !== null || (aspectRatio !== null && explicitBlockAlignment?.keyword === 'stretch')
-      ? ALIGN_START
-      : ALIGN_STRETCH_LOCAL);
+    (normalInlineAlignmentUsesStart ? ALIGN_START : ALIGN_STRETCH_LOCAL);
   const alignmentStyles = {
     horizontal: horizontalAlignment,
     vertical:
@@ -218,7 +226,6 @@ export function alignAndPositionItem(
     width: vMaybeSub(vMaybeSub(gridAreaSize.width, margin.left), margin.right),
     height: vMaybeSub(vMaybeSub(gridAreaSize.height, margin.top), margin.bottom) - baselineShim,
   };
-  const hasHorizontalAutoMargin = margin.left === null || margin.right === null;
 
   // css-align-3#justify-self-property makes a non-stretched automatic inline
   // size fit-content, while css-sizing-4#aspect-ratio-automatic transfers a
