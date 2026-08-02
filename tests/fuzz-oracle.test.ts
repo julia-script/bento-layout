@@ -10,7 +10,7 @@ import { treeSignature } from '../scripts/fuzz/signature.js';
 import { parseFixture } from './harness/fixture.js';
 
 describe('fuzz oracle available space', () => {
-  let browser: Browser;
+  let browser: Browser | undefined;
   let exec: Awaited<ReturnType<typeof createExecutor>>;
 
   beforeAll(async () => {
@@ -22,7 +22,7 @@ describe('fuzz oracle available space', () => {
   });
 
   afterAll(async () => {
-    await browser.close();
+    await browser?.close();
   });
 
   it('records a definite page viewport without wrapping the root', async () => {

@@ -71,6 +71,8 @@ jobs:
         run: pnpm typecheck
 
       - name: Test
+        env:
+          GENTEST_NO_SANDBOX: '1'
         run: pnpm test
 
       # Recorded in the run log so the published contents are auditable after
