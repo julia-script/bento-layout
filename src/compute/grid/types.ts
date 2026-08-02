@@ -409,8 +409,9 @@ export class CellOccupancyMatrix {
 
   /** Search backwards along a track for the last cell of the given state */
   lastOfType(trackType: AbsoluteAxis, startAt: number, kind: CellOccupancyState): Opt {
-    const trackCounts = this.trackCounts(absOther(trackType));
-    const trackComputedIndex = ozLineToNextTrack(trackCounts, startAt);
+    const lookupTrackCounts = this.trackCounts(absOther(trackType));
+    const resultTrackCounts = this.trackCounts(trackType);
+    const trackComputedIndex = ozLineToNextTrack(lookupTrackCounts, startAt);
 
     let maybeIndex: number | undefined;
     if (trackType === 'horizontal') {
@@ -432,13 +433,19 @@ export class CellOccupancyMatrix {
       }
     }
 
-    return maybeIndex !== undefined ? trackToPrevOzLine(trackCounts, maybeIndex) : null;
+    // `startAt` selects a cell on the opposite axis, but `maybeIndex` is the
+    // found position along `trackType`. Convert it with that axis's counts.
+    // Using row counts for a found column shifted the sparse auto-placement
+    // cursor by the row grid's negative implicit tracks: two overlapping
+    // row-locked items then materialized four columns instead of two.
+    return maybeIndex !== undefined ? trackToPrevOzLine(resultTrackCounts, maybeIndex) : null;
   }
 
   /** Search forwards along a track for the first cell of the given state */
   firstOfType(trackType: AbsoluteAxis, startAt: number, kind: CellOccupancyState): Opt {
-    const trackCounts = this.trackCounts(absOther(trackType));
-    const trackComputedIndex = ozLineToNextTrack(trackCounts, startAt);
+    const lookupTrackCounts = this.trackCounts(absOther(trackType));
+    const resultTrackCounts = this.trackCounts(trackType);
+    const trackComputedIndex = ozLineToNextTrack(lookupTrackCounts, startAt);
 
     let maybeIndex: number | undefined;
     if (trackType === 'horizontal') {
@@ -451,7 +458,7 @@ export class CellOccupancyMatrix {
       maybeIndex = idx === -1 ? undefined : idx;
     }
 
-    return maybeIndex !== undefined ? trackToPrevOzLine(trackCounts, maybeIndex) : null;
+    return maybeIndex !== undefined ? trackToPrevOzLine(resultTrackCounts, maybeIndex) : null;
   }
 }
 

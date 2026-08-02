@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=a169b3b1 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Grid §8.5 step 2 advances sparse auto-column placement along the column
+  axis; the occupied row is only the lookup coordinate for that cursor.
+  Regenerate with: pnpm gentest fuzz_grid_sparse_locked_row_cursor_axis
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: sparse locked-row cursor uses column counts</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; grid-template-rows: auto min-content auto; gap: 3px;">
+  <div style="width: 10px; height: 0; grid-row: span 3 / 1;"></div>
+  <div style="width: 10px; height: 0; grid-row: span 3 / -3;"></div>
+</div>
+
+</body>
+</html>
