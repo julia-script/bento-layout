@@ -1,0 +1,13 @@
+<test name="fuzz_grid_block_contribution_uses_max_content__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" box-sizing="content-box" direction="ltr" position="absolute" height="0px">
+      <div display="grid" box-sizing="content-box" direction="ltr" grid-template-rows="minmax(auto,1px)"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="0" height="0">
+      <node x="0" y="0" width="0" height="1"/>
+    </node>
+  </expectations>
+</test>

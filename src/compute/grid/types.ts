@@ -856,11 +856,19 @@ export function itemMinContentContribution(
   availableSpace: Size<Opt>,
 ): number {
   const knownDimensions = itemKnownDimensions(item, gridAreaSize);
+  // A grid container's automatic block size is its max-content size
+  // (css-grid-1 §5.1). Grid-item contributions therefore use block layout in
+  // the row axis, not an inline-style min-content constraint. Blink makes the
+  // same split: row contributions call BlockContributionSize(), while column
+  // contributions call MinContentSize(). Chrome, an empty nested grid with
+  // `grid-template-rows: minmax(auto, 1px)` in a 0px-tall auto-min track,
+  // contributes 1px in the block axis but the column-axis counterpart stays 0.
+  const intrinsicConstraint = axis === 'vertical' ? 'max-content' : 'min-content';
   const measured = measureChildSize(
     item.node,
     knownDimensions,
     gridAreaSize,
-    contributionAvailableSpace(availableSpace, 'min-content'),
+    contributionAvailableSpace(availableSpace, intrinsicConstraint),
     'inherent-size',
     axis,
   );

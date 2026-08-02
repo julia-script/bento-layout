@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: batch seed=20260731, finding=06526e4d (mode=mixed), minimized
+  chrome: Chrome/151.0.7922.47
+  A grid container's automatic block size is its max-content size, so its
+  1px explicit row is the block-axis content contribution even inside a
+  0px-tall parent grid. The equivalent inline contribution remains 0.
+  Regenerate with: pnpm gentest fuzz_grid_block_contribution_uses_max_content
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: grid block contribution uses max-content sizing</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; height: 0;">
+  <div style="display: grid; grid-template-rows: minmax(auto, 1px);"></div>
+</div>
+
+</body>
+</html>
