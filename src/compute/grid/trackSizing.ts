@@ -33,6 +33,7 @@ import {
   itemMaxContentContributionCached,
   itemMinContentContributionCached,
   itemMinimumContributionCached,
+  itemParticipatesInBlockBaselineAlignment,
   itemPlacement,
   itemPlacementIndexes,
   itemSpan,
@@ -410,14 +411,15 @@ function resolveItemBaselines(
     const rowItems = items.slice(index, end);
     index = end;
 
-    // Baseline alignment is a no-op for rows with <= 1 baseline-aligned item
-    const rowBaselineItemCount = rowItems.filter(
-      (item) => item.alignSelf.keyword === 'baseline' && !item.alignSelf.safe,
-    ).length;
-    if (rowBaselineItemCount <= 1) continue;
+    // Grid §10.2 gives block-axis auto margins precedence over align-self, so
+    // those items do not enter the baseline-sharing group. Chrome 151 leaves
+    // an empty `margin-bottom:auto` item at y=0 beside a 10px baseline item;
+    // including it here synthesized a zero baseline and added a 10px shim.
+    const baselineItems = rowItems.filter(itemParticipatesInBlockBaselineAlignment);
+    if (baselineItems.length <= 1) continue;
 
-    // Compute baselines of all items in the row
-    for (const item of rowItems) {
+    // Compute baselines only for members of the baseline-sharing group.
+    for (const item of baselineItems) {
       // css-align-3 baseline-export synthesizes a grid item's baseline from
       // its border edge, so first lay it out against its actual containing
       // block. Chrome 151: 20px + 30% block padding in an 80px grid area gives
@@ -443,8 +445,8 @@ function resolveItemBaselines(
     }
 
     // Compute max baseline and shims
-    const rowMaxBaseline = rowItems.reduce((acc, item) => Math.max(acc, item.baseline ?? 0), 0);
-    for (const item of rowItems) {
+    const rowMaxBaseline = baselineItems.reduce((acc, item) => Math.max(acc, item.baseline ?? 0), 0);
+    for (const item of baselineItems) {
       item.baselineShim = rowMaxBaseline - (item.baseline ?? 0);
     }
   }

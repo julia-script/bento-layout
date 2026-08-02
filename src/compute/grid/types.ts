@@ -614,6 +614,16 @@ export function itemCrossesIntrinsicTrack(item: GridItem, axis: AbsoluteAxis): b
   return axis === 'horizontal' ? item.crossesIntrinsicColumn : item.crossesIntrinsicRow;
 }
 
+/** Whether an item participates in first-baseline alignment across its row. */
+export function itemParticipatesInBlockBaselineAlignment(item: GridItem): boolean {
+  return (
+    item.alignSelf.keyword === 'baseline' &&
+    !item.alignSelf.safe &&
+    item.margin.top !== 'auto' &&
+    item.margin.bottom !== 'auto'
+  );
+}
+
 function spannedTracks(item: GridItem, axis: AbsoluteAxis, axisTracks: GridTrack[]): GridTrack[] {
   const range = itemTrackRangeExcludingLines(item, axis);
   return axisTracks.slice(range.start, range.end);

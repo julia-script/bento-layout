@@ -36,6 +36,7 @@ import {
   CellOccupancyMatrix,
   itemGridAreaSize,
   itemMinContentContribution,
+  itemParticipatesInBlockBaselineAlignment,
   ozResolveAbsolutelyPositionedGridTracks,
   placementLineIntoOriginZero,
   trackIsFlexible,
@@ -335,7 +336,7 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
   resolveItemTrackIndexes(items, finalColCounts, finalRowCounts);
   determineIfItemCrossesFlexibleOrIntrinsicTracks(items, columns, rows);
 
-  const hasBaselineAlignedItem = items.some((item) => item.alignSelf.keyword === 'baseline' && !item.alignSelf.safe);
+  const hasBaselineAlignedItem = items.some(itemParticipatesInBlockBaselineAlignment);
 
   // `min-width`/`min-height` are border-box, but the track sizer measures the
   // *inner* grid: it compares this against a sum of track base sizes and uses
@@ -933,9 +934,7 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
   const firstRow = (items[0] ?? unreachable()).rowIndexes.start;
   const firstRowItems = items.filter((item) => item.rowIndexes.start === firstRow);
   const baselineItem =
-    firstRowItems.find((item) => item.alignSelf.keyword === 'baseline' && !item.alignSelf.safe) ??
-    firstRowItems[0] ??
-    unreachable();
+    firstRowItems.find(itemParticipatesInBlockBaselineAlignment) ?? firstRowItems[0] ?? unreachable();
   const gridContainerBaseline = baselineItem.yPosition + (baselineItem.baseline ?? baselineItem.height);
 
   return fromSizesAndBaselines(containerBorderBox, itemContentSizeContribution, {

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: minimized from finding=c6c565fa
+  chrome: Chrome/151.0.7922.47
+  Grid §10.2 gives auto margins precedence over self-alignment. The first item
+  therefore does not join the row's baseline-sharing group, and its automatic
+  bottom margin keeps the empty box at the row start instead of a 10px shim.
+  Regenerate with: pnpm gentest fuzz_grid_baseline_auto_margin_participation
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: auto margin disables grid baseline participation</title>
+</head>
+<body>
+
+<div id="test-root">
+  <div style="display: grid; grid-template-columns: fit-content(55px) 1fr auto; align-items: baseline;">
+    <div style="margin-left: 1px; margin-right: auto; margin-bottom: auto;"></div>
+    <div style="width: 20px; height: 10px;"></div>
+  </div>
+</div>
+
+</body>
+</html>
