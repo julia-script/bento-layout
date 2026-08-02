@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: batch seed=20260731, finding=009164a1 (mode=flex), minimized
+  chrome: Chrome/151.0.7922.47
+  Blink divides centered negative free space as fixed-point LayoutUnits,
+  truncating the half-unit remainder toward zero before device-pixel rounding.
+  Regenerate with: pnpm gentest fuzz_flex_center_layout_unit_rounding
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: centered overflow uses LayoutUnit division</title>
+</head>
+<body>
+
+<div id="test-root" style="width: 1px; flex-direction: column; align-items: center;">
+  <div style="width: 1px; padding-right: 1%; border-right-width: 1px;"></div>
+</div>
+
+</body>
+</html>

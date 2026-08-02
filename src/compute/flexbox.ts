@@ -2267,8 +2267,18 @@ function alignFlexItemsAlongCrossAxis(
       return crossAxisShouldReverse ? 0 : freeSpace;
     case 'flex-end':
       return constants.isWrapReverse !== crossAxisShouldReverse ? 0 : freeSpace;
-    case 'center':
-      return freeSpace / 2;
+    case 'center': {
+      // Blink stores free space as a 1/64px LayoutUnit, then divides that
+      // integer by two toward zero. Preserve both truncations here: with
+      // -1.01px of free space Chrome centers at exactly -0.5px, while direct
+      // floating-point division gives -0.505px and the final LTR edge snap
+      // incorrectly paints the item one pixel farther left. Under a reversed
+      // cross axis the physical start gets the other half, including the
+      // discarded remainder: 63 LayoutUnits split into 31 from logical start
+      // and 32 from physical left, matching Blink's logical-to-physical flip.
+      const startHalf = Math.trunc(Math.trunc(freeSpace * 64) / 2) / 64;
+      return crossAxisShouldReverse ? freeSpace - startHalf : startHalf;
+    }
     case 'baseline':
       // Baseline members move as one group. For rows, `wrap-reverse` hangs the
       // group from the line's end (§5.2); for columns Chrome also reverses that
