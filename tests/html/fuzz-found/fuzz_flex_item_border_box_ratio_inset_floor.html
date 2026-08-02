@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260802 batch, finding=f8082e76 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  A definite border-box size is floored by the box's own padding/border before
+  that used size transfers through aspect-ratio.
+  Regenerate with: pnpm gentest fuzz_flex_item_border_box_ratio_inset_floor
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: flex item ratio uses border-box inset floor</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex; width: 0; height: 0;">
+  <div style="width: 1px; height: 0%; aspect-ratio: 1; padding-bottom: 1px;"></div>
+</div>
+
+</body>
+</html>

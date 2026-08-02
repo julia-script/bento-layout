@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260802 batch, finding=0a5c7cf3 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  A border-box maximum smaller than the box's own padding/border normalizes to
+  that inset floor before wrapping-row intrinsic contribution sizing.
+  Regenerate with: pnpm gentest fuzz_flex_item_border_box_max_inset_floor
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: flex item maximum uses border-box inset floor</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex; width: 0; height: auto;">
+  <div style="display: flex; flex-wrap: wrap;">
+    <div style="max-width: 0; padding-right: 1px;"></div>
+  </div>
+</div>
+
+</body>
+</html>

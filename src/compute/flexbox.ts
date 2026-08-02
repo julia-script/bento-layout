@@ -851,9 +851,27 @@ function generateAnonymousFlexItems(node: LayoutNode, constants: AlgoConstants):
     const border = resolveRectOrZero(childStyle.border, constants.nodeInnerSize.width);
     const pbSum = sumAxes(rectAdd(padding, border));
     const boxSizingAdjustment = childStyle.boxSizing === 'content-box' ? pbSum : sizeZero();
-    const minSize = maybeAddSize(maybeResolveSize(childStyle.minSize, constants.nodeInnerSize), boxSizingAdjustment);
-    const maxSize = maybeAddSize(maybeResolveSize(childStyle.maxSize, constants.nodeInnerSize), boxSizingAdjustment);
-    const resolvedSize = maybeAddSize(maybeResolveSize(childStyle.size, constants.nodeInnerSize), boxSizingAdjustment);
+    // Flex layout operates on used border-box sizes. A specified border-box
+    // zero cannot make the rendered box smaller than its own padding+border;
+    // Blink's length resolution floors every definite axis at that inset sum
+    // before aspect-ratio transfer or intrinsic contribution sizing. Containers
+    // already use this normalization in computeFlexboxLayout; preserve the
+    // same used-size model for their items.
+    const minSize = toUsedBorderBoxSize(
+      maybeResolveSize(childStyle.minSize, constants.nodeInnerSize),
+      childStyle.boxSizing,
+      pbSum,
+    );
+    const maxSize = toUsedBorderBoxSize(
+      maybeResolveSize(childStyle.maxSize, constants.nodeInnerSize),
+      childStyle.boxSizing,
+      pbSum,
+    );
+    const resolvedSize = toUsedBorderBoxSize(
+      maybeResolveSize(childStyle.size, constants.nodeInnerSize),
+      childStyle.boxSizing,
+      pbSum,
+    );
     const marginIsAuto = {
       left: childStyle.margin.left === 'auto',
       right: childStyle.margin.right === 'auto',
