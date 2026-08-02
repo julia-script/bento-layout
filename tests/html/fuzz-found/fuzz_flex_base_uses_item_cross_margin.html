@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: batch seed=20260731, finding=1d76c2b8 (mode=mixed), minimized
+  chrome: Chrome/151.0.7922.47
+  Flexbox §9.2 sizes each item's flex basis using that item's cross-axis
+  margin box. The flex container's own margin cannot enter this calculation.
+  Regenerate with: pnpm gentest fuzz_flex_base_uses_item_cross_margin
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: flex base uses item cross margin</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex; width: 0; height: 0;">
+  <div style="min-height: 1px; aspect-ratio: 1; margin-bottom: 1px; overflow-x: visible; overflow-y: hidden;"></div>
+</div>
+
+</body>
+</html>

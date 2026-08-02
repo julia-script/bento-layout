@@ -865,7 +865,11 @@ function determineFlexBaseSize(
 
     // Available space for child sizing
     // Min/max sizes transferred through the aspect ratio are taken into account here
-    const crossAxisMarginSum = rectCrossAxisSum(constants.margin, dir);
+    // The constraint is for this item's margin box, and the stretch step below
+    // subtracts this same item's margins. Using the container margin here made
+    // Chrome's 0x1 item (`min-height: 1; margin-bottom: 1; aspect-ratio: 1`)
+    // acquire a false zero cross size and then a frozen 1px main size.
+    const crossAxisMarginSum = rectCrossAxisSum(child.margin, dir);
     // Transferred constraints only apply to axes whose preferred size is auto
     // (css-sizing-4 §5.2.2; matches Chrome). Clamping unconditionally diverges
     // from the browser when an axis has a definite size.
