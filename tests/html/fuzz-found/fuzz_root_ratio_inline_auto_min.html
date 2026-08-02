@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=e4b66ad8 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Sizing 4 §4.3 gives the ratio-dependent axis a content-based automatic
+  minimum. Blink applies that intrinsic floor when a definite block size and
+  preferred ratio participate, including when the written inline size is zero.
+  Regenerate with: pnpm gentest fuzz_root_ratio_inline_auto_min
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: root ratio inline automatic minimum</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex; width: 0; height: 0; aspect-ratio: 1;">
+  <div style="border-right: 1px solid;"></div>
+</div>
+
+</body>
+</html>
