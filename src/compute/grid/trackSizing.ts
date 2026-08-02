@@ -8,7 +8,6 @@ import { mMin } from '../../math.js';
 import type { AlignContent, AvailableSpace, Direction } from '../../style.js';
 import {
   isScrollContainer,
-  maxDefiniteLimit,
   maxHasDefiniteValue,
   maxIsFitContent,
   maxIsFr,
@@ -445,7 +444,7 @@ function resolveIntrinsicTrackSizes(
   axisTracks: GridTrack[],
   otherAxisTracks: GridTrack[],
   items: GridItem[],
-  axisAvailableGridSpace: AvailableSpace,
+  _axisAvailableGridSpace: AvailableSpace,
   sizingConstraint: 'min-content' | 'max-content' | null,
   innerNodeSize: Size<Opt>,
   getTrackSizeEstimate: (track: GridTrack, availableSpace: Opt) => Opt,
@@ -497,20 +496,16 @@ function resolveIntrinsicTrackSizes(
         } else if (min === 'max-content') {
           newBaseSize = Math.max(track.baseSize, itemSizer.maxContentContribution(item, axisTracks));
         } else if (min === 'auto') {
-          let space: number;
-          if (
-            (axisAvailableGridSpace === 'min-content' || axisAvailableGridSpace === 'max-content') &&
-            !itemOverflow(item)
-          ) {
-            // QUIRK: browsers only apply the "limited min-content contribution" rule
-            // when the item is not a scroll container.
-            const axisMinimumSize = itemSizer.minimumContribution(item, axisTracks);
-            const axisMinContentSize = itemSizer.minContentContribution(item, axisTracks);
-            const limit = maxDefiniteLimit(track.maxTrackSizingFunction, axisInnerNodeSize);
-            space = Math.max(mMin(axisMinContentSize, limit) as number, axisMinimumSize);
-          } else {
-            space = itemSizer.minimumContribution(item, axisTracks);
-          }
+          // The vendored Grid §11.5 text asks for a limited min-content
+          // contribution under an intrinsic sizing constraint. Blink 7922's
+          // track sizer instead applies kForIntrinsicMinimums to auto tracks;
+          // CalculateIntrinsicMinimumContribution returns a non-auto authored
+          // minimum directly (and has a TODO about ratio transfers). Thus
+          // min-width:0 with min-height:1 and aspect-ratio:1 contributes 0 to
+          // this track, while the item itself still lays out at 1px and
+          // overflows it. An automatic min-width still takes the content-based
+          // branch inside minimumContribution, preserving its intrinsic floor.
+          const space = itemSizer.minimumContribution(item, axisTracks);
           newBaseSize = Math.max(track.baseSize, space);
         } else {
           // Fixed length — not an intrinsic track sizing function

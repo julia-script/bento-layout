@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated batch, minimized from finding 15b9906b
+  date: 2026-08-02
+  chrome: Chrome/151.0.7922.47
+  Grid §11.5 specifies a limited min-content contribution for an auto track
+  under an intrinsic constraint, but pinned Blink 7922 instead routes auto
+  tracks through kForIntrinsicMinimums. Its contribution helper returns the
+  explicit min-width directly and deliberately does not transfer min-height
+  through aspect-ratio in that branch. The grid therefore contributes 0px to
+  its flex parent's automatic minimum, while its 1px item still overflows it.
+  Regenerate with: pnpm gentest fuzz_grid_intrinsic_auto_track_uses_explicit_minimum
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: intrinsic auto track uses explicit minimum contribution</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex; max-width: 0;">
+  <div style="display: grid;">
+    <div style="min-width: 0; min-height: 1px; aspect-ratio: 1;"></div>
+  </div>
+</div>
+
+</body>
+</html>
