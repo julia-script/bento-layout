@@ -1,6 +1,7 @@
 {
   "chrome": "Chrome/151.0.7922.47",
   "createdAt": "2026-08-01T02:12:27.296Z",
+  "defaultOracle": "viewport",
   "entries": [
     {
       "seed": 20260731,

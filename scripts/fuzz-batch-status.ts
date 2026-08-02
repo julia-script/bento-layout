@@ -8,25 +8,12 @@
 //
 // Usage: pnpm fuzz-batch-status [FILE] [--verbose] [--cluster N] [--prune]
 
-import { readdirSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { writeFileSync } from 'node:fs';
+import { latestBatchPath } from './fuzz/analysis.js';
 import { checkFixtures } from './fuzz/check.js';
+import { positionalArg } from './fuzz/cli.js';
 import type { FuzzNode } from './fuzz/generate.js';
 import { type BatchFinding, loadBatch } from './fuzz-batch.js';
-
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const BATCH_DIR = join(ROOT, 'tests', 'fuzz-batches');
-
-/** Most recently modified batch file, when none is named on the command line. */
-function latestBatch(): string {
-  const files = readdirSync(BATCH_DIR).filter((f) => f.endsWith('.json'));
-  if (files.length === 0) {
-    console.error(`no batches in ${BATCH_DIR} — collect one with: pnpm fuzz-batch`);
-    process.exit(2);
-  }
-  return join(BATCH_DIR, files.sort().at(-1) as string);
-}
 
 /** Where the wrongness is, not what the tree contains: the set of node paths
  *  that differ, reduced to a shape. A bug in root intrinsic sizing shows up as
@@ -53,7 +40,7 @@ function clusterKey(f: BatchFinding): string {
 
 function main(): void {
   const args = process.argv.slice(2);
-  const file = args.find((a) => !a.startsWith('--')) ?? latestBatch();
+  const file = positionalArg(args, new Set(['--cluster'])) ?? latestBatchPath();
   const verbose = args.includes('--verbose');
   const prune = args.includes('--prune');
   const idx = args.indexOf('--cluster');

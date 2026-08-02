@@ -1,4 +1,4 @@
-import { readdirSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Batch, BatchFinding } from '../fuzz-batch.js';
@@ -7,6 +7,7 @@ import type { FuzzNode } from './generate.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const BATCH_DIR = join(ROOT, 'tests', 'fuzz-batches');
+const ACTIVE_BATCH_FILE = 'active.json';
 
 export interface JudgedFinding {
   finding: BatchFinding;
@@ -53,13 +54,18 @@ export interface BatchAnalysis {
   stop: StopAssessment;
 }
 
-export function latestBatchPath(): string {
-  const files = readdirSync(BATCH_DIR)
-    .filter((file) => file.endsWith('.json'))
-    .sort();
-  const file = files.at(-1);
-  if (file === undefined) throw new Error(`no fuzz batches in ${BATCH_DIR}`);
-  return join(BATCH_DIR, file);
+export function defaultBatchPath(batchDir = BATCH_DIR): string {
+  return join(batchDir, ACTIVE_BATCH_FILE);
+}
+
+/** The active work queue has a stable name. Never infer campaign state from
+ * filenames: archived and legacy payloads can sort after the current batch. */
+export function latestBatchPath(batchDir = BATCH_DIR): string {
+  const file = defaultBatchPath(batchDir);
+  if (!existsSync(file)) {
+    throw new Error(`no active fuzz batch at ${file}; rehydrate or collect one there explicitly`);
+  }
+  return file;
 }
 
 export function collectProperties(root: FuzzNode): Set<string> {

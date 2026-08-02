@@ -18,6 +18,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Browser } from 'puppeteer';
 import puppeteer from 'puppeteer';
+import { defaultBatchPath } from './fuzz/analysis.js';
 import { checkFixtures, checkTree, createExecutor, type Executor, renderFixtures } from './fuzz/check.js';
 import type { FuzzMode, FuzzTree } from './fuzz/generate.js';
 import { countNodes, generateTree } from './fuzz/generate.js';
@@ -108,7 +109,14 @@ async function main(): Promise<void> {
   }
 
   mkdirSync(BATCH_DIR, { recursive: true });
-  const out = argValue('--out') ?? join(BATCH_DIR, `batch-${seed}-${mode}-${oracleMode}.json`);
+  const requestedOut = argValue('--out');
+  const out = requestedOut ?? defaultBatchPath();
+  if (requestedOut === undefined && existsSync(out) && !append) {
+    console.error(
+      `active campaign already exists at ${out}; use --append, archive it first, or pass --out for a non-active batch`,
+    );
+    process.exit(2);
+  }
 
   const browser: Browser = await puppeteer.launch({
     headless: true,

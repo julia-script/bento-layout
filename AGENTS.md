@@ -122,6 +122,16 @@ pnpm fuzz-batch-status          # re-judge the batch; no browser, ~2s
 pnpm fuzz-triage '<tree-json>'  # per-node chrome-vs-engine geometry
 ```
 
+The active work queue always lives at `tests/fuzz-batches/active.json`.
+Commands never infer campaign identity from whichever ignored JSON filename
+sorts last: archived payloads can be newer or lexically later without being the
+current target. `pnpm fuzz-batch` and manifest rehydration write `active.json`
+by default and refuse to replace an existing active campaign unless the caller
+explicitly appends, selects another `--out`, or uses rehydration's `--force`.
+Archive the completed payload before starting the next campaign. The tracked
+lineage/status ledger is `FUZZ_CAMPAIGNS.md`; large active and archived payloads
+remain ignored under `tests/fuzz-batches/`.
+
 Chrome's verdict is frozen into each finding at collection time, so a batch
 stays a fixed target while you fix against it — and `fuzz-batch-status` needs no
 browser, which is what makes it usable in a tight loop.

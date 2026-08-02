@@ -14,11 +14,13 @@
 // Usage: pnpm fuzz-batch-manifest save [BATCH] [--out FILE]
 //        pnpm fuzz-batch-manifest rehydrate [MANIFEST] [--out FILE] [--concurrency N]
 
-import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import puppeteer from 'puppeteer';
+import { defaultBatchPath, latestBatchPath } from './fuzz/analysis.js';
 import { checkFixtures, checkTree, createExecutor, type Executor, renderFixtures } from './fuzz/check.js';
+import { positionalArg } from './fuzz/cli.js';
 import type { FuzzMode } from './fuzz/generate.js';
 import { countNodes, generateTree } from './fuzz/generate.js';
 import type { FuzzOracleConstraint } from './fuzz/oracle.js';
@@ -44,6 +46,8 @@ interface Manifest {
   /** Chrome the seeds were collected against — a different build may diverge. */
   chrome: string;
   createdAt: string;
+  /** Migration default for legacy entries that predate per-entry oracle metadata. */
+  defaultOracle?: FuzzOracleConstraint;
   entries: ManifestEntry[];
 }
 
@@ -52,19 +56,10 @@ function argValue(flag: string): string | undefined {
   return idx >= 0 ? process.argv[idx + 1] : undefined;
 }
 
-function latestBatch(): string {
-  const files = readdirSync(BATCH_DIR).filter((f) => f.endsWith('.json'));
-  if (files.length === 0) {
-    console.error(`no batches in ${BATCH_DIR} — collect one with: pnpm fuzz-batch`);
-    process.exit(2);
-  }
-  return join(BATCH_DIR, files.sort().at(-1) as string);
-}
-
 /** batch -> manifest: keep the derivation, drop the derived. */
 function save(): void {
   const args = process.argv.slice(3);
-  const batchFile = args.find((a) => !a.startsWith('--')) ?? latestBatch();
+  const batchFile = positionalArg(args, new Set(['--out'])) ?? latestBatchPath();
   const out = argValue('--out') ?? DEFAULT_MANIFEST;
 
   const batch = loadBatch(batchFile);
@@ -89,14 +84,19 @@ function save(): void {
 /** manifest -> batch: regenerate, re-shrink, re-freeze Chrome's verdict. */
 async function rehydrate(): Promise<void> {
   const args = process.argv.slice(3);
-  const manifestFile = args.find((a) => !a.startsWith('--')) ?? DEFAULT_MANIFEST;
+  const manifestFile = positionalArg(args, new Set(['--out', '--concurrency'])) ?? DEFAULT_MANIFEST;
   const concurrency = Number(argValue('--concurrency') ?? 8);
   if (!existsSync(manifestFile)) {
     console.error(`no manifest at ${manifestFile} — create one with: pnpm fuzz-batch-manifest save`);
     process.exit(2);
   }
   const manifest = JSON.parse(readFileSync(manifestFile, 'utf8')) as Manifest;
-  const out = argValue('--out') ?? join(BATCH_DIR, `batch-rehydrated-${manifest.entries[0]?.seed ?? 0}.json`);
+  const requestedOut = argValue('--out');
+  const out = requestedOut ?? defaultBatchPath();
+  if (requestedOut === undefined && existsSync(out) && !process.argv.includes('--force')) {
+    console.error(`active campaign already exists at ${out}; archive it first or rerun with --force`);
+    process.exit(2);
+  }
 
   const browser = await puppeteer.launch({
     headless: true,
@@ -124,7 +124,7 @@ async function rehydrate(): Promise<void> {
         const entry = manifest.entries[i];
         if (entry === undefined) return;
 
-        const requestedOracle = entry.oracle ?? 'viewport';
+        const requestedOracle = entry.oracle ?? manifest.defaultOracle ?? 'viewport';
         const tree = withOracleConstraint(
           generateTree(deriveSeed(entry.seed, entry.index), entry.mode),
           requestedOracle,
@@ -196,6 +196,6 @@ if (command === 'save') {
 } else if (command === 'rehydrate') {
   await rehydrate();
 } else {
-  console.error('usage: pnpm fuzz-batch-manifest save|rehydrate [file] [--out FILE]');
+  console.error('usage: pnpm fuzz-batch-manifest save|rehydrate [file] [--out FILE] [--force]');
   process.exit(2);
 }

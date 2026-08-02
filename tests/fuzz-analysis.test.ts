@@ -1,5 +1,14 @@
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { assessStopping, computeEnrichment, type JudgedFinding, rankClusters } from '../scripts/fuzz/analysis.js';
+import {
+  assessStopping,
+  computeEnrichment,
+  type JudgedFinding,
+  latestBatchPath,
+  rankClusters,
+} from '../scripts/fuzz/analysis.js';
 import type { BatchFinding } from '../scripts/fuzz-batch.js';
 
 function judged(id: string, properties: string[], path = 'root/0'): JudgedFinding {
@@ -21,6 +30,27 @@ function judged(id: string, properties: string[], path = 'root/0'): JudgedFindin
 }
 
 describe('fuzz batch analysis', () => {
+  it('selects the explicit active batch instead of a filename-sorted legacy payload', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'flexboxjs-fuzz-campaign-'));
+    try {
+      writeFileSync(join(dir, 'active.json'), '{}');
+      writeFileSync(join(dir, 'batch-rehydrated-legacy.json'), '{}');
+      expect(latestBatchPath(dir)).toBe(join(dir, 'active.json'));
+    } finally {
+      rmSync(dir, { recursive: true });
+    }
+  });
+
+  it('does not silently fall back to a legacy payload when active.json is absent', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'flexboxjs-fuzz-campaign-'));
+    try {
+      writeFileSync(join(dir, 'batch-rehydrated-legacy.json'), '{}');
+      expect(() => latestBatchPath(dir)).toThrow('no active fuzz batch');
+    } finally {
+      rmSync(dir, { recursive: true });
+    }
+  });
+
   it('ranks properties by open/fixed enrichment', () => {
     const open = [judged('a', ['gap', 'alignItems']), judged('b', ['gap'])];
     const fixed = [judged('c', ['alignItems']), judged('d', ['padding'])];
