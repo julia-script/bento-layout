@@ -747,26 +747,34 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     containerBorderBox.width - border.right - padding.right - scrollbarGutter.x,
   );
   if (direction === 'rtl') {
-    // Walk the tracks in flow order (right to left) and accumulate from the
-    // flow's own start edge, so slot 0 lands on the right content edge where
-    // line 1 sits. Reversing the *whole* sequence -- not just the explicit
-    // range that reverseNonGutterTracks touches -- is what keeps this table in
-    // the same frame as `absColCounts` below: mirroring the implicit counts
-    // moves an implicit track from one end of the line numbering to the other,
-    // so the offsets it indexes have to move with it.
-    let running = columnContentRight;
-    for (let i = 0; i < columns.length; i++) {
-      columnLogicalOffsets[i] = running;
-      const physicalIndex = columns.length - 1 - i;
-      const track = columns[physicalIndex] ?? unreachable();
-      // Distributed track alignment effectively thickens the gutter at the
-      // next track's offset. Its raw base size therefore cannot rebuild the
-      // RTL flow table (`gap: 5px; space-between` can make this 60px).
-      const effectiveSize =
-        physicalIndex % 2 === 0 && physicalIndex + 1 < columns.length
-          ? (columns[physicalIndex + 1] ?? unreachable()).offset - track.offset
-          : track.baseSize;
-      running -= effectiveSize;
+    if (columns.length === 1) {
+      // Blink content-aligns the sole line of an empty grid. In RTL that line
+      // is already a physical offset: `center` in a 20px container is 10px,
+      // while logical `end` is the physical left edge at 0. Re-accumulating
+      // from the right edge would erase that zero-track alignment.
+      columnLogicalOffsets[0] = (columns[0] ?? unreachable()).offset;
+    } else {
+      // Walk the tracks in flow order (right to left) and accumulate from the
+      // flow's own start edge, so slot 0 lands on the right content edge where
+      // line 1 sits. Reversing the *whole* sequence -- not just the explicit
+      // range that reverseNonGutterTracks touches -- is what keeps this table in
+      // the same frame as `absColCounts` below: mirroring the implicit counts
+      // moves an implicit track from one end of the line numbering to the other,
+      // so the offsets it indexes have to move with it.
+      let running = columnContentRight;
+      for (let i = 0; i < columns.length; i++) {
+        columnLogicalOffsets[i] = running;
+        const physicalIndex = columns.length - 1 - i;
+        const track = columns[physicalIndex] ?? unreachable();
+        // Distributed track alignment effectively thickens the gutter at the
+        // next track's offset. Its raw base size therefore cannot rebuild the
+        // RTL flow table (`gap: 5px; space-between` can make this 60px).
+        const effectiveSize =
+          physicalIndex % 2 === 0 && physicalIndex + 1 < columns.length
+            ? (columns[physicalIndex + 1] ?? unreachable()).offset - track.offset
+            : track.baseSize;
+        running -= effectiveSize;
+      }
     }
   } else {
     for (let i = 0; i < columns.length; i++) columnLogicalOffsets[i] = (columns[i] ?? unreachable()).offset;

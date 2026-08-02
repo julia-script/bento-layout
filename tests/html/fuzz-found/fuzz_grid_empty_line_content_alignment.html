@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=58787224 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Grid §10.3 says the sole line of an empty grid is start-aligned, but pinned
+  Blink 7922's ComputeFirstSetGeometry applies content alignment to its empty
+  set collection. In a 20px container `center` puts that line at 10px, making
+  the abspos grid area 10px wide and its 40% block margin 4px.
+  Regenerate with: pnpm gentest fuzz_grid_empty_line_content_alignment
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: empty grid line follows Blink content alignment</title>
+</head>
+<body>
+
+<div id="test-root">
+  <div>
+    <div style="display: grid; width: 20px; height: 0; justify-content: center;">
+      <div style="position: absolute; grid-column: auto / 1; margin: 40% auto auto 100%;"></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

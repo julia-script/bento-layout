@@ -70,6 +70,29 @@ export function alignTracks(
     if (!tracks[i]?.isCollapsed) numTracks++;
   }
 
+  if (numTracks === 0) {
+    // Grid §10.3 says an empty grid's sole line is start-aligned, but pinned
+    // Blink 7922's ComputeFirstSetGeometry still applies content alignment to
+    // its zero-set collection. Chrome 151 puts that line at 10px for `center`
+    // and `space-around`, and at 20px for `end` and `space-evenly`, in a 20px
+    // container. Preserve the logical offset here; RTL mirrors it physically.
+    const keyword = trackAlignmentStyle.keyword;
+    const safeFreeSpace = trackAlignmentStyle.safe ? Math.max(freeSpace, 0) : freeSpace;
+    let logicalOffset = 0;
+    if (keyword === 'center') {
+      logicalOffset = safeFreeSpace / 2;
+    } else if (keyword === 'end' || keyword === 'flex-end') {
+      logicalOffset = safeFreeSpace;
+    } else if (keyword === 'space-around') {
+      logicalOffset = freeSpace >= 0 ? freeSpace / 2 : 0;
+    } else if (keyword === 'space-evenly') {
+      logicalOffset = freeSpace >= 0 ? freeSpace : 0;
+    }
+    const physicalOffset = axisIsReversed ? freeSpace - logicalOffset : logicalOffset;
+    for (const track of tracks) track.offset = origin + physicalOffset;
+    return;
+  }
+
   // Grid layout treats gaps as full tracks; gap = 0 here. Grid layout is never flex-reversed.
   const gap = 0;
   const layoutIsReversed = false;

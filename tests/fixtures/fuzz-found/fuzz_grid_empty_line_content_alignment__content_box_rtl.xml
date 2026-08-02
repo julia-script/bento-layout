@@ -1,0 +1,21 @@
+<test name="fuzz_grid_empty_line_content_alignment__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div box-sizing="content-box" direction="rtl" position="absolute">
+      <div box-sizing="content-box" direction="rtl">
+        <div display="grid" box-sizing="content-box" direction="rtl" justify-content="center" width="20px" height="0px">
+          <div box-sizing="content-box" direction="rtl" position="absolute" margin-top="40%" margin-left="100%" margin-bottom="auto" margin-right="auto" grid-column-end="1"/>
+        </div>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="20" height="0">
+      <node x="0" y="0" width="20" height="0">
+        <node x="0" y="0" width="20" height="0">
+          <node x="20" y="4" width="0" height="0"/>
+        </node>
+      </node>
+    </node>
+  </expectations>
+</test>
