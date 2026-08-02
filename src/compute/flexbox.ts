@@ -2494,8 +2494,25 @@ function determineContainerCrossSize(flexLines: FlexLine[], nodeSize: Size<Opt>,
     specifiedCross !== null && constants.crossIsRatioDerived
       ? Math.max(specifiedCross, contentCrossSize)
       : (specifiedCross ?? contentCrossSize);
+
+  // CSS Sizing 4 §4.2 transfers the ratio-determining axis's initial
+  // constraint through the preferred ratio. For an automatic-width column,
+  // its own block-axis padding+border is that minimum constraint; arbitrary
+  // intrinsic child height is not. Blink's ComputeMinMaxInlineSizes likewise
+  // transfers ResolveInitialMinBlockLength (the block inset floor), not the
+  // final content-driven block size. Chrome therefore gives a border-box
+  // column with 217px of block border and `aspect-ratio: 3` a 651px width,
+  // while a borderless column around a 97px-tall child stays at the child's
+  // intrinsic 10px width rather than growing to 145.5px.
+  const ratioCrossInsetFloor =
+    constants.isColumn &&
+    constants.aspectRatio !== null &&
+    constants.boxSizing === 'border-box' &&
+    (specifiedCross === null || constants.crossIsRatioDerived)
+      ? main(constants.paddingBorderSize, constants.dir) * constants.aspectRatio
+      : 0;
   const outerContainerSize = Math.max(
-    vClamp(resolvedCross, minCrossSize, maxCrossSize),
+    vClamp(Math.max(resolvedCross, ratioCrossInsetFloor), minCrossSize, maxCrossSize),
     paddingBorderSum - crossScrollbarGutter,
   );
   const innerContainerSize = Math.max(outerContainerSize - paddingBorderSum, 0);

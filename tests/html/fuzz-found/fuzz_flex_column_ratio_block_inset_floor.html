@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=d16a3786 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Sizing 4 §4.2 transfers a border-box column's initial block-axis
+  padding/border constraint through its preferred ratio. The 217px block inset
+  floor therefore produces a 651px automatic inline size at a 3:1 ratio.
+  Regenerate with: pnpm gentest fuzz_flex_column_ratio_block_inset_floor
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: column ratio transfers the block inset floor</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex; flex-direction: column; aspect-ratio: 3; border: solid; border-width: 17px 10px 200px 20px;">
+  <!-- The 97px child makes the full height 314px, but only the 217px inset
+       floor transfers: Chrome stays 651px wide rather than using 314 * 3. -->
+  <div style="width: 10px; height: 97px;"></div>
+</div>
+
+</body>
+</html>

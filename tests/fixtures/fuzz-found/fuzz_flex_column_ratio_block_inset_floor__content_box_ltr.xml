@@ -1,0 +1,13 @@
+<test name="fuzz_flex_column_ratio_block_inset_floor__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="flex" box-sizing="content-box" direction="ltr" position="absolute" flex-direction="column" aspect-ratio="3" border-top="17px" border-left="20px" border-bottom="200px" border-right="10px">
+      <div box-sizing="content-box" direction="ltr" width="10px" height="97px"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="40" height="314">
+      <node x="20" y="17" width="10" height="97"/>
+    </node>
+  </expectations>
+</test>
