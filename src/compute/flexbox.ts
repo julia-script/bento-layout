@@ -181,6 +181,8 @@ interface AlgoConstants {
   paddingBorderSize: Size<number>;
   mainSizeIsAuto: boolean;
   crossSizeIsAuto: boolean;
+  /** An automatic cross size was made numeric solely by a min/max pair. */
+  crossSizeIsMinMaxDefinite: boolean;
   margin: Rect<number>;
   border: Rect<number>;
   contentBoxInset: Rect<number>;
@@ -763,6 +765,9 @@ function computeConstants(
   const border = resolveRectOrZero(style.border, parentSize.width);
   const paddingBorderSum = sumAxes(rectAdd(padding, border));
   const boxSizingAdjustment = style.boxSizing === 'content-box' ? paddingBorderSum : sizeZero();
+  const minSize = maybeAddSize(maybeResolveSize(style.minSize, parentSize), boxSizingAdjustment);
+  const maxSize = maybeAddSize(maybeResolveSize(style.maxSize, parentSize), boxSizingAdjustment);
+  const resolvedStyleSize = maybeResolveSize(style.size, parentSize);
 
   const alignItems = style.alignItems ?? ALIGN_STRETCH;
   const alignContent = style.alignContent ?? ALIGN_CONTENT_STRETCH;
@@ -805,13 +810,19 @@ function computeConstants(
     // bound on the other axis: `height: 200; aspect-ratio: 2; max-width: 3` is
     // 3x200 in Chrome for flex, block and grid alike, but a transferred
     // max-height of 1.5 shrank the height instead.
-    minSize: maybeAddSize(maybeResolveSize(style.minSize, parentSize), boxSizingAdjustment),
-    maxSize: maybeAddSize(maybeResolveSize(style.maxSize, parentSize), boxSizingAdjustment),
+    minSize,
+    maxSize,
     aspectRatio,
     boxSizing: style.boxSizing,
     paddingBorderSize: paddingBorderSum,
-    mainSizeIsAuto: main(maybeResolveSize(style.size, parentSize), dir) === null,
-    crossSizeIsAuto: cross(maybeResolveSize(style.size, parentSize), dir) === null,
+    mainSizeIsAuto: main(resolvedStyleSize, dir) === null,
+    crossSizeIsAuto: cross(resolvedStyleSize, dir) === null,
+    crossSizeIsMinMaxDefinite:
+      cross(resolvedStyleSize, dir) === null &&
+      !cross(knownDimensionsAreHard ?? { width: false, height: false }, dir) &&
+      cross(minSize, dir) !== null &&
+      cross(maxSize, dir) !== null &&
+      (cross(maxSize, dir) ?? 0) <= (cross(minSize, dir) ?? 0),
     margin,
     border,
     gap,
@@ -981,18 +992,32 @@ function determineAvailableSpace(
   outerAvailableSpace: Size<AvailableSpace>,
   constants: AlgoConstants,
 ): Size<AvailableSpace> {
-  // Note: min/max/preferred size styles have already been applied to known_dimensions in the `compute` function above
+  // Flexbox §9.2 uses the container's cross size here only when that size is
+  // definite. A row's automatic block size does not become definite merely
+  // because max-height supplied a numeric used size before flex layout; Blink
+  // keeps ChildAvailableSize().block_size indefinite in that case. Preserve
+  // the distinction instead of leaking the clamped number into a ratio item's
+  // flex basis. Chrome: auto height + min-height:1 + max-height:0 around an
+  // empty 1:1 item gives a 0px flex basis, then stretches the item to 0x1.
+  // A column's cross axis is inline, which Blink always considers definite;
+  // a preferred ratio on the container also makes the clamped cross size a
+  // sizing input (its automatic main size is then derived from that value).
+  const availableKnownDimensions =
+    constants.isColumn || !constants.crossSizeIsMinMaxDefinite || constants.aspectRatio !== null
+      ? knownDimensions
+      : withCross(knownDimensions, constants.dir, null);
+
   const width: AvailableSpace =
-    knownDimensions.width !== null
-      ? knownDimensions.width - horizontalSum(constants.contentBoxInset)
+    availableKnownDimensions.width !== null
+      ? availableKnownDimensions.width - horizontalSum(constants.contentBoxInset)
       : asMaybeSub(
           asMaybeSub(outerAvailableSpace.width, horizontalSum(constants.margin)),
           horizontalSum(constants.contentBoxInset),
         );
 
   const height: AvailableSpace =
-    knownDimensions.height !== null
-      ? knownDimensions.height - verticalSum(constants.contentBoxInset)
+    availableKnownDimensions.height !== null
+      ? availableKnownDimensions.height - verticalSum(constants.contentBoxInset)
       : asMaybeSub(
           asMaybeSub(outerAvailableSpace.height, verticalSum(constants.margin)),
           verticalSum(constants.contentBoxInset),
@@ -1158,7 +1183,9 @@ function determineFlexBaseSize(
     );
     if (
       !constants.isWrap &&
-      (cross(constants.nodeInnerSize, dir) !== null || constants.aspectRatio !== null) &&
+      ((cross(constants.nodeInnerSize, dir) !== null &&
+        (constants.isColumn || !constants.crossSizeIsMinMaxDefinite)) ||
+        constants.aspectRatio !== null) &&
       child.alignSelf.keyword === 'stretch' &&
       !child.alignSelf.safe &&
       !rectCrossStart(child.marginIsAuto, constants.dir) &&

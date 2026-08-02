@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: 20260802 viewport campaign, finding=4ad2face (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Flexbox §9.2/§9.8 keeps an authored auto cross size indefinite during
+  flex-basis sizing when only a contradictory min/max pair made it numeric.
+  The child stretches after flexing, without transferring that used cross size
+  through its ratio into the main-axis flex basis.
+  Regenerate with: pnpm gentest fuzz_flex_minmax_cross_stays_indefinite
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: min/max-clamped auto cross size stays indefinite for flex basis</title>
+</head>
+<body>
+
+<div
+  id="test-root"
+  data-test-page-viewport-width="1280"
+  data-test-page-viewport-height="800"
+  style="display: flex; min-height: 1px; max-height: 0;"
+>
+  <div style="aspect-ratio: 1;"></div>
+</div>
+
+</body>
+</html>
