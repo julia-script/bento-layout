@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: 20260802 viewport campaign, finding=0f31d5d6 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Sizing 4 §4.4 caps a transferred minimum by the destination maximum, and
+  Blink's row hypothetical-size query ignores transferred constraints.
+  Regenerate with: pnpm gentest fuzz_flex_row_hypothetical_ignores_transferred_minimum
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: row hypothetical size ignores transferred minimum</title>
+</head>
+<body>
+
+<div
+  id="test-root"
+  data-test-page-viewport-width="1280"
+  data-test-page-viewport-height="800"
+  style="display: flex;"
+>
+  <div style="display: flex; min-height: 0; max-width: 0; aspect-ratio: 1; padding-bottom: 1px;"></div>
+</div>
+
+</body>
+</html>

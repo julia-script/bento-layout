@@ -1073,8 +1073,28 @@ function determineFlexBaseSize(
       childPbSum,
       Math.max,
     );
+    const specifiedMain = main(rawStyleSize, dir);
+    const specifiedMainBorderBox =
+      specifiedMain !== null && childStyle.boxSizing === 'content-box'
+        ? specifiedMain + main(childPbSum, dir)
+        : specifiedMain;
+    const rawMaxMain = main(child.maxSize, dir);
+    // Keep the transfer's provenance before storing it for intrinsic
+    // contribution sizing. Sizing 4 §4.4 caps a transferred minimum by a
+    // definite preferred/maximum size in the destination axis; an authored
+    // minimum in that axis remains independent and can still outrank max-size.
+    // Chrome: min-height:0 plus 1px block padding transfers 1px through a 1:1
+    // ratio, but max-width:0 caps that transferred inline minimum back to 0.
+    const transferredMinMainCap =
+      specifiedMainBorderBox === null
+        ? rawMaxMain
+        : rawMaxMain === null
+          ? specifiedMainBorderBox
+          : Math.min(specifiedMainBorderBox, rawMaxMain);
     child.transferredMinMainSize =
-      child.aspectRatio !== null && main(rawStyleSize, dir) === null ? main(transferredMinSize, dir) : null;
+      child.aspectRatio !== null && main(rawStyleSize, dir) === null
+        ? mMin(main(transferredMinSize, dir), transferredMinMainCap)
+        : null;
     // A max-size below the box's own padding+border cannot be honoured — a
     // border box is never smaller than its insets — so the axis settles at the
     // floor, and it is that *used* size the ratio transfers, not the
@@ -1440,14 +1460,13 @@ function determineFlexBaseSize(
         return vMax(clampedMinContentSize, main(paddingBorderAxesSums, dir));
       })();
 
-    // Blink's content-based flex-basis query includes aspect-ratio-transferred
-    // constraints, while a definite authored flex-basis bypasses that query;
-    // its later used main-axis min/max are computed with
-    // TransferredSizesMode::kIgnore. Preserve that split here at the
-    // hypothetical boundary: `flex-basis: 0; min-width: 0; min-height: 1px;
-    // aspect-ratio: 1` stays 0px, but 80px of content with `max-height: 20px;
-    // aspect-ratio: 2` still has the automatic 40px bound Chrome gives it.
-    const transferredHypotheticalMin = child.flexBasisIsExplicit ? null : main(transferredMinSize, constants.dir);
+    // Use the provenance-preserving transferred minimum stored above: unlike
+    // the combined working min-size, it has already been capped by a definite
+    // destination preferred/maximum size (Sizing 4 §4.4). Keep the transferred
+    // maximum independent — Chrome still clamps 80px of row content to 40px
+    // for `max-height:20px; aspect-ratio:2`. An explicit flex-basis bypasses
+    // both transferred bounds at this hypothetical boundary.
+    const transferredHypotheticalMin = child.flexBasisIsExplicit ? null : child.transferredMinMainSize;
     const hypotheticalMax = child.flexBasisIsExplicit
       ? main(child.maxSize, constants.dir)
       : main(transferredMaxSize, constants.dir);
