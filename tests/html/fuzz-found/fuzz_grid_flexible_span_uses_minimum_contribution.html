@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=d60c4d86 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  A grid item spanning multiple tracks including a flexible track has a zero
+  automatic inline minimum. During intrinsic sizing its minimum contribution
+  therefore floors at its 56px horizontal padding; its 609px ratio-derived
+  min-content width can overflow the resulting grid, but does not enlarge it.
+  Regenerate with: pnpm gentest fuzz_grid_flexible_span_uses_minimum_contribution
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: flexible span uses its minimum contribution</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex;">
+  <div style="max-width: 10px;">
+    <div style="display: grid; grid-template-columns: minmax(auto, 3fr) auto fit-content(10px);">
+      <div style="grid-column: 1 / 3; aspect-ratio: 3; padding: 200px 1px 3px 55px;"></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -676,15 +676,13 @@ function resolveIntrinsicTrackSizes(
     for (const item of batch) {
       if (!itemCrossesIntrinsicTrack(item, axis)) continue;
 
-      let space: number;
-      if (sizingConstraint !== null && !itemOverflow(item)) {
-        const axisMinimumSize = itemSizer.minimumContribution(item, axisTracks);
-        const axisMinContentSize = itemSizer.minContentContribution(item, axisTracks);
-        const limit = itemSpannedTrackLimit(item, axis, axisTracks, axisInnerNodeSize);
-        space = Math.max(mMin(axisMinContentSize, limit) as number, axisMinimumSize);
-      } else {
-        space = itemSizer.minimumContribution(item, axisTracks);
-      }
+      // Blink 7922 always asks for kForIntrinsicMinimums here, including when
+      // the grid itself is under an intrinsic sizing constraint. In
+      // particular, a span crossing a flexible track has an automatic minimum
+      // of zero (Grid §6.6), so only its outer padding/border floor contributes;
+      // substituting its min-content contribution transferred a definite block
+      // size through aspect-ratio and inflated a 56px grid to 609px.
+      const space = itemSizer.minimumContribution(item, axisTracks);
       const range = itemTrackRangeExcludingLines(item, axis);
       const tracks = axisTracks.slice(range.start, range.end);
       if (space > 0) {

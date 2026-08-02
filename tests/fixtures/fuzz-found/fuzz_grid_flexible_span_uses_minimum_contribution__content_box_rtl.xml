@@ -1,0 +1,21 @@
+<test name="fuzz_grid_flexible_span_uses_minimum_contribution__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="flex" box-sizing="content-box" direction="rtl" position="absolute">
+      <div box-sizing="content-box" direction="rtl" max-width="10px">
+        <div display="grid" box-sizing="content-box" direction="rtl" grid-template-columns="minmax(auto,3fr) auto fit-content(10px)">
+          <div box-sizing="content-box" direction="rtl" aspect-ratio="3" padding-top="200px" padding-left="55px" padding-bottom="3px" padding-right="1px" grid-column-start="1" grid-column-end="3"/>
+        </div>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="10" height="203">
+      <node x="0" y="0" width="10" height="203">
+        <node x="-46" y="0" width="56" height="203">
+          <node x="0" y="0" width="56" height="203"/>
+        </node>
+      </node>
+    </node>
+  </expectations>
+</test>
