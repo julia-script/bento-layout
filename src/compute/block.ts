@@ -268,6 +268,13 @@ function computeInner(node: LayoutNode, inputs: LayoutInput, blockCtx: BlockCont
     aspectRatio !== null &&
     knownDimensions.height !== null &&
     maybeResolveSize(style.size, parentSize).height === null &&
+    // Flex §9.4 step 11 re-lays out a stretched item with its used cross size
+    // treated as definite. Blink 7922 expresses that as kStretchExplicit,
+    // which selects stretch before aspect-ratio and skips css-sizing-4 §4.3's
+    // min-intrinsic automatic minimum. Chrome 151 keeps a 480px-wide 1.5:1
+    // block item at the flex line's 320px height even when its descendants have
+    // 960px of intrinsic block extent.
+    !(inputs.knownDimensionsAreHard?.height ?? false) &&
     !isScrollContainer(style.overflow.y);
 
   const overflow = style.overflow;

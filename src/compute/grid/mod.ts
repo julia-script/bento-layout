@@ -424,6 +424,12 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     resolvedStyleSize.height !== null &&
     maybeResolveSize(style.size, parentSize).height === null &&
     style.minSize.height === 'auto' &&
+    // A flex-stretched grid item's used cross size is definite (Flex §9.4
+    // step 11), not an automatic aspect-ratio block size whose §4.3 minimum
+    // can grow to the row sum. Blink 7922's kStretchExplicit chooses stretch
+    // before aspect-ratio; Chrome 151 therefore keeps the 320px flex-line
+    // height around 960px of intrinsic grid content.
+    !(inputs.knownDimensionsAreHard?.height ?? false) &&
     !isScrollContainer(style.overflow.y);
   const rowFloor = (rowSum: number): Opt =>
     heightIsRatioDerived ? Math.max(resolvedStyleSize.height as number, rowSum) : resolvedStyleSize.height;
