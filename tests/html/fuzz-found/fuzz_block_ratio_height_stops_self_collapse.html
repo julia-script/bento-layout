@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=c4ccdccb (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  css-sizing-4 §4.2 says a ratio-dependent block size is not treated as
+  `height: auto` for margin collapsing. Blink 7922 likewise resolves the BFC
+  offset when the final border-box block size is non-zero, so this following
+  sibling starts after the 137px square rather than at y=0.
+  Regenerate with: pnpm gentest fuzz_block_ratio_height_stops_self_collapse
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: ratio height stops block self-collapsing</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block; width: 137px;">
+  <div style="display: block; aspect-ratio: 1;">
+    <div style="position: absolute;"></div>
+  </div>
+  <div style="display: block; height: 40px;"></div>
+</div>
+
+</body>
+</html>

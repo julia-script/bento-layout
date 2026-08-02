@@ -412,7 +412,14 @@ function computeInner(node: LayoutNode, inputs: LayoutInput, blockCtx: BlockCont
   const allInFlowChildrenCanBeCollapsedThrough = items.every(
     (item) => item.position === 'absolute' || item.canBeCollapsedThrough,
   );
-  const canBeCollapsedThrough = !hasStylesPreventingBeingCollapsedThrough && allInFlowChildrenCanBeCollapsedThrough;
+  // A non-zero used block size prevents self-collapsing even when the computed
+  // height is `auto`. This matters for a ratio-dependent automatic height:
+  // css-sizing-4 §4.2 explicitly treats it as non-auto for margin collapsing,
+  // and Blink resolves its BFC offset whenever the final border-box block size
+  // is non-zero (BlockLayoutAlgorithm, branch-heads/7922). Chrome 151 therefore
+  // advances a following sibling by 137px after an empty 137px-wide square.
+  const canBeCollapsedThrough =
+    containerOuterHeight === 0 && !hasStylesPreventingBeingCollapsedThrough && allInFlowChildrenCanBeCollapsedThrough;
 
   const output: LayoutOutput = {
     size: finalOuterSize,
