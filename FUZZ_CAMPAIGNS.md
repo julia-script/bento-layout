@@ -3,22 +3,27 @@
 This file records campaign identity and oracle lineage. It does not duplicate
 the live fixed/open count: run `pnpm fuzz-batch-status` for that.
 
-## Active: `20260731-mixed-viewport-v2`
+## Completed: `20260731-mixed-viewport-v2`
 
 - Source: `tests/fuzz-seeds.json`
 - Source records: 1,007 unique `(seed, index, mode)` entries
 - Seed/mode: `20260731`, `mixed`
 - Browser: Chrome/151.0.7922.47
 - Oracle contract: explicit 1280x800 page viewport
-- Payload: `tests/fuzz-batches/active.json` (ignored, reconstructible)
+- Payload: `tests/fuzz-batches/archive/20260731-mixed-viewport-v2-complete.json`
+  (ignored, reconstructible)
 - Corrected adjudication created: 2026-08-02
 - Initial corrected payload: 117 shrunk, deduplicated findings
 - Snapshot after commit `d8adb789`: 4 fixed, 113 open
+- Completed after commit `580a5331`: 117 fixed, 0 open
 
 This is the corrected continuation of the original seed campaign, not a new
 random seed set. The 1,007 source records replayed as 494 passing and 513 raw
 failing trees; shrinking and signature deduplication reduced the failures to
 117 work-queue entries.
+
+The frozen queue is complete and archived. There is currently no active
+campaign; collect or rehydrate the next one before running active-queue tools.
 
 ## Retired: `20260731-mixed-legacy-oracle`
 
