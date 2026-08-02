@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: reduced from 20260802 viewport campaign finding=a407b414 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Grid §11.7 expands each flexible track by its fr product; Blink stores each
+  product in 1/64px LayoutUnits and carries the discarded fraction forward.
+  Regenerate with: pnpm gentest fuzz_grid_flexible_tracks_carry_layout_units
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: flexible grid tracks carry LayoutUnit fractions</title>
+</head>
+<body>
+
+<div
+  id="test-root"
+  data-test-page-viewport-width="1280"
+  data-test-page-viewport-height="800"
+  style="height: 200px; flex-direction: column;"
+>
+  <div style="height: 75%; flex-grow: 3;"></div>
+  <div style="display: grid; grid-template-rows: 3fr 1fr; flex-grow: 1;">
+    <div style="display: grid; grid-template-rows: minmax(auto, 1px);"></div>
+  </div>
+</div>
+
+</body>
+</html>

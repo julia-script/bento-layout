@@ -330,7 +330,16 @@ export function trackSizingAlgorithm(
 
   // 11.7. Expand Flexible Tracks
   const itemSizer = makeItemSizer(axis, otherAxisTracks, innerNodeSize, getTrackSizeEstimate, direction);
-  expandFlexibleTracks(axis, axisTracks, itemSizer, items, axisMinSize, axisMaxSize, axisAvailableSpaceForExpansion);
+  expandFlexibleTracks(
+    axis,
+    axisTracks,
+    itemSizer,
+    items,
+    axisMinSize,
+    axisMaxSize,
+    axisAvailableSpaceForExpansion,
+    axis === 'horizontal' && direction === 'rtl',
+  );
 
   // 11.8. Stretch auto Tracks
   if (axisAlignment.keyword === 'stretch' && !axisAlignment.safe) {
@@ -1019,6 +1028,7 @@ function expandFlexibleTracks(
   axisMinSize: Opt,
   axisMaxSize: Opt,
   axisAvailableSpaceForExpansion: AvailableSpace,
+  remainderTowardPhysicalStart: boolean,
 ): void {
   // First, find the grid's used flex fraction
   let flexFraction: number;
@@ -1065,10 +1075,31 @@ function expandFlexibleTracks(
     flexFraction = fraction;
   }
 
-  // For each flexible track, apply the used flex fraction
-  for (const track of axisTracks) {
+  // Blink stores each expanded track in 1/64px LayoutUnits. Because flooring
+  // every `fr` share independently would lose free space, branch 7922 carries
+  // the discarded raw fraction into the next flexible track
+  // (GridTrackSizingAlgorithm::ExpandFlexibleTracks). This is observable
+  // before painting: a 1px base in a 3fr/1fr intrinsic grid expands to 85/64px,
+  // not the exact 4/3px product from Grid §11.7.
+  // For each flexible track, apply the used flex fraction.
+  const layoutUnitsPerCssPixel = 64;
+  const blinkFloatEpsilon = 2 ** -23;
+  let leftoverRawSize = 0;
+
+  // Column tracks are stored in physical order after RTL initialization, so
+  // reverse them to match Blink's logical-order set iterator and leave the
+  // carried remainder at logical end.
+  const tracksInExpansionOrder = remainderTowardPhysicalStart ? [...axisTracks].reverse() : axisTracks;
+  for (const track of tracksInExpansionOrder) {
     if (maxIsFr(track.maxTrackSizingFunction)) {
-      track.baseSize = Math.max(track.baseSize, track.maxTrackSizingFunction.fr * flexFraction);
+      const shareRawSize =
+        track.maxTrackSizingFunction.fr * flexFraction * layoutUnitsPerCssPixel + leftoverRawSize;
+      const expandedRawSize = Math.floor(shareRawSize + blinkFloatEpsilon);
+      const expandedSize = expandedRawSize / layoutUnitsPerCssPixel;
+      if (expandedSize >= track.baseSize) {
+        track.baseSize = expandedSize;
+        leftoverRawSize = Math.max(shareRawSize - expandedRawSize, 0);
+      }
     }
   }
 }

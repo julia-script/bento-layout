@@ -1,0 +1,19 @@
+<test name="fuzz_grid_flexible_tracks_carry_layout_units__border_box_ltr" use-rounding="true">
+  <viewport width="1280px" height="800px"/>
+  <input>
+    <div direction="ltr" position="absolute" flex-direction="column" height="200px">
+      <div direction="ltr" flex-grow="3" height="75%"/>
+      <div display="grid" direction="ltr" flex-grow="1" grid-template-rows="3fr 1fr">
+        <div display="grid" direction="ltr" grid-template-rows="minmax(auto,1px)"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="0" height="200">
+      <node x="0" y="0" width="0" height="187"/>
+      <node x="0" y="187" width="0" height="13">
+        <node x="0" y="0" width="0" height="10"/>
+      </node>
+    </node>
+  </expectations>
+</test>
