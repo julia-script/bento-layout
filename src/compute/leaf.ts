@@ -74,7 +74,7 @@ export function computeLeafLayout(inputs: LayoutInput, style: Style, measureFunc
     // content-sized at 40x30, so keep this on the flex formatting path only.
     const derivedFromKnown =
       style.display === 'flex'
-        ? maybeApplyAspectRatioUsed(knownDimensions, aspectRatio, style.boxSizing, pbSum)
+        ? maybeApplyAspectRatioUsed(floorRatioSource(knownDimensions), aspectRatio, style.boxSizing, pbSum)
         : { width: null, height: null };
 
     nodeSize = {
