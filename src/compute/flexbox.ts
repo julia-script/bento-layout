@@ -2123,7 +2123,7 @@ function determineHypotheticalCrossSize(
     const ratioAutomaticMinimumApplies =
       child.crossIsArDerived &&
       cross(childStyle.minSize, constants.dir) === 'auto' &&
-      !isScrollContainer(constants.isRow ? child.overflow.y : child.overflow.x);
+      overflowAutoMinSize(child.overflow) === null;
     const intrinsicCrossMinimum = ratioAutomaticMinimumApplies
       ? measureChildSize(
           child.node,

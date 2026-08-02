@@ -1,0 +1,17 @@
+<test name="fuzz_flex_ratio_auto_min_overflow_pair__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="ltr" position="absolute" width="1px">
+      <div direction="ltr" overflow-x="scroll" overflow-y="clip" scrollbar-width="0" aspect-ratio="1">
+        <div direction="ltr" width="320px" height="3px"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="1" height="1">
+      <node x="0" y="0" width="1" height="1" scroll_width="0" scroll_height="2">
+        <node x="0" y="0" width="1" height="3"/>
+      </node>
+    </node>
+  </expectations>
+</test>
