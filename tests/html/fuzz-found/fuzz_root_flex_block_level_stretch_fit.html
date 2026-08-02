@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: corrected 20260731 viewport campaign, finding=083efc42 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  `display: flex` generates an in-flow block-level box, so its automatic width
+  uses the viewport containing block's stretch-fit size. Physical root margins
+  offset that box identically in LTR and RTL (Flex §3).
+  Regenerate with: pnpm gentest fuzz_root_flex_block_level_stretch_fit
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: flex root uses block-level stretch-fit sizing</title>
+</head>
+<body>
+
+<div class="viewport" style="display: block; width: 1280px; height: 800px;">
+  <div id="test-root" style="display: flex; position: relative; margin-left: 40px; margin-right: 97px; padding-left: 1px;"></div>
+</div>
+
+</body>
+</html>

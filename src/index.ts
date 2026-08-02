@@ -197,8 +197,18 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
   };
   const rootSpecified = maybeResolveSize(rootStyle.size, parentSize);
 
-  // Block roots automatically stretch-fit their width to definite available space
-  if (rootInternal.style.display === 'block') {
+  // `display: flex` generates a block-level box in flow (Flex §3), so its
+  // automatic inline size uses the containing block's stretch-fit size. An
+  // out-of-flow flex root remains fit-content and is resolved by the absolute
+  // positioning path below.
+  //
+  // Grid has the same CSS rule, but legacy XML fixtures use a numeric viewport
+  // to encode a grid that was actually a flex item. Until the root API carries
+  // that parent formatting context, applying flow stretch to every grid root
+  // would reinterpret those fixtures rather than fix their layout.
+  const flexRootUsesFlowStretchFit =
+    rootInternal.style.display === 'flex' && rootInternal.style.position !== 'absolute';
+  if (rootInternal.style.display === 'block' || flexRootUsesFlowStretchFit) {
     knownDimensions = blockRootKnownDimensions(rootInternal.style, parentSize, availableSpace);
   }
 
@@ -472,8 +482,9 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
   const absoluteRootUsesStaticInlinePosition =
     style.position === 'absolute' && style.inset.left === 'auto' && style.inset.right === 'auto';
   const location = {
-    x:
-      !absoluteRootUsesStaticInlinePosition && style.direction === 'rtl'
+    x: flexRootUsesFlowStretchFit
+      ? margin.left
+      : !absoluteRootUsesStaticInlinePosition && style.direction === 'rtl'
         ? parentSize.width !== null
           ? parentSize.width - output.size.width
           : 0
