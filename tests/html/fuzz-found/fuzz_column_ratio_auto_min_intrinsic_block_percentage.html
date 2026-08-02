@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: 20260802 viewport campaign, finding=1387f1dd (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Flexbox §4.5 and §9.2 step 3E measure a column item's intrinsic block size
+  at its used inline size, which is the definite basis for percentage padding.
+  Regenerate with: pnpm gentest fuzz_column_ratio_auto_min_intrinsic_block_percentage
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: column ratio intrinsic block percentage keeps inline basis</title>
+</head>
+<body>
+
+<div
+  id="test-root"
+  data-test-page-viewport-width="1280"
+  data-test-page-viewport-height="800"
+  style="display: flex; flex-direction: column;"
+>
+  <div style="width: 1px; aspect-ratio: 3;">
+    <div style="padding-top: 100%;"></div>
+  </div>
+</div>
+
+</body>
+</html>

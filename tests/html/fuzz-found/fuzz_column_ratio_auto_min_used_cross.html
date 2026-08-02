@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: 20260802 viewport campaign, finding=5a86905d (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Flexbox §4.5 measures a column item's intrinsic block-size contribution at
+  its used inline size. An aspect ratio must not discard that cross-size
+  provenance and turn an inline-only descendant inset into block content.
+  Regenerate with: pnpm gentest fuzz_column_ratio_auto_min_used_cross
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: column ratio auto minimum retains used cross size</title>
+</head>
+<body>
+
+<div
+  id="test-root"
+  data-test-page-viewport-width="1280"
+  data-test-page-viewport-height="800"
+  style="display: flex; flex-direction: column; width: 0;"
+>
+  <div style="aspect-ratio: 1;">
+    <div style="padding-right: 1px;"></div>
+  </div>
+</div>
+
+</body>
+</html>

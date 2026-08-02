@@ -1316,15 +1316,19 @@ function determineFlexBaseSize(
               dir,
               crossAxisAvailableSpace,
             );
-            // The *content* size suggestion must be measured without the cross
-            // size imposed: with it, an item that has an `aspect-ratio` derives
-            // its main size straight from the ratio and never consults its
-            // content, so content wider than the ratio is invisible here. The
-            // ratio's own contribution arrives separately as `transferredMain`
-            // below, and the two are joined — they are distinct suggestions in
-            // css-flexbox-1 §4.5, not alternatives.
+            // A row's *content* size suggestion must be measured without the
+            // imposed cross size: otherwise its ratio derives the inline main
+            // size before intrinsic content is consulted. In a column the
+            // content suggestion is the intrinsic block size at the item's
+            // used inline size (Flexbox §4.5 and §9.2 step 3E), so keep that
+            // cross-size provenance. Chrome: a 1px-wide column ratio item with
+            // `padding-top: 100%` has a 1px automatic block minimum; clearing
+            // the inline size made the percentage basis indefinite and gave 0.
+            // The ratio contribution remains separate as `transferredMain`.
             const contentMeasureKnownDimensions =
-              child.aspectRatio !== null ? withCross(childKnownDimensions, dir, null) : childKnownDimensions;
+              child.aspectRatio !== null && constants.isRow
+                ? withCross(childKnownDimensions, dir, null)
+                : childKnownDimensions;
             return measureChildSize(
               child.node,
               contentMeasureKnownDimensions,
