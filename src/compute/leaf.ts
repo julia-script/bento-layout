@@ -221,11 +221,35 @@ export function computeLeafLayout(inputs: LayoutInput, style: Style, measureFunc
   // so each is computed once from the other axis's pre-transfer value.
   const flooredWidth = Math.max(clampedSize.width, pbSum.width);
   const flooredHeight = Math.max(clampedSize.height, pbSum.height);
+  const bothAxesAutomatic = widthIsAutomatic && heightIsAutomatic;
   const arSourceWidth = sizingMode === 'content-size' ? pbSum.width : flooredWidth;
-  const arSourceHeight = sizingMode === 'content-size' ? pbSum.height : flooredHeight;
+  // When both preferred axes are automatic, inline size is ratio-determining:
+  // block-axis content does not transfer back into and widen the inline axis.
+  // Definite block minimums and the box's own inset floor still transfer.
+  const arSourceHeight =
+    sizingMode === 'content-size'
+      ? pbSum.height
+      : bothAxesAutomatic
+        ? Math.max(pbSum.height, nodeMinSize.height ?? 0)
+        : flooredHeight;
   const arHeight =
     heightIsAutomatic && floorAspectRatio !== null ? transferToHeight(arSourceWidth, floorAspectRatio) : 0;
   const arWidth = widthIsAutomatic && floorAspectRatio !== null ? transferToWidth(arSourceHeight, floorAspectRatio) : 0;
+  // A text-only flex container is represented by this leaf path instead of by
+  // an anonymous flex item. Mirror Blink's flex BlockSizeFunc: for a content
+  // query with a preferred ratio, resolve the automatic block size directly
+  // from the used intrinsic inline size. This is a size, not merely a floor:
+  // Chrome sizes one 10px glyph at `aspect-ratio: 2` to 10x5 (and 15x8 with
+  // 5px of border-box inline padding), even though the text's own line box is
+  // 10px tall. Block and grid formatting contexts keep their 10px content
+  // height, so this substitution is specific to the flex formatting path.
+  const flexIntrinsicRatioHeight =
+    style.display === 'flex' && bothAxesAutomatic && aspectRatio !== null
+      ? Math.max(
+          vClamp(transferToHeight(flooredWidth, aspectRatio), nodeMinSize.height, nodeMaxSize.height),
+          pbSum.height,
+        )
+      : null;
   // The ratio transfer is a *floor*, but a floor never wins over the box's own
   // max-size: `height: 200; aspect-ratio: 2; max-width: 3` is 3 wide in Chrome,
   // not 400. Re-clamp the transferred value so the max survives the max() above
@@ -233,7 +257,7 @@ export function computeLeafLayout(inputs: LayoutInput, style: Style, measureFunc
   // own padding+border, even under a smaller max-size).
   const size = {
     width: Math.max(flooredWidth, vClamp(arWidth, null, nodeMaxSize.width)),
-    height: Math.max(flooredHeight, vClamp(arHeight, null, nodeMaxSize.height)),
+    height: flexIntrinsicRatioHeight ?? Math.max(flooredHeight, vClamp(arHeight, null, nodeMaxSize.height)),
   };
 
   // A measure function reports its baseline relative to the content box, so

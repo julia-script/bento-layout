@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=ff9cbbf3 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Sizing 4 §4.2 makes the inline axis ratio-determining when both axes
+  are automatic. Blink's flex BlockSizeFunc then derives the block size from
+  that intrinsic inline size; block content does not widen the inline axis.
+  Regenerate with: pnpm gentest fuzz_flex_text_leaf_intrinsic_ratio_axis
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: text-only flex intrinsic ratio uses inline axis</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex; aspect-ratio: 2;">H</div>
+
+</body>
+</html>
