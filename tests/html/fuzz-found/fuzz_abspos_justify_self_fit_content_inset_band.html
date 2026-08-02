@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=5fac8f50 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Align §6.1.2 makes a non-stretch abspos width fit-content and aligns its
+  margin box inside the inset-modified containing block. Start/end are logical,
+  auto margins take precedence, and safe overflow falls back to logical start.
+  Regenerate with: pnpm gentest fuzz_abspos_justify_self_fit_content_inset_band
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: abspos justify-self uses fit-content inset band</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex; width: 200px; height: 100px;">
+  <div style="position: absolute; left: 20px; right: 30px; top: 0; justify-self: flex-start;"></div>
+  <div style="position: absolute; left: 20px; right: 30px; top: 20px; justify-self: center;">HHH</div>
+  <div style="position: absolute; left: 20px; right: 30px; top: 40px; width: 40px; justify-self: flex-end;"></div>
+  <div style="position: absolute; left: 20px; right: 130px; top: 60px; width: 80px; justify-self: safe center;"></div>
+</div>
+
+</body>
+</html>

@@ -70,6 +70,116 @@ export function resolveAbsoluteAxis(
   };
 }
 
+/** Whether actual abspos alignment gives an automatic axis its stretch size. */
+export function absoluteAxisStretches(alignment: AlignItems | null): boolean {
+  // `auto` computes to `normal` for the actual position of an abspos box, and
+  // normal stretches a non-replaced box. Every explicit non-stretch position
+  // instead makes an automatic size fit-content (css-align-3 §6.1.2).
+  return alignment === null || alignment.keyword === 'stretch';
+}
+
+/**
+ * Resolve an abspos axis, then align its margin box inside a definite inset
+ * band. This mirrors Blink's `ComputeInsets` bias and overflow correction.
+ */
+export function resolveAlignedAbsoluteAxis(
+  availableSize: number,
+  inset: { start: Opt; end: Opt },
+  margin: { start: Opt; end: Opt },
+  usedSize: number,
+  isInlineAxis: boolean,
+  startIsDominant: boolean,
+  alignment: AlignItems | null,
+): ResolvedAbsoluteAxis {
+  const resolved = resolveAbsoluteAxis(availableSize, inset, margin, usedSize, isInlineAxis, startIsDominant);
+
+  // With one auto inset CSS2 fully determines the result; with both auto the
+  // static-position rectangle is needed. Auto margins absorb free space before
+  // alignment, and normal/stretch keep the ordinary inset equation.
+  if (
+    inset.start === null ||
+    inset.end === null ||
+    margin.start === null ||
+    margin.end === null ||
+    absoluteAxisStretches(alignment)
+  ) {
+    return resolved;
+  }
+
+  const originalStart = resolved.inset.start as number;
+  const originalEnd = resolved.inset.end as number;
+  const marginBoxSize = resolved.margin.start + usedSize + resolved.margin.end;
+  let imcbStart = originalStart;
+  let imcbEnd = originalEnd;
+  let freeSpace = availableSize - imcbStart - imcbEnd - marginBoxSize;
+
+  type Bias = 'start' | 'end' | 'equal';
+  const logicalStartBias: Bias = startIsDominant ? 'start' : 'end';
+  const logicalEndBias: Bias = startIsDominant ? 'end' : 'start';
+  let bias: Bias;
+  switch ((alignment as AlignItems).keyword) {
+    case 'center':
+      bias = 'equal';
+      break;
+    case 'end':
+    case 'flex-end':
+      bias = logicalEndBias;
+      break;
+    case 'start':
+    case 'flex-start':
+    case 'baseline':
+    case 'stretch':
+      bias = logicalStartBias;
+      break;
+  }
+
+  const applySafeBias = (alignment as AlignItems).safe && freeSpace < 0;
+  if (applySafeBias) {
+    freeSpace = 0;
+    bias = logicalStartBias;
+  }
+
+  if (bias === 'start') imcbEnd += freeSpace;
+  else if (bias === 'end') imcbStart += freeSpace;
+  else {
+    imcbStart += freeSpace / 2;
+    imcbEnd += freeSpace / 2;
+  }
+
+  // A plain (neither explicit safe nor explicit unsafe in the serialized
+  // style model) abspos alignment uses CSS Align's default overflow behavior.
+  // Keep a fitting margin box inside the original IMCB; otherwise use its
+  // union with the containing block, prioritizing logical start. This is why a
+  // centered 80px box in the 50px band `left:20; right:30` lands at x=5, while
+  // logical start lands at x=20 LTR and x=0 RTL in Chrome 151.
+  if (!(alignment as AlignItems).safe) {
+    const useImcb = marginBoxSize <= availableSize - originalStart - originalEnd;
+    const safeStart = useImcb ? originalStart : Math.min(originalStart, 0);
+    const safeEnd = useImcb ? originalEnd : Math.min(originalEnd, 0);
+    const adjustStart = (): void => {
+      if (imcbStart < safeStart) {
+        imcbEnd += imcbStart - safeStart;
+        imcbStart = safeStart;
+      }
+    };
+    const adjustEnd = (): void => {
+      if (imcbEnd < safeEnd) {
+        imcbStart += imcbEnd - safeEnd;
+        imcbEnd = safeEnd;
+      }
+    };
+    if (logicalStartBias === 'start') {
+      adjustEnd();
+      adjustStart();
+    } else {
+      adjustStart();
+      adjustEnd();
+    }
+  }
+
+  return { inset: { start: imcbStart, end: imcbEnd }, margin: resolved.margin };
+}
+
 /** Resolve the safe/unsafe overflow-position fallback for a self-alignment value. */
 export function resolveSelfAlignmentSafety(alignment: AlignItems, overflows: boolean): AlignItemsKeyword {
   return alignment.safe && overflows ? 'start' : alignment.keyword;

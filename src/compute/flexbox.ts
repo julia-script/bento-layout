@@ -52,11 +52,13 @@ import { traceLayout } from '../trace.js';
 import type { LayoutInput, LayoutNode, LayoutOutput } from '../tree.js';
 import { fromOuterSize, fromSizesAndBaselines, internals, layoutWithOrder } from '../tree.js';
 import {
+  absoluteAxisStretches,
   applyAlignmentFallback,
   computeAlignmentOffset,
   computeContentSizeContribution,
   insetModifiedContainingBlockSize,
   resolveAbsoluteAxis,
+  resolveAlignedAbsoluteAxis,
   resolveSelfAlignmentSafety,
 } from './alignment.js';
 import {
@@ -2781,7 +2783,10 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
     // resolve an automatic block size (an abspos child is not a flex item).
     const crossStretches = (childStyle.alignSelf ?? { keyword: 'stretch' }).keyword === 'stretch';
     const fillHeightFromInsets = constants.isRow ? crossStretches : true;
-    const fillWidthFromInsets = constants.isRow ? true : crossStretches;
+    // justify-self always governs the containing block's physical inline
+    // axis, independent of the flex direction. `auto`/normal and explicit
+    // stretch fill between opposing insets; positional values use fit-content.
+    const fillWidthFromInsets = absoluteAxisStretches(childStyle.justifySelf);
 
     // Compute known dimensions from min/max/inherent size styles
     const resolvedStyleSize = maybeResolveSize(childStyle.size, insetRelativeSize);
@@ -2917,13 +2922,14 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
       'inherent-size',
     );
 
-    const resolvedHorizontal = resolveAbsoluteAxis(
+    const resolvedHorizontal = resolveAlignedAbsoluteAxis(
       insetRelativeSize.width,
       { start: left, end: right },
       { start: margin.left, end: margin.right },
       finalSize.width,
       true,
       constants.layoutDirection !== 'rtl',
+      childStyle.justifySelf,
     );
     const resolvedVertical = resolveAbsoluteAxis(
       insetRelativeSize.height,
@@ -3038,12 +3044,20 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
     // `top/left/bottom/right: 0` and an explicit `width/height: 100px` expects
     // (0,0), not a centered box.
     const crossSizeIsAuto = cross(maybeResolveSize(childStyle.size, insetRelativeSize), constants.dir) === null;
+    const horizontalJustifySelfWasApplied =
+      !constants.isRow &&
+      left !== null &&
+      right !== null &&
+      margin.left !== null &&
+      margin.right !== null &&
+      !absoluteAxisStretches(childStyle.justifySelf);
     const alignsWithinInsetBand =
       startCross !== null &&
       endCross !== null &&
       !crossStretches &&
       crossSizeIsAuto &&
-      alignSelf.keyword !== 'baseline';
+      alignSelf.keyword !== 'baseline' &&
+      !horizontalJustifySelfWasApplied;
     if (alignsWithinInsetBand) {
       const bandStart =
         (startCross as number) +

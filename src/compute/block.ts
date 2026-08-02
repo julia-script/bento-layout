@@ -34,11 +34,13 @@ import {
   resolveMarginSet,
 } from '../tree.js';
 import {
+  absoluteAxisStretches,
   applyAlignmentFallback,
   computeAlignmentOffset,
   computeContentSizeContribution,
   insetModifiedContainingBlockSize,
   resolveAbsoluteAxis,
+  resolveAlignedAbsoluteAxis,
 } from './alignment.js';
 import {
   maybeApplyAspectRatioUsed,
@@ -998,7 +1000,12 @@ function performAbsoluteLayoutOnAbsoluteChildren(
     }
     let knownDimensions = sizeMaybeClamp(styleSize, minSize, maxSize);
 
-    if (knownDimensions.width === null && left !== null && right !== null) {
+    if (
+      knownDimensions.width === null &&
+      left !== null &&
+      right !== null &&
+      absoluteAxisStretches(childStyle.justifySelf)
+    ) {
       const newWidthRaw = vSub(vSub(areaWidth, margin.left), margin.right) - left - right;
       knownDimensions.width = Math.max(newWidthRaw, 0);
       knownDimensions = sizeMaybeClamp(maybeApplyAspectRatio(knownDimensions, aspectRatio), minSize, maxSize);
@@ -1051,13 +1058,14 @@ function performAbsoluteLayoutOnAbsoluteChildren(
       'content-size',
     );
 
-    const resolvedHorizontal = resolveAbsoluteAxis(
+    const resolvedHorizontal = resolveAlignedAbsoluteAxis(
       areaWidth,
       { start: left, end: right },
       { start: margin.left, end: margin.right },
       finalSize.width,
       true,
       direction !== 'rtl',
+      childStyle.justifySelf,
     );
     const resolvedVertical = resolveAbsoluteAxis(
       areaHeight,

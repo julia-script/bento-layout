@@ -9,11 +9,13 @@ import { maybeResolve, maybeResolveSize } from '../../style.js';
 import type { Layout, LayoutNode } from '../../tree.js';
 import { internals } from '../../tree.js';
 import {
+  absoluteAxisStretches,
   applyAlignmentFallback,
   computeAlignmentOffset,
   computeContentSizeContribution,
   insetModifiedContainingBlockSize,
   resolveAbsoluteAxis,
+  resolveAlignedAbsoluteAxis,
   resolveSelfAlignmentSafety,
 } from '../alignment.js';
 import {
@@ -212,7 +214,13 @@ export function alignAndPositionItem(
   // axis, because `inherentSize` can already contain that transferred 13px.
   // Absolute positioning: derive width from left+right insets; stretch alignment otherwise
   let width = inherentSize.width;
-  if (width === null && position === 'absolute' && insetHorizontal.start !== null && insetHorizontal.end !== null) {
+  if (
+    width === null &&
+    position === 'absolute' &&
+    insetHorizontal.start !== null &&
+    insetHorizontal.end !== null &&
+    absoluteAxisStretches(justifySelf)
+  ) {
     width = Math.max(gridAreaMinusItemMarginsSize.width - insetHorizontal.start - insetHorizontal.end, 0);
   } else if (
     resolvedStyleSize.width === null &&
@@ -338,6 +346,7 @@ export function alignAndPositionItem(
     0,
     direction,
     true,
+    justifySelf,
   );
   const [y, yMargin] = alignItemWithinArea(
     { start: gridArea.top, end: gridArea.bottom },
@@ -349,6 +358,7 @@ export function alignAndPositionItem(
     baselineShim,
     'ltr',
     false,
+    alignSelf,
   );
 
   const scrollbarSize = {
@@ -391,6 +401,7 @@ export function alignItemWithinArea(
   baselineShim: number,
   direction: Direction,
   isInlineAxis: boolean,
+  actualAbsposAlignment: AlignItems | null = alignmentStyle,
 ): [number, { start: number; end: number }] {
   // Calculate grid area dimension in the axis
   const nonAutoMargin = { start: (margin.start ?? 0) + baselineShim, end: margin.end ?? 0 };
@@ -398,7 +409,17 @@ export function alignItemWithinArea(
   const autoMarginCount = (margin.start === null ? 1 : 0) + (margin.end === null ? 1 : 0);
   const absoluteAxis =
     position === 'absolute'
-      ? resolveAbsoluteAxis(gridAreaSize, inset, margin, resolvedSize, isInlineAxis, direction !== 'rtl')
+      ? isInlineAxis
+        ? resolveAlignedAbsoluteAxis(
+            gridAreaSize,
+            inset,
+            margin,
+            resolvedSize,
+            isInlineAxis,
+            direction !== 'rtl',
+            actualAbsposAlignment,
+          )
+        : resolveAbsoluteAxis(gridAreaSize, inset, margin, resolvedSize, isInlineAxis, direction !== 'rtl')
       : null;
   const freeSpace = Math.max(gridAreaSize - resolvedSize - nonAutoMargin.start - nonAutoMargin.end, 0);
   const autoMarginSize = autoMarginCount > 0 ? freeSpace / autoMarginCount : 0;
