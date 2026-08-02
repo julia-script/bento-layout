@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: seed=20260731 index=1322 (mode=mixed), id=d72fb377
+  date: 2026-08-02
+  chrome: Chrome/151.0.7922.47
+  A flex item establishes an independent formatting context, so a descendant's
+  collapsed top margin cannot escape it (css-flexbox-1 §4). CSS2 §8.3.1 still
+  lets that margin collapse through the block-start of its 7px-tall parent.
+  Blink 7922 carries the resulting MarginStrut into the new formatting
+  context's intrinsic block size, producing 1px + 7px = 8px.
+  Regenerate the XML fixtures with:
+  pnpm gentest fuzz_block_fixed_child_collapsed_top_margin
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: fixed block preserves collapsed top margin contribution</title>
+</head>
+<body>
+
+<div id="test-root">
+  <div style="display: block;">
+    <div style="display: block; height: 7px;">
+      <div style="margin: 1px 200px auto 20px;"></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

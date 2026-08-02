@@ -759,6 +759,8 @@ interface MeasureEntry {
   ah: AvailableSpace;
   pw: Opt;
   axis: RequestedAxis;
+  marginStartCollapsible: boolean;
+  marginEndCollapsible: boolean;
   /** Prebuilt at store time so a hit returns an existing object. */
   out: LayoutOutput;
 }
@@ -795,6 +797,8 @@ export class Cache {
     const ah = input.availableSpace.height;
     const pw = input.parentSize.width;
     const axis = input.axis;
+    const marginStartCollapsible = input.verticalMarginsAreCollapsible.start;
+    const marginEndCollapsible = input.verticalMarginsAreCollapsible.end;
     const hw = input.knownDimensionsAreHard?.width ?? false;
     const hh = input.knownDimensionsAreHard?.height ?? false;
 
@@ -810,7 +814,9 @@ export class Cache {
         entry.ah === ah &&
         entry.pw === pw &&
         entry.ph === input.parentSize.height &&
-        entry.axis === axis
+        entry.axis === axis &&
+        entry.marginStartCollapsible === marginStartCollapsible &&
+        entry.marginEndCollapsible === marginEndCollapsible
       ) {
         return entry.out;
       }
@@ -833,7 +839,9 @@ export class Cache {
           entry.aw === aw &&
           entry.ah === ah &&
           entry.pw === pw &&
-          entry.axis === axis
+          entry.axis === axis &&
+          entry.marginStartCollapsible === marginStartCollapsible &&
+          entry.marginEndCollapsible === marginEndCollapsible
         ) {
           return entry.out;
         }
@@ -851,11 +859,26 @@ export class Cache {
     const ah = input.availableSpace.height;
     const pw = input.parentSize.width;
     const axis = input.axis;
+    const marginStartCollapsible = input.verticalMarginsAreCollapsible.start;
+    const marginEndCollapsible = input.verticalMarginsAreCollapsible.end;
     const hw = input.knownDimensionsAreHard?.width ?? false;
     const hh = input.knownDimensionsAreHard?.height ?? false;
 
     if (input.runMode === 'perform-layout') {
-      this.finalLayoutEntry = { kw, kh, hw, hh, aw, ah, pw, ph: input.parentSize.height, axis, out: layoutOutput };
+      this.finalLayoutEntry = {
+        kw,
+        kh,
+        hw,
+        hh,
+        aw,
+        ah,
+        pw,
+        ph: input.parentSize.height,
+        axis,
+        marginStartCollapsible,
+        marginEndCollapsible,
+        out: layoutOutput,
+      };
     } else if (input.runMode === 'compute-size') {
       // biome-ignore lint/suspicious/noAssignInExpressions: lazy-allocate the cache row on first measure.
       const entries = this.measureEntries ?? (this.measureEntries = new Array(CACHE_SIZE).fill(undefined));
@@ -868,6 +891,8 @@ export class Cache {
         ah,
         pw,
         axis,
+        marginStartCollapsible,
+        marginEndCollapsible,
         // Compute-size callers normally read only `.size`, but block layout
         // also consumes the collapsed-margin outputs to size an ancestor BFC.
         // Keep the complete immutable result: CSS2 §8.3.1 collapses an empty

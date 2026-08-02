@@ -1,0 +1,21 @@
+<test name="fuzz_block_fixed_child_collapsed_top_margin__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div box-sizing="content-box" direction="rtl" position="absolute">
+      <div display="block" box-sizing="content-box" direction="rtl">
+        <div display="block" box-sizing="content-box" direction="rtl" height="7px">
+          <div box-sizing="content-box" direction="rtl" margin-top="1px" margin-left="20px" margin-bottom="auto" margin-right="200px"/>
+        </div>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="220" height="8">
+      <node x="0" y="0" width="220" height="8">
+        <node x="0" y="1" width="220" height="7">
+          <node x="20" y="0" width="0" height="0"/>
+        </node>
+      </node>
+    </node>
+  </expectations>
+</test>

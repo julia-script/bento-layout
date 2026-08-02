@@ -47,6 +47,13 @@ import { computeChildLayout, measureChildSize, measureChildSizeBoth, performChil
 
 const LINE_TRUE: Line<boolean> = { start: true, end: true };
 
+function needsVerticalMarginStruts(inputs: LayoutInput): boolean {
+  return (
+    inputs.axis !== 'horizontal' &&
+    (inputs.verticalMarginsAreCollapsible.start || inputs.verticalMarginsAreCollapsible.end)
+  );
+}
+
 /**
  * Context for each block within a Block Formatting Context. With floats out of
  * scope this reduces to tracking whether the node is the root of its BFC
@@ -161,7 +168,18 @@ export function computeBlockLayout(node: LayoutNode, inputs: LayoutInput, blockC
 
   // Short-circuit layout if the container's size is fully determined and the run mode is ComputeSize
   if (runMode === 'compute-size') {
-    if (styledBasedKnownDimensions.width !== null && styledBasedKnownDimensions.height !== null) {
+    // A fixed border-box size does not make vertical measurement complete when
+    // the parent shares this BFC: it still needs the child's collapsed margin
+    // struts. CSS2 §8.3.1 lets a first child's top margin collapse through this
+    // box's block-start even when its height is definite. Blink 7922 carries
+    // that MarginStrut into its parent's intrinsic block-size; Chrome gives a
+    // 7px-tall block with a collapsed 1px top margin an 8px outer contribution
+    // when the parent is a flex item (an independent formatting context).
+    if (
+      styledBasedKnownDimensions.width !== null &&
+      styledBasedKnownDimensions.height !== null &&
+      !needsVerticalMarginStruts(inputs)
+    ) {
       return fromOuterSize({ width: styledBasedKnownDimensions.width, height: styledBasedKnownDimensions.height });
     }
     if (inputs.axis === 'horizontal' && styledBasedKnownDimensions.width !== null) {
@@ -325,7 +343,7 @@ function computeInner(node: LayoutNode, inputs: LayoutInput, blockCtx: BlockCont
     })();
 
   // Short-circuit if computing size and both dimensions known
-  if (runMode === 'compute-size' && knownDimensions.height !== null) {
+  if (runMode === 'compute-size' && knownDimensions.height !== null && !needsVerticalMarginStruts(inputs)) {
     return fromOuterSize({ width: containerOuterWidth, height: knownDimensions.height });
   }
 
