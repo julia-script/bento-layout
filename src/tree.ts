@@ -868,7 +868,14 @@ export class Cache {
         ah,
         pw,
         axis,
-        out: fromOuterSize(layoutOutput.size),
+        // Compute-size callers normally read only `.size`, but block layout
+        // also consumes the collapsed-margin outputs to size an ancestor BFC.
+        // Keep the complete immutable result: CSS2 §8.3.1 collapses an empty
+        // block's adjoining top/end margins before Blink encapsulates that
+        // margin strut in a flex item's independent formatting context.
+        // Replacing this with `fromOuterSize()` turned a cached self-collapsing
+        // leaf into a non-collapsing one (Chrome 151: 1px + 1px => 1px, not 2).
+        out: layoutOutput,
       };
     }
   }

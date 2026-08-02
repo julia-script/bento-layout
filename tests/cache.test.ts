@@ -43,6 +43,21 @@ describe('Cache', () => {
     expect(first).toBe(second);
   });
 
+  it('preserves collapsed-margin metadata in compute-size entries', () => {
+    const cache = new Cache();
+    const input = baseInput();
+    const collapsed = {
+      ...output(0, 0),
+      topMargin: { positive: 2, negative: 0 },
+      bottomMargin: { positive: 1, negative: 0 },
+      marginsCanCollapseThrough: true,
+    };
+
+    cache.store(input, collapsed);
+
+    expect(cache.get(input)).toBe(collapsed);
+  });
+
   it('discriminates on every key field', () => {
     const cache = new Cache();
     const input = baseInput();
