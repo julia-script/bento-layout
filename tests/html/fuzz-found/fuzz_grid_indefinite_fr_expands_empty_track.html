@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=4aa52b0a (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Grid §11.7 finds one flex fraction under indefinite available space, then
+  multiplies every flexible track by it. The empty second 2fr track therefore
+  receives the same 363px as the 2fr track containing the ratio item.
+  Regenerate with: pnpm gentest fuzz_grid_indefinite_fr_expands_empty_track
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: indefinite flex fraction expands empty track</title>
+</head>
+<body>
+
+<div id="test-root">
+  <div style="display: grid; grid-template-columns: max-content 2fr 2fr;">
+    <div style="margin: 1px 7px 120px 10px;"></div>
+    <div style="aspect-ratio: 3;"></div>
+  </div>
+</div>
+
+</body>
+</html>

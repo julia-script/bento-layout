@@ -528,6 +528,16 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
   let intrinsicRowContributionChanged = false;
 
   if (rerunColumnSizing) {
+    // An intrinsic dependency pass does not make an automatic inline size
+    // definite. Keep flexible-track expansion in its indefinite-space branch
+    // so the resulting flex fraction expands every flexible track (Grid §11.7;
+    // Blink 7922 ExpandFlexibleTracks). Chrome, with two 2fr tracks and a
+    // 363px contribution in one of them, makes both tracks 363px; reusing the
+    // first-pass 17px inner sum left the empty flex track at zero.
+    const columnRerunInnerNodeSize =
+      intrinsicColumnContributionChanged && outerNodeSize.width === null
+        ? { ...innerNodeSize, width: null }
+        : innerNodeSize;
     // Re-run track sizing for the inline axis
     trackSizingAlgorithm(
       'horizontal',
@@ -537,7 +547,7 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
       alignContent,
       availableGridSpace,
       null,
-      innerNodeSize,
+      columnRerunInnerNodeSize,
       columns,
       rows,
       items,

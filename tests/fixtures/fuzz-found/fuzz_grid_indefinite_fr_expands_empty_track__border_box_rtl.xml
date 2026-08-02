@@ -1,0 +1,19 @@
+<test name="fuzz_grid_indefinite_fr_expands_empty_track__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="rtl" position="absolute">
+      <div display="grid" direction="rtl" grid-template-columns="max-content 2fr 2fr">
+        <div direction="rtl" margin-top="1px" margin-left="10px" margin-bottom="120px" margin-right="7px"/>
+        <div direction="rtl" aspect-ratio="3"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="743" height="121">
+      <node x="0" y="0" width="743" height="121">
+        <node x="736" y="1" width="0" height="0"/>
+        <node x="363" y="0" width="363" height="121"/>
+      </node>
+    </node>
+  </expectations>
+</test>
