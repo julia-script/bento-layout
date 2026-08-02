@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: seed=20260731 index=239 (mode=mixed), id=aee0a43f
+  date: 2026-08-02
+  chrome: Chrome/151.0.7922.47
+  An intrinsically sized root first resolves repeat(auto-fill) as one track.
+  Its resulting 327px used width is definite for final layout, where Chrome
+  resolves two 120px repetitions and leaves 80px for the first track. Keeping
+  the intrinsic one-repeat track list incorrectly stretched the grid item to
+  its descendant's 200px min-content contribution.
+  Regenerate the XML fixtures with:
+  pnpm gentest fuzz_grid_root_intrinsic_autofill_final_pass
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: root intrinsic auto-fill is resolved again at its used width</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; grid-template-columns: minmax(0, auto) 7px repeat(auto-fill, 120px);">
+  <div>
+    <div style="min-width: 200px;"></div>
+  </div>
+</div>
+
+</body>
+</html>

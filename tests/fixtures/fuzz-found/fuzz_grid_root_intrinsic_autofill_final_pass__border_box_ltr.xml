@@ -1,0 +1,17 @@
+<test name="fuzz_grid_root_intrinsic_autofill_final_pass__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" direction="ltr" position="absolute" grid-template-columns="minmax(0px,auto) 7px repeat(auto-fill, 120px)">
+      <div direction="ltr">
+        <div direction="ltr" min-width="200px"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="327" height="0">
+      <node x="0" y="0" width="80" height="0">
+        <node x="0" y="0" width="200" height="0"/>
+      </node>
+    </node>
+  </expectations>
+</test>

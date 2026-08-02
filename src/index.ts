@@ -7,7 +7,7 @@ import { applyAspectRatioClamped } from './geometry.js';
 import type { Opt } from './math.js';
 import { mMax, round, vClamp } from './math.js';
 import type { AvailableSpace, Style } from './style.js';
-import { asIntoOption, maybeResolveSize, resolveRectOrZero } from './style.js';
+import { asIntoOption, isRepeat, maybeResolveSize, resolveRectOrZero } from './style.js';
 import type { Layout, Line } from './tree.js';
 import { internals, type LayoutNode, resolveMarginSet } from './tree.js';
 
@@ -225,6 +225,32 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
     'inherent-size',
     rootMarginsCollapse,
   );
+
+  // Grid §7.2.3.2 computes an indefinite auto-repeat as one repetition during
+  // intrinsic sizing, then Blink lays the grid out again after shrink-to-fit
+  // has made that intrinsic inline size definite. This second pass can fit
+  // more repetitions without changing the container width: with
+  // `minmax(0, auto) 7px repeat(auto-fill, 120px)` around a 200px contribution,
+  // Chrome's intrinsic pass produces 327px and its final pass splits that into
+  // an 80px first track plus two 120px repetitions.
+  const hasColumnAutoRepeat = rootInternal.style.gridTemplateColumns.some(
+    (component) => isRepeat(component) && typeof component.repeat !== 'number',
+  );
+  if (
+    rootInternal.style.display === 'grid' &&
+    hasColumnAutoRepeat &&
+    knownDimensions.width === null &&
+    rootInternal.style.size.width === 'auto'
+  ) {
+    output = performChildLayout(
+      root,
+      { ...knownDimensions, width: output.size.width },
+      parentSize,
+      availableSpace,
+      'inherent-size',
+      rootMarginsCollapse,
+    );
+  }
 
   // A root has no parent to hand it a size, so when both style axes are `auto`
   // its inline size only becomes definite once content resolves it — after the
