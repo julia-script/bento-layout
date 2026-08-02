@@ -1092,8 +1092,7 @@ function expandFlexibleTracks(
   const tracksInExpansionOrder = remainderTowardPhysicalStart ? [...axisTracks].reverse() : axisTracks;
   for (const track of tracksInExpansionOrder) {
     if (maxIsFr(track.maxTrackSizingFunction)) {
-      const shareRawSize =
-        track.maxTrackSizingFunction.fr * flexFraction * layoutUnitsPerCssPixel + leftoverRawSize;
+      const shareRawSize = track.maxTrackSizingFunction.fr * flexFraction * layoutUnitsPerCssPixel + leftoverRawSize;
       const expandedRawSize = Math.floor(shareRawSize + blinkFloatEpsilon);
       const expandedSize = expandedRawSize / layoutUnitsPerCssPixel;
       if (expandedSize >= track.baseSize) {

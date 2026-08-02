@@ -31,7 +31,6 @@ import { signatureHash, treeSignature } from './fuzz/signature.js';
 import { type Batch, type BatchFinding, loadBatch } from './fuzz-batch.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const BATCH_DIR = join(ROOT, 'tests', 'fuzz-batches');
 const DEFAULT_MANIFEST = join(ROOT, 'tests', 'fuzz-seeds.json');
 
 interface ManifestEntry {

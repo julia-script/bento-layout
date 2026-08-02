@@ -704,11 +704,7 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
   if (intrinsicColumnContributionChanged && !hasPercentageColumn) {
     const finalColumnSum = columns.reduce((sum, track) => sum + track.baseSize, 0);
     containerBorderBox.width = Math.max(
-      vClamp(
-        resolvedStyleSize.width ?? finalColumnSum + horizontalSum(contentBoxInset),
-        minSize.width,
-        maxSize.width,
-      ),
+      vClamp(resolvedStyleSize.width ?? finalColumnSum + horizontalSum(contentBoxInset), minSize.width, maxSize.width),
       paddingBorderSize.width,
     );
     containerContentBox.width = Math.max(0, containerBorderBox.width - horizontalSum(contentBoxInset));

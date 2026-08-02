@@ -50,7 +50,7 @@ import {
 } from '../style.js';
 import { traceLayout } from '../trace.js';
 import type { LayoutInput, LayoutNode, LayoutOutput } from '../tree.js';
-import { fromOuterSize, fromSizesAndBaselines, internals, layoutWithOrder, LINE_FALSE } from '../tree.js';
+import { fromOuterSize, fromSizesAndBaselines, internals, LINE_FALSE, layoutWithOrder } from '../tree.js';
 import {
   absoluteAxisStretches,
   applyAlignmentFallback,
@@ -831,8 +831,7 @@ function computeConstants(
     paddingBorderSize: paddingBorderSum,
     mainSizeIsAuto: main(resolvedStyleSize, dir) === null,
     mainSizeIsDefinite:
-      main(resolvedStyleSize, dir) !== null ||
-      main(knownDimensionsAreHard ?? { width: false, height: false }, dir),
+      main(resolvedStyleSize, dir) !== null || main(knownDimensionsAreHard ?? { width: false, height: false }, dir),
     crossSizeIsAuto: cross(resolvedStyleSize, dir) === null,
     crossSizeIsIndefinite: cross(knownDimensionsAreIndefinite ?? { width: false, height: false }, dir),
     isOutOfFlow: style.position === 'absolute',
@@ -1790,8 +1789,7 @@ function determineContainerMainSize(
             // height is still null, and a ratio-derived height is provisional.
             // Columns have a definite inline cross axis by construction.
             const canUseStretchedCrossForContribution =
-              !constants.isRow ||
-              (!constants.isWrap && !constants.crossIsRatioDerived && crossAxisParentSize !== null);
+              !constants.isRow || (!constants.isWrap && !constants.crossIsRatioDerived && crossAxisParentSize !== null);
             if (
               canUseStretchedCrossForContribution &&
               item.alignSelf.keyword === 'stretch' &&
@@ -2101,10 +2099,7 @@ function resolveFlexibleLengths(line: FlexLine, constants: AlgoConstants): void 
         mSub(main(constants.nodeInnerSize, constants.dir), usedSpace),
       );
     } else if (shrinking && sumFlexShrink < 1) {
-      freeSpace = vMax(
-        initialFreeSpace * sumFlexShrink,
-        mSub(main(constants.nodeInnerSize, constants.dir), usedSpace),
-      );
+      freeSpace = vMax(initialFreeSpace * sumFlexShrink, mSub(main(constants.nodeInnerSize, constants.dir), usedSpace));
     } else {
       freeSpace = mSub(main(constants.nodeInnerSize, constants.dir), usedSpace) ?? usedFlexFactor - usedSpace;
     }
@@ -2866,10 +2861,7 @@ function resolveCrossAxisAutoMargins(flexLines: FlexLine[], constants: AlgoConst
         // hypothetical outer cross size. Final layout can later enlarge an
         // automatic cross size; using that target here silently changes the
         // already-established group extent and over-shifts reversed columns.
-        groupEnd = Math.max(
-          groupEnd,
-          maxBaseline - child.baseline + cross(child.hypotheticalOuterSize, constants.dir),
-        );
+        groupEnd = Math.max(groupEnd, maxBaseline - child.baseline + cross(child.hypotheticalOuterSize, constants.dir));
       }
       return lineCrossSize - groupEnd;
     })();

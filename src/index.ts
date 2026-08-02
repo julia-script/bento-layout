@@ -481,12 +481,8 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
     );
     const usedPreferredSize = toUsedBorderBoxSize(rootSpecified, rootStyle.boxSizing, rootPaddingBorderSize);
     const preferredInlineSize =
-      maybeApplyAspectRatioUsed(
-        usedPreferredSize,
-        rootStyle.aspectRatio,
-        rootStyle.boxSizing,
-        rootPaddingBorderSize,
-      ).width ?? ratioInlineInsetFloor;
+      maybeApplyAspectRatioUsed(usedPreferredSize, rootStyle.aspectRatio, rootStyle.boxSizing, rootPaddingBorderSize)
+        .width ?? ratioInlineInsetFloor;
     const usedInlineMax = toUsedBorderBoxSize(
       maybeResolveSize(rootStyle.maxSize, parentSize),
       rootStyle.boxSizing,
