@@ -128,12 +128,7 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
   // height. Flex and block layout already do this (the `derivedFromKnown` step
   // in flexbox.ts); a grid root with `aspect-ratio: .5` around a `min-width: 97`
   // item was 97x10 in Chrome's 97x194.
-  const derivedFromKnown = maybeApplyAspectRatioUsed(
-    knownDimensions,
-    aspectRatio,
-    style.boxSizing,
-    paddingBorderSize,
-  );
+  const derivedFromKnown = maybeApplyAspectRatioUsed(knownDimensions, aspectRatio, style.boxSizing, paddingBorderSize);
 
   const outerNodeSize: Size<Opt> = {
     width: vMaxOpt(
@@ -333,6 +328,11 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     justifyContent,
     alignContent,
     availableGridSpace,
+    runMode === 'compute-size' &&
+      (inputs.axis === 'both' || inputs.axis === 'horizontal') &&
+      typeof availableGridSpace.width !== 'number'
+      ? availableGridSpace.width
+      : null,
     innerNodeSize,
     columns,
     rows,
@@ -354,6 +354,11 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     alignContent,
     justifyContent,
     availableGridSpace,
+    runMode === 'compute-size' &&
+      (inputs.axis === 'both' || inputs.axis === 'vertical') &&
+      typeof availableGridSpace.height !== 'number'
+      ? availableGridSpace.height
+      : null,
     innerNodeSize,
     rows,
     columns,
@@ -397,9 +402,7 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
   // of vertical and 320px of horizontal insets to 1000x50, while content-box
   // keeps 320x50 because its ratio relates the zero-sized content boxes.
   const ratioInlineInsetFloor =
-    style.boxSizing === 'border-box' &&
-    aspectRatio !== null &&
-    maybeResolveSize(style.size, parentSize).width === null
+    style.boxSizing === 'border-box' && aspectRatio !== null && maybeResolveSize(style.size, parentSize).width === null
       ? paddingBorderSize.height * aspectRatio
       : 0;
   const containerBorderBox = {
@@ -511,6 +514,7 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
       justifyContent,
       alignContent,
       availableGridSpace,
+      null,
       innerNodeSize,
       columns,
       rows,
@@ -580,6 +584,7 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
         alignContent,
         justifyContent,
         availableGridSpace,
+        null,
         innerNodeSize,
         rows,
         columns,

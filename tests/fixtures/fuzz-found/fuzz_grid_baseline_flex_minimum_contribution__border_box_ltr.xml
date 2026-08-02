@@ -1,0 +1,15 @@
+<test name="fuzz_grid_baseline_flex_minimum_contribution__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" direction="ltr" position="absolute" align-items="baseline" grid-template-rows="minmax(auto,0.5fr)">
+      <div direction="ltr" height="200px" grid-row-start="1" grid-row-end="2" grid-column-start="2" grid-column-end="3"/>
+      <div direction="ltr" margin-bottom="97px" grid-row-start="1" grid-row-end="3" grid-column-start="1" grid-column-end="2"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="0" height="200">
+      <node x="0" y="0" width="0" height="200"/>
+      <node x="0" y="200" width="0" height="0"/>
+    </node>
+  </expectations>
+</test>

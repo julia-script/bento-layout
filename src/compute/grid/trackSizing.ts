@@ -221,7 +221,30 @@ function makeItemSizer(
       absSetLocal(availableSpace, axis, null);
       const marginAxisSums = itemMarginsAxisSumsWithBaselineShims(item, availableSpace.width);
       const contribution = itemMinimumContributionCached(item, axis, axisTracks, areaSize, innerNodeSize);
-      return contribution + absGet(marginAxisSums, axis);
+
+      // css-grid-1 §11.5.1 allows a different baseline shim for each
+      // intrinsic contribution. Blink computes the shim lazily inside the
+      // content-size callback. When an automatic minimum resolves directly to
+      // zero (notably for a multi-track item crossing a flexible track), that
+      // callback is never invoked and the minimum contribution has no shim.
+      const preferredAxis = absGet(item.size, axis);
+      const preferredOtherAxis = absGet(item.size, absOther(axis));
+      const minimumAxis = absGet(item.minSize, axis);
+      const minimumOtherAxis = absGet(item.minSize, absOther(axis));
+      const hasPreferredSize = preferredAxis !== 'auto' || (item.aspectRatio !== null && preferredOtherAxis !== 'auto');
+      const hasTransferredMinimum = item.aspectRatio !== null && minimumAxis === 'auto' && minimumOtherAxis !== 'auto';
+      const range = itemTrackRangeExcludingLines(item, axis);
+      const tracks = axisTracks.slice(range.start, range.end);
+      const usesContentBasedAutomaticMinimum =
+        minimumAxis === 'auto' &&
+        !hasTransferredMinimum &&
+        !isScrollContainer(item.overflow.x) &&
+        !isScrollContainer(item.overflow.y) &&
+        tracks.some((track) => track.minTrackSizingFunction === 'auto') &&
+        (itemSpan(item, axis) === 1 || !itemCrossesFlexibleTrack(item, axis));
+      const usesBaselineShim = hasPreferredSize || usesContentBasedAutomaticMinimum;
+      const contributionBaselineShim = axis === 'vertical' && !usesBaselineShim ? item.baselineShim : 0;
+      return contribution + absGet(marginAxisSums, axis) - contributionBaselineShim;
     },
   };
 }
@@ -242,6 +265,7 @@ export function trackSizingAlgorithm(
   axisAlignment: AlignContent,
   otherAxisAlignment: AlignContent,
   availableGridSpace: Size<AvailableSpace>,
+  sizingConstraint: 'min-content' | 'max-content' | null,
   innerNodeSize: Size<Opt>,
   axisTracks: GridTrack[],
   otherAxisTracks: GridTrack[],
@@ -286,6 +310,7 @@ export function trackSizingAlgorithm(
     otherAxisTracks,
     items,
     absGet(availableGridSpace, axis),
+    sizingConstraint,
     innerNodeSize,
     getTrackSizeEstimate,
     direction,
@@ -414,6 +439,7 @@ function resolveIntrinsicTrackSizes(
   otherAxisTracks: GridTrack[],
   items: GridItem[],
   axisAvailableGridSpace: AvailableSpace,
+  sizingConstraint: 'min-content' | 'max-content' | null,
   innerNodeSize: Size<Opt>,
   getTrackSizeEstimate: (track: GridTrack, availableSpace: Opt) => Opt,
   direction: Direction,
@@ -563,10 +589,7 @@ function resolveIntrinsicTrackSizes(
       if (!itemCrossesIntrinsicTrack(item, axis)) continue;
 
       let space: number;
-      if (
-        (axisAvailableGridSpace === 'min-content' || axisAvailableGridSpace === 'max-content') &&
-        !itemOverflow(item)
-      ) {
+      if (sizingConstraint !== null && !itemOverflow(item)) {
         const axisMinimumSize = itemSizer.minimumContribution(item, axisTracks);
         const axisMinContentSize = itemSizer.minContentContribution(item, axisTracks);
         const limit = itemSpannedTrackLimit(item, axis, axisTracks, axisInnerNodeSize);
@@ -638,7 +661,7 @@ function resolveIntrinsicTrackSizes(
     flushPlannedBaseSizeIncreases(axisTracks);
 
     // 3. For max-content minimums (only under a max-content constraint)
-    if (axisAvailableGridSpace === 'max-content') {
+    if (sizingConstraint === 'max-content') {
       const hasAutoMinTrackSizingFunction = (track: GridTrack): boolean =>
         track.minTrackSizingFunction === 'auto' && track.maxTrackSizingFunction !== 'min-content';
       const hasMaxContentMinTrackSizingFunction = (track: GridTrack): boolean =>
