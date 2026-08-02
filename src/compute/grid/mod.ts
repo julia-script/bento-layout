@@ -973,7 +973,19 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
   }
 
   // Determine the grid container baseline (first baseline only)
-  items.sort((a, b) => a.rowIndexes.start - b.rowIndexes.start);
+  // Grid §10.3 chooses the fallback baseline from the first item in grid
+  // order: traverse cells row-major, in the inline flow direction, and use
+  // source order only for items encountered in the same cell. Blink 7922's
+  // GridBaselineAccumulator makes the same row/column comparison. Chrome 151,
+  // a source-first 160px item in column 2 followed by an empty item auto-placed
+  // into column 1 exports baseline 0 in both LTR and RTL, not 160.
+  items.sort((a, b) => {
+    const rowOrder = a.rowIndexes.start - b.rowIndexes.start;
+    if (rowOrder !== 0) return rowOrder;
+    const columnOrder = a.columnIndexes.start - b.columnIndexes.start;
+    if (columnOrder !== 0) return direction === 'rtl' ? -columnOrder : columnOrder;
+    return a.sourceOrder - b.sourceOrder;
+  });
   const firstRow = (items[0] ?? unreachable()).rowIndexes.start;
   const firstRowItems = items.filter((item) => item.rowIndexes.start === firstRow);
   const baselineItem =

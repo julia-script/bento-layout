@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=d5e9d48b (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  A grid container's fallback first baseline comes from the first item in grid
+  order, not source order. Column auto-flow places the source-later empty item
+  in the earlier cell, so the nested grid and flex container export baseline 0.
+  Regenerate with: pnpm gentest fuzz_grid_container_baseline_uses_grid_order
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: grid fallback baseline follows grid order</title>
+</head>
+<body>
+
+<div id="test-root" style="align-items: baseline;">
+  <div></div>
+  <div>
+    <div style="display: grid; grid-auto-flow: column dense;">
+      <div style="padding: 120px 320px 40px; grid-column: 2;"></div>
+      <div style="align-self: start;"></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
