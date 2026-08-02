@@ -22,6 +22,7 @@ import type { GridItem, GridTrack, TrackCounts } from './types.js';
 import {
   absGet,
   absOther,
+  findSizeOfFr,
   fitContentLimit,
   fitContentLimitedGrowthLimit,
   flexFactor,
@@ -1023,51 +1024,6 @@ function expandFlexibleTracks(
       track.baseSize = Math.max(track.baseSize, track.maxTrackSizingFunction.fr * flexFraction);
     }
   }
-}
-
-/** 11.7.1. Find the Size of an fr */
-function findSizeOfFr(tracks: GridTrack[], spaceToFill: number): number {
-  // Trivial case — do not remove (the loop below would loop infinitely).
-  // The same applies to a non-finite `spaceToFill`: the validity test below is
-  // a set of comparisons, and every comparison with NaN is false, so the loop
-  // could never terminate. Returning 0 keeps a bad input from becoming a hang.
-  if (spaceToFill === 0 || !Number.isFinite(spaceToFill)) return 0;
-
-  let hypotheticalFrSize = Infinity;
-  let previousIterHypotheticalFrSize: number;
-  for (;;) {
-    let usedSpace = 0;
-    let naiveFlexFactorSum = 0;
-    for (const track of tracks) {
-      // Tracks with flex_factor * hypothetical_fr_size < base_size are treated as inflexible
-      if (
-        maxIsFr(track.maxTrackSizingFunction) &&
-        track.maxTrackSizingFunction.fr * hypotheticalFrSize >= track.baseSize
-      ) {
-        naiveFlexFactorSum += track.maxTrackSizingFunction.fr;
-      } else {
-        usedSpace += track.baseSize;
-      }
-    }
-    const leftoverSpace = spaceToFill - usedSpace;
-    const totalFlexFactor = Math.max(naiveFlexFactorSum, 1);
-
-    previousIterHypotheticalFrSize = hypotheticalFrSize;
-    hypotheticalFrSize = leftoverSpace / totalFlexFactor;
-
-    const hypotheticalFrSizeIsValid = tracks.every((track) => {
-      if (maxIsFr(track.maxTrackSizingFunction)) {
-        const factor = track.maxTrackSizingFunction.fr;
-        return (
-          factor * hypotheticalFrSize >= track.baseSize || factor * previousIterHypotheticalFrSize < track.baseSize
-        );
-      }
-      return true;
-    });
-    if (hypotheticalFrSizeIsValid) break;
-  }
-
-  return hypotheticalFrSize;
 }
 
 /** 11.8. Stretch auto Tracks */

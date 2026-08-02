@@ -289,6 +289,44 @@ export function flexFactor(track: GridTrack): number {
   return maxIsFr(max) ? max.fr : 0;
 }
 
+/** Grid §11.7.1: find the size of an fr, optionally from provisional track bases. */
+export function findSizeOfFr(
+  tracks: GridTrack[],
+  spaceToFill: number,
+  getBaseSize: (track: GridTrack) => number = (track) => track.baseSize,
+): number {
+  // Trivial case — the loop below would otherwise fail to converge.
+  if (spaceToFill === 0 || !Number.isFinite(spaceToFill)) return 0;
+
+  let hypotheticalFrSize = Infinity;
+  let previousIterHypotheticalFrSize: number;
+  for (;;) {
+    let usedSpace = 0;
+    let naiveFlexFactorSum = 0;
+    for (const track of tracks) {
+      const baseSize = getBaseSize(track);
+      if (maxIsFr(track.maxTrackSizingFunction) && track.maxTrackSizingFunction.fr * hypotheticalFrSize >= baseSize) {
+        naiveFlexFactorSum += track.maxTrackSizingFunction.fr;
+      } else {
+        usedSpace += baseSize;
+      }
+    }
+    const leftoverSpace = spaceToFill - usedSpace;
+    const totalFlexFactor = Math.max(naiveFlexFactorSum, 1);
+
+    previousIterHypotheticalFrSize = hypotheticalFrSize;
+    hypotheticalFrSize = leftoverSpace / totalFlexFactor;
+
+    const hypotheticalFrSizeIsValid = tracks.every((track) => {
+      if (!maxIsFr(track.maxTrackSizingFunction)) return true;
+      const factor = track.maxTrackSizingFunction.fr;
+      const baseSize = getBaseSize(track);
+      return factor * hypotheticalFrSize >= baseSize || factor * previousIterHypotheticalFrSize < baseSize;
+    });
+    if (hypotheticalFrSizeIsValid) return hypotheticalFrSize;
+  }
+}
+
 // --- CellOccupancyMatrix
 
 export type CellOccupancyState = 'unoccupied' | 'definitely-placed' | 'auto-placed';
@@ -785,17 +823,51 @@ export function itemGridAreaSize(
   }
   absSet(size, axis, axisDefinite ? axisTotal : null);
 
+  const otherAxis = absOther(axis);
+  const otherAxisAvailableSize = absGet(availableSpace, otherAxis);
+  const otherSpannedTracks = spannedTracks(item, otherAxis, otherAxisTracks);
+
+  // Grid §11.5 sizes a multi-track item crossing a flexible track as one
+  // group: non-flex tracks are held at their current base sizes and space is
+  // distributed only to the flexible tracks. Blink exposes that provisional
+  // span through GridItemData::CalculateAvailableSize even while the opposite
+  // axis is being sized. In a 20px-tall grid, an item spanning `3fr auto auto`
+  // therefore has a definite 20px block area during column sizing; treating
+  // the auto tracks' indefinite maxima as making the whole span indefinite
+  // instead measured breakable text at max-content (50px rather than 40px).
+  const useFlexibleSpanEstimate =
+    otherAxisAvailableSize !== null &&
+    itemSpan(item, otherAxis) > 1 &&
+    otherSpannedTracks.some((track) => maxIsFr(track.maxTrackSizingFunction));
+
+  let flexFraction = 0;
+  if (useFlexibleSpanEstimate) {
+    const provisionalBaseSize = (track: GridTrack): number =>
+      trackDefiniteValue(track.minTrackSizingFunction, otherAxisAvailableSize) ??
+      getTrackSizeEstimate(track, otherAxisAvailableSize) ??
+      track.baseSize;
+    flexFraction = findSizeOfFr(otherAxisTracks, otherAxisAvailableSize, provisionalBaseSize);
+  }
+
   let otherTotal = 0;
   let otherDefinite = true;
-  for (const track of spannedTracks(item, absOther(axis), otherAxisTracks)) {
-    const estimate = getTrackSizeEstimate(track, absGet(availableSpace, absOther(axis)));
+  for (const track of otherSpannedTracks) {
+    let estimate = getTrackSizeEstimate(track, otherAxisAvailableSize);
+    if (estimate === null && useFlexibleSpanEstimate) {
+      estimate = maxIsFr(track.maxTrackSizingFunction)
+        ? Math.max(
+            trackDefiniteValue(track.minTrackSizingFunction, otherAxisAvailableSize) ?? track.baseSize,
+            track.maxTrackSizingFunction.fr * flexFraction,
+          )
+        : track.baseSize;
+    }
     if (estimate === null) {
       otherDefinite = false;
       break;
     }
     otherTotal += estimate + track.contentAlignmentAdjustment;
   }
-  absSet(size, absOther(axis), otherDefinite ? otherTotal : null);
+  absSet(size, otherAxis, otherDefinite ? otherTotal : null);
 
   return size;
 }
