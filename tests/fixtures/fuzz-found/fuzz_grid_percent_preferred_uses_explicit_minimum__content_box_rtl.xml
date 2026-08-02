@@ -1,0 +1,13 @@
+<test name="fuzz_grid_percent_preferred_uses_explicit_minimum__content_box_rtl" use-rounding="true">
+  <viewport width="1280px" height="800px"/>
+  <input>
+    <div display="grid" box-sizing="content-box" direction="rtl" position="absolute" width="0px">
+      <div box-sizing="content-box" direction="rtl" width="100%" height="1px" min-width="0px" aspect-ratio="1"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="0" height="1">
+      <node x="0" y="0" width="0" height="1"/>
+    </node>
+  </expectations>
+</test>

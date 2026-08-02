@@ -1083,6 +1083,14 @@ export function itemMinimumContribution(
   // percentage against the final, definite grid area. Chrome, a 1px-tall grid
   // with `min-height: 50%` around 10px text, stretches the item to 1px rather
   // than letting an accidental automatic minimum hold it at 10px.
+  const rawPreferred = absGet(item.size, axis);
+  // Sizing 3 §5.2.1 treats a cyclic percentage preferred size as `auto` for
+  // intrinsic contributions. Classify the authored value before aspect-ratio
+  // transfer: when `width: 100%` cannot resolve, a definite `height: 1px`
+  // must not fabricate a 1px preferred width that preempts `min-width: 0`.
+  // Blink's CalculateIntrinsicMinimumContribution makes the same raw-length
+  // distinction and applies ratio transfer as a separate constraint stage.
+  const preferredAxisSize = typeof rawPreferred === 'object' ? null : absGet(preferredSize, axis);
   const rawMinimum = absGet(item.minSize, axis);
   const unresolvedPercentageMinimum = typeof rawMinimum === 'object' ? 0 : null;
   // Row sizing keeps its existing transferred-minimum shortcut to avoid
@@ -1090,7 +1098,7 @@ export function itemMinimumContribution(
   // axis, however, an `auto` minimum must take the content-based branch below;
   // the opposite-axis transfer is only a clamp applied afterwards.
   let size =
-    absGet(preferredSize, axis) ??
+    preferredAxisSize ??
     unresolvedPercentageMinimum ??
     (axis === 'vertical' || rawMinimum !== 'auto' ? absGet(transferredMinimumSize, axis) : null) ??
     overflowAutoMinSize(item.overflow);
@@ -1118,7 +1126,6 @@ export function itemMinimumContribution(
   // (and 20 when a `min-width: 20px` overrides the max). The content-based
   // branch above measures with the clamp already applied, so re-clamping it
   // here is a no-op for that path.
-  const preferredAxisSize = absGet(preferredSize, axis);
   const minimumAxisSize = absGet(minimumSize, axis);
   const maximumAxisSize = absGet(maximumSize, axis);
   const transferredMinimumAxisSize = absGet(transferredMinimumSize, axis);
