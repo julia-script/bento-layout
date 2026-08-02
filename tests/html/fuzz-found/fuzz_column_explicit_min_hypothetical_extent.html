@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found (rehydrated 20260801 batch, f021b967). An explicit main-axis
+  minimum disables the flex item's automatic content minimum. The grid's 55px
+  row therefore overflows its 40px hypothetical main size rather than growing
+  the enclosing automatic-height column.
+  Regenerate the XML fixtures with:
+  pnpm gentest fuzz_column_explicit_min_hypothetical_extent
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: explicit minimum preserves column hypothetical extent</title>
+</head>
+<body>
+
+<div id="test-root">
+  <div style="flex-direction: column;">
+    <div style="display: grid; min-width: 20px; min-height: 7px; grid-template-rows: repeat(auto-fill, 55px); flex-basis: 40px;"></div>
+  </div>
+</div>
+
+</body>
+</html>

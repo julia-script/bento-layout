@@ -1581,7 +1581,19 @@ function determineContainerMainSize(
             mMin(item.transferredMaxMainSize, specifiedMaxMainSize) ?? specifiedMaxMainSize ?? Infinity;
 
           let contentContribution: number;
-          if (stylePreferred !== null && (maxMainSize <= minMainSize || maxMainSize <= stylePreferred)) {
+          // A content-based automatic block size is produced by the regular
+          // flex layout algorithm, whose indefinite column extent is the sum
+          // of the items' hypothetical main sizes (Flex §9.2/9.7). An
+          // explicit main-axis minimum disables §4.5's automatic content
+          // minimum, so descendants may overflow without enlarging that
+          // contribution. Blink 7922's PlaceFlexItems passes
+          // `max_sum_hypothetical_main_size` to MainAxisContentExtent: an
+          // empty grid with a 55px row, `flex-basis:40px`, and `min-height:7px`
+          // therefore contributes 40px; changing the minimum to `auto` makes
+          // the same grid contribute 55px.
+          if (!constants.isRow && styleMin !== null) {
+            contentContribution = main(item.hypotheticalOuterSize, constants.dir);
+          } else if (stylePreferred !== null && (maxMainSize <= minMainSize || maxMainSize <= stylePreferred)) {
             contentContribution =
               Math.max(Math.min(stylePreferred, maxMainSize), minMainSize) +
               rectMainAxisSum(item.margin, constants.dir);

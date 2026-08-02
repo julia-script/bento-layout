@@ -1,0 +1,17 @@
+<test name="fuzz_column_explicit_min_hypothetical_extent__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="rtl" position="absolute">
+      <div direction="rtl" flex-direction="column">
+        <div display="grid" direction="rtl" flex-basis="40px" min-width="20px" min-height="7px" grid-template-rows="repeat(auto-fill, 55px)"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="20" height="40">
+      <node x="0" y="0" width="20" height="40">
+        <node x="0" y="0" width="20" height="40"/>
+      </node>
+    </node>
+  </expectations>
+</test>
