@@ -354,12 +354,19 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
       availableSpace,
       'inherent-size',
       rootMarginsCollapse,
-      { width: transferredInlineMax !== null, height: false },
+      // The first pass resolved this automatic width from the root's intrinsic
+      // inline contribution. It is the definite ratio source for final layout;
+      // a wrapped column must not grow it again from its newly split lines.
+      { width: true, height: false },
     );
-    // Content that overflows the ratio-derived height still wins (the ratio
-    // supplies an *automatic* size, not a cap), so never shrink below the
-    // height the first pass measured.
-    if (rerun.size.height >= output.size.height) output = rerun;
+    // The final formatting-context pass owns the ratio-dependent automatic
+    // minimum (css-sizing-4 §4.3). Its content floor can legitimately be less
+    // than the unconstrained intrinsic pass: a wrapped column with 337px and
+    // 10px items first measures 347px, then Blink lays it out at the resolved
+    // width and floors the ratio-derived height at the largest line, 337px.
+    // Keeping the larger first pass discards both that used height and the
+    // final wrap-reverse line positions.
+    output = rerun;
   } else if (
     rootInternal.style.aspectRatio !== null &&
     rootInternal.style.position === 'absolute' &&

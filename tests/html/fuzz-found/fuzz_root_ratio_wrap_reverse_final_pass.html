@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: seed=20260731 index=675 (mode=mixed), id=f5b31b94
+  date: 2026-08-02
+  chrome: Chrome/151.0.7922.47
+  A root with two automatic axes first resolves its intrinsic inline size, then
+  uses that definite width as the aspect-ratio source for final layout. The
+  final column-wrap pass owns CSS Sizing 4 §4.3's automatic block minimum:
+  here it floors the ratio height at the largest 337px line, not at the stale
+  347px sum from the unconstrained pass, and wrap-reverse positions from that
+  final pass must be retained.
+  Regenerate the XML fixtures with:
+  pnpm gentest fuzz_root_ratio_wrap_reverse_final_pass
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>
+    Fuzz-found: retain root ratio wrap-reverse final pass
+    (fuzz_root_ratio_wrap_reverse_final_pass)
+  </title>
+</head>
+<body>
+
+<div id="test-root" style="aspect-ratio: 1.5; flex-direction: column; flex-wrap: wrap-reverse;">
+  <div style="padding: 320px 200px 17px 40px;"></div>
+  <div>H&#8203;HHHHH</div>
+</div>
+
+</body>
+</html>

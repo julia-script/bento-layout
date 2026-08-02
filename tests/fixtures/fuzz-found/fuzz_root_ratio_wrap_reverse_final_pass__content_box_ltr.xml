@@ -1,0 +1,17 @@
+<test name="fuzz_root_ratio_wrap_reverse_final_pass__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div box-sizing="content-box" direction="ltr" position="absolute" flex-direction="column" flex-wrap="wrap-reverse" aspect-ratio="1.5">
+      <div box-sizing="content-box" direction="ltr" padding-top="320px" padding-left="40px" padding-bottom="17px" padding-right="200px"/>
+      <text box-sizing="content-box" direction="ltr">
+        H​HHHHH
+      </text>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="240" height="337">
+      <node x="0" y="0" width="240" height="337"/>
+      <node x="-60" y="0" width="60" height="10"/>
+    </node>
+  </expectations>
+</test>
