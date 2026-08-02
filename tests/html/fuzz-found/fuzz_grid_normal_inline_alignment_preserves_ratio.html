@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=9ac37816 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Grid §6.6 makes justify-self: normal use block-level sizing instead of
+  stretch for an item with a preferred aspect ratio. The stretched 120px block
+  axis therefore transfers through the 3:1 ratio to a 360px inline size.
+  Regenerate with: pnpm gentest fuzz_grid_normal_inline_alignment_preserves_ratio
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: normal grid inline alignment preserves aspect ratio</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; width: 120px; height: 120px; grid-template-columns: 60% 1fr;">
+  <div style="aspect-ratio: 3; align-self: stretch;"></div>
+</div>
+
+</body>
+</html>

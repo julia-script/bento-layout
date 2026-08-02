@@ -182,10 +182,18 @@ export function alignAndPositionItem(
   }
 
   // Resolve default alignment styles if set on neither the parent nor the node itself
+  const explicitBlockAlignment = alignSelf ?? containerAlignmentStyles.vertical;
   const horizontalAlignment =
     justifySelf ??
     containerAlignmentStyles.horizontal ??
-    (inherentSize.width !== null ? ALIGN_START : ALIGN_STRETCH_LOCAL);
+    // css-grid-1 §6.6: with an explicitly stretched block axis, `normal` inline
+    // alignment must not become explicit stretch for an aspect-ratio item.
+    // Chrome 151 gives a 3:1 item in a 72x120 area a 360px width; explicit
+    // inline stretch still gives 72px. Preserve implicit inline stretch when
+    // both axes are normal: a 2:1 item in a 100x100 area is 100x50 in Chrome.
+    (inherentSize.width !== null || (aspectRatio !== null && explicitBlockAlignment?.keyword === 'stretch')
+      ? ALIGN_START
+      : ALIGN_STRETCH_LOCAL);
   const alignmentStyles = {
     horizontal: horizontalAlignment,
     vertical:
