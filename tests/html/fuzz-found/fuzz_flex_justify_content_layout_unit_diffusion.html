@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=e1820074 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  css-flexbox-1 §9.5 distributes the positive free space according to
+  justify-content. Blink 7922's LayoutUnitDiffuser preserves the total while
+  dithering the 1/64px division remainder across successive gaps; equal
+  floating-point thirds put the middle item one painted pixel too far right.
+  Regenerate with: pnpm gentest fuzz_flex_justify_content_layout_unit_diffusion
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: flex distributed alignment diffuses LayoutUnit remainder</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex; width: 200px; height: 20px; justify-content: space-around;">
+  <div style="width: 41px; height: 10px; flex-shrink: 0;"></div>
+  <div style="width: 20px; height: 10px; flex-shrink: 0;"></div>
+  <div style="width: 0; height: 10px; flex-shrink: 0;"></div>
+</div>
+
+</body>
+</html>

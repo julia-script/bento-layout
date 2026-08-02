@@ -1,0 +1,17 @@
+<test name="fuzz_flex_justify_content_layout_unit_diffusion__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="flex" box-sizing="content-box" direction="rtl" position="absolute" justify-content="space-around" width="200px" height="20px">
+      <div box-sizing="content-box" direction="rtl" flex-shrink="0" width="41px" height="10px"/>
+      <div box-sizing="content-box" direction="rtl" flex-shrink="0" width="20px" height="10px"/>
+      <div box-sizing="content-box" direction="rtl" flex-shrink="0" width="0px" height="10px"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="200" height="20">
+      <node x="136" y="0" width="41" height="10"/>
+      <node x="70" y="0" width="20" height="10"/>
+      <node x="23" y="0" width="0" height="10"/>
+    </node>
+  </expectations>
+</test>

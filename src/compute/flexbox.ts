@@ -2586,22 +2586,59 @@ function distributeRemainingFreeSpace(flexLines: FlexLine[], constants: AlgoCons
     const rawJustifyContentMode = constants.justifyContent ?? { keyword: 'flex-start', safe: false };
     const justifyContentMode = applyAlignmentFallback(freeSpaceAfterAutoMargins, numItems, rawJustifyContentMode);
 
-    const justifyItem = (child: FlexItem, i: number): void => {
-      child.offsetMain = computeAlignmentOffset(
-        freeSpaceAfterAutoMargins,
-        numItems,
-        gap,
-        justifyContentMode,
-        layoutReverse,
-        i === 0,
-      );
-    };
-
-    if (layoutReverse) {
-      const reversed = [...line.items].reverse();
-      reversed.forEach(justifyItem);
+    const visualItems = layoutReverse ? [...line.items].reverse() : line.items;
+    const distributed =
+      freeSpaceAfterAutoMargins > 0 &&
+      (justifyContentMode === 'space-around' ||
+        justifyContentMode === 'space-between' ||
+        justifyContentMode === 'space-evenly') &&
+      (justifyContentMode !== 'space-between' || numItems > 1);
+    if (distributed) {
+      // Blink 7922 performs distributed alignment in 1/64px LayoutUnits and
+      // dithers the division remainder across successive gaps with
+      // LayoutUnitDiffuser (flex_layout_algorithm.cc §9.5). Equal floating-
+      // point gaps put 41px, 20px, 0px items in 200px at x=23.166…, 110.5,
+      // 176.833…; Blink instead uses 23.15625 and gaps 46.328125/46.34375,
+      // placing the middle item at 110.484375 so it paints at x=110.
+      const rawFreeSpace = Math.trunc(freeSpaceAfterAutoMargins * 64);
+      const buckets =
+        justifyContentMode === 'space-between'
+          ? numItems - 1
+          : justifyContentMode === 'space-evenly'
+            ? numItems + 1
+            : numItems;
+      const base = Math.trunc(rawFreeSpace / buckets);
+      const remainder = rawFreeSpace % buckets;
+      const dx = remainder * 2;
+      const dy = buckets * 2;
+      let x = 0;
+      let y = buckets;
+      const nextSpace = (): number => {
+        x += dx;
+        if (x >= y) {
+          y += dy;
+          return (base + 1) / 64;
+        }
+        return base / 64;
+      };
+      const initialOffset =
+        justifyContentMode === 'space-between'
+          ? 0
+          : Math.trunc(rawFreeSpace / (justifyContentMode === 'space-around' ? 2 * numItems : numItems + 1)) / 64;
+      visualItems.forEach((child, index) => {
+        child.offsetMain = index === 0 ? initialOffset : gap + nextSpace();
+      });
     } else {
-      line.items.forEach(justifyItem);
+      visualItems.forEach((child, index) => {
+        child.offsetMain = computeAlignmentOffset(
+          freeSpaceAfterAutoMargins,
+          numItems,
+          gap,
+          justifyContentMode,
+          layoutReverse,
+          index === 0,
+        );
+      });
     }
   }
 }
