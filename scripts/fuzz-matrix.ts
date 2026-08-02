@@ -59,8 +59,9 @@ async function main(): Promise<void> {
 
   try {
     const initial = await checkTree(exec, tree);
-    if (initial.length === 0) throw new Error('input currently matches Chrome; no failing matrix to build');
-    if (!process.argv.includes('--no-minimize')) {
+    if (initial.length === 0) {
+      console.error('input currently matches Chrome; verifying the full matrix without minimizing');
+    } else if (!process.argv.includes('--no-minimize')) {
       const anchor = initial[0];
       const maxChecks = Number(flagValue('--max-checks') ?? 300);
       console.error(
