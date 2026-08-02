@@ -1,0 +1,23 @@
+<test name="fuzz_row_reverse_exports_visual_first_baseline__border_box_ltr" use-rounding="true">
+  <viewport width="1280px" height="800px"/>
+  <input>
+    <div direction="ltr" position="absolute" align-items="baseline">
+      <div direction="ltr"/>
+      <div direction="ltr" flex-direction="row-reverse">
+        <text direction="ltr">
+          H
+        </text>
+        <div direction="ltr"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="10" height="10">
+      <node x="0" y="10" width="0" height="0"/>
+      <node x="0" y="0" width="10" height="10">
+        <node x="0" y="0" width="10" height="10"/>
+        <node x="0" y="0" width="0" height="10"/>
+      </node>
+    </node>
+  </expectations>
+</test>

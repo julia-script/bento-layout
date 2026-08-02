@@ -688,13 +688,12 @@ function computePreliminary(
   if (flexLines.length > 0 && (flexLines[0] ?? unreachable()).items.length > 0) {
     const firstLine = flexLines[0] ?? unreachable();
     // Flexbox §8.5 determines container baselines after taking
-    // flex-direction into account. Blink's column-reverse line stores items in
+    // flex-direction into account. Blink's reverse-direction line stores items in
     // visual order, so its first fallback baseline comes from the source-last
     // item at main-start. Our line retains source order: use the matching end
     // here. Two empty items separated by a 1px gap therefore expose baseline
     // 0, not the source-first item's baseline at 1px.
-    const baselineItems =
-      constants.isColumn && isReverse(constants.dir) ? [...firstLine.items].reverse() : firstLine.items;
+    const baselineItems = isReverse(constants.dir) ? [...firstLine.items].reverse() : firstLine.items;
     const child =
       baselineItems.find(
         (item) => constants.isColumn || (item.alignSelf.keyword === 'baseline' && !item.alignSelf.safe),
