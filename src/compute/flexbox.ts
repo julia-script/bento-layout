@@ -1295,16 +1295,12 @@ function determineFlexBaseSize(
       //    item whose sole style is `aspect-ratio` measures its content (0) instead
       //    of transferring, e.g. `aspect-ratio: .5` in a 20x40 row is 20 wide in
       //    Chrome and was 0 here.
-      // A cross *min*-size is just as definite a source for the transfer as a
-      // cross size, and it is the only one left when the item has no cross size
-      // and nothing stretches it. The measure below cannot recover it: it runs
-      // in `content-size` mode, which by protocol nulls the item's own ratio and
-      // min/max styles, so the item would report its content (0) and the
-      // container's contribution would lose the ratio entirely. Chrome, a row
-      // item whose only styles are `min-height: 200; aspect-ratio: 2`: the
-      // container is 400 wide, not 0. `min-width` needs no such case — the main
-      // axis floors the basis through `resolvedMinimumMainSize` below.
-      const transferSource = crossKnown ?? crossMin ?? fitContentCross;
+      // A cross minimum is a constraint, not the definite *used cross size*
+      // required by §9.2 step 3B. It participates later in the automatic main
+      // minimum/content-size suggestion; treating it as the exact transfer
+      // source makes `min-height: 0` turn a content-based basis into a definite
+      // zero and skips max-content measurement entirely.
+      const transferSource = crossKnown ?? fitContentCross;
       const transferredMain =
         mainSize === null && child.aspectRatio !== null && transferSource !== null
           ? transferThroughRatio(transferSource, child, dir, 'cross-to-main')

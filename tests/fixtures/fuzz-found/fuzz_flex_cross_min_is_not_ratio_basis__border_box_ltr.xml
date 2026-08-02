@@ -1,0 +1,17 @@
+<test name="fuzz_flex_cross_min_is_not_ratio_basis__border_box_ltr" use-rounding="true">
+  <viewport width="1280px" height="800px"/>
+  <input>
+    <div direction="ltr" position="absolute">
+      <div direction="ltr" min-height="0px" aspect-ratio="1">
+        <div display="grid" direction="ltr" grid-template-columns="minmax(auto,1px)"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="1" height="1">
+      <node x="0" y="0" width="1" height="1">
+        <node x="0" y="0" width="1" height="1"/>
+      </node>
+    </node>
+  </expectations>
+</test>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: 20260802 viewport campaign, finding=903e6779 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Flexbox §9.2 step 3B transfers through a definite used cross size. A
+  definite cross minimum is only a constraint, so min-height: 0 must not turn
+  the content-based flex basis into a definite zero.
+  Regenerate with: pnpm gentest fuzz_flex_cross_min_is_not_ratio_basis
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: a flex cross minimum is not a ratio transfer basis</title>
+</head>
+<body>
+
+<div
+  id="test-root"
+  data-test-page-viewport-width="1280"
+  data-test-page-viewport-height="800"
+>
+  <div style="min-height: 0; aspect-ratio: 1;">
+    <div style="display: grid; grid-template-columns: minmax(auto, 1px);"></div>
+  </div>
+</div>
+
+</body>
+</html>
