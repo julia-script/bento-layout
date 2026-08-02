@@ -87,11 +87,15 @@ interface BlockItem {
   /**
    * True when `size.width` came from `aspect-ratio` rather than from a
    * specified width. css-sizing-4 §4.2 makes a ratio-derived size an
-   * *automatic* size, so content may grow past it — while a specified width of
-   * the same value must not grow (the content simply overflows). The two are
-   * otherwise indistinguishable once the ratio has been applied.
+   * *automatic* size, so its automatic minimum may let content grow past it —
+   * while a specified width of the same value must not grow (the content simply
+   * overflows). The two are otherwise indistinguishable once the ratio has been
+   * applied.
    */
   widthIsRatioDerived: boolean;
+  /** Authored provenance for css-sizing-4 §4.3's automatic minimum. A resolved
+   *  0% and `auto` can both be numerically null in an indefinite context. */
+  minWidthIsAuto: boolean;
 
   /** Child's own `aspect-ratio` and `box-sizing`, for the inset-floor transfer
    *  in the stretch-width decision below. */
@@ -564,6 +568,7 @@ function generateItemList(node: LayoutNode, nodeInnerSize: Size<Opt>): BlockItem
       // size of its own is never re-derived from the other axis's constraint.
       size: childRatioSize,
       widthIsRatioDerived: childSpecifiedSize.width === null && childRatioSize.width !== null,
+      minWidthIsAuto: childStyle.minSize.width === 'auto',
       aspectRatio,
       boxSizing: childStyle.boxSizing,
       // A block child in normal flow stretches its inline axis only, so that is
@@ -759,7 +764,10 @@ function performFinalLayoutOnInFlowChildren(
         // overflows instead — which is why the two provenances are tracked
         // apart rather than both read off `item.size.width`.
         let itemWidth = item.size.width;
-        if (itemWidth !== null && item.widthIsRatioDerived) {
+        // Sizing 4 §4.3's min-content floor is specifically the *automatic*
+        // minimum. Preserve the authored gate: `min-width: 0` or `0%` allows
+        // content to overflow the ratio-derived zero-width box.
+        if (itemWidth !== null && item.widthIsRatioDerived && item.minWidthIsAuto) {
           // `content-size` mode, not `inherent-size`: the latter lets the
           // child re-derive its width from its own height through the same
           // ratio, so it just measures the ratio again (10, not 97).

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: reduced from 20260802 viewport campaign finding=ac2104d9 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Sizing 4 §4.3's ratio-dependent min-content floor applies only to an
+  automatic minimum; authored min-width: 0% lets content overflow instead.
+  Regenerate with: pnpm gentest fuzz_block_ratio_explicit_min_disables_auto_floor
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: explicit block minimum disables ratio automatic floor</title>
+</head>
+<body>
+
+<div
+  id="test-root"
+  data-test-page-viewport-width="1280"
+  data-test-page-viewport-height="800"
+  style="display: block; width: 0;"
+>
+  <div style="height: 0; min-width: 0%; aspect-ratio: 1;">
+    <div style="padding-left: 1px;"></div>
+  </div>
+</div>
+
+</body>
+</html>
