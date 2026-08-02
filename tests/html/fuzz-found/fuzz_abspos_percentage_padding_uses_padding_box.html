@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=f0202143 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  An abspos child's percentage padding resolves against its containing block's
+  padding-box inline size. Blink's OutOfFlowLayoutPart passes that padding-box
+  rectangle to SetPercentageResolutionSize.
+  Regenerate with: pnpm gentest fuzz_abspos_percentage_padding_uses_padding_box
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: abspos percentage padding uses padding box</title>
+</head>
+<body>
+
+<div id="test-root" style="width: 40px; height: auto; padding: 55px 40px 120px 320px;">
+  <div style="position: absolute; padding: 1% 1px 17px 120px;">
+    <div></div>
+  </div>
+</div>
+
+</body>
+</html>

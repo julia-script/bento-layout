@@ -3165,6 +3165,14 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
         ? vClamp(staticPositionInlineSize, minSize.width, maxSize.width)
         : insetModifiedContainingBlockSize(insetRelativeSize.width, { start: left, end: right });
     const shrinkToFitHeight = asMaybeSub(vClamp(containerHeight, minSize.height, maxSize.height), insetReservedHeight);
+    // An abspos child's percentage-resolution size is its containing block's
+    // padding box, not the flex container's content box. Blink's
+    // OutOfFlowLayoutPart builds `container_rect` by removing only border and
+    // scrollbar, then passes that rect to SetPercentageResolutionSize. Chrome
+    // 151, a 360px border-box flex container whose content width is 0 resolves
+    // `padding-top: 1%` on its abspos child to 4px; using nodeInnerSize resolves
+    // it to 0 and turns the child's 4px content offset into descendant height.
+    const absoluteChildParentSize = insetRelativeSize;
     // An automatic abspos inline size is fit-content, not ordinary layout at
     // the numeric available width (CSS2 §10.3.7). Blink's absolute_utils
     // resolves min/max inline contributions and applies the fit-content clamp
@@ -3178,7 +3186,7 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
       const minContentWidth = measureChildSize(
         child,
         contributionKnownDimensions,
-        constants.nodeInnerSize,
+        absoluteChildParentSize,
         contributionAvailableSpace,
         'inherent-size',
         'horizontal',
@@ -3186,7 +3194,7 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
       const maxContentWidth = measureChildSize(
         child,
         contributionKnownDimensions,
-        constants.nodeInnerSize,
+        absoluteChildParentSize,
         { ...contributionAvailableSpace, width: 'max-content' },
         'inherent-size',
         'horizontal',
@@ -3196,7 +3204,7 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
     const measuredSize = measureChildSizeBoth(
       child,
       knownDimensions,
-      constants.nodeInnerSize,
+      absoluteChildParentSize,
       { width: shrinkToFitWidth, height: shrinkToFitHeight },
       'inherent-size',
     );
@@ -3208,7 +3216,7 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
     const layoutOutput = performChildLayout(
       child,
       { width: finalSize.width, height: finalSize.height },
-      constants.nodeInnerSize,
+      absoluteChildParentSize,
       {
         width: vClamp(containerWidth, minSize.width, maxSize.width),
         height: vClamp(containerHeight, minSize.height, maxSize.height),

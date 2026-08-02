@@ -1,0 +1,17 @@
+<test name="fuzz_abspos_percentage_padding_uses_padding_box__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="ltr" position="absolute" width="40px" padding-top="55px" padding-left="320px" padding-bottom="120px" padding-right="40px">
+      <div direction="ltr" position="absolute" padding-top="1%" padding-left="120px" padding-bottom="17px" padding-right="1px">
+        <div direction="ltr"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="360" height="175">
+      <node x="320" y="55" width="121" height="21">
+        <node x="120" y="4" width="0" height="0"/>
+      </node>
+    </node>
+  </expectations>
+</test>
