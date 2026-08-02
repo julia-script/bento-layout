@@ -1,7 +1,7 @@
 // Public API: plain-object node trees + computeLayout.
 
-import { measureChildSize, performChildLayout } from './compute/dispatch.js';
 import { maybeApplyAspectRatioUsed, toUsedBorderBoxSize } from './compute/aspectRatio.js';
+import { measureChildSize, performChildLayout } from './compute/dispatch.js';
 import type { Size } from './geometry.js';
 import { applyAspectRatioClamped } from './geometry.js';
 import type { Opt } from './math.js';
@@ -464,8 +464,20 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
     width: style.overflow.y === 'scroll' ? style.scrollbarWidth : 0,
     height: style.overflow.x === 'scroll' ? style.scrollbarWidth : 0,
   };
+  // With both inline insets auto, an absolute root uses its static-position
+  // rectangle (css-align-3 §6.1.2). Blink 7922 feeds the physical static offset
+  // into absolute_utils::ComputeUnclampedIMCBInOneAxis; it does not mirror the
+  // used box from inline-start. Chrome therefore puts empty, 1px, and 20px RTL
+  // body roots at x=0 in a 1280px viewport, not x=1280/1279/1260.
+  const absoluteRootUsesStaticInlinePosition =
+    style.position === 'absolute' && style.inset.left === 'auto' && style.inset.right === 'auto';
   const location = {
-    x: style.direction === 'rtl' ? (parentSize.width !== null ? parentSize.width - output.size.width : 0) : 0,
+    x:
+      !absoluteRootUsesStaticInlinePosition && style.direction === 'rtl'
+        ? parentSize.width !== null
+          ? parentSize.width - output.size.width
+          : 0
+        : 0,
     // A margin that collapsed *through* the root's top edge is outside the
     // root's own box, so it offsets the root rather than growing it — Chrome
     // puts a block whose first child has `margin-top: 20` at y=20, height

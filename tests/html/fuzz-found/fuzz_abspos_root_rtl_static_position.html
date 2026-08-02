@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: seed=20260731 index=2 oracle=viewport finding=8175c1c1
+  chrome: Chrome/151.0.7922.47
+  CSS Align 3 §6.1.2 uses the static-position rectangle when both inline
+  insets are auto. Blink 7922's absolute_utils.cc builds that rectangle from
+  the recorded physical static offset; an RTL body child therefore remains at
+  x=0 rather than being mirrored to the viewport's inline-end edge.
+  Regenerate with: pnpm gentest fuzz_abspos_root_rtl_static_position
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: RTL absolute root uses its physical static position</title>
+</head>
+<body>
+
+<div id="test-root" data-test-page-viewport-width="1280" data-test-page-viewport-height="800"></div>
+
+</body>
+</html>
