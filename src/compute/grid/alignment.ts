@@ -429,18 +429,20 @@ export function alignAndPositionItem(
     };
   }
 
-  // Blink passes the full containing grid area to an in-flow item's
-  // constraint space; the child resolves its margins from that space exactly
-  // once. Pre-subtracting a 10% end margin here made an auto-sized text item
-  // subtract 2px twice in a 20px max-content track (16px vs Chrome's 18).
+  // Blink passes the containing grid area to the child's constraint space;
+  // the child resolves its own margins from that space exactly once. This is
+  // true for out-of-flow items too: only the inset-modified containing block
+  // is established here. Pre-subtracting a 20% end margin and then letting an
+  // absolute auto-width child subtract it again turned 97px into 58px
+  // (`97 - 2*19.4`) where CSS2 §10.3.7 gives a 60px shrink-to-fit width.
   const availableSpace = {
     width:
       position === 'absolute'
-        ? insetModifiedContainingBlockSize(gridAreaMinusItemMarginsSize.width, insetHorizontal)
+        ? insetModifiedContainingBlockSize(gridAreaSize.width, insetHorizontal)
         : gridAreaSize.width,
     height:
       position === 'absolute'
-        ? insetModifiedContainingBlockSize(gridAreaMinusItemMarginsSize.height, insetVertical)
+        ? insetModifiedContainingBlockSize(gridAreaSize.height, insetVertical)
         : gridAreaMinusItemMarginsSize.height,
   };
 

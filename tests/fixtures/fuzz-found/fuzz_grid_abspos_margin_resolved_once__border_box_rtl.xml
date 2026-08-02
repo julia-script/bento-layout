@@ -1,0 +1,15 @@
+<test name="fuzz_grid_abspos_margin_resolved_once__border_box_rtl" use-rounding="true">
+  <viewport width="1280px" height="800px"/>
+  <input>
+    <div display="grid" direction="rtl" position="absolute" width="97px">
+      <text direction="rtl" position="absolute" margin-right="20%">
+        HHHHH​H
+      </text>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="97" height="0">
+      <node x="18" y="0" width="60" height="10"/>
+    </node>
+  </expectations>
+</test>
