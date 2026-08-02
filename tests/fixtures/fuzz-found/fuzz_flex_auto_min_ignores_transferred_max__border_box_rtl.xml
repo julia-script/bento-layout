@@ -1,0 +1,13 @@
+<test name="fuzz_flex_auto_min_ignores_transferred_max__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="flex" direction="rtl" position="absolute" width="200px" height="10px">
+      <div display="grid" direction="rtl" max-height="0px" aspect-ratio="2" grid-template-columns="320px"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="200" height="10">
+      <node x="-120" y="0" width="320" height="0"/>
+    </node>
+  </expectations>
+</test>

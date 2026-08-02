@@ -1297,7 +1297,20 @@ function determineFlexBaseSize(
           transferredMain !== null
             ? mMin(Math.max(transferredMain, minContentMainSize), specifiedMainBorderBox)
             : mMin(minContentMainSize, main(child.size, dir));
-        const clampedMinContentSize = mMin(sizeSuggestion, main(transferredMaxSize, dir)) as number;
+        // For a definite inline flex layout, clamp the automatic minimum only
+        // by the item's own maximum main size. Blink deliberately ignores
+        // transferred constraints while applying the inline auto-min length
+        // (`TransferredSizesMode::kIgnore`): Chrome 151 keeps a grid item's
+        // 320px intrinsic width with `aspect-ratio: 2; max-height: 0`, while a
+        // direct `max-width: 10px` caps it at 10px. Its block-size path has no
+        // such ignore mode, and intrinsic flex contributions still honor the
+        // transferred maximum (the same item in an auto-width root contributes
+        // 0px), so retain the transferred clamp in those paths.
+        const autoMinMax =
+          constants.isRow && typeof main(availableSpace, dir) === 'number'
+            ? main(child.maxSize, dir)
+            : main(transferredMaxSize, dir);
+        const clampedMinContentSize = mMin(sizeSuggestion, autoMinMax) as number;
         return vMax(clampedMinContentSize, main(paddingBorderAxesSums, dir));
       })();
 

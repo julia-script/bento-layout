@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=0fb6ca95 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Blink applies an inline flex item's automatic minimum with transferred
+  constraints ignored, so max-height: 0 does not erase the grid's intrinsic
+  320px inline minimum.
+  Regenerate with: pnpm gentest fuzz_flex_auto_min_ignores_transferred_max
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: flex auto minimum ignores transferred maximum</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex; width: 200px; height: 10px;">
+  <div style="display: grid; max-height: 0; aspect-ratio: 2; grid-template-columns: 320px;"></div>
+</div>
+
+</body>
+</html>
