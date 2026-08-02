@@ -1201,7 +1201,9 @@ function determineFlexBaseSize(
       !constants.isWrap &&
       ((cross(constants.nodeInnerSize, dir) !== null &&
         (constants.isColumn ||
-          (!constants.crossSizeIsMinMaxDefinite && !constants.crossSizeIsIndefinite))) ||
+          (!constants.crossSizeIsMinMaxDefinite &&
+            !constants.crossSizeIsIndefinite &&
+            !(constants.isOutOfFlow && constants.crossSizeIsAuto)))) ||
         (constants.aspectRatio !== null && !constants.isOutOfFlow)) &&
       child.alignSelf.keyword === 'stretch' &&
       !child.alignSelf.safe &&
@@ -1222,6 +1224,10 @@ function determineFlexBaseSize(
       // flex-aspect-ratio-cross-size-002). An out-of-flow root instead receives
       // the containing block's available height, which is not its used cross
       // size; its ratio must not turn the 800px page viewport into 800x800.
+      // Its automatic cross size can also arrive numerically from shrink-to-fit
+      // content layout, but remains indefinite during flex-base sizing: Chrome
+      // stretches an empty 1:1 item to a sibling's 10px height only after
+      // keeping that item's main flex base at 0px.
       // Floor the stretched cross size by the item's own cross padding+border:
       // a box never shrinks below its insets, so stretching to a smaller
       // container leaves a *used* cross size larger than the space offered —

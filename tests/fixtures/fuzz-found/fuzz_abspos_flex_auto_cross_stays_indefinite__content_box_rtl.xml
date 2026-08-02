@@ -1,0 +1,19 @@
+<test name="fuzz_abspos_flex_auto_cross_stays_indefinite__content_box_rtl" use-rounding="true">
+  <viewport width="1280px" height="800px"/>
+  <input>
+    <div box-sizing="content-box" direction="rtl" position="absolute">
+      <div box-sizing="content-box" direction="rtl" position="absolute">
+        <div box-sizing="content-box" direction="rtl" height="1px"/>
+        <div box-sizing="content-box" direction="rtl" aspect-ratio="1"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="0" height="0">
+      <node x="0" y="0" width="0" height="1">
+        <node x="0" y="0" width="0" height="1"/>
+        <node x="0" y="0" width="0" height="1"/>
+      </node>
+    </node>
+  </expectations>
+</test>
