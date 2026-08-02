@@ -162,13 +162,16 @@ export function alignAndPositionItem(
     style.boxSizing,
     paddingBorderSize,
   );
+  const explicitBlockAlignment = alignSelf ?? containerAlignmentStyles.vertical;
   const ratioAutoMinInlineApplies =
-    position === 'absolute' &&
     aspectRatio !== null &&
     style.minSize.width === 'auto' &&
     overflow.x === 'visible' &&
     (overflow.y === 'visible' || overflow.y === 'clip') &&
-    (resolvedStyleSize.height !== null || (insetVertical.start !== null && insetVertical.end !== null));
+    ((position === 'absolute' &&
+      (resolvedStyleSize.height !== null || (insetVertical.start !== null && insetVertical.end !== null))) ||
+      (position !== 'absolute' &&
+        (resolvedStyleSize.height !== null || explicitBlockAlignment?.keyword === 'stretch')));
   if (ratioAutoMinInlineApplies) {
     const minContentWidth = measureChildSize(
       node,
@@ -182,7 +185,6 @@ export function alignAndPositionItem(
   }
 
   // Resolve default alignment styles if set on neither the parent nor the node itself
-  const explicitBlockAlignment = alignSelf ?? containerAlignmentStyles.vertical;
   const horizontalAlignment =
     justifySelf ??
     containerAlignmentStyles.horizontal ??
@@ -321,12 +323,45 @@ export function alignAndPositionItem(
   // Reapply aspect ratio after stretch/absolute height adjustments
   size = maybeApplyAspectRatioUsed({ width: size.width, height }, aspectRatio, style.boxSizing, paddingBorderSize);
 
+  // CSS Sizing 4 §4.3: when aspect-ratio supplies an automatic block size,
+  // its non-scrollable automatic minimum is the intrinsic content height,
+  // capped by max-height. Blink 7922 passes that intrinsic size to
+  // ComputeBlockSizeForFragment and resolves `min-intrinsic` before clamping.
+  // Explicit block-axis stretch is not ratio sizing and therefore keeps the
+  // grid area's height instead.
+  const ratioAutoMinBlockApplies =
+    position !== 'absolute' &&
+    aspectRatio !== null &&
+    resolvedStyleSize.height === null &&
+    style.minSize.height === 'auto' &&
+    overflow.y === 'visible' &&
+    (overflow.x === 'visible' || overflow.x === 'clip') &&
+    explicitBlockAlignment?.keyword !== 'stretch' &&
+    internals(node).measure === undefined;
+  const ratioAutomaticMinimumWidth = size.width;
+  if (ratioAutoMinBlockApplies && ratioAutomaticMinimumWidth !== null) {
+    const minContentHeight = measureChildSize(
+      node,
+      { width: ratioAutomaticMinimumWidth, height: null },
+      gridAreaSize,
+      { width: ratioAutomaticMinimumWidth, height: 'max-content' },
+      'content-size',
+      'vertical',
+    );
+    minSize = { ...minSize, height: Math.max(minSize.height, Math.min(minContentHeight, maxSize.height ?? Infinity)) };
+  }
+
   // Clamp by min/max
   size = {
     width: mClamp(size.width, minSize.width, maxSize.width),
     height: mClamp(size.height, minSize.height, maxSize.height),
   };
-  if (ratioAutoMinInlineApplies && resolvedStyleSize.height === null && size.width !== null) {
+  if (
+    ratioAutoMinInlineApplies &&
+    resolvedStyleSize.height === null &&
+    size.width !== null &&
+    explicitBlockAlignment?.keyword !== 'stretch'
+  ) {
     size = maybeApplyAspectRatioUsed(
       { width: size.width, height: null },
       aspectRatio,

@@ -1,0 +1,31 @@
+<test name="fuzz_grid_ratio_item_content_auto_min__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" box-sizing="content-box" direction="rtl" position="absolute">
+      <div display="grid" box-sizing="content-box" direction="rtl" grid-template-rows="7px">
+        <div box-sizing="content-box" direction="rtl" aspect-ratio="1">
+          <div box-sizing="content-box" direction="rtl" min-width="120px" min-height="20px"/>
+        </div>
+      </div>
+      <div display="grid" box-sizing="content-box" direction="rtl" width="7px" grid-template-rows="7px">
+        <div box-sizing="content-box" direction="rtl" min-width="0px" aspect-ratio="1">
+          <div box-sizing="content-box" direction="rtl" min-width="120px" min-height="20px"/>
+        </div>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="120" height="14">
+      <node x="0" y="0" width="120" height="7">
+        <node x="0" y="0" width="120" height="120">
+          <node x="0" y="0" width="120" height="120"/>
+        </node>
+      </node>
+      <node x="113" y="7" width="7" height="7">
+        <node x="0" y="0" width="7" height="20">
+          <node x="-113" y="0" width="120" height="20"/>
+        </node>
+      </node>
+    </node>
+  </expectations>
+</test>

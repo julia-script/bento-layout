@@ -818,6 +818,35 @@ function contributionAvailableSpace(availableSpace: Size<Opt>, fallback: Availab
   };
 }
 
+/** CSS Sizing 4 §4.3 automatic inline minimum after a ratio transfer. */
+function itemRatioAutomaticInlineMinimum(item: GridItem, gridAreaSize: Size<Opt>, knownDimensions: Size<Opt>): Opt {
+  if (
+    item.aspectRatio === null ||
+    item.size.width !== 'auto' ||
+    item.minSize.width !== 'auto' ||
+    overflowAutoMinSize(item.overflow) === 0 ||
+    gridAreaSize.width !== null ||
+    knownDimensions.width === null
+  ) {
+    return null;
+  }
+
+  const padding = resolveGridInsets(item.padding, gridAreaSize.width);
+  const border = resolveGridInsets(item.border, gridAreaSize.width);
+  const paddingBorderSize = sumAxes(rectAdd(padding, border));
+  const boxSizingAdjustment = item.boxSizing === 'content-box' ? paddingBorderSize : { width: 0, height: 0 };
+  const maxSize = maybeAddSize(maybeResolveSize(item.maxSize, gridAreaSize), boxSizingAdjustment);
+  const minContentWidth = measureChildSize(
+    item.node,
+    { width: null, height: null },
+    gridAreaSize,
+    { width: 'min-content', height: 'max-content' },
+    'content-size',
+    'horizontal',
+  );
+  return Math.min(minContentWidth, maxSize.width ?? Infinity);
+}
+
 export function itemMinContentContribution(
   item: GridItem,
   axis: AbsoluteAxis,
@@ -841,9 +870,11 @@ export function itemMinContentContribution(
     'inherent-size',
     axis,
   );
-  return absGet(knownDimensions, axis) === null
-    ? measured + autoInsetLayoutUnitDelta(item, gridAreaSize, axis)
-    : measured;
+  const measuredWithInset =
+    absGet(knownDimensions, axis) === null ? measured + autoInsetLayoutUnitDelta(item, gridAreaSize, axis) : measured;
+  const ratioAutomaticMinimum =
+    axis === 'horizontal' ? itemRatioAutomaticInlineMinimum(item, gridAreaSize, knownDimensions) : null;
+  return Math.max(measuredWithInset, ratioAutomaticMinimum ?? 0);
 }
 
 export function itemMinContentContributionCached(
@@ -874,9 +905,11 @@ export function itemMaxContentContribution(
     'inherent-size',
     axis,
   );
-  return absGet(knownDimensions, axis) === null
-    ? measured + autoInsetLayoutUnitDelta(item, gridAreaSize, axis)
-    : measured;
+  const measuredWithInset =
+    absGet(knownDimensions, axis) === null ? measured + autoInsetLayoutUnitDelta(item, gridAreaSize, axis) : measured;
+  const ratioAutomaticMinimum =
+    axis === 'horizontal' ? itemRatioAutomaticInlineMinimum(item, gridAreaSize, knownDimensions) : null;
+  return Math.max(measuredWithInset, ratioAutomaticMinimum ?? 0);
 }
 
 export function itemMaxContentContributionCached(
