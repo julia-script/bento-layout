@@ -9,7 +9,6 @@ import { deriveSeed, mulberry32, Rng } from '../scripts/fuzz/prng.js';
 import { styleToCss } from '../scripts/fuzz/serialize.js';
 import { shrinkTree } from '../scripts/fuzz/shrink.js';
 import { treeSignature } from '../scripts/fuzz/signature.js';
-import { unreachable } from '../src/assert.js';
 import type { Style } from '../src/index.js';
 import { resolveStyle } from '../src/style.js';
 import { buildStyle } from './harness/fixture.js';
@@ -143,32 +142,148 @@ describe('fuzz shrinker (spec: Minimal reproduction)', () => {
     const result = await shrinkTree(tree, async (t) => treeHasBug(t));
 
     expect(treeHasBug(result.tree)).toBe(true);
-    expect(countNodes(result.tree.root)).toBe(2);
+    expect(countNodes(result.tree.root)).toBe(1);
     expect(result.tree.viewport).toBeUndefined();
-    expect(Object.keys(result.tree.root.style)).toEqual([]);
-    const child = result.tree.root.children[0] ?? unreachable();
-    expect(Object.keys(child.style).sort()).toEqual(['aspectRatio', 'margin']);
-    expect(child.text).toBeUndefined();
+    expect(Object.keys(result.tree.root.style).sort()).toEqual(['aspectRatio', 'margin']);
+    expect(result.tree.root.text).toBeUndefined();
     expect(result.budgetExhausted).toBe(false);
   });
 
   it('stops at the check budget and keeps a still-failing tree', async () => {
-    // 12 removable children guarantee more candidate edits than the budget.
     const tree: FuzzTree = {
       root: {
-        style: { display: 'flex' },
-        children: Array.from({ length: 12 }, () => ({
-          style: { flexGrow: 1, width: 10 as const, height: 10 as const },
-          children: [],
-        })),
+        style: {},
+        children: [],
+        text: 'HH',
       },
     };
-    // Every candidate "fails": the shrinker would reduce to a single node, but
-    // must stop at the budget first.
-    const result = await shrinkTree(tree, async () => true, 5);
-    expect(result.checks).toBeLessThanOrEqual(5);
+    const result = await shrinkTree(tree, async () => true, 1);
+    expect(result.checks).toBe(1);
     expect(result.budgetExhausted).toBe(true);
-    expect(countNodes(result.tree.root)).toBeGreaterThanOrEqual(1);
+  });
+
+  it('resets unnecessary longhands inside structured style properties', async () => {
+    const tree: FuzzTree = {
+      root: {
+        style: {
+          aspectRatio: 2,
+          padding: { left: 40, right: 97, top: 20, bottom: 1 },
+          border: { left: 120, right: 200, top: 1, bottom: 20 },
+        },
+        children: [],
+      },
+    };
+    const stillFails = (candidate: FuzzTree): boolean =>
+      candidate.root.style.aspectRatio === 2 && candidate.root.style.padding?.right === 97;
+
+    const result = await shrinkTree(tree, async (candidate) => stillFails(candidate));
+
+    expect(stillFails(result.tree)).toBe(true);
+    expect(result.tree.root.style).toEqual({
+      aspectRatio: 2,
+      padding: { left: 0, right: 97, top: 0, bottom: 0 },
+    });
+    expect(result.budgetExhausted).toBe(false);
+  });
+
+  it('shrinks text and numeric values instead of keeping the original magnitudes', async () => {
+    const tree: FuzzTree = {
+      root: {
+        style: { padding: { left: 40, right: 320, top: 20, bottom: 97 } },
+        children: [],
+        text: 'HHH​HHH​HHHHH',
+      },
+    };
+    const stillFails = (candidate: FuzzTree): boolean =>
+      (candidate.root.style.padding?.right as number) > 0 && (candidate.root.text?.includes('H') ?? false);
+
+    const result = await shrinkTree(tree, async (candidate) => stillFails(candidate));
+
+    expect(result.tree.root.text).toBe('H');
+    expect(result.tree.root.style.padding).toEqual({ left: 0, right: 1, top: 0, bottom: 0 });
+  });
+
+  it('removes mutually dependent properties as a group', async () => {
+    const tree: FuzzTree = {
+      root: { style: { flexGrow: 2, flexShrink: 2 }, children: [] },
+    };
+    const stillFails = (candidate: FuzzTree): boolean => {
+      const hasGrow = candidate.root.style.flexGrow !== undefined;
+      const hasShrink = candidate.root.style.flexShrink !== undefined;
+      return hasGrow === hasShrink;
+    };
+
+    const result = await shrinkTree(tree, async (candidate) => stillFails(candidate));
+
+    expect(result.tree.root.style).toEqual({});
+  });
+
+  it('unwraps wrappers and replaces a subtree with its relevant child', async () => {
+    const tree: FuzzTree = {
+      root: {
+        style: { display: 'block' },
+        children: [
+          {
+            style: { padding: { left: 20, right: 20, top: 20, bottom: 20 } },
+            children: [{ style: { aspectRatio: 2 }, children: [] }],
+          },
+        ],
+      },
+    };
+    const stillFails = (candidate: FuzzTree): boolean => {
+      const walk = (node: FuzzNode): boolean => node.style.aspectRatio !== undefined || node.children.some(walk);
+      return walk(candidate.root);
+    };
+
+    const result = await shrinkTree(tree, async (candidate) => stillFails(candidate));
+
+    expect(countNodes(result.tree.root)).toBe(1);
+    expect(result.tree.root.style).toEqual({ aspectRatio: 1 });
+  });
+
+  it('shortens grid track lists and simplifies their values', async () => {
+    const tree: FuzzTree = {
+      root: {
+        style: {
+          gridTemplateColumns: [
+            { min: 40, max: 40 },
+            { min: 97, max: 97 },
+            { min: 320, max: 320 },
+          ],
+        },
+        children: [],
+      },
+    };
+    const stillFails = (candidate: FuzzTree): boolean => (candidate.root.style.gridTemplateColumns?.length ?? 0) > 0;
+
+    const result = await shrinkTree(tree, async (candidate) => stillFails(candidate));
+
+    expect(result.tree.root.style.gridTemplateColumns).toHaveLength(1);
+    expect(result.tree.root.style.gridTemplateColumns).toEqual([{ min: 'auto', max: 'auto' }]);
+  });
+
+  it('simplifies non-default keywords when deleting the property heals the failure', async () => {
+    const tree: FuzzTree = {
+      root: { style: { flexDirection: 'column-reverse' }, children: [] },
+    };
+    const stillFails = (candidate: FuzzTree): boolean =>
+      candidate.root.style.flexDirection === 'column' || candidate.root.style.flexDirection === 'column-reverse';
+
+    const result = await shrinkTree(tree, async (candidate) => stillFails(candidate));
+
+    expect(result.tree.root.style.flexDirection).toBe('column');
+  });
+
+  it('shrinks viewport dimensions when removing the viewport heals the failure', async () => {
+    const tree: FuzzTree = {
+      root: { style: {}, children: [] },
+      viewport: { width: 400, height: 300 },
+    };
+    const stillFails = (candidate: FuzzTree): boolean => (candidate.viewport?.width ?? 0) > 0;
+
+    const result = await shrinkTree(tree, async (candidate) => stillFails(candidate));
+
+    expect(result.tree.viewport).toEqual({ width: 1, height: 0 });
   });
 });
 
