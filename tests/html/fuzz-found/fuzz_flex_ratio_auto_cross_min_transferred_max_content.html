@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: 20260802 viewport campaign, finding=791296a0 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  A main-axis maximum clamps the ratio-derived preferred cross size but does
+  not cap the independent intrinsic automatic cross minimum (Sizing 4 §4.3).
+  Regenerate with: pnpm gentest fuzz_flex_ratio_auto_cross_min_transferred_max_content
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: flex intrinsic cross minimum survives transferred max</title>
+</head>
+<body>
+
+<div
+  id="test-root"
+  data-test-page-viewport-width="1280"
+  data-test-page-viewport-height="800"
+  style="display: flex; width: 0;"
+>
+  <div style="display: flex; max-width: 0%; aspect-ratio: 1;">
+    <div style="height: 1px;"></div>
+  </div>
+</div>
+
+</body>
+</html>

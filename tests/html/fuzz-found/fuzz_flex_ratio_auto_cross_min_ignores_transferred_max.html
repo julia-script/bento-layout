@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: 20260802 viewport campaign, finding=50c31deb (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Sizing 4 §4.3 caps the ratio-dependent automatic block minimum with
+  max-height, not with max-width transferred through the ratio.
+  Regenerate with: pnpm gentest fuzz_flex_ratio_auto_cross_min_ignores_transferred_max
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: flex ratio cross auto minimum ignores transferred main max</title>
+</head>
+<body>
+
+<div
+  id="test-root"
+  data-test-page-viewport-width="1280"
+  data-test-page-viewport-height="800"
+  style="display: flex;"
+>
+  <div style="display: flex; max-width: 0%; aspect-ratio: 1; align-items: start;">
+    <div>H</div>
+  </div>
+</div>
+
+</body>
+</html>

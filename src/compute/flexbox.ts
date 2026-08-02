@@ -2235,7 +2235,13 @@ function determineHypotheticalCrossSize(
           crossAxis(constants.dir),
         )
       : null;
-    const cappedIntrinsicCrossMinimum = mMin(intrinsicCrossMinimum, transferredMaxCross);
+    // Sizing 4 §4.3 caps this automatic minimum by the maximum in the
+    // ratio-dependent axis itself. A main-axis maximum has already clamped the
+    // flexed main size and its ratio-derived preferred cross size; transferring
+    // it a second time must not erase intrinsic cross content. Blink 7922's
+    // ComputeMinMaxBlockSizes likewise caps MinIntrinsic with LogicalMaxHeight:
+    // `max-width: 0; aspect-ratio: 1` around a 10px line stays 0x10, not 0x0.
+    const cappedIntrinsicCrossMinimum = mMin(intrinsicCrossMinimum, rawMaxCross);
     const childCross = mMax(
       mMax(mClamp(preferredCross, transferredMinCross, transferredMaxCross), cappedIntrinsicCrossMinimum),
       paddingBorderSum,

@@ -1,0 +1,19 @@
+<test name="fuzz_flex_ratio_auto_cross_min_ignores_transferred_max__border_box_ltr" use-rounding="true">
+  <viewport width="1280px" height="800px"/>
+  <input>
+    <div display="flex" direction="ltr" position="absolute">
+      <div display="flex" direction="ltr" align-items="start" max-width="0%" aspect-ratio="1">
+        <text direction="ltr">
+          H
+        </text>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="10" height="10">
+      <node x="0" y="0" width="0" height="10">
+        <node x="0" y="0" width="10" height="10"/>
+      </node>
+    </node>
+  </expectations>
+</test>
