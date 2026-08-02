@@ -1,0 +1,23 @@
+<test name="fuzz_abspos_default_overflow_alignment_block_axis__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="ltr" position="absolute" width="400px" height="17px">
+      <div direction="ltr" width="200px" height="17px">
+        <div direction="ltr" position="absolute" align-self="flex-start" width="120px" height="320px" top="20%" bottom="3px" right="7px"/>
+      </div>
+      <div direction="ltr" width="200px" height="17px">
+        <div direction="ltr" position="absolute" align-self="stretch" width="120px" height="320px" top="20%" bottom="3px" right="7px"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="400" height="17">
+      <node x="0" y="0" width="200" height="17">
+        <node x="73" y="0" width="120" height="320"/>
+      </node>
+      <node x="200" y="0" width="200" height="17">
+        <node x="73" y="0" width="120" height="320"/>
+      </node>
+    </node>
+  </expectations>
+</test>

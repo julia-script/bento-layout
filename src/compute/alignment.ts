@@ -95,13 +95,15 @@ export function resolveAlignedAbsoluteAxis(
 
   // With one auto inset CSS2 fully determines the result; with both auto the
   // static-position rectangle is needed. Auto margins absorb free space before
-  // alignment, and normal/stretch keep the ordinary inset equation.
+  // alignment, and normal keeps the ordinary inset equation. Explicit stretch
+  // still participates in default overflow correction when the used size is
+  // already definite (Blink absolute_utils::GetAlignmentInsetBias).
   if (
     inset.start === null ||
     inset.end === null ||
     margin.start === null ||
     margin.end === null ||
-    absoluteAxisStretches(alignment)
+    alignment === null
   ) {
     return resolved;
   }

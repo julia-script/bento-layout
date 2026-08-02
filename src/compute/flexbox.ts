@@ -3256,14 +3256,31 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
       constants.layoutDirection !== 'rtl',
       childStyle.justifySelf,
     );
-    const resolvedVertical = resolveAbsoluteAxis(
-      insetRelativeSize.height,
-      { start: top, end: bottom },
-      { start: margin.top, end: margin.bottom },
-      finalSize.height,
-      false,
-      true,
-    );
+    // CSS Align §4.4: default abspos overflow alignment uses the union of
+    // the inset-modified and original containing blocks. Blink's
+    // absolute_utils::ComputeInsets therefore moves a specified-height row
+    // child from `top: 1px` back to y=0 when its margin box cannot fit even in
+    // that union; explicit `safe` continues to honor the IMCB's start edge.
+    const verticalSizeIsAuto = maybeResolve(childStyle.size.height, insetRelativeSize.height) === null;
+    const resolvedVertical =
+      constants.isRow && !verticalSizeIsAuto
+        ? resolveAlignedAbsoluteAxis(
+            insetRelativeSize.height,
+            { start: top, end: bottom },
+            { start: margin.top, end: margin.bottom },
+            finalSize.height,
+            false,
+            true,
+            childStyle.alignSelf,
+          )
+        : resolveAbsoluteAxis(
+            insetRelativeSize.height,
+            { start: top, end: bottom },
+            { start: margin.top, end: margin.bottom },
+            finalSize.height,
+            false,
+            true,
+          );
     const resolvedMargin: Rect<number> = {
       left: resolvedHorizontal.margin.start,
       right: resolvedHorizontal.margin.end,

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: batch seed=20260731, finding=34ba9410 (mode=mixed), minimized
+  chrome: Chrome/151.0.7922.47
+  Default abspos overflow alignment uses the union of the inset-modified and
+  original containing blocks in the block axis, including explicit stretch.
+  Regenerate with: pnpm gentest fuzz_abspos_default_overflow_alignment_block_axis
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: abspos default block-axis overflow alignment</title>
+</head>
+<body>
+
+<div id="test-root" style="width: 400px; height: 17px;">
+  <div style="width: 200px; height: 17px;">
+    <div style="position: absolute; width: 120px; height: 320px; top: 20%; right: 7px; bottom: 3px; align-self: flex-start;"></div>
+  </div>
+  <div style="width: 200px; height: 17px;">
+    <div style="position: absolute; width: 120px; height: 320px; top: 20%; right: 7px; bottom: 3px; align-self: stretch;"></div>
+  </div>
+</div>
+
+</body>
+</html>
