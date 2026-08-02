@@ -143,6 +143,7 @@ export function performChildLayout(
   sizingMode: SizingMode,
   verticalMarginsAreCollapsible: Line<boolean> = LINE_FALSE,
   knownDimensionsAreHard?: Size<boolean>,
+  knownDimensionsAreIndefinite?: Size<boolean>,
 ): LayoutOutput {
   return computeChildLayout(node, {
     knownDimensions,
@@ -153,5 +154,6 @@ export function performChildLayout(
     runMode: 'perform-layout',
     verticalMarginsAreCollapsible,
     ...(knownDimensionsAreHard === undefined ? {} : { knownDimensionsAreHard }),
+    ...(knownDimensionsAreIndefinite === undefined ? {} : { knownDimensionsAreIndefinite }),
   });
 }

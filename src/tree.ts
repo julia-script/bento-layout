@@ -56,6 +56,10 @@ export interface LayoutInput {
    * example, an aspect-ratio constraint transfer or flex stretch), not an
    * automatic ratio-derived preferred size that content may enlarge. */
   knownDimensionsAreHard?: Size<boolean>;
+  /** Axes whose numeric known value remains CSS-indefinite, such as a flex
+   * item's post-flex main size when neither Flexbox §9.8 definiteness rule
+   * applies. */
+  knownDimensionsAreIndefinite?: Size<boolean>;
   parentSize: Size<Opt>;
   availableSpace: Size<AvailableSpace>;
   /** CSS Block margin collapsing: whether this node's start/end vertical margins
@@ -755,6 +759,8 @@ interface MeasureEntry {
   kh: Opt;
   hw: boolean;
   hh: boolean;
+  iw: boolean;
+  ih: boolean;
   aw: AvailableSpace;
   ah: AvailableSpace;
   pw: Opt;
@@ -801,6 +807,8 @@ export class Cache {
     const marginEndCollapsible = input.verticalMarginsAreCollapsible.end;
     const hw = input.knownDimensionsAreHard?.width ?? false;
     const hh = input.knownDimensionsAreHard?.height ?? false;
+    const iw = input.knownDimensionsAreIndefinite?.width ?? false;
+    const ih = input.knownDimensionsAreIndefinite?.height ?? false;
 
     if (input.runMode === 'perform-layout') {
       const entry = this.finalLayoutEntry;
@@ -810,6 +818,8 @@ export class Cache {
         entry.kh === kh &&
         entry.hw === hw &&
         entry.hh === hh &&
+        entry.iw === iw &&
+        entry.ih === ih &&
         entry.aw === aw &&
         entry.ah === ah &&
         entry.pw === pw &&
@@ -836,6 +846,8 @@ export class Cache {
           entry.kh === kh &&
           entry.hw === hw &&
           entry.hh === hh &&
+          entry.iw === iw &&
+          entry.ih === ih &&
           entry.aw === aw &&
           entry.ah === ah &&
           entry.pw === pw &&
@@ -863,6 +875,8 @@ export class Cache {
     const marginEndCollapsible = input.verticalMarginsAreCollapsible.end;
     const hw = input.knownDimensionsAreHard?.width ?? false;
     const hh = input.knownDimensionsAreHard?.height ?? false;
+    const iw = input.knownDimensionsAreIndefinite?.width ?? false;
+    const ih = input.knownDimensionsAreIndefinite?.height ?? false;
 
     if (input.runMode === 'perform-layout') {
       this.finalLayoutEntry = {
@@ -870,6 +884,8 @@ export class Cache {
         kh,
         hw,
         hh,
+        iw,
+        ih,
         aw,
         ah,
         pw,
@@ -887,6 +903,8 @@ export class Cache {
         kh,
         hw,
         hh,
+        iw,
+        ih,
         aw,
         ah,
         pw,

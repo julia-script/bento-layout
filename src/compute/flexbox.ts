@@ -180,7 +180,10 @@ interface AlgoConstants {
   boxSizing: Style['boxSizing'];
   paddingBorderSize: Size<number>;
   mainSizeIsAuto: boolean;
+  mainSizeIsDefinite: boolean;
   crossSizeIsAuto: boolean;
+  /** Numeric cross space inherited from a parent that remains CSS-indefinite. */
+  crossSizeIsIndefinite: boolean;
   /** Out-of-flow containers receive containing-block space, not a stretched used cross size. */
   isOutOfFlow: boolean;
   /** An automatic cross size was made numeric solely by a min/max pair. */
@@ -388,7 +391,13 @@ function computePreliminary(
   const knownDimensions = { ...inputKnownDimensions };
 
   // Define some general constants we will need for the remainder of the algorithm.
-  const constants = computeConstants(nd.style, knownDimensions, parentSize, inputs.knownDimensionsAreHard);
+  const constants = computeConstants(
+    nd.style,
+    knownDimensions,
+    parentSize,
+    inputs.knownDimensionsAreHard,
+    inputs.knownDimensionsAreIndefinite,
+  );
   if (!mainGapPercentageBasisIsDefinite && typeof main(nd.style.gap, constants.dir) === 'object') {
     setMain(constants.gap, constants.dir, 0);
   }
@@ -753,6 +762,7 @@ function computeConstants(
   knownDimensions: Size<Opt>,
   parentSize: Size<Opt>,
   knownDimensionsAreHard?: Size<boolean>,
+  knownDimensionsAreIndefinite?: Size<boolean>,
 ): AlgoConstants {
   const dir = style.flexDirection;
   const isRow = dirIsRow(dir);
@@ -817,7 +827,11 @@ function computeConstants(
     boxSizing: style.boxSizing,
     paddingBorderSize: paddingBorderSum,
     mainSizeIsAuto: main(resolvedStyleSize, dir) === null,
+    mainSizeIsDefinite:
+      main(resolvedStyleSize, dir) !== null ||
+      main(knownDimensionsAreHard ?? { width: false, height: false }, dir),
     crossSizeIsAuto: cross(resolvedStyleSize, dir) === null,
+    crossSizeIsIndefinite: cross(knownDimensionsAreIndefinite ?? { width: false, height: false }, dir),
     isOutOfFlow: style.position === 'absolute',
     crossSizeIsMinMaxDefinite:
       cross(resolvedStyleSize, dir) === null &&
@@ -1186,7 +1200,8 @@ function determineFlexBaseSize(
     if (
       !constants.isWrap &&
       ((cross(constants.nodeInnerSize, dir) !== null &&
-        (constants.isColumn || !constants.crossSizeIsMinMaxDefinite)) ||
+        (constants.isColumn ||
+          (!constants.crossSizeIsMinMaxDefinite && !constants.crossSizeIsIndefinite))) ||
         (constants.aspectRatio !== null && !constants.isOutOfFlow)) &&
       child.alignSelf.keyword === 'stretch' &&
       !child.alignSelf.safe &&
@@ -3050,6 +3065,7 @@ function calculateFlexItem(
   nodeInnerSize: Size<Opt>,
   direction: FlexDirection,
   layoutDirection: Direction,
+  containerMainSizeIsDefinite: boolean,
 ): void {
   const itemInternals = internals(item.node);
   const itemStyle = itemInternals.style;
@@ -3091,6 +3107,17 @@ function calculateFlexItem(
     setCross(knownDimensions, direction, null);
   }
 
+  // Flexbox §9.8 makes a post-flex main size definite only when the
+  // container's main size or the item's flex basis was definite. Preserve a
+  // numeric-but-indefinite main size across nested flex layout; otherwise a
+  // nested row treats its eventual stretched cross size as definite during
+  // §9.2 and transfers it through a descendant's aspect ratio too early.
+  const knownDimensionsAreIndefinite = withMain(
+    { width: false, height: false },
+    direction,
+    itemStyle.display === 'flex' && !containerMainSizeIsDefinite && !item.flexBasisIsDefinite,
+  );
+
   const layoutOutput = performChildLayout(
     item.node,
     knownDimensions,
@@ -3105,6 +3132,7 @@ function calculateFlexItem(
     // 9px-wide 1:1 item at 9x0 when its parent's flex line is 0px tall, even
     // though the item's child has 47px of intrinsic block size.
     withCross({ width: false, height: false }, direction, stretches && resolvedCrossStyle === null),
+    knownDimensionsAreIndefinite,
   );
   const { size, contentSize } = layoutOutput;
 
@@ -3194,6 +3222,7 @@ function calculateLayoutLine(
   paddingBorder: Rect<number>,
   direction: FlexDirection,
   layoutDirection: Direction,
+  containerMainSizeIsDefinite: boolean,
 ): void {
   const totalOffsetMain = {
     value:
@@ -3221,6 +3250,7 @@ function calculateLayoutLine(
       nodeInnerSize,
       direction,
       layoutDirection,
+      containerMainSizeIsDefinite,
     );
   }
 
@@ -3252,6 +3282,7 @@ function finalLayoutPass(flexLines: FlexLine[], constants: AlgoConstants): Size<
       constants.contentBoxInset,
       constants.dir,
       constants.layoutDirection,
+      constants.mainSizeIsDefinite,
     );
   }
 

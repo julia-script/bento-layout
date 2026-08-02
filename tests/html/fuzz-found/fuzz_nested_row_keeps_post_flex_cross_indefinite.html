@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: reduced from 20260802 viewport campaign finding=25397828 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Flexbox §9.8 leaves a post-flex main size indefinite when neither the
+  container main size nor the item's flex basis was definite. A nested row
+  must not use that numeric cross size for pre-flex aspect-ratio transfer.
+  Regenerate with: pnpm gentest fuzz_nested_row_keeps_post_flex_cross_indefinite
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: nested row keeps post-flex cross size indefinite</title>
+</head>
+<body>
+
+<div
+  id="test-root"
+  data-test-page-viewport-width="1280"
+  data-test-page-viewport-height="800"
+  style="flex-direction: column;"
+>
+  <div>
+    <div style="aspect-ratio: 1;"></div>
+    <div>H</div>
+  </div>
+</div>
+
+</body>
+</html>
