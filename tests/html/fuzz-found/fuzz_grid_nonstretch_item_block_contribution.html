@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: batch seed=20260731, finding=e10963a6 (mode=grid)
+  chrome: Chrome/151.0.7922.47
+  Row track sizing uses the fit-content inline size of a non-stretched grid
+  item when measuring its block contribution (css-grid-1 §6.6, §11).
+  Regenerate with: pnpm gentest fuzz_grid_nonstretch_item_block_contribution
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: non-stretched grid item block contribution uses its fit-content width</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; width: 0; justify-items: start;">
+  <div>
+    <div>X&#8203;X</div>
+  </div>
+</div>
+
+</body>
+</html>

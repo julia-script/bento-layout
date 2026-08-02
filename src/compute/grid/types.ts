@@ -706,6 +706,46 @@ function itemKnownDimensions(item: GridItem, gridAreaSize: Size<Opt>): Size<Opt>
   };
 }
 
+/**
+ * Resolve the inline size used while measuring a grid item's block contribution.
+ *
+ * Grid §11 sizes rows after columns and requires block-axis contributions to
+ * use the resulting inline available space. For every non-stretch self
+ * alignment, Grid §6.6 makes an automatic inline size fit-content. Blink's
+ * `BlockContributionSize()` gets that used width from its measurement
+ * constraint space before reading the fragment's block size.
+ */
+function itemContributionKnownDimensions(item: GridItem, axis: AbsoluteAxis, gridAreaSize: Size<Opt>): Size<Opt> {
+  const knownDimensions = itemKnownDimensions(item, gridAreaSize);
+  if (
+    axis !== 'vertical' ||
+    knownDimensions.width !== null ||
+    gridAreaSize.width === null ||
+    item.justifySelf.keyword === 'stretch'
+  ) {
+    return knownDimensions;
+  }
+
+  const margins = itemMarginsAxisSumsWithBaselineShims(item, gridAreaSize.width);
+  const measureKnownDimensions = { ...knownDimensions, width: null };
+  const availableHeight: AvailableSpace = gridAreaSize.height ?? 'max-content';
+  const measure = (width: AvailableSpace): number =>
+    measureChildSize(
+      item.node,
+      measureKnownDimensions,
+      gridAreaSize,
+      { width, height: availableHeight },
+      'inherent-size',
+      'horizontal',
+    );
+  const minContentWidth = measure('min-content');
+  const maxContentWidth = measure('max-content');
+  const stretchFitWidth = Math.max(gridAreaSize.width - margins.width, 0);
+
+  knownDimensions.width = Math.min(maxContentWidth, Math.max(minContentWidth, stretchFitWidth));
+  return knownDimensions;
+}
+
 function autoInsetLayoutUnitDelta(item: GridItem, gridAreaSize: Size<Opt>, axis: AbsoluteAxis): number {
   const exact = sumAxes(
     rectAdd(resolveRectOrZero(item.padding, gridAreaSize.width), resolveRectOrZero(item.border, gridAreaSize.width)),
@@ -784,7 +824,7 @@ export function itemMinContentContribution(
   gridAreaSize: Size<Opt>,
   availableSpace: Size<Opt>,
 ): number {
-  const knownDimensions = itemKnownDimensions(item, gridAreaSize);
+  const knownDimensions = itemContributionKnownDimensions(item, axis, gridAreaSize);
   // A grid container's automatic block size is its max-content size
   // (css-grid-1 §5.1). Grid-item contributions therefore use block layout in
   // the row axis, not an inline-style min-content constraint. Blink makes the
@@ -825,7 +865,7 @@ export function itemMaxContentContribution(
   gridAreaSize: Size<Opt>,
   availableSpace: Size<Opt>,
 ): number {
-  const knownDimensions = itemKnownDimensions(item, gridAreaSize);
+  const knownDimensions = itemContributionKnownDimensions(item, axis, gridAreaSize);
   const measured = measureChildSize(
     item.node,
     knownDimensions,
