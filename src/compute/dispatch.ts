@@ -152,6 +152,6 @@ export function performChildLayout(
     axis: 'both',
     runMode: 'perform-layout',
     verticalMarginsAreCollapsible,
-    knownDimensionsAreHard,
+    ...(knownDimensionsAreHard === undefined ? {} : { knownDimensionsAreHard }),
   });
 }
