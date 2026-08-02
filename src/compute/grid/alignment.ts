@@ -331,11 +331,15 @@ export function alignAndPositionItem(
     };
   }
 
+  // Blink passes the full containing grid area to an in-flow item's
+  // constraint space; the child resolves its margins from that space exactly
+  // once. Pre-subtracting a 10% end margin here made an auto-sized text item
+  // subtract 2px twice in a 20px max-content track (16px vs Chrome's 18).
   const availableSpace = {
     width:
       position === 'absolute'
         ? insetModifiedContainingBlockSize(gridAreaMinusItemMarginsSize.width, insetHorizontal)
-        : gridAreaMinusItemMarginsSize.width,
+        : gridAreaSize.width,
     height: gridAreaMinusItemMarginsSize.height,
   };
 

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=e610523c (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Grid §10.2 treats auto margins as zero during track sizing, then lets
+  them absorb free space. Blink passes the full grid area to the item so its
+  percentage end margin is subtracted exactly once from the fit-content size.
+  Regenerate with: pnpm gentest fuzz_grid_auto_margin_available_inline_size
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: grid auto margin uses full available inline size</title>
+</head>
+<body>
+
+<div id="test-root">
+  <div style="display: grid;">
+    <div style="margin: 0 10% 0 auto;">H&#8203;H</div>
+  </div>
+</div>
+
+</body>
+</html>
