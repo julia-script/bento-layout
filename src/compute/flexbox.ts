@@ -2372,15 +2372,23 @@ function calculateFlexItem(
     !rectCrossEnd(item.marginIsAuto, direction);
   const knownDimensions = { width: item.targetSize.width, height: item.targetSize.height };
 
-  // Preserve an auto cross size when a non-stretched, ratio-less nested
-  // container merely lands on its explicit minimum. Blink supplies the line
-  // cross size as available space in this case, not as a fixed fragment size.
-  // Keeping it known makes the nested container treat that minimum as a
-  // definite pre-flex stretch source, feeding a descendant's ratio back into
-  // its main size contrary to css-flexbox §9.4 step 11.
+  // Preserve an auto block-axis cross size for a non-stretched, ratio-less
+  // nested container. Blink supplies the line cross size as available space
+  // and fixes only the flexed main size; it fixes the cross size only for
+  // stretch.
+  // Passing the hypothetical cross size as known lets a nested container feed
+  // that later size through a descendant's ratio and change its already-
+  // resolved main size, contrary to css-flexbox §9.4 step 11. Chrome, an
+  // auto-height nested row around an empty 1:1 item and one 10px glyph, keeps
+  // the ratio item at 0x10; fixing the row's cross size early makes it 10x10.
+  // The explicit-minimum case follows the same rule (f93ee102). This is row-
+  // only: a column's cross axis is the inline axis, where the previously
+  // resolved shrink-to-fit width is the used size. Chrome keeps a non-
+  // stretched nested row around a 320px flex-basis item 320px wide; clearing
+  // that inline size here recomputes it as zero in content-size mode.
   if (
+    dirIsRow(direction) &&
     resolvedCrossStyle === null &&
-    resolvedCrossMin !== null &&
     !crossIsFixedByMinMax &&
     itemStyle.aspectRatio === null &&
     itemInternals.children.length > 0 &&
