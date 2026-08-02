@@ -1,0 +1,15 @@
+<test name="fuzz_flex_shrink_layout_unit_remainder__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div box-sizing="content-box" direction="rtl" position="absolute">
+      <div box-sizing="content-box" direction="rtl" width="10px"/>
+      <div box-sizing="content-box" direction="rtl" flex-basis="200px" border-top="7px" border-left="7px" border-bottom="200px" border-right="0px"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="17" height="207">
+      <node x="17" y="0" width="0" height="207"/>
+      <node x="0" y="0" width="17" height="207"/>
+    </node>
+  </expectations>
+</test>

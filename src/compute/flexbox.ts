@@ -1923,25 +1923,32 @@ function resolveFlexibleLengths(line: FlexLine, constants: AlgoConstants): void 
 
     // c. Distribute free space proportional to the flex factors
     if (isNormal(freeSpace)) {
-      if (growing && sumFlexGrow > 0) {
-        for (const child of unfrozen) {
-          setMain(child.targetSize, constants.dir, child.flexBasis + freeSpace * (child.flexGrow / sumFlexGrow));
+      const flexFactors = unfrozen.map((child) => (growing ? child.flexGrow : child.innerFlexBasis * child.flexShrink));
+      const totalFlexFactor = flexFactors.reduce((sum, factor) => sum + factor, 0);
+      if ((growing && sumFlexGrow > 0) || (shrinking && sumFlexShrink > 0 && totalFlexFactor > 0)) {
+        // Blink's LineFlexer distributes in reverse order. Each share is
+        // rounded to its 1/64px LayoutUnit and subtracted from the remaining
+        // free space; the first item receives the exact remainder. This keeps
+        // the line sum exact while preserving a half-pixel that independent
+        // floating-point shares lose: 193px of negative space split with
+        // scaled shrink factors 10:193 leaves the first item at exactly 0.5px.
+        const fractions: number[] = [];
+        let cumulativeFactor = 0;
+        for (const factor of flexFactors) {
+          cumulativeFactor += factor;
+          fractions.push(cumulativeFactor === 0 ? 0 : factor / cumulativeFactor);
         }
-      } else if (shrinking && sumFlexShrink > 0) {
-        let sumScaledShrinkFactor = 0;
-        for (const child of unfrozen) {
-          sumScaledShrinkFactor += child.innerFlexBasis * child.flexShrink;
-        }
-
-        if (sumScaledShrinkFactor > 0) {
-          for (const child of unfrozen) {
-            const scaledShrinkFactor = child.innerFlexBasis * child.flexShrink;
-            setMain(
-              child.targetSize,
-              constants.dir,
-              child.flexBasis + freeSpace * (scaledShrinkFactor / sumScaledShrinkFactor),
-            );
-          }
+        let remainingFreeSpace = freeSpace;
+        for (let index = unfrozen.length - 1; index >= 0; index--) {
+          const child = unfrozen[index] ?? unreachable();
+          const fraction = fractions[index] ?? unreachable();
+          const proportional = remainingFreeSpace * fraction;
+          const extraSize =
+            fraction === 1
+              ? remainingFreeSpace
+              : (Math.sign(proportional) * Math.round(Math.abs(proportional) * 64)) / 64;
+          remainingFreeSpace -= extraSize;
+          setMain(child.targetSize, constants.dir, child.flexBasis + extraSize);
         }
       }
     }

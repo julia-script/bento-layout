@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: batch seed=20260731, finding=1f85af34 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Blink distributes negative free space from the last flex item toward the
+  first, rounding each share to 1/64px and giving the first item the exact
+  remainder. With 193px of negative space and scaled shrink factors 10:193,
+  the first border-box item therefore retains exactly 0.5px and paints 1px in
+  LTR; distributing independent floating-point shares left it below the tie.
+  Regenerate with: pnpm gentest fuzz_flex_shrink_layout_unit_remainder
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: flex shrink preserves Blink's LayoutUnit remainder</title>
+</head>
+<body>
+
+<div id="test-root">
+  <div style="width: 10px;"></div>
+  <div style="flex-basis: 200px; border-style: solid; border-width: 7px 0 200px 7px;"></div>
+</div>
+
+</body>
+</html>
