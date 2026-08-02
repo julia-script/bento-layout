@@ -65,6 +65,7 @@ import {
   maybeApplyAspectRatioUsed,
   transferMaxSizeThroughAspectRatio,
   transferMinSizeThroughAspectRatio,
+  transferUsedConstraintToStretchedAxis,
 } from './aspectRatio.js';
 import { measureChildSize, measureChildSizeBoth, performChildLayout } from './dispatch.js';
 
@@ -927,7 +928,22 @@ function determineFlexBaseSize(
     // (css-sizing-4 §5.2.2; matches Chrome). Clamping unconditionally diverges
     // from the browser when an axis has a definite size.
     const rawStyleSize = maybeResolveSize(childStyle.size, constants.nodeInnerSize);
-    const transferredMinSize = maybeApplyAspectRatio(child.minSize, child.aspectRatio);
+    const ratioDependentAxes = { width: rawStyleSize.width === null, height: rawStyleSize.height === null };
+    const childPb = rectAdd(child.padding, child.border);
+    const childPbSum = sumAxes(childPb);
+    const minSizeForTransfer: Size<Opt> = {
+      width: mMax(child.minSize.width, childPbSum.width),
+      height: mMax(child.minSize.height, childPbSum.height),
+    };
+    const transferredMinSize = transferUsedConstraintToStretchedAxis(
+      minSizeForTransfer,
+      rawStyleSize,
+      child.aspectRatio,
+      ratioDependentAxes,
+      childStyle.boxSizing,
+      childPbSum,
+      Math.max,
+    );
     // A max-size below the box's own padding+border cannot be honoured — a
     // border box is never smaller than its insets — so the axis settles at the
     // floor, and it is that *used* size the ratio transfers, not the
@@ -936,20 +952,19 @@ function determineFlexBaseSize(
     // give 482x321 (=321x1.5), and so does `max-height: 40` — while
     // transferring the raw 40 gave 60x321. Above the floor the max is
     // satisfiable and clamps normally.
-    const childPb = rectAdd(child.padding, child.border);
     const maxSizeForTransfer: Size<Opt> = {
       width: mMax(child.maxSize.width, horizontalSum(childPb)),
       height: mMax(child.maxSize.height, verticalSum(childPb)),
     };
-    const transferredMaxSize = maybeApplyAspectRatio(maxSizeForTransfer, child.aspectRatio);
-    if (rawStyleSize.width !== null) {
-      transferredMinSize.width = child.minSize.width;
-      transferredMaxSize.width = child.maxSize.width;
-    }
-    if (rawStyleSize.height !== null) {
-      transferredMinSize.height = child.minSize.height;
-      transferredMaxSize.height = child.maxSize.height;
-    }
+    const transferredMaxSize = transferUsedConstraintToStretchedAxis(
+      maxSizeForTransfer,
+      rawStyleSize,
+      child.aspectRatio,
+      ratioDependentAxes,
+      childStyle.boxSizing,
+      childPbSum,
+      Math.min,
+    );
     const childMinCross = mAdd(cross(transferredMinSize, dir), crossAxisMarginSum);
     const childMaxCross = mAdd(cross(transferredMaxSize, dir), crossAxisMarginSum);
 

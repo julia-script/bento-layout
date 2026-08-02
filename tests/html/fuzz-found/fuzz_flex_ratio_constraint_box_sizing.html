@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=0ab2e0c2 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Sizing 4 §4.1 and §5.2 transfer used min/max constraints through
+  the ratio box selected by box-sizing. Content-box min-height:1 transfers the
+  1px content height, then restores each axis's own padding.
+  Regenerate with: pnpm gentest fuzz_flex_ratio_constraint_box_sizing
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: flex ratio constraint transfer respects box sizing</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex;">
+  <div style="min-height: 1px; aspect-ratio: 1; padding: 200px 7px 1px 0;"></div>
+</div>
+
+</body>
+</html>
