@@ -332,7 +332,14 @@ export function trackSizingAlgorithm(
 
   // 11.8. Stretch auto Tracks
   if (axisAlignment.keyword === 'stretch' && !axisAlignment.safe) {
-    stretchAutoTracks(axisTracks, axisMinSize, axisAvailableSpaceForExpansion);
+    // Column tracks are stored in physical order after RTL initialization, so
+    // walk them backwards to keep Blink's remainder at logical end.
+    stretchAutoTracks(
+      axisTracks,
+      axisMinSize,
+      axisAvailableSpaceForExpansion,
+      axis === 'horizontal' && direction === 'rtl',
+    );
   }
 
   resolveBaselines();
@@ -1057,6 +1064,7 @@ function stretchAutoTracks(
   axisTracks: GridTrack[],
   axisMinSize: Opt,
   axisAvailableSpaceForExpansion: AvailableSpace,
+  remainderTowardPhysicalStart: boolean,
 ): void {
   const autoTracks = axisTracks.filter((track) => track.maxTrackSizingFunction === 'auto');
   if (autoTracks.length === 0) return;
@@ -1071,9 +1079,28 @@ function stretchAutoTracks(
         ? axisMinSize - usedSpace
         : 0;
   if (freeSpace > 0) {
-    const extraSpacePerAutoTrack = freeSpace / autoTracks.length;
-    for (const track of autoTracks) {
-      track.baseSize += extraSpacePerAutoTrack;
+    // Grid §11.8 divides free space equally, but Blink 7922 performs each
+    // share in integer 1/64px LayoutUnits and gives the discarded remainder
+    // to later tracks. With six auto tracks in 1px, the first three receive
+    // 31/64px and the last three 33/64px; exact floating halves put the middle
+    // line at .5px and paint a `grid-column: 4 / span 3` item one pixel late.
+    const scaledFreeSpace = freeSpace * 64;
+    const nearestLayoutUnit = Math.round(scaledFreeSpace);
+    const stableScaledFreeSpace =
+      Math.abs(scaledFreeSpace - nearestLayoutUnit) <= Number.EPSILON * Math.max(1, Math.abs(scaledFreeSpace)) * 4
+        ? nearestLayoutUnit
+        : scaledFreeSpace;
+    let remainingFreeSpace = Math.trunc(stableScaledFreeSpace);
+    let remainingFreeSpaceValue = freeSpace;
+    let remainingTrackCount = autoTracks.length;
+    const tracksInDistributionOrder = remainderTowardPhysicalStart ? autoTracks.reverse() : autoTracks;
+    for (const track of tracksInDistributionOrder) {
+      const extraSpace = Math.trunc(remainingFreeSpace / remainingTrackCount);
+      const extraSpaceValue = remainingTrackCount === 1 ? remainingFreeSpaceValue : extraSpace / 64;
+      track.baseSize += extraSpaceValue;
+      remainingFreeSpace -= extraSpace;
+      remainingFreeSpaceValue -= extraSpaceValue;
+      remainingTrackCount--;
     }
   }
 }

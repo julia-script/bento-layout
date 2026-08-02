@@ -1,0 +1,13 @@
+<test name="fuzz_grid_auto_track_layout_unit_remainder__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" box-sizing="content-box" direction="ltr" position="absolute" width="1px" height="10px" grid-template-columns="auto">
+      <div box-sizing="content-box" direction="ltr" grid-column-start="4" grid-column-end="span 3"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="1" height="10">
+      <node x="0" y="0" width="1" height="10"/>
+    </node>
+  </expectations>
+</test>

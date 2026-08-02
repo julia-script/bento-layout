@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=cfcc8a85 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Grid §11.8 divides the 1px of free space over all six auto-max tracks.
+  Blink performs the division in 1/64px LayoutUnits, leaving 31/64px before
+  line 4 and 33/64px in the item's span instead of two exact floating halves.
+  Regenerate with: pnpm gentest fuzz_grid_auto_track_layout_unit_remainder
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: auto tracks preserve Blink's LayoutUnit remainder</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; width: 1px; height: 10px; grid-template-columns: auto;">
+  <div style="grid-column: 4 / span 3;"></div>
+</div>
+
+</body>
+</html>
