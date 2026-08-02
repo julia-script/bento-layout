@@ -1,0 +1,13 @@
+<test name="fuzz_grid_transferred_minimum_preserves_ratio_auto_min__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" direction="ltr" position="absolute" width="0px" height="1px">
+      <div direction="ltr" min-height="0px" aspect-ratio="1"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="0" height="1">
+      <node x="0" y="0" width="1" height="1"/>
+    </node>
+  </expectations>
+</test>

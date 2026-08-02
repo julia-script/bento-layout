@@ -1085,10 +1085,14 @@ export function itemMinimumContribution(
   // than letting an accidental automatic minimum hold it at 10px.
   const rawMinimum = absGet(item.minSize, axis);
   const unresolvedPercentageMinimum = typeof rawMinimum === 'object' ? 0 : null;
+  // Row sizing keeps its existing transferred-minimum shortcut to avoid
+  // feeding an intrinsic row back through the item's ratio. In the inline
+  // axis, however, an `auto` minimum must take the content-based branch below;
+  // the opposite-axis transfer is only a clamp applied afterwards.
   let size =
     absGet(preferredSize, axis) ??
     unresolvedPercentageMinimum ??
-    absGet(transferredMinimumSize, axis) ??
+    (axis === 'vertical' || rawMinimum !== 'auto' ? absGet(transferredMinimumSize, axis) : null) ??
     overflowAutoMinSize(item.overflow);
 
   if (size === null) {
@@ -1120,9 +1124,13 @@ export function itemMinimumContribution(
   const transferredMinimumAxisSize = absGet(transferredMinimumSize, axis);
   const transferredMaximumAxisSize = absGet(transferredMaximumSize, axis);
 
-  // Transferred constraints apply only to an indefinite destination and are
-  // bounded by definite constraints already present in that axis (CSS Sizing 4
-  // §4.4). Chrome keeps a grid item's `width: 1px` contribution at 1px when
+  // In an automatic inline axis, transferred constraints are bounds on its
+  // automatic minimum, not a replacement for that minimum's content-based
+  // size (CSS Sizing 4 §4.3–4.4). In the additional column
+  // pass, Chrome 151 lets a 1px resolved row transfer through a 1:1 item's
+  // automatic inline minimum even when `min-height: 0`; selecting that
+  // transferred zero as the contribution itself collapsed the column to 0.
+  // Chrome also keeps a grid item's `width: 1px` contribution at 1px when
   // `min-height: 97px; aspect-ratio: .5` would otherwise transfer 48.5px; with
   // `width: auto; max-width: 20px`, the same transfer is capped at 20px.
   const transferredMinConstraint =
