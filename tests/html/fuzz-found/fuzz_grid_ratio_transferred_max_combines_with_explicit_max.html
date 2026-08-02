@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=47ade094 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  With normal grid-item alignment, max-height: 3px transfers through the 3:1
+  preferred ratio to a 9px inline maximum. That transferred maximum combines
+  with max-width: 97px instead of being discarded by it.
+  Regenerate with:
+  pnpm gentest fuzz_grid_ratio_transferred_max_combines_with_explicit_max
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: transferred ratio maximum combines with explicit maximum</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid;">
+  <div style="padding: 120px 10px 320px 40px;"></div>
+  <div style="max-width: 97px; max-height: 3px; aspect-ratio: 3;"></div>
+</div>
+
+</body>
+</html>

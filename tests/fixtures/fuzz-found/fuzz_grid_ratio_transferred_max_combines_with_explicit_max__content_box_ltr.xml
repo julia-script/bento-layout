@@ -1,0 +1,15 @@
+<test name="fuzz_grid_ratio_transferred_max_combines_with_explicit_max__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" box-sizing="content-box" direction="ltr" position="absolute">
+      <div box-sizing="content-box" direction="ltr" padding-top="120px" padding-left="40px" padding-bottom="320px" padding-right="10px"/>
+      <div box-sizing="content-box" direction="ltr" max-width="97px" max-height="3px" aspect-ratio="3"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="50" height="443">
+      <node x="0" y="0" width="50" height="440"/>
+      <node x="0" y="440" width="9" height="3"/>
+    </node>
+  </expectations>
+</test>

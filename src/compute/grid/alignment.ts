@@ -176,14 +176,6 @@ export function alignAndPositionItem(
     style.boxSizing,
     paddingBorderSize,
   );
-  const maxSize = transferMaxSizeThroughAspectRatio(
-    resolvedMaxSize,
-    resolvedStyleSize,
-    minSize,
-    aspectRatio,
-    style.boxSizing,
-    paddingBorderSize,
-  );
   const explicitBlockAlignment = alignSelf ?? containerAlignmentStyles.vertical;
   const hasHorizontalAutoMargin = style.margin.left === 'auto' || style.margin.right === 'auto';
   const ratioAutoMinInlineApplies =
@@ -195,18 +187,6 @@ export function alignAndPositionItem(
       (resolvedStyleSize.height !== null || (insetVertical.start !== null && insetVertical.end !== null))) ||
       (position !== 'absolute' &&
         (resolvedStyleSize.height !== null || explicitBlockAlignment?.keyword === 'stretch')));
-  if (ratioAutoMinInlineApplies) {
-    const minContentWidth = measureChildSize(
-      node,
-      { width: null, height: null },
-      gridAreaSize,
-      { width: 'min-content', height: 'max-content' },
-      'content-size',
-      'horizontal',
-    );
-    minSize = { ...minSize, width: Math.max(minSize.width, Math.min(minContentWidth, maxSize.width ?? Infinity)) };
-  }
-
   // css-grid-1 §6.6: with an explicitly stretched block axis, `normal` inline
   // alignment must not become explicit stretch for an aspect-ratio item.
   // Chrome 151 gives a 3:1 item in a 72x120 area a 360px width; explicit
@@ -235,6 +215,36 @@ export function alignAndPositionItem(
         ? ALIGN_START
         : ALIGN_STRETCH_LOCAL),
   };
+  // Blink's implicit grid-item stretch selects fit-content before applying a
+  // preferred aspect ratio, so a transferred maximum still combines with a
+  // definite maximum in the automatic inline axis. Explicit stretch instead
+  // selects stretch-fit first and may distort the ratio (Grid §6.6).
+  const maxSize = transferMaxSizeThroughAspectRatio(
+    resolvedMaxSize,
+    resolvedStyleSize,
+    minSize,
+    aspectRatio,
+    style.boxSizing,
+    paddingBorderSize,
+    {
+      width:
+        justifySelf === null &&
+        containerAlignmentStyles.horizontal === null &&
+        alignmentStyles.horizontal.keyword === 'stretch',
+      height: false,
+    },
+  );
+  if (ratioAutoMinInlineApplies) {
+    const minContentWidth = measureChildSize(
+      node,
+      { width: null, height: null },
+      gridAreaSize,
+      { width: 'min-content', height: 'max-content' },
+      'content-size',
+      'horizontal',
+    );
+    minSize = { ...minSize, width: Math.max(minSize.width, Math.min(minContentWidth, maxSize.width ?? Infinity)) };
+  }
 
   // Note: both horizontal and vertical margins resolve against the WIDTH of the grid area.
   const margin: Rect<Opt> = {

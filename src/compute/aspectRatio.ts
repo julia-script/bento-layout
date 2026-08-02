@@ -143,6 +143,9 @@ export function transferMinSizeThroughAspectRatio(
  * css-sizing-4 §4.4 max-size transfers, floored by definite destination sizes.
  * Chrome keeps `height: 1` in `max-width: 0; aspect-ratio: 1` at 0x1: the
  * transferred zero maximum cannot override the definite destination height.
+ * Callers can opt an automatic destination axis into combining a definite
+ * maximum with the transfer: `max-width: 97; max-height: 3; aspect-ratio: 3`
+ * then has a 9px used inline maximum, not 97px.
  */
 export function transferMaxSizeThroughAspectRatio(
   resolvedMaxSize: Size<Opt>,
@@ -151,12 +154,13 @@ export function transferMaxSizeThroughAspectRatio(
   aspectRatio: number | null,
   boxSizing: BoxSizing,
   paddingBorderSize: Size<number>,
+  combineWithDefiniteMaximum: Size<boolean> = { width: false, height: false },
 ): Size<Opt> {
   const boxSizingAdjustment = boxSizing === 'content-box' ? paddingBorderSize : { width: 0, height: 0 };
   const preferredSize = maybeAddSize(resolvedStyleSize, boxSizingAdjustment);
   const maxSize = maybeAddSize(maybeApplyAspectRatio(resolvedMaxSize, aspectRatio), boxSizingAdjustment);
 
-  return {
+  const result = {
     width:
       resolvedMaxSize.width === null && maxSize.width !== null
         ? Math.max(maxSize.width, preferredSize.width ?? 0, minSize.width)
@@ -166,4 +170,15 @@ export function transferMaxSizeThroughAspectRatio(
         ? Math.max(maxSize.height, preferredSize.height ?? 0, minSize.height)
         : maxSize.height,
   };
+
+  const usedMaxSize = toUsedBorderBoxSize(resolvedMaxSize, boxSizing, paddingBorderSize);
+  const combine = (axis: 'width' | 'height', source: Size<Opt>): void => {
+    if (!combineWithDefiniteMaximum[axis] || resolvedStyleSize[axis] !== null || result[axis] === null) return;
+    const transferred = maybeApplyAspectRatioUsed(source, aspectRatio, boxSizing, paddingBorderSize)[axis];
+    if (transferred === null) return;
+    result[axis] = Math.min(result[axis], Math.max(transferred, preferredSize[axis] ?? 0, minSize[axis]));
+  };
+  combine('width', { width: null, height: usedMaxSize.height });
+  combine('height', { width: usedMaxSize.width, height: null });
+  return result;
 }
