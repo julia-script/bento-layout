@@ -3032,6 +3032,34 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
         ? vClamp(insetRelativeSize.width, minSize.width, maxSize.width)
         : insetModifiedContainingBlockSize(insetRelativeSize.width, { start: left, end: right });
     const shrinkToFitHeight = asMaybeSub(vClamp(containerHeight, minSize.height, maxSize.height), insetReservedHeight);
+    // An automatic abspos inline size is fit-content, not ordinary layout at
+    // the numeric available width (CSS2 §10.3.7). Blink's absolute_utils
+    // resolves min/max inline contributions and applies the fit-content clamp
+    // before final layout. Without that intrinsic pass, a shrinkable empty
+    // flex item with `flex-basis: 40px` made its abspos flex parent 40px wide;
+    // Chrome gives both boxes 0px because their min/max contributions are 0.
+    // A non-shrinkable item still contributes its 40px hypothetical size.
+    if (knownDimensions.width === null) {
+      const contributionKnownDimensions = { ...knownDimensions, width: null };
+      const contributionAvailableSpace = { width: 'min-content' as const, height: shrinkToFitHeight };
+      const minContentWidth = measureChildSize(
+        child,
+        contributionKnownDimensions,
+        constants.nodeInnerSize,
+        contributionAvailableSpace,
+        'inherent-size',
+        'horizontal',
+      );
+      const maxContentWidth = measureChildSize(
+        child,
+        contributionKnownDimensions,
+        constants.nodeInnerSize,
+        { ...contributionAvailableSpace, width: 'max-content' },
+        'inherent-size',
+        'horizontal',
+      );
+      knownDimensions.width = Math.min(maxContentWidth, Math.max(minContentWidth, shrinkToFitWidth));
+    }
     const measuredSize = measureChildSizeBoth(
       child,
       knownDimensions,

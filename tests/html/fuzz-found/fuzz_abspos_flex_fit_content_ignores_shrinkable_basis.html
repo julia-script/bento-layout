@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=b96aa5e5 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS2 §10.3.7 gives an auto-width absolutely positioned box a
+  shrink-to-fit width. Blink resolves that as fit-content from the child's
+  intrinsic inline contributions, so an empty shrinkable 40px flex basis
+  does not force either flex box to be 40px wide.
+  Regenerate with: pnpm gentest fuzz_abspos_flex_fit_content_ignores_shrinkable_basis
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: abspos flex fit-content ignores shrinkable basis</title>
+</head>
+<body>
+
+<div id="test-root">
+  <div style="position: absolute;">
+    <div style="flex-basis: 40px;"></div>
+  </div>
+</div>
+
+</body>
+</html>

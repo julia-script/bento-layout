@@ -1,0 +1,17 @@
+<test name="fuzz_abspos_flex_fit_content_ignores_shrinkable_basis__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div box-sizing="content-box" direction="ltr" position="absolute">
+      <div box-sizing="content-box" direction="ltr" position="absolute">
+        <div box-sizing="content-box" direction="ltr" flex-basis="40px"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="0" height="0">
+      <node x="0" y="0" width="0" height="0">
+        <node x="0" y="0" width="0" height="0"/>
+      </node>
+    </node>
+  </expectations>
+</test>
