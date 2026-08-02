@@ -9,7 +9,6 @@ import {
   rectAdd,
   sizeZero,
   sumAxes,
-  transferConstraintToStretchedAxis,
 } from '../geometry.js';
 import type { Opt } from '../math.js';
 import { mMax, mSub, vClamp, vMax, vSub } from '../math.js';
@@ -41,7 +40,12 @@ import {
   insetModifiedContainingBlockSize,
   resolveAbsoluteAxis,
 } from './alignment.js';
-import { transferMaxSizeThroughAspectRatio, transferMinSizeThroughAspectRatio } from './aspectRatio.js';
+import {
+  toUsedBorderBoxSize,
+  transferMaxSizeThroughAspectRatio,
+  transferMinSizeThroughAspectRatio,
+  transferUsedConstraintToStretchedAxis,
+} from './aspectRatio.js';
 import { computeChildLayout, measureChildSize, measureChildSizeBoth, performChildLayout } from './dispatch.js';
 
 const LINE_TRUE: Line<boolean> = { start: true, end: true };
@@ -476,11 +480,22 @@ function generateItemList(node: LayoutNode, nodeInnerSize: Size<Opt>): BlockItem
     const isScroll = isScrollContainer(overflow.x) || isScrollContainer(overflow.y);
     const isInSameBfc = isBlock && position !== 'absolute' && !isScroll;
 
-    const childSpecifiedSize = maybeAddSize(maybeResolveSize(childStyle.size, nodeInnerSize), boxSizingAdjustment);
+    const resolvedStyleSize = maybeResolveSize(childStyle.size, nodeInnerSize);
+    const childSpecifiedSize = toUsedBorderBoxSize(resolvedStyleSize, childStyle.boxSizing, pbSum);
+    const childMinSize = toUsedBorderBoxSize(
+      maybeResolveSize(childStyle.minSize, nodeInnerSize),
+      childStyle.boxSizing,
+      pbSum,
+    );
+    const childMaxSize = toUsedBorderBoxSize(
+      maybeResolveSize(childStyle.maxSize, nodeInnerSize),
+      childStyle.boxSizing,
+      pbSum,
+    );
     const childRatioSize = applyAspectRatioClamped(
       childSpecifiedSize,
-      maybeAddSize(maybeResolveSize(childStyle.minSize, nodeInnerSize), boxSizingAdjustment),
-      maybeAddSize(maybeResolveSize(childStyle.maxSize, nodeInnerSize), boxSizingAdjustment),
+      childMinSize,
+      childMaxSize,
       aspectRatio,
       boxSizingAdjustment,
     );
@@ -497,19 +512,23 @@ function generateItemList(node: LayoutNode, nodeInnerSize: Size<Opt>): BlockItem
       boxSizing: childStyle.boxSizing,
       // A block child in normal flow stretches its inline axis only, so that is
       // the one axis a constraint may transfer into. See
-      // transferConstraintToStretchedAxis.
-      minSize: transferConstraintToStretchedAxis(
-        maybeAddSize(maybeResolveSize(childStyle.minSize, nodeInnerSize), boxSizingAdjustment),
-        maybeResolveSize(childStyle.size, nodeInnerSize),
+      // transferUsedConstraintToStretchedAxis.
+      minSize: transferUsedConstraintToStretchedAxis(
+        childMinSize,
+        resolvedStyleSize,
         aspectRatio,
         BLOCK_STRETCHES_INLINE_AXIS,
+        childStyle.boxSizing,
+        pbSum,
         Math.max,
       ),
-      maxSize: transferConstraintToStretchedAxis(
-        maybeAddSize(maybeResolveSize(childStyle.maxSize, nodeInnerSize), boxSizingAdjustment),
-        maybeResolveSize(childStyle.size, nodeInnerSize),
+      maxSize: transferUsedConstraintToStretchedAxis(
+        childMaxSize,
+        resolvedStyleSize,
         aspectRatio,
         BLOCK_STRETCHES_INLINE_AXIS,
+        childStyle.boxSizing,
+        pbSum,
         Math.min,
       ),
       overflow: { ...overflow },
@@ -563,6 +582,12 @@ function determineContentBasedContainerWidth(items: BlockItem[], availableWidth:
         LINE_TRUE,
       );
 
+    // Intrinsic measurement returns the child's unconstrained content width;
+    // clamp that contribution by its used min/max too. This matters when a
+    // block-axis constraint transferred through aspect-ratio: Chrome 151 caps
+    // a text child's contribution at 2px for `max-height: 1px; aspect-ratio:
+    // 2`, rather than keeping the text's 10px min-content width.
+    width = vClamp(width, item.minSize.width, item.maxSize.width);
     width = Math.max(width, item.paddingBorderSum.width) + itemXMarginSum;
     maxChildWidth = Math.max(maxChildWidth, width);
   }

@@ -11,6 +11,23 @@ function maybeAddSize(size: Size<Opt>, adjustment: Size<number>): Size<Opt> {
 }
 
 /**
+ * Resolve a definite CSS size to the used outer (border-box) size that enters
+ * aspect-ratio calculations. css-sizing-3 §3.3 floors a border-box size at
+ * its padding/border, while a content-box size grows by those insets.
+ */
+export function toUsedBorderBoxSize(
+  size: Size<Opt>,
+  boxSizing: BoxSizing,
+  paddingBorderSize: Size<number>,
+): Size<Opt> {
+  if (boxSizing === 'content-box') return maybeAddSize(size, paddingBorderSize);
+  return {
+    width: size.width === null ? null : Math.max(size.width, paddingBorderSize.width),
+    height: size.height === null ? null : Math.max(size.height, paddingBorderSize.height),
+  };
+}
+
+/**
  * Like `maybeApplyAspectRatio`, but for used border-box sizes. Under
  * `box-sizing: content-box`, css-sizing-4 §4.1 makes the ratio relate the
  * content box: strip the source axis's padding/border before converting and
@@ -37,6 +54,48 @@ export function maybeApplyAspectRatioUsed(
     };
   }
   return { ...size };
+}
+
+/**
+ * Transfer a min/max constraint through `aspect-ratio` onto the stretched
+ * axis of a normal-flow block child (css-sizing-4 §4.4).
+ *
+ * Inputs are used border-box sizes. The ratio therefore strips/adds insets for
+ * content-box sizing and floors a derived border-box axis at its own insets.
+ * Chrome 151 gives 481.5px, not 60px, for a border-box child with
+ * `max-height: 40px; aspect-ratio: 1.5` and 321px of vertical padding: the
+ * used 321px maximum transfers through the ratio.
+ */
+export function transferUsedConstraintToStretchedAxis(
+  constraint: Size<Opt>,
+  styleSize: Size<Opt>,
+  aspectRatio: number | null,
+  stretched: Size<boolean>,
+  boxSizing: BoxSizing,
+  paddingBorderSize: Size<number>,
+  combine?: (own: number, transferred: number) => number,
+): Size<Opt> {
+  if (aspectRatio === null) return { ...constraint };
+
+  const transfer = (source: Size<Opt>, destination: 'width' | 'height'): number | null => {
+    const derived = maybeApplyAspectRatioUsed(source, aspectRatio, boxSizing, paddingBorderSize)[destination];
+    if (derived === null || boxSizing === 'content-box') return derived;
+    return Math.max(derived, paddingBorderSize[destination]);
+  };
+
+  const resolve = (axis: 'width' | 'height'): number | null => {
+    if (!stretched[axis] || styleSize[axis] !== null) return constraint[axis];
+    const otherAxis = axis === 'width' ? 'height' : 'width';
+    const other = constraint[otherAxis];
+    if (other === null) return constraint[axis];
+    const source = axis === 'width' ? { width: null, height: other } : { width: other, height: null };
+    const transferred = transfer(source, axis);
+    if (transferred === null) return constraint[axis];
+    const own = constraint[axis];
+    return own === null || combine === undefined ? (own ?? transferred) : combine(own, transferred);
+  };
+
+  return { width: resolve('width'), height: resolve('height') };
 }
 
 /**

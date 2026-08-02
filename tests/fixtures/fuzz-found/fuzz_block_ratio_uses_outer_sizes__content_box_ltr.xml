@@ -1,0 +1,17 @@
+<test name="fuzz_block_ratio_uses_outer_sizes__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" box-sizing="content-box" direction="ltr" position="absolute">
+      <div box-sizing="content-box" direction="ltr" max-height="40px" aspect-ratio="1.5" padding-top="320px" padding-left="17px" padding-bottom="1px" padding-right="0px"/>
+      <text box-sizing="content-box" direction="ltr" max-height="1px" aspect-ratio="2" padding-top="20px">
+        H
+      </text>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="17" height="342">
+      <node x="0" y="0" width="17" height="321"/>
+      <node x="0" y="321" width="2" height="21"/>
+    </node>
+  </expectations>
+</test>
