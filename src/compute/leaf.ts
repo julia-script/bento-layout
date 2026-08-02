@@ -38,15 +38,28 @@ export function computeLeafLayout(inputs: LayoutInput, style: Style, measureFunc
     aspectRatio = style.aspectRatio;
     const rawMinSize = maybeAdd(maybeResolveSize(style.minSize, parentSize), boxSizingAdjustment);
     const rawMaxSize = maybeAdd(maybeResolveSize(style.maxSize, parentSize), boxSizingAdjustment);
+    // CSS Sizing 3 §3.3 floors a border-box's content box at zero, so a
+    // definite border-box size cannot be smaller than its padding and borders.
+    // Blink 7922's ResolveBlockLengthInternal applies that floor before
+    // InlineSizeFromAspectRatio. Chrome therefore transfers 72px, not the raw
+    // `height: 3px`, for a box with 72px of block-axis border and ratio 3,
+    // producing a 216px automatic width.
+    const floorRatioSource = (size: Size<Opt>): Size<Opt> =>
+      style.boxSizing === 'border-box'
+        ? {
+            width: size.width === null ? null : Math.max(size.width, pbSum.width),
+            height: size.height === null ? null : Math.max(size.height, pbSum.height),
+          }
+        : size;
     // The ratio derives the automatic axis from the *used* value of the
     // specified one, so each specified axis is clamped by its own min/max first:
     // `width: 200; aspect-ratio: 2; max-width: 3` is 3x2 in Chrome (the height
     // follows the clamped 3), not 3x100. Applying the ratio to the raw style
     // size instead leaves the derived axis following the pre-clamp value.
     const styleSize = applyAspectRatioClamped(
-      maybeAdd(rawStyleSize, boxSizingAdjustment),
-      rawMinSize,
-      rawMaxSize,
+      floorRatioSource(maybeAdd(rawStyleSize, boxSizingAdjustment)),
+      floorRatioSource(rawMinSize),
+      floorRatioSource(rawMaxSize),
       aspectRatio,
       boxSizingAdjustment,
     );

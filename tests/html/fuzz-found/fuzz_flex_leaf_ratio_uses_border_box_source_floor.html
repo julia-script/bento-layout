@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: batch seed=20260731, finding=4e85aa42 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  A measured border-box leaf whose specified height is smaller than its block
+  borders first floors that height to the border sum, then transfers the used
+  height through its aspect ratio. Chrome therefore sizes this box to 216x72,
+  while transferring the raw 3px height produced only the 17px inline-border
+  floor.
+  Regenerate with: pnpm gentest fuzz_flex_leaf_ratio_uses_border_box_source_floor
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: measured flex leaf transfers its used border-box source size</title>
+</head>
+<body>
+
+<div id="test-root" style="flex-direction: column;">
+  <div style="width: auto; height: 3px; aspect-ratio: 3; border-style: solid; border-width: 17px 7px 55px 10px;"></div>
+</div>
+
+</body>
+</html>
