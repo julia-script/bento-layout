@@ -113,6 +113,10 @@ interface FlexItem {
   // --- Per-pass (must be reset on reuse) ---
   resolvedMinimumMainSize: number;
   minContentContribution: number;
+  /** A definite cross minimum transferred through the item's aspect ratio. */
+  transferredMinMainSize: Opt;
+  /** A definite cross maximum transferred through the item's aspect ratio. */
+  transferredMaxMainSize: Opt;
 
   flexBasis: number;
   /** `flex-basis` was specified (not `auto`), so it replaces the style main size. */
@@ -801,6 +805,8 @@ function generateAnonymousFlexItems(node: LayoutNode, constants: AlgoConstants):
 
       resolvedMinimumMainSize: 0,
       minContentContribution: 0,
+      transferredMinMainSize: null,
+      transferredMaxMainSize: null,
       hypotheticalInnerSize: sizeZero(),
       hypotheticalOuterSize: sizeZero(),
       crossIsArDerived: false,
@@ -953,6 +959,8 @@ function determineFlexBaseSize(
       childPbSum,
       Math.max,
     );
+    child.transferredMinMainSize =
+      child.aspectRatio !== null && main(rawStyleSize, dir) === null ? main(transferredMinSize, dir) : null;
     // A max-size below the box's own padding+border cannot be honoured — a
     // border box is never smaller than its insets — so the axis settles at the
     // floor, and it is that *used* size the ratio transfers, not the
@@ -974,6 +982,8 @@ function determineFlexBaseSize(
       childPbSum,
       Math.min,
     );
+    child.transferredMaxMainSize =
+      child.aspectRatio !== null && main(rawStyleSize, dir) === null ? main(transferredMaxSize, dir) : null;
     const childMinCross = mAdd(cross(transferredMinSize, dir), crossAxisMarginSum);
     const childMaxCross = mAdd(cross(transferredMaxSize, dir), crossAxisMarginSum);
 
@@ -1301,8 +1311,8 @@ function determineFlexBaseSize(
       child.minContentContribution =
         vClamp(
           Math.max(minContentMainSize, child.resolvedMinimumMainSize, specifiedMainBorderBox ?? 0),
-          main(child.minSize, dir),
-          main(child.maxSize, dir),
+          mMax(main(child.minSize, dir), child.transferredMinMainSize) ?? child.transferredMinMainSize,
+          mMin(main(child.maxSize, dir), child.transferredMaxMainSize) ?? child.transferredMaxMainSize,
         ) + rectMainAxisSum(child.margin, dir);
     }
   }
@@ -1450,8 +1460,18 @@ function determineContainerMainSize(
           const minMainSize = Math.max(
             mMax(styleMin, flexBasisMin) ?? flexBasisMin ?? item.resolvedMinimumMainSize,
             item.resolvedMinimumMainSize,
+            item.transferredMinMainSize ?? 0,
           );
-          const maxMainSize = mMin(styleMax, flexBasisMax) ?? flexBasisMax ?? Infinity;
+          // CSS Sizing 4 §4.4 transfers definite cross-axis constraints
+          // through an aspect ratio to every indefinite size in the
+          // destination axis. Blink applies those effective bounds inside
+          // ComputeMinAndMaxContentContribution, before flex's contribution
+          // arithmetic. A row item with `max-height: 10px; aspect-ratio: 2`
+          // therefore contributes at most 20px even when its descendants have
+          // 297px of inline padding.
+          const specifiedMaxMainSize = mMin(styleMax, flexBasisMax) ?? flexBasisMax;
+          const maxMainSize =
+            mMin(item.transferredMaxMainSize, specifiedMaxMainSize) ?? specifiedMaxMainSize ?? Infinity;
 
           let contentContribution: number;
           if (stylePreferred !== null && (maxMainSize <= minMainSize || maxMainSize <= stylePreferred)) {
