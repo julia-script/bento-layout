@@ -421,12 +421,35 @@ function computePreliminary(node: LayoutNode, inputs: LayoutInput, ratioMainAuto
 
   // 9.3. Main Size Determination
 
+  const knownInnerMainSize = main(constants.nodeInnerSize, constants.dir);
+
   // 5. Collect flex items into flex lines.
-  let flexLines = collectFlexLines(constants, availableSpace, flexItems);
+  //
+  // An auto-height column does not wrap against the block space left by its
+  // parent. Blink's FlexLayoutAlgorithm::MainAxisContentExtent instead uses
+  // the column's max-height, or infinity when it has no maximum, as the line
+  // breaking extent. This is the column form of §9.2's indefinite available
+  // main space: two empty items with a 40px row gap stay on one line and give
+  // the auto-height container a 40px intrinsic height, even when its margins
+  // leave 0px in the parent. A max-height below 40px still makes them wrap.
+  const lineBreakingAvailableSpace =
+    constants.isColumn && constants.isWrap && knownInnerMainSize === null
+      ? withMain(
+          availableSpace,
+          constants.dir,
+          main(constants.maxSize, constants.dir) === null
+            ? 'max-content'
+            : Math.max(
+                (main(constants.maxSize, constants.dir) ?? 0) -
+                  rectMainAxisSum(constants.contentBoxInset, constants.dir),
+                0,
+              ),
+        )
+      : availableSpace;
+  let flexLines = collectFlexLines(constants, lineBreakingAvailableSpace, flexItems);
 
   // If container size is undefined, determine the container's main size
   // and then re-resolve gaps based on newly determined size
-  const knownInnerMainSize = main(constants.nodeInnerSize, constants.dir);
   if (knownInnerMainSize !== null) {
     const mainContentBoxInset = rectMainAxisSum(constants.contentBoxInset, constants.dir);
     let outerMainSize = knownInnerMainSize + mainContentBoxInset;

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: batch seed=20260731, finding=183ee3f5 (mode=mixed), minimized
+  chrome: Chrome/151.0.7922.47
+  An auto-height wrapping column uses its max-height (or infinity) for line
+  breaking, rather than the block space left by its parent's overflowing margins.
+  Regenerate with: pnpm gentest fuzz_flex_auto_column_wrap_uses_max_height
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: auto column wrapping uses its own maximum</title>
+</head>
+<body>
+
+<div id="test-root" style="width: 320px; height: 97px;">
+  <div style="flex-direction: column; flex-wrap: wrap; row-gap: 40px; margin: 200px 10px 20px 200px; align-self: end;">
+    <div></div>
+    <div></div>
+  </div>
+</div>
+
+</body>
+</html>
