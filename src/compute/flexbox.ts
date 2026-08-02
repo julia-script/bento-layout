@@ -1690,7 +1690,19 @@ function determineContainerMainSize(
 
             // Known dimensions for child sizing
             const childKnownDimensions: Size<Opt> = withMain(item.size, dir, null);
+            // Flex §9.4 derives an item's hypothetical cross size from its
+            // used main size; a future stretch cross size must not feed back
+            // into the intrinsic main contribution. Blink's
+            // WillChildCrossSizeBeContainerCrossSize requires a definite,
+            // single-line container cross size. The numeric page height is
+            // merely available space when this auto-height row's own inner
+            // height is still null, and a ratio-derived height is provisional.
+            // Columns have a definite inline cross axis by construction.
+            const canUseStretchedCrossForContribution =
+              !constants.isRow ||
+              (!constants.isWrap && !constants.crossIsRatioDerived && crossAxisParentSize !== null);
             if (
+              canUseStretchedCrossForContribution &&
               item.alignSelf.keyword === 'stretch' &&
               !item.alignSelf.safe &&
               !rectCrossStart(item.marginIsAuto, constants.dir) &&
