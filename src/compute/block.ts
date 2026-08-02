@@ -41,6 +41,7 @@ import {
   resolveAbsoluteAxis,
 } from './alignment.js';
 import {
+  maybeApplyAspectRatioUsed,
   toUsedBorderBoxSize,
   transferMaxSizeThroughAspectRatio,
   transferMinSizeThroughAspectRatio,
@@ -958,7 +959,7 @@ function performAbsoluteLayoutOnAbsoluteChildren(
     const resolvedMaxSize = maybeResolveSize(childStyle.maxSize, areaSize);
     const styleSize = maybeAddSize(maybeApplyAspectRatio(resolvedStyleSize, aspectRatio), boxSizingAdjustment);
     const minSizeRaw = maybeAddSize(resolvedMinSize, boxSizingAdjustment);
-    const minSize = transferMinSizeThroughAspectRatio(
+    let minSize = transferMinSizeThroughAspectRatio(
       {
         width: Math.max(minSizeRaw.width ?? paddingBorderSum.width, paddingBorderSum.width),
         height: Math.max(minSizeRaw.height ?? paddingBorderSum.height, paddingBorderSum.height),
@@ -978,6 +979,23 @@ function performAbsoluteLayoutOnAbsoluteChildren(
       childStyle.boxSizing,
       paddingBorderSum,
     );
+    const ratioAutoMinInlineApplies =
+      aspectRatio !== null &&
+      childStyle.minSize.width === 'auto' &&
+      childStyle.overflow.x === 'visible' &&
+      (childStyle.overflow.y === 'visible' || childStyle.overflow.y === 'clip') &&
+      (resolvedStyleSize.height !== null || (top !== null && bottom !== null));
+    if (ratioAutoMinInlineApplies) {
+      const minContentWidth = measureChildSize(
+        item.node,
+        { width: null, height: null },
+        areaSize,
+        { width: 'min-content', height: 'max-content' },
+        'content-size',
+        'horizontal',
+      );
+      minSize = { ...minSize, width: Math.max(minSize.width, Math.min(minContentWidth, maxSize.width ?? Infinity)) };
+    }
     let knownDimensions = sizeMaybeClamp(styleSize, minSize, maxSize);
 
     if (knownDimensions.width === null && left !== null && right !== null) {
@@ -990,6 +1008,18 @@ function performAbsoluteLayoutOnAbsoluteChildren(
       const newHeightRaw = vSub(vSub(areaHeight, margin.top), margin.bottom) - top - bottom;
       knownDimensions.height = Math.max(newHeightRaw, 0);
       knownDimensions = sizeMaybeClamp(maybeApplyAspectRatio(knownDimensions, aspectRatio), minSize, maxSize);
+    }
+    if (ratioAutoMinInlineApplies && resolvedStyleSize.height === null && knownDimensions.width !== null) {
+      knownDimensions = sizeMaybeClamp(
+        maybeApplyAspectRatioUsed(
+          { width: knownDimensions.width, height: null },
+          aspectRatio,
+          childStyle.boxSizing,
+          paddingBorderSum,
+        ),
+        minSize,
+        maxSize,
+      );
     }
 
     const availableSpace: Size<AvailableSpace> = {

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=dcdfc530 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Sizing 4 §4.3 gives an abspos ratio-dependent inline axis a min-content
+  automatic minimum when its block size resolves and inline overflow remains
+  visible. An explicit min-width or non-visible overflow disables it, and
+  max-width caps it.
+  Regenerate with: pnpm gentest fuzz_abspos_ratio_inline_auto_min
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: abspos ratio inline automatic minimum</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex; width: 0; height: 17px;">
+  <div style="position: absolute; width: 20px; height: 50%; aspect-ratio: 2;">HHHHH</div>
+  <div style="position: absolute; width: 20px; height: 50%; max-width: 25px; aspect-ratio: 2;">HHHHH</div>
+  <div style="position: absolute; width: 20px; height: 50%; min-width: 0; aspect-ratio: 2;">HHHHH</div>
+  <div style="position: absolute; width: 20px; height: 50%; aspect-ratio: 2; overflow: hidden;">HHHHH</div>
+</div>
+
+</body>
+</html>

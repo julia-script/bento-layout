@@ -1,0 +1,27 @@
+<test name="fuzz_abspos_ratio_inline_auto_min__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="flex" direction="rtl" position="absolute" width="0px" height="17px">
+      <text direction="rtl" position="absolute" width="20px" height="50%" aspect-ratio="2">
+        HHHHH
+      </text>
+      <text direction="rtl" position="absolute" width="20px" height="50%" max-width="25px" aspect-ratio="2">
+        HHHHH
+      </text>
+      <text direction="rtl" position="absolute" width="20px" height="50%" min-width="0px" aspect-ratio="2">
+        HHHHH
+      </text>
+      <text direction="rtl" position="absolute" overflow-x="hidden" overflow-y="hidden" scrollbar-width="0" width="20px" height="50%" aspect-ratio="2">
+        HHHHH
+      </text>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="0" height="17">
+      <node x="-50" y="0" width="50" height="9"/>
+      <node x="-25" y="0" width="25" height="9"/>
+      <node x="-20" y="0" width="20" height="9"/>
+      <node x="-20" y="0" width="20" height="9" scroll_width="30" scroll_height="1"/>
+    </node>
+  </expectations>
+</test>

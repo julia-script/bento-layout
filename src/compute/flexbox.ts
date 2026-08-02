@@ -59,7 +59,11 @@ import {
   resolveAbsoluteAxis,
   resolveSelfAlignmentSafety,
 } from './alignment.js';
-import { transferMaxSizeThroughAspectRatio, transferMinSizeThroughAspectRatio } from './aspectRatio.js';
+import {
+  maybeApplyAspectRatioUsed,
+  transferMaxSizeThroughAspectRatio,
+  transferMinSizeThroughAspectRatio,
+} from './aspectRatio.js';
 import { measureChildSize, measureChildSizeBoth, performChildLayout } from './dispatch.js';
 
 /** The intermediate results of a flexbox calculation for a single item */
@@ -2773,13 +2777,19 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
     const top = maybeResolve(childStyle.inset.top, insetRelativeSize.height);
     const bottom = maybeResolve(childStyle.inset.bottom, insetRelativeSize.height);
 
+    // The child's own align-self controls whether opposing cross-axis insets
+    // resolve an automatic block size (an abspos child is not a flex item).
+    const crossStretches = (childStyle.alignSelf ?? { keyword: 'stretch' }).keyword === 'stretch';
+    const fillHeightFromInsets = constants.isRow ? crossStretches : true;
+    const fillWidthFromInsets = constants.isRow ? true : crossStretches;
+
     // Compute known dimensions from min/max/inherent size styles
     const resolvedStyleSize = maybeResolveSize(childStyle.size, insetRelativeSize);
     const resolvedMinSize = maybeResolveSize(childStyle.minSize, insetRelativeSize);
     const resolvedMaxSize = maybeResolveSize(childStyle.maxSize, insetRelativeSize);
     const styleSize = maybeAddSize(maybeApplyAspectRatio(resolvedStyleSize, aspectRatio), boxSizingAdjustment);
     const minSizeRaw = maybeAddSize(resolvedMinSize, boxSizingAdjustment);
-    const minSize = transferMinSizeThroughAspectRatio(
+    let minSize = transferMinSizeThroughAspectRatio(
       {
         width: Math.max(minSizeRaw.width ?? paddingBorderSum.width, paddingBorderSum.width),
         height: Math.max(minSizeRaw.height ?? paddingBorderSum.height, paddingBorderSum.height),
@@ -2799,6 +2809,27 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
       childStyle.boxSizing,
       paddingBorderSum,
     );
+    const ratioAutoMinInlineApplies =
+      aspectRatio !== null &&
+      childStyle.minSize.width === 'auto' &&
+      overflow.x === 'visible' &&
+      (overflow.y === 'visible' || overflow.y === 'clip') &&
+      (resolvedStyleSize.height !== null || (top !== null && bottom !== null && fillHeightFromInsets));
+    if (ratioAutoMinInlineApplies) {
+      // css-sizing-4 §4.3: an abspos box whose ratio can use a resolved block
+      // size has a min-content automatic inline minimum, capped by max-width.
+      // Blink applies this even when width itself is specified: 20px around
+      // five 10px glyphs becomes 50px while overflow-inline is visible.
+      const minContentWidth = measureChildSize(
+        child,
+        { width: null, height: null },
+        insetRelativeSize,
+        { width: 'min-content', height: 'max-content' },
+        'content-size',
+        'horizontal',
+      );
+      minSize = { ...minSize, width: Math.max(minSize.width, Math.min(minContentWidth, maxSize.width ?? Infinity)) };
+    }
     let knownDimensions = sizeMaybeClamp(styleSize, minSize, maxSize);
 
     // Opposing insets only *stretch* the box in the axis alignment governs when
@@ -2825,10 +2856,6 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
     // stretching between its insets. Chrome, `align-items: center` on the
     // container with `top: 10; bottom: 10` on the child, is still y=10 h=80 —
     // reading the resolved `alignSelf` here collapsed it to y=50 h=0.
-    const crossStretches = (childStyle.alignSelf ?? { keyword: 'stretch' }).keyword === 'stretch';
-    const fillHeightFromInsets = constants.isRow ? crossStretches : true;
-    const fillWidthFromInsets = constants.isRow ? true : crossStretches;
-
     // Fill in width from left/right and reapply aspect ratio if:
     //   - Width is not already known  - Item has both left and right inset properties set
     if (knownDimensions.width === null && left !== null && right !== null && fillWidthFromInsets) {
@@ -2843,6 +2870,18 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
       const newHeightRaw = vSub(vSub(insetRelativeSize.height, margin.top), margin.bottom) - top - bottom;
       knownDimensions.height = Math.max(newHeightRaw, 0);
       knownDimensions = sizeMaybeClamp(maybeApplyAspectRatio(knownDimensions, aspectRatio), minSize, maxSize);
+    }
+    if (ratioAutoMinInlineApplies && resolvedStyleSize.height === null && knownDimensions.width !== null) {
+      knownDimensions = sizeMaybeClamp(
+        maybeApplyAspectRatioUsed(
+          { width: knownDimensions.width, height: null },
+          aspectRatio,
+          childStyle.boxSizing,
+          paddingBorderSum,
+        ),
+        minSize,
+        maxSize,
+      );
     }
 
     // CSS2 §10.3.7 measures shrink-to-fit width in the inset-modified

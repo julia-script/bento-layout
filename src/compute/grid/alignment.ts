@@ -143,7 +143,7 @@ export function alignAndPositionItem(
   // 98x97 border box at ratio .5 gets a 196px transferred minimum height,
   // while ratio 2 gets a 194px transferred minimum width. For content-box the
   // same padding/border minima transfer back to themselves.
-  const minSize = transferMinSizeThroughAspectRatio(
+  let minSize = transferMinSizeThroughAspectRatio(
     minSizeBase,
     resolvedMinSize,
     resolvedStyleSize,
@@ -160,6 +160,24 @@ export function alignAndPositionItem(
     style.boxSizing,
     paddingBorderSize,
   );
+  const ratioAutoMinInlineApplies =
+    position === 'absolute' &&
+    aspectRatio !== null &&
+    style.minSize.width === 'auto' &&
+    overflow.x === 'visible' &&
+    (overflow.y === 'visible' || overflow.y === 'clip') &&
+    (resolvedStyleSize.height !== null || (insetVertical.start !== null && insetVertical.end !== null));
+  if (ratioAutoMinInlineApplies) {
+    const minContentWidth = measureChildSize(
+      node,
+      { width: null, height: null },
+      gridAreaSize,
+      { width: 'min-content', height: 'max-content' },
+      'content-size',
+      'horizontal',
+    );
+    minSize = { ...minSize, width: Math.max(minSize.width, Math.min(minContentWidth, maxSize.width ?? Infinity)) };
+  }
 
   // Resolve default alignment styles if set on neither the parent nor the node itself
   const alignmentStyles = {
@@ -263,6 +281,18 @@ export function alignAndPositionItem(
     width: mClamp(size.width, minSize.width, maxSize.width),
     height: mClamp(size.height, minSize.height, maxSize.height),
   };
+  if (ratioAutoMinInlineApplies && resolvedStyleSize.height === null && size.width !== null) {
+    size = maybeApplyAspectRatioUsed(
+      { width: size.width, height: null },
+      aspectRatio,
+      style.boxSizing,
+      paddingBorderSize,
+    );
+    size = {
+      width: mClamp(size.width, minSize.width, maxSize.width),
+      height: mClamp(size.height, minSize.height, maxSize.height),
+    };
+  }
 
   const availableSpace = {
     width:
