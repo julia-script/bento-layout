@@ -171,6 +171,12 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
       paddingBorderSize.height,
     ),
   };
+  // Preserve whether the block size was definite before either track axis
+  // could feed back into it. The additional column pass needs this provenance:
+  // a row resolved from a style/caller constraint remains a valid ratio source,
+  // while a row that only became numeric through intrinsic track sizing does
+  // not. Testing the later numeric grid-area height cannot distinguish them.
+  const blockSizeWasDefiniteBeforeTrackSizing = outerNodeSize.height !== null;
   const innerNodeSize: Size<Opt> = {
     width: outerNodeSize.width !== null ? outerNodeSize.width - horizontalSum(contentBoxInset) : null,
     height: outerNodeSize.height !== null ? outerNodeSize.height - verticalSum(contentBoxInset) : null,
@@ -520,9 +526,15 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
           item.aspectRatio !== null &&
           item.crossesIntrinsicRow &&
           (typeof item.size.width === 'object' || typeof item.maxSize.width === 'object');
-        const contributionGridAreaSize = cyclicPercentageInlineConstraint
-          ? { ...gridAreaSize, height: null }
-          : gridAreaSize;
+        // Blink's kForColumns measure space leaves the cyclic inline area
+        // indefinite but still passes Rows.CalculateAvailableSize() as its
+        // block containing size. Sizing 4 §4.2 can therefore transfer an
+        // independently definite row through the ratio. Erase the row only
+        // when it was itself produced by the intrinsic feedback cycle.
+        const contributionGridAreaSize =
+          cyclicPercentageInlineConstraint && !blockSizeWasDefiniteBeforeTrackSizing
+            ? { ...gridAreaSize, height: null }
+            : gridAreaSize;
         const availableSpaceForItem: Size<Opt> = { width: null, height: contributionGridAreaSize.height };
         const newMinContentContribution = itemMinContentContribution(
           item,
