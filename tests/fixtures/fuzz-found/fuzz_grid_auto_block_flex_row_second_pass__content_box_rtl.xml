@@ -1,0 +1,17 @@
+<test name="fuzz_grid_auto_block_flex_row_second_pass__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" box-sizing="content-box" direction="rtl" position="absolute" grid-template-rows="minmax(auto,0.5fr) auto">
+      <div box-sizing="content-box" direction="rtl" overflow-y="hidden" scrollbar-width="0">
+        <div box-sizing="content-box" direction="rtl" border-left="120px" border-bottom="55px" border-right="1px"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="121" height="28">
+      <node x="0" y="0" width="121" height="14" scroll_width="0" scroll_height="41">
+        <node x="0" y="0" width="121" height="55"/>
+      </node>
+    </node>
+  </expectations>
+</test>

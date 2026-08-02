@@ -38,6 +38,7 @@ import {
   itemMinContentContribution,
   ozResolveAbsolutelyPositionedGridTracks,
   placementLineIntoOriginZero,
+  trackIsFlexible,
 } from './types.js';
 
 /** CSS Grid's available-grid-space rule clamps definite min/max constraints. */
@@ -582,7 +583,17 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     // rather than the percentage's actual share.
     let rerunRowSizing: boolean;
     const parentHeightIndefinite = typeof availableSpace.height !== 'number';
-    rerunRowSizing = parentHeightIndefinite && hasPercentageRow;
+    // An auto block size is intrinsic on the first row pass, but becomes a
+    // definite used size before items are laid out. Flexible rows depend on
+    // that transition: Grid §11.7 switches from its indefinite flex fraction
+    // to `find-fr` against the resolved available space. Blink 7922's
+    // NeedsAdditionalLayoutPass tests the row collection's dependency on the
+    // available size for exactly this case. With `minmax(auto, .5fr)` around a
+    // 55px max-content item whose automatic minimum is zero, Chrome's first
+    // pass makes the grid 28px tall and its final pass makes the row 14px;
+    // retaining the intrinsic-pass track instead stretched the item to 28px.
+    const flexibleRowsNeedDefinitePass = typeof availableGridSpace.height !== 'number' && rows.some(trackIsFlexible);
+    rerunRowSizing = (parentHeightIndefinite && hasPercentageRow) || flexibleRowsNeedDefinitePass;
 
     if (!rerunRowSizing && !intrinsicColumnContributionChanged) {
       // Blink 7922 does not start a second row dependency pass merely because
