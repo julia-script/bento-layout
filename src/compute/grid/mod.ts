@@ -3,7 +3,7 @@
 
 import { unreachable } from '../../assert.js';
 import type { Rect, Size } from '../../geometry.js';
-import { applyAspectRatioClamped, rectAdd, sumAxes } from '../../geometry.js';
+import { applyAspectRatioClamped, rectAdd, sizeZero, sumAxes } from '../../geometry.js';
 import type { Opt } from '../../math.js';
 import { mClamp, mSub, vClamp } from '../../math.js';
 import type { AvailableSpace, Direction } from '../../style.js';
@@ -19,9 +19,10 @@ import {
 } from '../../style.js';
 import type { LayoutInput, LayoutNode, LayoutOutput } from '../../tree.js';
 import { fromOuterSize, fromSizesAndBaselines, internals, layoutWithOrder } from '../../tree.js';
+import { computeContentSizeContribution } from '../alignment.js';
 import { maybeApplyAspectRatioUsed } from '../aspectRatio.js';
 import { performChildLayout } from '../dispatch.js';
-import { alignAndPositionItem, alignTracks } from './alignment.js';
+import { alignAndPositionItem, alignInlineBaselineGroups, alignTracks } from './alignment.js';
 import type { AutoRepeatStrategy } from './explicit.js';
 import { computeExplicitGridSizeInAxis, initializeGridTracks } from './explicit.js';
 import { computeGridSizeEstimate } from './implicit.js';
@@ -809,6 +810,7 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
 
   // 9. Size, Align, and Position Grid Items
   let itemContentSizeContribution = { width: 0, height: 0 };
+  const positionedItems: Array<{ item: GridItem; gridArea: Rect<number> }> = [];
 
   // Sort items back into source order
   items.sort((a, b) => a.sourceOrder - b.sourceOrder);
@@ -824,7 +826,7 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
       left: (columns[item.columnIndexes.start + 1] ?? unreachable()).offset,
       right: (columns[item.columnIndexes.end] ?? unreachable()).offset,
     };
-    const [contribution, yPosition, height] = alignAndPositionItem(
+    const [, yPosition, height] = alignAndPositionItem(
       item.node,
       index,
       gridArea,
@@ -834,7 +836,19 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     );
     item.yPosition = yPosition;
     item.height = height;
+    positionedItems.push({ item, gridArea });
+  }
 
+  alignInlineBaselineGroups(positionedItems, direction);
+  itemContentSizeContribution = sizeZero();
+  for (const { item, gridArea } of positionedItems) {
+    const layout = internals(item.node).unroundedLayout;
+    const contribution = computeContentSizeContribution(
+      { x: layout.location.x - gridArea.left, y: layout.location.y - gridArea.top },
+      layout.size,
+      layout.contentSize,
+      item.overflow,
+    );
     itemContentSizeContribution = {
       width: Math.max(itemContentSizeContribution.width, contribution.width),
       height: Math.max(itemContentSizeContribution.height, contribution.height),

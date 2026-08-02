@@ -23,7 +23,7 @@ import {
   transferMinSizeThroughAspectRatio,
 } from '../aspectRatio.js';
 import { measureChildSize, measureChildSizeBoth, performChildLayout } from '../dispatch.js';
-import type { GridTrack } from './types.js';
+import type { GridItem, GridTrack } from './types.js';
 import { resolveGridInsets } from './types.js';
 
 const ALIGN_START: AlignItems = { keyword: 'start', safe: false };
@@ -522,6 +522,63 @@ export function alignAndPositionItem(
   );
 
   return [contribution, y, finalSize.height];
+}
+
+/** Finalize first-baseline alignment in the grid's inline axis. */
+export function alignInlineBaselineGroups(
+  placedItems: Array<{ item: GridItem; gridArea: Rect<number> }>,
+  direction: Direction,
+): void {
+  const groups = new Map<number, Array<{ item: GridItem; gridArea: Rect<number> }>>();
+  for (const placed of placedItems) {
+    const { item } = placed;
+    if (
+      item.justifySelf.keyword !== 'baseline' ||
+      item.justifySelf.safe ||
+      item.margin.left === 'auto' ||
+      item.margin.right === 'auto'
+    ) {
+      continue;
+    }
+
+    // A spanning item participates in first-baseline alignment in its
+    // startmost shared alignment context (css-align-3 baseline grouping).
+    // Placements are stored in physical origin-zero order, so logical start is
+    // the range's end under RTL.
+    const groupKey = direction === 'rtl' ? item.column.end : item.column.start;
+    const group = groups.get(groupKey);
+    if (group === undefined) groups.set(groupKey, [placed]);
+    else group.push(placed);
+  }
+
+  for (const group of groups.values()) {
+    // Horizontal boxes synthesize their inline-axis baseline from a border
+    // edge. Blink 7922's ComputeGridItemBaselines stores the largest baseline
+    // for the shared column and ComputeBaselineOffset applies each item's
+    // delta. In Chrome 151 RTL, widths 20 and 60 in a 200px area therefore
+    // both start at x=140; a 50px right margin on the 20px item moves both to
+    // x=130. LTR is the mirror rule using the largest left margin.
+    const groupX = group.reduce(
+      (acc, { item, gridArea }) => {
+        const layout = internals(item.node).unroundedLayout;
+        const candidate =
+          direction === 'rtl'
+            ? gridArea.right - layout.size.width - layout.margin.right
+            : gridArea.left + layout.margin.left;
+        return direction === 'rtl' ? Math.min(acc, candidate) : Math.max(acc, candidate);
+      },
+      direction === 'rtl' ? Infinity : -Infinity,
+    );
+
+    for (const { item, gridArea } of group) {
+      const layout = internals(item.node).unroundedLayout;
+      // Relative positioning happens after self-alignment. Preserve the
+      // already-resolved relative offset while replacing only the baseline
+      // group's alignment offset.
+      const relativeOffset = layout.location.x - (gridArea.left + layout.margin.left);
+      layout.location.x = groupX + relativeOffset;
+    }
+  }
 }
 
 /** Align and size a grid item along a single axis. Returns [start, resolvedMargin]. */
