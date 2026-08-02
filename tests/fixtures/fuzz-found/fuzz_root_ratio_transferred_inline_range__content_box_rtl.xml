@@ -1,0 +1,13 @@
+<test name="fuzz_root_ratio_transferred_inline_range__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="flex" box-sizing="content-box" direction="rtl" position="absolute" min-width="0px" min-height="200px" max-height="200px" aspect-ratio="2">
+      <div box-sizing="content-box" direction="rtl" width="1000px"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="400" height="200">
+      <node x="0" y="0" width="400" height="200"/>
+    </node>
+  </expectations>
+</test>

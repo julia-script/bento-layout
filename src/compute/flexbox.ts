@@ -340,7 +340,7 @@ function computePreliminary(node: LayoutNode, inputs: LayoutInput, ratioMainAuto
   const knownDimensions = { ...inputKnownDimensions };
 
   // Define some general constants we will need for the remainder of the algorithm.
-  const constants = computeConstants(nd.style, knownDimensions, parentSize);
+  const constants = computeConstants(nd.style, knownDimensions, parentSize, inputs.knownDimensionsAreHard);
 
   // 9. Flex Layout Algorithm
 
@@ -629,7 +629,12 @@ function determineIntrinsicColumnCrossSize(
 }
 
 /** Compute constants that can be reused during the flexbox algorithm. */
-function computeConstants(style: Style, knownDimensions: Size<Opt>, parentSize: Size<Opt>): AlgoConstants {
+function computeConstants(
+  style: Style,
+  knownDimensions: Size<Opt>,
+  parentSize: Size<Opt>,
+  knownDimensionsAreHard?: Size<boolean>,
+): AlgoConstants {
   const dir = style.flexDirection;
   const isRow = dirIsRow(dir);
   const isColumn = dirIsColumn(dir);
@@ -705,6 +710,7 @@ function computeConstants(style: Style, knownDimensions: Size<Opt>, parentSize: 
       cross(nodeOuterSize, dir) !== null &&
       cross(maybeResolveSize(style.size, parentSize), dir) === null &&
       cross(style.minSize, dir) === 'auto' &&
+      !cross(knownDimensionsAreHard ?? { width: false, height: false }, dir) &&
       !isScrollContainer(isRow ? style.overflow.y : style.overflow.x),
     crossIsIntrinsicColumn: false,
     containerSize: sizeZero(),

@@ -1,10 +1,11 @@
 // Public API: plain-object node trees + computeLayout.
 
 import { measureChildSize, performChildLayout } from './compute/dispatch.js';
+import { maybeApplyAspectRatioUsed, toUsedBorderBoxSize } from './compute/aspectRatio.js';
 import type { Size } from './geometry.js';
 import { applyAspectRatioClamped } from './geometry.js';
 import type { Opt } from './math.js';
-import { mMax, round } from './math.js';
+import { mMax, round, vClamp } from './math.js';
 import type { AvailableSpace, Style } from './style.js';
 import { asIntoOption, maybeResolveSize, overflowAutoMinSize, resolveRectOrZero } from './style.js';
 import type { Layout, Line } from './tree.js';
@@ -237,15 +238,73 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
   // and derives the height, never the reverse — a tall narrow child keeps its
   // content height rather than widening the root.
   const rootSpecified = maybeResolveSize(rootInternal.style.size, parentSize);
+  const rootStyle = rootInternal.style;
+  const rootPadding = resolveRectOrZero(rootStyle.padding, parentSize.width);
+  const rootBorder = resolveRectOrZero(rootStyle.border, parentSize.width);
+  const rootPaddingBorderSize = {
+    width: rootPadding.left + rootPadding.right + rootBorder.left + rootBorder.right,
+    height: rootPadding.top + rootPadding.bottom + rootBorder.top + rootBorder.bottom,
+  };
+  let transferredInlineMin: Opt = null;
+  let transferredInlineMax: Opt = null;
+  if (rootStyle.aspectRatio !== null && rootStyle.size.width === 'auto') {
+    const usedMin = toUsedBorderBoxSize(
+      maybeResolveSize(rootStyle.minSize, parentSize),
+      rootStyle.boxSizing,
+      rootPaddingBorderSize,
+    );
+    const usedMax = toUsedBorderBoxSize(
+      maybeResolveSize(rootStyle.maxSize, parentSize),
+      rootStyle.boxSizing,
+      rootPaddingBorderSize,
+    );
+    const sourceMin = usedMin.height;
+    // A minimum wins over a smaller maximum before either transfers.
+    const sourceMax =
+      usedMax.height !== null && sourceMin !== null ? Math.max(usedMax.height, sourceMin) : usedMax.height;
+    if (sourceMin !== null) {
+      transferredInlineMin = maybeApplyAspectRatioUsed(
+        { width: null, height: sourceMin },
+        rootStyle.aspectRatio,
+        rootStyle.boxSizing,
+        rootPaddingBorderSize,
+      ).width;
+    }
+    if (sourceMax !== null) {
+      transferredInlineMax = maybeApplyAspectRatioUsed(
+        { width: null, height: sourceMax },
+        rootStyle.aspectRatio,
+        rootStyle.boxSizing,
+        rootPaddingBorderSize,
+      ).width;
+    }
+  }
   if (
     rootInternal.style.aspectRatio !== null &&
     rootSpecified.width === null &&
     rootSpecified.height === null &&
     knownDimensions.width === null &&
     knownDimensions.height === null &&
-    output.size.width > 0
+    (output.size.width > 0 || transferredInlineMin !== null || transferredInlineMax !== null)
   ) {
-    const withResolvedWidth = { width: output.size.width, height: null };
+    // css-sizing-4 §4.4 transfers block min/max constraints onto an automatic
+    // inline preferred size. Blink applies that transferred range first, then
+    // the explicit inline min/max range. Thus `min-height: 200px;
+    // min-width: 0; aspect-ratio: 2` around empty content resolves to 400px,
+    // while max-width can still cap that transferred minimum.
+    const explicitInlineMin = toUsedBorderBoxSize(
+      maybeResolveSize(rootStyle.minSize, parentSize),
+      rootStyle.boxSizing,
+      rootPaddingBorderSize,
+    ).width;
+    const explicitInlineMax = toUsedBorderBoxSize(
+      maybeResolveSize(rootStyle.maxSize, parentSize),
+      rootStyle.boxSizing,
+      rootPaddingBorderSize,
+    ).width;
+    const transferredWidth = vClamp(output.size.width, transferredInlineMin, transferredInlineMax);
+    const resolvedWidth = vClamp(transferredWidth, explicitInlineMin, explicitInlineMax);
+    const withResolvedWidth = { width: resolvedWidth, height: null };
     const rerun = performChildLayout(
       root,
       withResolvedWidth,
@@ -253,6 +312,7 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
       availableSpace,
       'inherent-size',
       rootMarginsCollapse,
+      { width: transferredInlineMax !== null, height: false },
     );
     // Content that overflows the ratio-derived height still wins (the ratio
     // supplies an *automatic* size, not a cap), so never shrink below the

@@ -52,6 +52,9 @@ export interface LayoutInput {
   sizingMode: SizingMode;
   axis: RequestedAxis;
   knownDimensions: Size<Opt>;
+  /** Axes whose known value is a hard transferred maximum, not an automatic
+   * ratio-derived preferred size that content may enlarge. */
+  knownDimensionsAreHard?: Size<boolean>;
   parentSize: Size<Opt>;
   availableSpace: Size<AvailableSpace>;
   /** CSS Block margin collapsing: whether this node's start/end vertical margins
@@ -749,6 +752,8 @@ const CACHE_SIZE = 9;
 interface MeasureEntry {
   kw: Opt;
   kh: Opt;
+  hw: boolean;
+  hh: boolean;
   aw: AvailableSpace;
   ah: AvailableSpace;
   pw: Opt;
@@ -789,6 +794,8 @@ export class Cache {
     const ah = input.availableSpace.height;
     const pw = input.parentSize.width;
     const axis = input.axis;
+    const hw = input.knownDimensionsAreHard?.width ?? false;
+    const hh = input.knownDimensionsAreHard?.height ?? false;
 
     if (input.runMode === 'perform-layout') {
       const entry = this.finalLayoutEntry;
@@ -796,6 +803,8 @@ export class Cache {
         entry !== undefined &&
         entry.kw === kw &&
         entry.kh === kh &&
+        entry.hw === hw &&
+        entry.hh === hh &&
         entry.aw === aw &&
         entry.ah === ah &&
         entry.pw === pw &&
@@ -818,6 +827,8 @@ export class Cache {
           entry !== undefined &&
           entry.kw === kw &&
           entry.kh === kh &&
+          entry.hw === hw &&
+          entry.hh === hh &&
           entry.aw === aw &&
           entry.ah === ah &&
           entry.pw === pw &&
@@ -839,15 +850,19 @@ export class Cache {
     const ah = input.availableSpace.height;
     const pw = input.parentSize.width;
     const axis = input.axis;
+    const hw = input.knownDimensionsAreHard?.width ?? false;
+    const hh = input.knownDimensionsAreHard?.height ?? false;
 
     if (input.runMode === 'perform-layout') {
-      this.finalLayoutEntry = { kw, kh, aw, ah, pw, ph: input.parentSize.height, axis, out: layoutOutput };
+      this.finalLayoutEntry = { kw, kh, hw, hh, aw, ah, pw, ph: input.parentSize.height, axis, out: layoutOutput };
     } else if (input.runMode === 'compute-size') {
       // biome-ignore lint/suspicious/noAssignInExpressions: lazy-allocate the cache row on first measure.
       const entries = this.measureEntries ?? (this.measureEntries = new Array(CACHE_SIZE).fill(undefined));
       entries[Cache.computeCacheSlot(kw, kh, aw, ah)] = {
         kw,
         kh,
+        hw,
+        hh,
         aw,
         ah,
         pw,
