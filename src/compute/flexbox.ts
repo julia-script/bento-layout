@@ -1424,18 +1424,24 @@ function determineFlexBaseSize(
 
     if (needsMinContentContribution) {
       // css-flexbox-1 §9.9.1: the min-content main size of a multi-line
-      // container is the largest *min-content contribution*. This is the
-      // item's intrinsic contribution before flex-basis/grow/shrink caps;
-      // Blink records ComputeMinAndMaxContentContribution(...).min_size here
-      // and uses it as a floor for both intrinsic container sizes.
+      // container is the largest *min-content contribution*. Blink records
+      // ComputeMinAndMaxContentContribution(...).min_size before the flex
+      // grow/shrink contribution arithmetic. Crucially, that helper resolves a
+      // definite LogicalWidth directly instead of comparing it with overflowing
+      // intrinsic content: a wrapping item with `width: 0` and a 10px glyph
+      // contributes 0px in Chrome 151, while `width: auto; flex-basis: 0`
+      // contributes the glyph's 10px. Preserve that provenance here rather
+      // than reconstructing the contribution as max(preferred, intrinsic).
       const specifiedMain = main(rawStyleSize, dir);
       const specifiedMainBorderBox =
         specifiedMain !== null && childStyle.boxSizing === 'content-box'
           ? specifiedMain + main(paddingBorderAxesSums, dir)
           : specifiedMain;
+      const intrinsicMinContribution =
+        specifiedMainBorderBox ?? Math.max(minContentMainSize, child.resolvedMinimumMainSize);
       child.minContentContribution =
         vClamp(
-          Math.max(minContentMainSize, child.resolvedMinimumMainSize, specifiedMainBorderBox ?? 0),
+          intrinsicMinContribution,
           mMax(main(child.minSize, dir), child.transferredMinMainSize) ?? child.transferredMinMainSize,
           mMin(main(child.maxSize, dir), child.transferredMaxMainSize) ?? child.transferredMaxMainSize,
         ) + rectMainAxisSum(child.margin, dir);

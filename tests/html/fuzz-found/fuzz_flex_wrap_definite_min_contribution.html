@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260802 batch, finding=e3f30514 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Blink resolves a flex item's definite inline size before a wrapping row takes
+  the largest min-content contribution. Overflowing text therefore does not
+  enlarge an item whose preferred width is explicitly zero.
+  Regenerate with: pnpm gentest fuzz_flex_wrap_definite_min_contribution
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: wrapping flex uses processed minimum contribution</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex; flex-wrap: wrap;">
+  <div style="width: 0;">H</div>
+</div>
+
+</body>
+</html>
