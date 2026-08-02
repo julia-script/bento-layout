@@ -1,0 +1,13 @@
+<test name="fuzz_block_relative_percentage_inset__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" box-sizing="content-box" direction="rtl" position="absolute" width="3px" height="17px">
+      <div box-sizing="content-box" direction="rtl" bottom="75%" right="40%"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="3" height="17">
+      <node x="-1" y="-13" width="3" height="0"/>
+    </node>
+  </expectations>
+</test>

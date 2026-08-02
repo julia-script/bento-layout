@@ -749,12 +749,15 @@ function performFinalLayoutOnInFlowChildren(
         bottom: resolveMarginSet(bottomMarginSet),
       };
 
-      // Resolve item inset (heights resolve against a zero-height basis)
+      // Relative percentage insets resolve against the containing block's
+      // corresponding size. Keep them unresolved when its height is indefinite
+      // (CSS2 §9.4.3; Blink ComputeRelativeOffset). Chrome moves an item with
+      // `bottom: 75%` up 12.75px in a 17px-tall block, not zero pixels.
       const inset: Rect<Opt> = {
         left: maybeResolve(item.inset.left, containerInnerWidth),
         right: maybeResolve(item.inset.right, containerInnerWidth),
-        top: maybeResolve(item.inset.top, 0),
-        bottom: maybeResolve(item.inset.bottom, 0),
+        top: maybeResolve(item.inset.top, parentSize.height),
+        bottom: maybeResolve(item.inset.bottom, parentSize.height),
       };
       const insetOffset: Point<number> = {
         x: direction === 'rtl' ? (negate(inset.right) ?? inset.left ?? 0) : (inset.left ?? negate(inset.right) ?? 0),
