@@ -2120,6 +2120,14 @@ function measureFitContentCrossSize(
 
   if (typeof availableCross !== 'number') return measure(availableCross);
 
+  // Flexbox §9.4 step 7 treats only an automatic *width* as fit-content.
+  // A row item's cross axis is its block axis, where auto height remains
+  // content-sized even when the flex container supplies finite available
+  // space. Blink therefore gives an auto-height grid with a 200px intrinsic
+  // row plus a fixed 320px row a 520px hypothetical cross size, not the 321px
+  // min-content size clamped around the parent's 200px height.
+  if (dirIsRow(dir)) return measure('max-content');
+
   const minContent = measure('min-content');
   const maxContent = measure('max-content');
   const stretchFit = Math.max(availableCross - rectCrossAxisSum(margin, dir), 0);
@@ -2721,7 +2729,7 @@ function calculateFlexItem(
   const knownDimensions = { width: item.targetSize.width, height: item.targetSize.height };
 
   // Preserve an auto block-axis cross size for a non-stretched, ratio-less
-  // nested container. Blink supplies the line cross size as available space
+  // nested flex container. Blink supplies the line cross size as available space
   // and fixes only the flexed main size; it fixes the cross size only for
   // stretch.
   // Passing the hypothetical cross size as known lets a nested container feed
@@ -2736,6 +2744,7 @@ function calculateFlexItem(
   // that inline size here recomputes it as zero in content-size mode.
   if (
     dirIsRow(direction) &&
+    itemStyle.display === 'flex' &&
     resolvedCrossStyle === null &&
     !crossIsFixedByMinMax &&
     itemStyle.aspectRatio === null &&

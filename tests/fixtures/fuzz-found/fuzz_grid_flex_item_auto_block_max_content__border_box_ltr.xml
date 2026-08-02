@@ -1,0 +1,17 @@
+<test name="fuzz_grid_flex_item_auto_block_max_content__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="ltr" position="absolute" height="200px">
+      <div display="grid" direction="ltr" align-self="flex-start" grid-template-rows="minmax(1px,auto) 320px minmax(min-content,max-content)">
+        <div direction="ltr" border-left="55px" border-bottom="200px" border-right="320px"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="375" height="200">
+      <node x="0" y="0" width="375" height="520">
+        <node x="0" y="0" width="375" height="200"/>
+      </node>
+    </node>
+  </expectations>
+</test>

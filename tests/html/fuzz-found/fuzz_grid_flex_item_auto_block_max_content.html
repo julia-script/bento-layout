@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: batch seed=20260731, finding=095cf8c0 (mode=flex)
+  chrome: Chrome/151.0.7922.47
+  A non-stretched grid flex item with an automatic block size remains
+  max-content-sized; finite cross-axis space does not clamp its intrinsic rows
+  (css-flexbox-1 §9.4; css-grid-1 §11.5–11.6).
+  Regenerate with: pnpm gentest fuzz_grid_flex_item_auto_block_max_content
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: automatic grid flex-item block size uses max-content rows</title>
+</head>
+<body>
+
+<div id="test-root" style="height: 200px;">
+  <div style="display: grid; grid-template-rows: minmax(1px, auto) 320px minmax(min-content, max-content); align-self: flex-start;">
+    <div style="border-left: 55px solid; border-right: 320px solid; border-bottom: 200px solid;"></div>
+  </div>
+</div>
+
+</body>
+</html>
