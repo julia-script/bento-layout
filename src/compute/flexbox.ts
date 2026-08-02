@@ -960,6 +960,43 @@ function determineFlexBaseSize(
     // contribution. See determineContainerMainSize.
     child.flexBasisIsExplicit = flexBasis !== null;
 
+    const childAvailableSpace = withCross(
+      withMain<AvailableSpace>(
+        { width: 'max-content', height: 'max-content' },
+        dir,
+        main(availableSpace, dir) === 'min-content' ? 'min-content' : 'max-content',
+      ),
+      dir,
+      crossAxisAvailableSpace,
+    );
+
+    const mainSize = main(child.size, dir);
+    const crossKnown = cross(childKnownDimensions, dir);
+    const crossMin = cross(child.minSize, dir);
+    // When the automatic cross size is still indefinite but the ratio needs
+    // it to resolve a column item's block-axis basis, §9.2 step 3E says to use
+    // the item's fit-content cross size. Blink's InlineSizeFunc obtains that
+    // border-box size before BlockSizeFromAspectRatio applies the ratio box.
+    // Chrome: a non-stretched empty item with 1px of inline border and
+    // `aspect-ratio: 1` has a 1px basis under border-box, but 0px under
+    // content-box. Safe stretch and safe baseline are invalid declarations in
+    // CSS and therefore retain the default stretch behavior in Chrome.
+    const usesFitContentCross =
+      constants.isColumn &&
+      child.alignSelf.keyword !== 'stretch' &&
+      !(child.alignSelf.keyword === 'baseline' && child.alignSelf.safe);
+    const fitContentCross =
+      mainSize === null && child.aspectRatio !== null && crossKnown === null && crossMin === null && usesFitContentCross
+        ? measureChildSize(
+            child.node,
+            childKnownDimensions,
+            childInsetParentSize,
+            childAvailableSpace,
+            'inherent-size',
+            crossAxis(dir),
+          )
+        : null;
+
     child.flexBasis = ((): number => {
       // A. If the item has a definite used flex basis, that's the flex base size.
       // B. aspect-ratio + content basis + definite cross size: transfer the cross
@@ -970,8 +1007,6 @@ function determineFlexBaseSize(
       //    item whose sole style is `aspect-ratio` measures its content (0) instead
       //    of transferring, e.g. `aspect-ratio: .5` in a 20x40 row is 20 wide in
       //    Chrome and was 0 here.
-      const mainSize = main(child.size, dir);
-      const crossKnown = cross(childKnownDimensions, dir);
       // A cross *min*-size is just as definite a source for the transfer as a
       // cross size, and it is the only one left when the item has no cross size
       // and nothing stretches it. The measure below cannot recover it: it runs
@@ -981,8 +1016,7 @@ function determineFlexBaseSize(
       // item whose only styles are `min-height: 200; aspect-ratio: 2`: the
       // container is 400 wide, not 0. `min-width` needs no such case — the main
       // axis floors the basis through `resolvedMinimumMainSize` below.
-      const crossMin = cross(child.minSize, dir);
-      const transferSource = crossKnown ?? crossMin;
+      const transferSource = crossKnown ?? crossMin ?? fitContentCross;
       const transferredMain =
         mainSize === null && child.aspectRatio !== null && transferSource !== null
           ? transferThroughRatio(transferSource, child, dir, 'cross-to-main')
@@ -993,16 +1027,6 @@ function determineFlexBaseSize(
 
       // C/E. Otherwise, size the item into the available space using its used flex basis
       //      in place of its main size, treating a value of content as max-content.
-      const childAvailableSpace = withCross(
-        withMain<AvailableSpace>(
-          { width: 'max-content', height: 'max-content' },
-          dir,
-          main(availableSpace, dir) === 'min-content' ? 'min-content' : 'max-content',
-        ),
-        dir,
-        crossAxisAvailableSpace,
-      );
-
       return measureChildSize(
         child.node,
         childKnownDimensions,
@@ -1094,7 +1118,7 @@ function determineFlexBaseSize(
         // is wrong here: `child.size` already carries the ratio-derived value,
         // so a 0 content size erases the transferred suggestion entirely and
         // the item shrinks past its ratio.
-        const definiteCross = cross(childKnownDimensions, dir) ?? cross(child.minSize, dir);
+        const definiteCross = crossKnown ?? crossMin ?? fitContentCross;
         const transferredMain =
           child.aspectRatio !== null && definiteCross !== null
             ? transferThroughRatio(definiteCross, child, dir, 'cross-to-main')
