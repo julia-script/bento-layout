@@ -861,7 +861,7 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
   for (let index = 0; index < items.length; index++) {
     const item = items[index] ?? unreachable();
     const gridArea = gridAreaForItem(item);
-    const [, yPosition, height] = alignAndPositionItem(
+    const [, yPosition, height, , , exportBaseline] = alignAndPositionItem(
       item.node,
       index,
       gridArea,
@@ -871,6 +871,7 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     );
     item.yPosition = yPosition;
     item.height = height;
+    item.exportBaseline = exportBaseline;
     positionedItems.push({ item, gridArea });
   }
 
@@ -1003,7 +1004,13 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
   const firstRowItems = items.filter((item) => item.rowIndexes.start === firstRow);
   const baselineItem =
     firstRowItems.find(itemParticipatesInBlockBaselineAlignment) ?? firstRowItems[0] ?? unreachable();
-  const gridContainerBaseline = baselineItem.yPosition + (baselineItem.baseline ?? baselineItem.height);
+  // Grid §10.3 exports the selected item's final fragment baseline after
+  // alignment. Keep that fragment-local baseline distinct from `baseline`,
+  // which is the margin-inclusive ascent used by track baseline-sharing shims.
+  // Blink's GridBaselineAccumulator likewise adds the final fragment's block
+  // offset to FirstBaselineOrSynthesize. Reusing the sharing ascent double-
+  // counts a top margin and synthesizes from the border edge for normal text.
+  const gridContainerBaseline = baselineItem.yPosition + baselineItem.exportBaseline;
 
   return fromSizesAndBaselines(containerBorderBox, itemContentSizeContribution, {
     x: null,

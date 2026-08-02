@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: generalized from 20260802 viewport campaign finding=b7498ee7 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Grid §10.3 exports a grid item's final fragment baseline after alignment.
+  That fragment-local baseline is distinct from the margin-inclusive ascent
+  used internally for baseline-sharing shims.
+  Regenerate with: pnpm gentest fuzz_grid_exports_final_item_baseline
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: grid exports final item fragment baseline</title>
+</head>
+<body>
+
+<div
+  id="test-root"
+  data-test-page-viewport-width="1280"
+  data-test-page-viewport-height="800"
+  style="align-items: baseline;"
+>
+  <div style="display: grid;">
+    <div style="margin-top: 3px;">H</div>
+  </div>
+  <div></div>
+</div>
+
+</body>
+</html>

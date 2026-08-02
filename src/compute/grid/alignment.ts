@@ -128,7 +128,7 @@ export function alignAndPositionItem(
   containerAlignmentStyles: { horizontal: AlignItems | null; vertical: AlignItems | null },
   baselineShim: number,
   direction: Direction,
-): [Size<number>, number, number, number, boolean] {
+): [Size<number>, number, number, number, boolean, number] {
   const gridAreaSize = { width: gridArea.right - gridArea.left, height: gridArea.bottom - gridArea.top };
 
   const nd = internals(node);
@@ -524,8 +524,9 @@ export function alignAndPositionItem(
   );
 
   const baselineIsSynthesized = layoutOutput.firstBaselines.y === null;
-  const baseline = (layoutOutput.firstBaselines.y ?? finalSize.height) + (margin.top ?? 0);
-  return [contribution, y, finalSize.height, baseline, baselineIsSynthesized];
+  const firstBaseline = layoutOutput.firstBaselines.y ?? finalSize.height;
+  const baseline = firstBaseline + (margin.top ?? 0);
+  return [contribution, y, finalSize.height, baseline, baselineIsSynthesized, firstBaseline];
 }
 
 /** Finalize first-baseline alignment in the grid's inline axis. */

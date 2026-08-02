@@ -528,6 +528,8 @@ export interface GridItem {
   baseline: Opt;
   baselineIsSynthesized: boolean;
   baselineShim: number;
+  /** Final fragment-local first baseline, without margins or grid-area offset. */
+  exportBaseline: number;
 
   /** Placement as GridTrackVec indices */
   rowIndexes: LineOf<number>;
@@ -576,6 +578,7 @@ export function newGridItem(
     baseline: null,
     baselineIsSynthesized: false,
     baselineShim: 0,
+    exportBaseline: 0,
     rowIndexes: { start: 0, end: 0 },
     columnIndexes: { start: 0, end: 0 },
     crossesFlexibleRow: false,
