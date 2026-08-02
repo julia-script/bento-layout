@@ -28,6 +28,7 @@ import { computeGridSizeEstimate } from './implicit.js';
 import { placeGridItems } from './placement.js';
 import {
   determineIfItemCrossesFlexibleOrIntrinsicTracks,
+  resolveFinalItemBaselines,
   resolveItemTrackIndexes,
   trackSizingAlgorithm,
 } from './trackSizing.js';
@@ -727,6 +728,12 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     alignContent,
     false,
   );
+
+  // Blink 7922 computes provisional baselines while sizing intrinsic tracks,
+  // then repeats the calculation with both axes' final grid-area geometry.
+  // This is observable for synthesized baselines whose percentage block size
+  // resolves only after row sizing (css-grid-1 §10.3).
+  if (hasBaselineAlignedItem) resolveFinalItemBaselines(columns, rows, items);
 
   // Grid placement is flow-relative while the offset properties are physical
   // (css-grid-1 §9.1), so absolute placement resolves against a flow-ordered

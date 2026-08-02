@@ -399,6 +399,11 @@ function resolveItemBaselines(
   items: GridItem[],
   innerNodeSize: Size<Opt>,
 ): void {
+  for (const item of items) {
+    item.baseline = null;
+    item.baselineShim = 0;
+  }
+
   // Sort items by other-axis (row) start position so we can iterate rows
   const otherAxis = absOther(axis);
   items.sort((a, b) => itemPlacement(a, otherAxis).start - itemPlacement(b, otherAxis).start);
@@ -415,11 +420,12 @@ function resolveItemBaselines(
     // those items do not enter the baseline-sharing group. Chrome 151 leaves
     // an empty `margin-bottom:auto` item at y=0 beside a 10px baseline item;
     // including it here synthesized a zero baseline and added a 10px shim.
-    const baselineItems = rowItems.filter(itemParticipatesInBlockBaselineAlignment);
-    if (baselineItems.length <= 1) continue;
+    const baselineCandidates = rowItems.filter(itemParticipatesInBlockBaselineAlignment);
+    if (baselineCandidates.length <= 1) continue;
 
     // Compute baselines only for members of the baseline-sharing group.
-    for (const item of baselineItems) {
+    const baselineItems: GridItem[] = [];
+    for (const item of baselineCandidates) {
       // css-align-3 baseline-export synthesizes a grid item's baseline from
       // its border edge, so first lay it out against its actual containing
       // block. Chrome 151: 20px + 30% block padding in an 80px grid area gives
@@ -441,8 +447,12 @@ function resolveItemBaselines(
 
       const baseline = measuredSizeAndBaselines.firstBaselines.y;
       const height = measuredSizeAndBaselines.size.height;
+      if (itemFallsBackFromBlockBaselineAlignment(item, baseline === null)) continue;
       item.baseline = (baseline ?? height) + resolveOrZero(item.margin.top, gridAreaSize.width);
+      baselineItems.push(item);
     }
+
+    if (baselineItems.length <= 1) continue;
 
     // Compute max baseline and shims
     const rowMaxBaseline = baselineItems.reduce((acc, item) => Math.max(acc, item.baseline ?? 0), 0);
@@ -450,6 +460,68 @@ function resolveItemBaselines(
       item.baselineShim = rowMaxBaseline - (item.baseline ?? 0);
     }
   }
+}
+
+/**
+ * Recompute block-axis baselines once both track axes have their final geometry.
+ *
+ * Blink's track-sizing baseline pass measures against only one definite axis;
+ * its final pass uses the full grid area. Percentage block sizes in fixed rows
+ * therefore acquire a different synthesized baseline in the final pass.
+ */
+export function resolveFinalItemBaselines(columns: GridTrack[], rows: GridTrack[], items: GridItem[]): void {
+  for (const item of items) {
+    item.baseline = null;
+    item.baselineShim = 0;
+  }
+
+  items.sort((a, b) => a.row.start - b.row.start);
+  let index = 0;
+  while (index < items.length) {
+    const currentRow = (items[index] ?? unreachable()).row.start;
+    let end = index;
+    while (end < items.length && (items[end] ?? unreachable()).row.start === currentRow) end++;
+
+    const baselineCandidates = items.slice(index, end).filter(itemParticipatesInBlockBaselineAlignment);
+    index = end;
+    if (baselineCandidates.length <= 1) continue;
+
+    const baselineItems: GridItem[] = [];
+    for (const item of baselineCandidates) {
+      const gridAreaSize = {
+        width:
+          (columns[item.columnIndexes.end] ?? unreachable()).offset -
+          (columns[item.columnIndexes.start + 1] ?? unreachable()).offset,
+        height:
+          (rows[item.rowIndexes.end] ?? unreachable()).offset -
+          (rows[item.rowIndexes.start + 1] ?? unreachable()).offset,
+      };
+      const measuredSizeAndBaselines = performChildLayout(
+        item.node,
+        { width: null, height: null },
+        gridAreaSize,
+        gridAreaSize,
+        'inherent-size',
+      );
+      const baseline = measuredSizeAndBaselines.firstBaselines.y;
+      if (itemFallsBackFromBlockBaselineAlignment(item, baseline === null)) continue;
+
+      item.baseline =
+        (baseline ?? measuredSizeAndBaselines.size.height) + resolveOrZero(item.margin.top, gridAreaSize.width);
+      baselineItems.push(item);
+    }
+
+    if (baselineItems.length <= 1) continue;
+    const rowMaxBaseline = baselineItems.reduce((acc, item) => Math.max(acc, item.baseline ?? 0), 0);
+    for (const item of baselineItems) item.baselineShim = rowMaxBaseline - (item.baseline ?? 0);
+  }
+}
+
+/** CSS Grid §10.3: synthesized percentage-dependent items cannot baseline-align in intrinsic rows. */
+function itemFallsBackFromBlockBaselineAlignment(item: GridItem, hasSynthesizedBaseline: boolean): boolean {
+  if (!hasSynthesizedBaseline || (!item.crossesIntrinsicRow && !item.crossesFlexibleRow)) return false;
+  const blockSizes = [item.size.height, item.minSize.height, item.maxSize.height];
+  return blockSizes.some((size) => typeof size === 'object');
 }
 
 /** 11.5 Resolve Intrinsic Track Sizes */

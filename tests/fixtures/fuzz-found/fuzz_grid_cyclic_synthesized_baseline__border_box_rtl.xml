@@ -1,0 +1,27 @@
+<test name="fuzz_grid_cyclic_synthesized_baseline__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="rtl" position="absolute" width="34px" height="0px">
+      <div display="grid" direction="rtl" align-items="baseline" width="17px" height="0px" min-height="0px" grid-template-columns="max-content fit-content(1%)">
+        <div direction="rtl" height="320px"/>
+        <div direction="rtl" width="1px" height="100%"/>
+      </div>
+      <div display="grid" direction="rtl" align-items="baseline" width="17px" height="0px" min-height="0px" grid-template-rows="320px" grid-template-columns="max-content fit-content(1%)">
+        <div direction="rtl" height="320px"/>
+        <div direction="rtl" width="1px" height="50%"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="34" height="0">
+      <node x="17" y="0" width="17" height="0">
+        <node x="17" y="0" width="0" height="320"/>
+        <node x="16" y="0" width="1" height="320"/>
+      </node>
+      <node x="0" y="0" width="17" height="0">
+        <node x="17" y="0" width="0" height="320"/>
+        <node x="16" y="160" width="1" height="160"/>
+      </node>
+    </node>
+  </expectations>
+</test>
