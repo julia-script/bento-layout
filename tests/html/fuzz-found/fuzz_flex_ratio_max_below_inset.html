@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: batch seed=20260731, finding=a55126c5 (mode=mixed), minimized
+  chrome: Chrome/151.0.7922.47
+  A max-size below the border-box floor transfers that used floor through
+  aspect-ratio instead of transferring the unsatisfiable raw maximum.
+  Regenerate with: pnpm gentest fuzz_flex_ratio_max_below_inset
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: ratio max-size below inset floor</title>
+</head>
+<body>
+
+<div id="test-root">
+  <div style="max-width: 0; aspect-ratio: 1; border-right-width: 1px;"></div>
+</div>
+
+</body>
+</html>

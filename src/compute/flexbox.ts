@@ -1725,7 +1725,8 @@ function determineHypotheticalCrossSize(
   availableSpace: Size<AvailableSpace>,
 ): void {
   for (const child of line.items) {
-    const paddingBorderSum = rectCrossAxisSum(rectAdd(child.padding, child.border), constants.dir);
+    const paddingBorder = rectAdd(child.padding, child.border);
+    const paddingBorderSum = rectCrossAxisSum(paddingBorder, constants.dir);
 
     const childKnownMain: AvailableSpace = main(constants.containerSize, constants.dir);
 
@@ -1760,10 +1761,17 @@ function determineHypotheticalCrossSize(
         : mMin(arMinCross, cross(child.maxSize, constants.dir));
     const rawMaxCross = cross(child.maxSize, constants.dir);
     const rawMaxMain = main(child.maxSize, constants.dir);
+    // A maximum smaller than the source axis's own insets is unsatisfiable, so
+    // transfer the inset-floored used maximum. Blink's transferred min/max
+    // helpers receive the border-padding strut for this conversion. Chrome,
+    // `max-width: 0; border-right: 1px; aspect-ratio: 1` under border-box,
+    // transfers 1px to the automatic height rather than clamping it to zero.
+    const usedMaxMain =
+      rawMaxMain === null ? null : Math.max(rawMaxMain, rectMainAxisSum(paddingBorder, constants.dir));
     const transferredMaxCross = crossStyleIsAuto
       ? (rawMaxCross ??
-        (child.aspectRatio !== null && rawMaxMain !== null
-          ? transferThroughRatio(rawMaxMain, child, constants.dir, 'main-to-cross')
+        (child.aspectRatio !== null && usedMaxMain !== null
+          ? transferThroughRatio(usedMaxMain, child, constants.dir, 'main-to-cross')
           : null))
       : rawMaxCross;
 
