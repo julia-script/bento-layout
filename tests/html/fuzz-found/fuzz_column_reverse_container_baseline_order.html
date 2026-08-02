@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=9360b4b1 (mode=flex)
+  chrome: Chrome/151.0.7922.47
+  Flexbox §8.5 determines a flex container's baseline after taking
+  flex-direction into account. A column-reverse container therefore takes its
+  fallback baseline from the source-last item at visual main-start, before the
+  1px gap.
+  Regenerate with: pnpm gentest fuzz_column_reverse_container_baseline_order
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: column-reverse baseline follows visual order</title>
+</head>
+<body>
+
+<div id="test-root" style="align-items: baseline;">
+  <div style="flex-direction: column-reverse; row-gap: 1px;">
+    <div></div>
+    <div></div>
+  </div>
+  <div></div>
+</div>
+
+</body>
+</html>
