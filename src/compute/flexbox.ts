@@ -2919,6 +2919,50 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
       }
     }
 
+    if (
+      constants.isRow &&
+      childStyle.alignSelf !== null &&
+      !childStyle.alignSelf.safe &&
+      usedTop !== null &&
+      usedBottom !== null &&
+      crossSizeIsAuto
+    ) {
+      // CSS Align §4.4 gives a plain (neither `safe` nor `unsafe`) abspos
+      // alignment special overflow behavior. If its margin box does not fit
+      // the inset-modified containing block, constrain the aligned position to
+      // the union of that rectangle and the original containing block. Blink's
+      // `ComputeInsets` applies this after alignment and prioritizes block-start.
+      // Chrome, a 0px-tall containing block with `top: 1; bottom: 0` around a
+      // 1px-tall auto-sized child, moves plain `align-self: start` from y=1 to
+      // y=0; explicit `safe start` stays at y=1.
+      const marginBoxSize = finalSize.height + resolvedMargin.top + resolvedMargin.bottom;
+      const imcbSize = insetRelativeSize.height - usedTop - usedBottom;
+      const imcbStart = constants.border.top + usedTop + resolvedMargin.top;
+      const imcbEnd =
+        containerHeight -
+        constants.border.bottom -
+        constants.scrollbarGutter.y -
+        finalSize.height -
+        usedBottom -
+        resolvedMargin.bottom;
+
+      let safeStart = imcbStart;
+      let safeEnd = imcbEnd;
+      if (marginBoxSize > imcbSize) {
+        const containingBlockStart = constants.border.top + resolvedMargin.top;
+        const containingBlockEnd =
+          containerHeight -
+          constants.border.bottom -
+          constants.scrollbarGutter.y -
+          finalSize.height -
+          resolvedMargin.bottom;
+        safeStart = Math.min(safeStart, containingBlockStart);
+        safeEnd = Math.max(safeEnd, containingBlockEnd);
+      }
+
+      offsetCross = safeEnd < safeStart ? safeStart : Math.min(Math.max(offsetCross, safeStart), safeEnd);
+    }
+
     const location: Point<number> = constants.isRow
       ? { x: offsetMain, y: offsetCross }
       : { x: offsetCross, y: offsetMain };

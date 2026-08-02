@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: batch seed=20260731, finding=ddef1e9d (mode=flex), minimized
+  chrome: Chrome/151.0.7922.47
+  The default overflow behavior for an aligned abspos child keeps its margin
+  box within the union of the inset-modified and original containing blocks.
+  Regenerate with: pnpm gentest fuzz_abspos_default_alignment_overflow
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: abspos default alignment overflow</title>
+</head>
+<body>
+
+<div id="test-root">
+  <div style="position: absolute; inset: 1px auto 0; align-self: start; padding-top: 1px;"></div>
+</div>
+
+</body>
+</html>
