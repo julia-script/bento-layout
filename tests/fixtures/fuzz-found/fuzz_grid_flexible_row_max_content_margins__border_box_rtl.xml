@@ -1,0 +1,13 @@
+<test name="fuzz_grid_flexible_row_max_content_margins__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" direction="rtl" position="absolute" width="320px" grid-template-rows="minmax(55px,1fr)">
+      <div direction="rtl" margin-top="120px" margin-left="0px" margin-bottom="30%" margin-right="0px"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="320" height="216">
+      <node x="0" y="120" width="320" height="0"/>
+    </node>
+  </expectations>
+</test>

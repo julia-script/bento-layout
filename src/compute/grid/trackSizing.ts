@@ -302,7 +302,8 @@ export function trackSizingAlgorithm(
     innerSize !== null ? innerSize : absGet(availableGridSpace, axis) === 'min-content' ? 'min-content' : 'max-content';
 
   // 11.7. Expand Flexible Tracks
-  expandFlexibleTracks(axis, axisTracks, items, axisMinSize, axisMaxSize, axisAvailableSpaceForExpansion);
+  const itemSizer = makeItemSizer(axis, otherAxisTracks, innerNodeSize, getTrackSizeEstimate, direction);
+  expandFlexibleTracks(axis, axisTracks, itemSizer, items, axisMinSize, axisMaxSize, axisAvailableSpaceForExpansion);
 
   // 11.8. Stretch auto Tracks
   if (axisAlignment.keyword === 'stretch' && !axisAlignment.safe) {
@@ -899,6 +900,7 @@ function maximiseTracks(axisTracks: GridTrack[], axisInnerNodeSize: Opt, axisAva
 function expandFlexibleTracks(
   axis: AbsoluteAxis,
   axisTracks: GridTrack[],
+  itemSizer: ItemSizer,
   items: GridItem[],
   axisMinSize: Opt,
   axisMaxSize: Opt,
@@ -927,12 +929,7 @@ function expandFlexibleTracks(
       .reduce((acc, item) => {
         const range = itemTrackRangeExcludingLines(item, axis);
         const tracks = axisTracks.slice(range.start, range.end);
-        const maxContentContribution = itemMaxContentContributionCached(
-          item,
-          axis,
-          { width: null, height: null },
-          { width: null, height: null },
-        );
+        const maxContentContribution = itemSizer.maxContentContribution(item, axisTracks);
         return Math.max(acc, findSizeOfFr(tracks, maxContentContribution));
       }, 0);
     let fraction = Math.max(trackBasedFraction, itemBasedFraction);

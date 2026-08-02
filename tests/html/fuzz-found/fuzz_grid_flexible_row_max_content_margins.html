@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=97b358fc (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Grid §11.7 uses an item's max-content contribution when expanding an
+  fr track under indefinite available space. That outer contribution includes
+  its margins, with percentage margins resolved against the grid area width.
+  Regenerate with: pnpm gentest fuzz_grid_flexible_row_max_content_margins
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: flexible grid row includes item margins</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; width: 320px; height: auto; grid-template-rows: minmax(55px, 1fr);">
+  <div style="margin: 120px 0 30%;"></div>
+</div>
+
+</body>
+</html>
