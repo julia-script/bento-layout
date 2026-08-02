@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=0a4b812c (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Flexbox §9.4 step 11 treats a stretched item's used cross size as
+  definite during its final layout. Its own aspect ratio and overflowing
+  descendants therefore cannot enlarge that cross size.
+  Regenerate with: pnpm gentest fuzz_flex_stretched_cross_size_definite
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: stretched flex cross size remains definite</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex; width: 10px; height: 0; align-items: stretch;">
+  <div style="display: flex; width: 90%; height: auto; aspect-ratio: 1;">
+    <div style="padding-left: 20%; padding-top: 75%; padding-bottom: 40px;"></div>
+  </div>
+</div>
+
+</body>
+</html>

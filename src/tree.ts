@@ -52,8 +52,9 @@ export interface LayoutInput {
   sizingMode: SizingMode;
   axis: RequestedAxis;
   knownDimensions: Size<Opt>;
-  /** Axes whose known value is a hard transferred maximum, not an automatic
-   * ratio-derived preferred size that content may enlarge. */
+  /** Axes whose known value was resolved definitively by the parent (for
+   * example, an aspect-ratio constraint transfer or flex stretch), not an
+   * automatic ratio-derived preferred size that content may enlarge. */
   knownDimensionsAreHard?: Size<boolean>;
   parentSize: Size<Opt>;
   availableSpace: Size<AvailableSpace>;

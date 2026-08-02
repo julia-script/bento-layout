@@ -1,0 +1,17 @@
+<test name="fuzz_flex_stretched_cross_size_definite__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="flex" direction="rtl" position="absolute" align-items="stretch" width="10px" height="0px">
+      <div display="flex" direction="rtl" width="90%" aspect-ratio="1">
+        <div direction="rtl" padding-top="75%" padding-left="20%" padding-bottom="40px"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="10" height="0">
+      <node x="1" y="0" width="9" height="0">
+        <node x="7" y="0" width="2" height="47"/>
+      </node>
+    </node>
+  </expectations>
+</test>

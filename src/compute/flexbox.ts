@@ -50,7 +50,7 @@ import {
 } from '../style.js';
 import { traceLayout } from '../trace.js';
 import type { LayoutInput, LayoutNode, LayoutOutput } from '../tree.js';
-import { fromOuterSize, fromSizesAndBaselines, internals, layoutWithOrder } from '../tree.js';
+import { fromOuterSize, fromSizesAndBaselines, internals, layoutWithOrder, LINE_FALSE } from '../tree.js';
 import {
   absoluteAxisStretches,
   applyAlignmentFallback,
@@ -2579,6 +2579,14 @@ function calculateFlexItem(
     nodeInnerSize,
     { width: containerSize.width, height: containerSize.height },
     'content-size',
+    LINE_FALSE,
+    // css-flexbox §9.4 step 11 re-lays out a stretched item with its
+    // used cross size treated as definite. Preserve that provenance for a
+    // nested flex container: its own aspect ratio and overflowing content
+    // must not enlarge the already-resolved line cross size. Chrome keeps a
+    // 9px-wide 1:1 item at 9x0 when its parent's flex line is 0px tall, even
+    // though the item's child has 47px of intrinsic block size.
+    withCross({ width: false, height: false }, direction, stretches && resolvedCrossStyle === null),
   );
   const { size, contentSize } = layoutOutput;
 
