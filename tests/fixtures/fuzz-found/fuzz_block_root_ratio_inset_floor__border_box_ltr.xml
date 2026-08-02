@@ -1,0 +1,13 @@
+<test name="fuzz_block_root_ratio_inset_floor__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" direction="ltr" position="absolute" aspect-ratio="1.5" padding-top="3px" padding-left="0px" padding-bottom="1px" padding-right="1px">
+      <div direction="ltr"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="6" height="4">
+      <node x="0" y="3" width="5" height="0"/>
+    </node>
+  </expectations>
+</test>

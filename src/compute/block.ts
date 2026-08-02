@@ -3,13 +3,7 @@
 
 import { unreachable } from '../assert.js';
 import type { Point, Rect, Size } from '../geometry.js';
-import {
-  applyAspectRatioClamped,
-  maybeApplyAspectRatio,
-  rectAdd,
-  sizeZero,
-  sumAxes,
-} from '../geometry.js';
+import { applyAspectRatioClamped, maybeApplyAspectRatio, rectAdd, sizeZero, sumAxes } from '../geometry.js';
 import type { Opt } from '../math.js';
 import { mMax, mSub, vClamp, vMax, vSub } from '../math.js';
 import type { AvailableSpace, Direction, Overflow, Position, Style, TextAlign } from '../style.js';
@@ -231,8 +225,15 @@ function computeInner(node: LayoutNode, inputs: LayoutInput, blockCtx: BlockCont
 
   // css-sizing-4: a definite size in one axis transfers through `aspect-ratio`.
   // Only a newly-filled axis is adopted (and clamped); an incoming known size is
-  // left as the parent resolved it.
-  const derived = sizeMaybeClamp(maybeApplyAspectRatio(knownDimensionsIn, aspectRatio), minSize, maxSize);
+  // left as the parent resolved it. Parent-known sizes are border-box values,
+  // so content-box transfer must strip the source insets and add the destination
+  // insets: Chrome 151, `height: 1px; padding-bottom: 1px; aspect-ratio: 1`
+  // under content-box is 1x2, not 2x2.
+  const derived = sizeMaybeClamp(
+    maybeApplyAspectRatioUsed(knownDimensionsIn, aspectRatio, style.boxSizing, paddingBorderSize),
+    minSize,
+    maxSize,
+  );
   const knownDimensions: Size<Opt> = {
     width: knownDimensionsIn.width ?? derived.width,
     height: knownDimensionsIn.height ?? derived.height,

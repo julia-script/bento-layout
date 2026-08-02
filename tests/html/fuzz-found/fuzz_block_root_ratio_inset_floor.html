@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=3dcf5999 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Sizing 4 §4.1–4.2 makes an automatic border-box ratio include the
+  box's own padding and border. Chrome therefore transfers the 4px vertical
+  inset floor through 1.5:1 and makes this empty block root 6x4; content-box
+  keeps the insets outside its zero-sized ratio box and remains 1x4.
+  Regenerate with: pnpm gentest fuzz_block_root_ratio_inset_floor
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: block root ratio includes border-box inset floor</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block; aspect-ratio: 1.5; padding: 3px 1px 1px 0;">
+  <div></div>
+</div>
+
+</body>
+</html>

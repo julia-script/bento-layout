@@ -245,6 +245,15 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
     width: rootPadding.left + rootPadding.right + rootBorder.left + rootBorder.right,
     height: rootPadding.top + rootPadding.bottom + rootBorder.top + rootBorder.bottom,
   };
+  // A border-box ratio includes the box's own padding and border. When both
+  // preferred axes are auto, that block-axis floor can therefore supply the
+  // ratio's first non-zero inline size. Chrome 151, an empty block root with
+  // `aspect-ratio: 1.5` and 4px of vertical padding, is 6x4; content-box keeps
+  // the same padding outside its zero-sized ratio box and remains 0x4.
+  const ratioInlineInsetFloor =
+    rootStyle.aspectRatio !== null && rootStyle.boxSizing === 'border-box'
+      ? rootPaddingBorderSize.height * rootStyle.aspectRatio
+      : 0;
   let transferredInlineMin: Opt = null;
   let transferredInlineMax: Opt = null;
   if (rootStyle.aspectRatio !== null && rootStyle.size.width === 'auto') {
@@ -285,7 +294,10 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
     rootSpecified.height === null &&
     knownDimensions.width === null &&
     knownDimensions.height === null &&
-    (output.size.width > 0 || transferredInlineMin !== null || transferredInlineMax !== null)
+    (output.size.width > 0 ||
+      ratioInlineInsetFloor > 0 ||
+      transferredInlineMin !== null ||
+      transferredInlineMax !== null)
   ) {
     // css-sizing-4 §4.4 transfers block min/max constraints onto an automatic
     // inline preferred size. Blink applies that transferred range first, then
@@ -302,7 +314,11 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
       rootStyle.boxSizing,
       rootPaddingBorderSize,
     ).width;
-    const transferredWidth = vClamp(output.size.width, transferredInlineMin, transferredInlineMax);
+    const transferredWidth = vClamp(
+      Math.max(output.size.width, ratioInlineInsetFloor),
+      transferredInlineMin,
+      transferredInlineMax,
+    );
     const resolvedWidth = vClamp(transferredWidth, explicitInlineMin, explicitInlineMax);
     const withResolvedWidth = { width: resolvedWidth, height: null };
     const rerun = performChildLayout(
