@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: 20260802 viewport campaign, finding=44c1d45a (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  The numeric block size transferred from an out-of-flow box's fit-content
+  width remains authored `auto`; Sizing 4 §4.3 floors it by intrinsic content.
+  Regenerate with: pnpm gentest fuzz_abspos_ratio_auto_block_min_flex_content
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: abspos ratio block auto minimum includes flex content</title>
+</head>
+<body>
+
+<div
+  id="test-root"
+  data-test-page-viewport-width="1280"
+  data-test-page-viewport-height="800"
+  style="display: flex;"
+>
+  <div style="display: flex; position: absolute; aspect-ratio: 1;">
+    <div style="padding-bottom: 1px;"></div>
+  </div>
+</div>
+
+</body>
+</html>

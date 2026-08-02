@@ -1116,6 +1116,31 @@ function performAbsoluteLayoutOnAbsoluteChildren(
     );
 
     const measuredWidth = vClamp(knownDimensions.width ?? measuredSize.width, minSize.width, maxSize.width);
+    const ratioAutoMinBlockApplies =
+      aspectRatio !== null &&
+      childStyle.size.height === 'auto' &&
+      childStyle.minSize.height === 'auto' &&
+      internals(item.node).measure === undefined;
+    if (ratioAutoMinBlockApplies) {
+      // Match the OOF inline-then-block sizing stages in Blink 7922. Although
+      // the ratio has already made block-size numeric here, its authored value
+      // is still `auto`, so Sizing 4 §4.3's min-content automatic minimum must
+      // floor it (and max-height caps that floor). Chrome applies this OOF
+      // intrinsic floor for hidden/scroll/clip overflow too.
+      const minContentHeight = measureChildSize(
+        item.node,
+        { width: measuredWidth, height: null },
+        areaSize,
+        { width: measuredWidth, height: 'max-content' },
+        'content-size',
+        'vertical',
+      );
+      minSize = {
+        ...minSize,
+        height: Math.max(minSize.height, Math.min(minContentHeight, maxSize.height ?? Infinity)),
+      };
+      knownDimensions = sizeMaybeClamp(knownDimensions, minSize, maxSize);
+    }
     // With two automatic sizes and an auto inset, Blink resolves the
     // fit-content inline size first, then lays out the block axis with that
     // inline size fixed (absolute_utils.cc ComputeOofInlineDimensions then

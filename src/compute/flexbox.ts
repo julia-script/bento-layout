@@ -3446,6 +3446,34 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
       );
       knownDimensions.width = Math.min(maxContentWidth, Math.max(minContentWidth, shrinkToFitWidth));
     }
+    const ratioAutoMinBlockApplies =
+      aspectRatio !== null &&
+      childStyle.size.height === 'auto' &&
+      childStyle.minSize.height === 'auto' &&
+      internals(child).measure === undefined;
+    if (ratioAutoMinBlockApplies) {
+      // OOF sizing resolves the fit-content inline size before the automatic
+      // ratio-dependent block size (Blink 7922 absolute_utils.cc:
+      // ComputeOofInlineDimensions, then ComputeOofBlockDimensions). Sizing 4
+      // §4.3 gives that automatic axis a min-content floor. Preserve the
+      // authored `auto` provenance after the ratio has produced a number:
+      // Chrome gives an empty 0px-wide abspos grid with a 1px explicit row a
+      // 1px height, not the ratio-derived 0px. Blink's OOF layout keeps this
+      // intrinsic floor for hidden/scroll/clip overflow as well.
+      const minContentHeight = measureChildSize(
+        child,
+        { width: knownDimensions.width, height: null },
+        absoluteChildParentSize,
+        { width: knownDimensions.width, height: 'max-content' },
+        'content-size',
+        'vertical',
+      );
+      minSize = {
+        ...minSize,
+        height: Math.max(minSize.height, Math.min(minContentHeight, maxSize.height ?? Infinity)),
+      };
+      knownDimensions = sizeMaybeClamp(knownDimensions, minSize, maxSize);
+    }
     const measuredSize = measureChildSizeBoth(
       child,
       knownDimensions,

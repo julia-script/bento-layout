@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: 20260802 viewport campaign, finding=c4a36896 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Blink resolves an out-of-flow fit-content inline size before its automatic
+  ratio-dependent block size; Sizing 4 §4.3 then preserves the min-content
+  block floor represented by the explicit grid track.
+  Regenerate with: pnpm gentest fuzz_abspos_ratio_auto_block_min_grid_track
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: abspos ratio block auto minimum includes grid track</title>
+</head>
+<body>
+
+<div
+  id="test-root"
+  data-test-page-viewport-width="1280"
+  data-test-page-viewport-height="800"
+  style="display: flex;"
+>
+  <div style="display: grid; position: absolute; aspect-ratio: 1; grid-template-rows: minmax(1px, auto);"></div>
+</div>
+
+</body>
+</html>

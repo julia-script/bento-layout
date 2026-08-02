@@ -1,0 +1,13 @@
+<test name="fuzz_abspos_ratio_auto_block_min_grid_track__border_box_rtl" use-rounding="true">
+  <viewport width="1280px" height="800px"/>
+  <input>
+    <div display="flex" direction="rtl" position="absolute">
+      <div display="grid" direction="rtl" position="absolute" aspect-ratio="1" grid-template-rows="minmax(1px,auto)"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="0" height="0">
+      <node x="0" y="0" width="0" height="1"/>
+    </node>
+  </expectations>
+</test>
