@@ -665,6 +665,13 @@ function itemKnownDimensions(item: GridItem, gridAreaSize: Size<Opt>): Size<Opt>
   ) {
     width = gridAreaMinusItemMarginsSize.width;
   }
+  // Resolve the ratio from the item's used inline size, after its own
+  // min/max-width constraints. css-sizing-4 §4.2 makes inline size the
+  // ratio-determining input here; Blink's ComputeBlockSizeForFragment receives
+  // the already-clamped inline fragment size. Chrome 151, a 3px-wide grid area
+  // around `max-width: 1px; aspect-ratio: 1.5`, therefore derives a 2/3px
+  // height from 1px, not a 2px height from the pre-clamp 3px stretch fit.
+  width = mClamp(width, minSize.width, maxSize.width);
   // Reapply aspect ratio after stretch adjustments (on used border-box values,
   // so the transfer must respect box-sizing)
   let size = maybeApplyAspectRatioUsed(

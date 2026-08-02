@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=9263fbf9 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Sizing 4 §4.2 derives an automatic ratio-dependent block size from the
+  used inline size, after max-width clamps the grid item's stretch fit.
+  Regenerate with: pnpm gentest fuzz_grid_ratio_clamps_stretched_inline_source
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: grid ratio clamps stretched inline source</title>
+</head>
+<body>
+
+<div id="test-root">
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, 3px);">
+    <div style="max-width: 1px; max-height: 20px; aspect-ratio: 1.5;"></div>
+  </div>
+</div>
+
+</body>
+</html>

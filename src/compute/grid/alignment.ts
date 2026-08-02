@@ -285,6 +285,9 @@ export function alignAndPositionItem(
     );
     width = Math.max(minContentWidth, Math.min(Math.max(gridAreaMinusItemMarginsSize.width, 0), maxContentWidth));
   }
+  // The inline min/max range applies before this used inline size becomes the
+  // ratio-determining input (css-sizing-4 §4.2; see itemKnownDimensions).
+  width = mClamp(width, minSize.width, maxSize.width);
   // Reapply aspect ratio after stretch/absolute width adjustments (used
   // border-box values, so the transfer must respect box-sizing)
   let size = maybeApplyAspectRatioUsed(
