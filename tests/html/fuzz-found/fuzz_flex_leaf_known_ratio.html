@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=21c0a11f (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Sizing 4 §4.2 makes a ratio-dependent automatic size definite when its
+  ratio-determining input is definite. Blink applies that size before laying
+  out a flex container's anonymous text item; a block container retains its
+  intrinsic content height.
+  Regenerate with: pnpm gentest fuzz_flex_leaf_known_ratio
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: flex leaf derives height from parent-known width</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block; width: 40px; height: 10px;">
+  <div style="display: flex; aspect-ratio: 3;">H&#x200b;HHHHH&#x200b;HHHHH</div>
+  <div style="display: block; aspect-ratio: 3;">H&#x200b;HHHHH&#x200b;HHHHH</div>
+  <div style="display: flex; width: 20px; aspect-ratio: 3;">H&#x200b;HHHHH&#x200b;HHHHH</div>
+  <div style="display: flex;">H&#x200b;HHHHH&#x200b;HHHHH</div>
+</div>
+
+</body>
+</html>

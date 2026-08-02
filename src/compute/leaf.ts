@@ -8,6 +8,7 @@ import type { AvailableSpace, Style } from '../style.js';
 import { asMapDefinite, asMaybeSet, asMaybeSub, maybeResolveSize, resolveRectOrZero } from '../style.js';
 import type { LayoutInput, LayoutOutput, MeasureFunction } from '../tree.js';
 import { collapsibleMarginZero } from '../tree.js';
+import { maybeApplyAspectRatioUsed } from './aspectRatio.js';
 
 export function computeLeafLayout(inputs: LayoutInput, style: Style, measureFunction: MeasureFunction): LayoutOutput {
   const { knownDimensions, parentSize, sizingMode, runMode } = inputs;
@@ -50,9 +51,22 @@ export function computeLeafLayout(inputs: LayoutInput, style: Style, measureFunc
       boxSizingAdjustment,
     );
 
+    // A childless flex container still establishes flex formatting for its
+    // anonymous text item. When its inline size is supplied by its parent,
+    // Blink resolves an automatic block size through the preferred ratio
+    // before laying out that anonymous item (css-sizing-4 §4.2: the result is
+    // definite when the ratio-determining input is definite). Chrome 151, a
+    // 40px-wide flex leaf with `aspect-ratio: 3` and three lines' worth of
+    // breakable text is therefore 40x13, not 40x30. A block leaf remains
+    // content-sized at 40x30, so keep this on the flex formatting path only.
+    const derivedFromKnown =
+      style.display === 'flex'
+        ? maybeApplyAspectRatioUsed(knownDimensions, aspectRatio, style.boxSizing, pbSum)
+        : { width: null, height: null };
+
     nodeSize = {
-      width: knownDimensions.width ?? styleSize.width,
-      height: knownDimensions.height ?? styleSize.height,
+      width: knownDimensions.width ?? styleSize.width ?? derivedFromKnown.width,
+      height: knownDimensions.height ?? styleSize.height ?? derivedFromKnown.height,
     };
     // A min/max constraint does NOT transfer through the ratio onto the other
     // axis's constraint: it bounds the ratio-*derived* size (handled by

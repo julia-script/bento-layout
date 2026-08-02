@@ -1,0 +1,27 @@
+<test name="fuzz_flex_leaf_known_ratio__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" box-sizing="content-box" direction="rtl" position="absolute" width="40px" height="10px">
+      <text display="flex" box-sizing="content-box" direction="rtl" aspect-ratio="3">
+        H​HHHHH​HHHHH
+      </text>
+      <text display="block" box-sizing="content-box" direction="rtl" aspect-ratio="3">
+        H​HHHHH​HHHHH
+      </text>
+      <text display="flex" box-sizing="content-box" direction="rtl" width="20px" aspect-ratio="3">
+        H​HHHHH​HHHHH
+      </text>
+      <text display="flex" box-sizing="content-box" direction="rtl">
+        H​HHHHH​HHHHH
+      </text>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="40" height="10">
+      <node x="0" y="0" width="40" height="13"/>
+      <node x="0" y="13" width="40" height="30"/>
+      <node x="20" y="43" width="20" height="7"/>
+      <node x="0" y="50" width="40" height="30"/>
+    </node>
+  </expectations>
+</test>
