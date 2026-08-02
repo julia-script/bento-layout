@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=7fda1ca9 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Sizing 4 §4.2 transfers the used preferred size in the
+  ratio-determining axis. Clamp 55px by max-height:20px first, then derive the
+  automatic width as 20 * .5 = 10px.
+  Regenerate with: pnpm gentest fuzz_flex_ratio_uses_clamped_source_size
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: flex item ratio uses the clamped source size</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex;">
+  <div style="width: auto; height: 55px; max-width: 40px; max-height: 20px; aspect-ratio: .5;"></div>
+</div>
+
+</body>
+</html>

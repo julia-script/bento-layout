@@ -743,6 +743,9 @@ function generateAnonymousFlexItems(node: LayoutNode, constants: AlgoConstants):
     const border = resolveRectOrZero(childStyle.border, constants.nodeInnerSize.width);
     const pbSum = sumAxes(rectAdd(padding, border));
     const boxSizingAdjustment = childStyle.boxSizing === 'content-box' ? pbSum : sizeZero();
+    const minSize = maybeAddSize(maybeResolveSize(childStyle.minSize, constants.nodeInnerSize), boxSizingAdjustment);
+    const maxSize = maybeAddSize(maybeResolveSize(childStyle.maxSize, constants.nodeInnerSize), boxSizingAdjustment);
+    const resolvedSize = maybeAddSize(maybeResolveSize(childStyle.size, constants.nodeInnerSize), boxSizingAdjustment);
     const marginIsAuto = {
       left: childStyle.margin.left === 'auto',
       right: childStyle.margin.right === 'auto',
@@ -760,12 +763,13 @@ function generateAnonymousFlexItems(node: LayoutNode, constants: AlgoConstants):
     items.push({
       node: child,
       order: index,
-      size: maybeAddSize(
-        maybeApplyAspectRatio(maybeResolveSize(childStyle.size, constants.nodeInnerSize), aspectRatio),
-        boxSizingAdjustment,
-      ),
-      minSize: maybeAddSize(maybeResolveSize(childStyle.minSize, constants.nodeInnerSize), boxSizingAdjustment),
-      maxSize: maybeAddSize(maybeResolveSize(childStyle.maxSize, constants.nodeInnerSize), boxSizingAdjustment),
+      // CSS Sizing 4 §4.2 transfers the *used* preferred size through the
+      // ratio, so clamp the ratio-determining axis by its own min/max first.
+      // Chrome gives `height: 55px; max-height: 20px; aspect-ratio: .5`
+      // an automatic width of 10px, not 27.5px subsequently capped elsewhere.
+      size: applyAspectRatioClamped(resolvedSize, minSize, maxSize, aspectRatio, boxSizingAdjustment),
+      minSize,
+      maxSize,
       aspectRatio,
 
       inset: maybeResolveRectPerAxis(childStyle.inset, constants.nodeInnerSize),
