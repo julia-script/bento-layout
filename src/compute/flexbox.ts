@@ -556,10 +556,10 @@ function computePreliminary(
       setMain(constants.gap, constants.dir, newGap);
     }
 
-    // Line collection ran against an intrinsic keyword, because the container's
-    // main size was not known yet. Under a max-content constraint that meant
-    // "never wrap", which holds only while each item's hypothetical size is
-    // covered by its contribution to the container. `flex-basis` breaks that:
+    // Line collection ran before the container's automatic main size was
+    // resolved. Under a max-content constraint that meant "never wrap", which
+    // holds only while each item's hypothetical size is covered by its
+    // contribution to the container. `flex-basis` breaks that:
     // it sets the hypothetical main size but contributes nothing of its own
     // (§9.9.1 works from the items' content), so a container of
     // `flex-basis: 30px` items ends up narrower than the line they want and
@@ -572,10 +572,13 @@ function computePreliminary(
     // `flex-basis: 30px` beside `width: 40px`, gives 60 = 40 + gap, still two
     // lines.
     //
-    // Now that the size is resolved, re-break against it. The greedy pass is
-    // idempotent when the original grouping already fits, so this only ever
-    // splits lines that never fitted.
-    if (constants.isWrap && typeof main(availableSpace, constants.dir) !== 'number') {
+    // A numeric ancestor constraint can be provisional too: a start-aligned
+    // shrink-to-fit item may resolve wider than that inherited space. Blink
+    // resolves the container main size before Flexbox §9.3 line collection,
+    // so re-break every wrapping auto-sized container against its used size.
+    // This can either split an intrinsic line or merge provisional numeric
+    // lines; nowrap remains untouched.
+    if (constants.isWrap) {
       flexLines = collectFlexLines(
         constants,
         { ...availableSpace, [constants.isRow ? 'width' : 'height']: innerContainerSize },

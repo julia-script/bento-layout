@@ -1,0 +1,23 @@
+<test name="fuzz_flex_auto_main_size_recollects_wrapped_lines__content_box_ltr" use-rounding="true">
+  <viewport width="1280px" height="800px"/>
+  <input>
+    <div box-sizing="content-box" direction="ltr" position="absolute" width="7px">
+      <div box-sizing="content-box" direction="ltr" flex-direction="column" overflow-x="hidden" scrollbar-width="0">
+        <div box-sizing="content-box" direction="ltr" flex-wrap="wrap" align-self="start" flex-basis="0px">
+          <div box-sizing="content-box" direction="ltr" padding-bottom="1px" padding-right="10px"/>
+          <div box-sizing="content-box" direction="ltr" height="5px"/>
+        </div>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="7" height="5">
+      <node x="0" y="0" width="7" height="5" scroll_width="3" scroll_height="0">
+        <node x="0" y="0" width="10" height="5">
+          <node x="0" y="0" width="10" height="5"/>
+          <node x="10" y="0" width="0" height="5"/>
+        </node>
+      </node>
+    </node>
+  </expectations>
+</test>

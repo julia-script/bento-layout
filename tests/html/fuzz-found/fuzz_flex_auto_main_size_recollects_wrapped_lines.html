@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: reduced from 20260802 viewport campaign finding=b6d53ac0 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Flexbox §9.2 resolves the container main size before §9.3 collects lines, so
+  a shrink-to-fit used width replaces the provisional ancestor constraint.
+  Regenerate with: pnpm gentest fuzz_flex_auto_main_size_recollects_wrapped_lines
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: automatic main size recollects wrapped lines</title>
+</head>
+<body>
+
+<div
+  id="test-root"
+  data-test-page-viewport-width="1280"
+  data-test-page-viewport-height="800"
+  style="width: 7px;"
+>
+  <div style="overflow-x: hidden; overflow-y: visible; flex-direction: column;">
+    <div style="flex-wrap: wrap; flex-basis: 0; align-self: start;">
+      <div style="padding-right: 10px; padding-bottom: 1px;"></div>
+      <div style="height: 5px;"></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
