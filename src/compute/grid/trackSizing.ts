@@ -731,8 +731,6 @@ function resolveIntrinsicTrackSizes(
 
     // 3. For max-content minimums (only under a max-content constraint)
     if (sizingConstraint === 'max-content') {
-      const hasAutoMinTrackSizingFunction = (track: GridTrack): boolean =>
-        track.minTrackSizingFunction === 'auto' && track.maxTrackSizingFunction !== 'min-content';
       const hasMaxContentMinTrackSizingFunction = (track: GridTrack): boolean =>
         track.minTrackSizingFunction === 'max-content';
 
@@ -742,29 +740,23 @@ function resolveIntrinsicTrackSizes(
         const space = mMin(axisMaxContentSize, limit) as number;
         const range = itemTrackRangeExcludingLines(item, axis);
         const tracks = axisTracks.slice(range.start, range.end);
-        if (space > 0) {
-          // Prioritise distributing space to max-content min tracks (matches Chrome/Firefox)
-          if (tracks.some(hasMaxContentMinTrackSizingFunction)) {
-            distributeItemSpaceToBaseSize(
-              isFlex,
-              useFlexFactorForDistribution,
-              space,
-              tracks,
-              hasMaxContentMinTrackSizingFunction,
-              () => Infinity,
-              'maximum',
-            );
-          } else {
-            distributeItemSpaceToBaseSize(
-              isFlex,
-              useFlexFactorForDistribution,
-              space,
-              tracks,
-              hasAutoMinTrackSizingFunction,
-              (track) => fitContentLimitedGrowthLimit(track, axisInnerNodeSize),
-              'maximum',
-            );
-          }
+        if (space > 0 && tracks.some(hasMaxContentMinTrackSizingFunction)) {
+          // The vendored Grid §11.5 text includes `auto` minima under a
+          // max-content constraint, but pinned Blink 7922 explicitly does not:
+          // IsContributionAppliedToSet(kForMaxContentMinimums) has a TODO for
+          // that rule and selects only HasMaxContentMinTrackBreadth. Match the
+          // oracle. Promoting `minmax(auto, .5fr)` from a 10px min-content base
+          // to its 20px max-content contribution prevents §11.7's partial fill
+          // from ever producing Chrome's final 10px track.
+          distributeItemSpaceToBaseSize(
+            isFlex,
+            useFlexFactorForDistribution,
+            space,
+            tracks,
+            hasMaxContentMinTrackSizingFunction,
+            () => Infinity,
+            'maximum',
+          );
         }
       }
       flushPlannedBaseSizeIncreases(axisTracks);

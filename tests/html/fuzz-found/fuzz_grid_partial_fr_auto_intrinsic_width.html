@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: 20260802 viewport campaign, finding=b3b2e0a8 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Blink 7922 omits `auto` minima from the max-content-minimum phase, leaving
+  the min-content base for Grid §11.7's partial-flex-factor fill.
+  Regenerate with: pnpm gentest fuzz_grid_partial_fr_auto_intrinsic_width
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: partial fr preserves auto track min-content base</title>
+</head>
+<body>
+
+<div
+  id="test-root"
+  data-test-page-viewport-width="1280"
+  data-test-page-viewport-height="800"
+  style="display: flex;"
+>
+  <div style="display: grid; grid-template-columns: minmax(auto, .5fr);">
+    <div>H&#8203;H</div>
+  </div>
+</div>
+
+</body>
+</html>

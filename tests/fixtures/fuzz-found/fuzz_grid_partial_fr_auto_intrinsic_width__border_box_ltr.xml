@@ -1,0 +1,19 @@
+<test name="fuzz_grid_partial_fr_auto_intrinsic_width__border_box_ltr" use-rounding="true">
+  <viewport width="1280px" height="800px"/>
+  <input>
+    <div display="flex" direction="ltr" position="absolute">
+      <div display="grid" direction="ltr" grid-template-columns="minmax(auto,0.5fr)">
+        <text direction="ltr">
+          H​H
+        </text>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="10" height="20">
+      <node x="0" y="0" width="10" height="20">
+        <node x="0" y="0" width="10" height="20"/>
+      </node>
+    </node>
+  </expectations>
+</test>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: 20260802 viewport campaign, finding=1c1cdd27 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Pinned Blink excludes `auto` minima from the max-content-minimum phase;
+  otherwise an uneven spanning contribution amplifies all flexible bases.
+  Regenerate with: pnpm gentest fuzz_grid_auto_max_content_flex_bases
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: auto max-content phase does not amplify flexible bases</title>
+</head>
+<body>
+
+<div
+  id="test-root"
+  data-test-page-viewport-width="1280"
+  data-test-page-viewport-height="800"
+  style="display: flex;"
+>
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(auto, 1fr));">
+    <div style="grid-column: span 3;"><div style="border-right: 3px solid;"></div></div>
+    <div style="margin-right: 1px;"></div>
+  </div>
+</div>
+
+</body>
+</html>
