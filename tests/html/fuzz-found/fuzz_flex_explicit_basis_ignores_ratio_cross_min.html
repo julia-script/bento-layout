@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: corrected 20260731 viewport campaign, finding=d543e7ab (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  An explicit zero flex basis is not clamped by a cross-axis minimum transferred
+  through aspect-ratio. Flex §9.4 keeps the finalized main size independent of
+  later cross sizing; Blink uses TransferredSizesMode::kIgnore for these bounds.
+  Regenerate with: pnpm gentest fuzz_flex_explicit_basis_ignores_ratio_cross_min
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: explicit flex basis ignores ratio-transferred cross minimum</title>
+</head>
+<body>
+
+<div
+  id="test-root"
+  data-test-page-viewport-width="1280"
+  data-test-page-viewport-height="800"
+  style="display: flex; width: 0; height: 1px;"
+>
+  <div style="min-width: 0; min-height: 100%; aspect-ratio: 1; flex-basis: 0%;"></div>
+</div>
+
+</body>
+</html>

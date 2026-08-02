@@ -1400,16 +1400,22 @@ function determineFlexBaseSize(
         return vMax(clampedMinContentSize, main(paddingBorderAxesSums, dir));
       })();
 
-    // Sizes transferred through the aspect ratio clamp the hypothetical main size,
-    // but do not participate in resolving flexible lengths or clamping the final size.
-    const hypotheticalInnerMinMain = vMax(
-      vMax(child.resolvedMinimumMainSize, main(transferredMinSize, constants.dir)),
-      main(paddingBorderAxesSums, constants.dir),
-    );
+    // Blink's content-based flex-basis query includes aspect-ratio-transferred
+    // constraints, while a definite authored flex-basis bypasses that query;
+    // its later used main-axis min/max are computed with
+    // TransferredSizesMode::kIgnore. Preserve that split here at the
+    // hypothetical boundary: `flex-basis: 0; min-width: 0; min-height: 1px;
+    // aspect-ratio: 1` stays 0px, but 80px of content with `max-height: 20px;
+    // aspect-ratio: 2` still has the automatic 40px bound Chrome gives it.
+    const transferredHypotheticalMin = child.flexBasisIsExplicit ? null : main(transferredMinSize, constants.dir);
+    const hypotheticalMax = child.flexBasisIsExplicit
+      ? main(child.maxSize, constants.dir)
+      : main(transferredMaxSize, constants.dir);
+    const hypotheticalInnerMinMain = vMax(child.resolvedMinimumMainSize, main(paddingBorderAxesSums, constants.dir));
     const hypotheticalInnerSize = vClamp(
       child.flexBasis,
-      hypotheticalInnerMinMain,
-      main(transferredMaxSize, constants.dir),
+      vMax(hypotheticalInnerMinMain, transferredHypotheticalMin),
+      hypotheticalMax,
     );
     const hypotheticalOuterSize = hypotheticalInnerSize + rectMainAxisSum(child.margin, constants.dir);
 
