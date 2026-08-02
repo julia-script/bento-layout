@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=c886242a (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Grid §9.1 makes an auto placement line the container padding edge. When
+  end alignment shifts the explicit opposite line before it, Blink's
+  LogicalRect clamps the resulting containing block to zero width; percentage
+  margins therefore resolve against zero rather than a negative size.
+  Regenerate with: pnpm gentest fuzz_grid_abspos_inverted_area_clamps
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: inverted abspos grid area clamps to zero</title>
+</head>
+<body>
+
+<div id="test-root">
+  <div style="display: grid; width: 0; grid-template-columns: repeat(3, minmax(1px, auto)); justify-content: end;">
+    <div style="position: absolute; grid-column: auto / 2; margin-left: 100%;"></div>
+  </div>
+</div>
+
+</body>
+</html>

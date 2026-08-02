@@ -947,7 +947,13 @@ function resolveAbsColumnEdges(
   const openLeft = border.left;
   const openRight = containerBorderBox.width - border.right - scrollbarGutter.x;
   if (direction !== 'rtl') {
-    return { left: logicalStart ?? openLeft, right: logicalEnd ?? openRight };
+    const left = logicalStart ?? openLeft;
+    // Blink builds this rectangle from the padding box with
+    // LogicalRect::ShiftInlineEndEdgeTo, which clamps an end line before the
+    // start edge to a zero-width area at that start edge. This matters when
+    // content alignment shifts tracks beyond the container: percentage
+    // margins must resolve against 0, never a negative containing-block size.
+    return { left, right: Math.max(logicalEnd ?? openRight, left) };
   }
   // RTL: the offsets are already physical (the table runs right-to-left from
   // the flow's start edge), so the pair only needs ordering. An open end still
