@@ -182,15 +182,18 @@ export function alignAndPositionItem(
   }
 
   // Resolve default alignment styles if set on neither the parent nor the node itself
+  const horizontalAlignment =
+    justifySelf ??
+    containerAlignmentStyles.horizontal ??
+    (inherentSize.width !== null ? ALIGN_START : ALIGN_STRETCH_LOCAL);
   const alignmentStyles = {
-    horizontal:
-      justifySelf ??
-      containerAlignmentStyles.horizontal ??
-      (inherentSize.width !== null ? ALIGN_START : ALIGN_STRETCH_LOCAL),
+    horizontal: horizontalAlignment,
     vertical:
       alignSelf ??
       containerAlignmentStyles.vertical ??
-      (inherentSize.height !== null || aspectRatio !== null ? ALIGN_START : ALIGN_STRETCH_LOCAL),
+      (inherentSize.height !== null || (aspectRatio !== null && horizontalAlignment.keyword === 'stretch')
+        ? ALIGN_START
+        : ALIGN_STRETCH_LOCAL),
   };
 
   // Note: both horizontal and vertical margins resolve against the WIDTH of the grid area.
@@ -206,6 +209,23 @@ export function alignAndPositionItem(
     height: vMaybeSub(vMaybeSub(gridAreaSize.height, margin.top), margin.bottom) - baselineShim,
   };
 
+  // css-align-3#justify-self-property makes a non-stretched automatic inline
+  // size fit-content, while css-sizing-4#aspect-ratio-automatic transfers a
+  // definite opposite-axis size through the preferred ratio. Blink gives a
+  // non-replaced grid item's automatic block axis kStretchImplicit: when the
+  // inline axis is non-stretched, a 10px row and ratio 2 produce a 20x10 item.
+  // Explicit block alignment and auto block margins suppress this transfer.
+  const ratioSourceHeight =
+    inherentSize.height === null &&
+    resolvedStyleSize.height === null &&
+    margin.top !== null &&
+    margin.bottom !== null &&
+    alignmentStyles.vertical.keyword === 'stretch' &&
+    !alignmentStyles.vertical.safe &&
+    position !== 'absolute'
+      ? gridAreaMinusItemMarginsSize.height
+      : inherentSize.height;
+
   // css-grid-1 §6.6: explicit stretch uses the stretch-fit size and can
   // distort a preferred aspect ratio. Blink models this as kStretchExplicit,
   // which wins before its aspect-ratio size transfer. Chrome 151 stretches a
@@ -213,7 +233,12 @@ export function alignAndPositionItem(
   // height here left it aligned at the row start. Test the unresolved style
   // axis, because `inherentSize` can already contain that transferred 13px.
   // Absolute positioning: derive width from left+right insets; stretch alignment otherwise
-  let width = inherentSize.width;
+  let width = maybeApplyAspectRatioUsed(
+    { width: inherentSize.width, height: ratioSourceHeight },
+    aspectRatio,
+    style.boxSizing,
+    paddingBorderSize,
+  ).width;
   if (
     width === null &&
     position === 'absolute' &&
@@ -232,6 +257,7 @@ export function alignAndPositionItem(
   ) {
     width = gridAreaMinusItemMarginsSize.width;
   } else if (
+    width === null &&
     resolvedStyleSize.width === null &&
     (justifySelf !== null || containerAlignmentStyles.horizontal !== null) &&
     alignmentStyles.horizontal.keyword !== 'stretch' &&

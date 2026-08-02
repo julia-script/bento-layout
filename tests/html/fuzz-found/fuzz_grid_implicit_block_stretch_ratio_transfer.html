@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=aceef9c8 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  A non-stretched automatic inline axis lets the implicitly stretched 1px row
+  determine the item's preferred 2:1 ratio, producing a 2x1 item. Blink models
+  the default block-axis alignment as kStretchImplicit; an explicit block-axis
+  alignment or auto block margin suppresses this transfer.
+  Regenerate with: pnpm gentest fuzz_grid_implicit_block_stretch_ratio_transfer
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: implicit grid block stretch determines ratio width</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex;">
+  <div style="display: grid; grid-template-rows: 1px; justify-items: center;">
+    <div style="aspect-ratio: 2;"></div>
+  </div>
+</div>
+
+</body>
+</html>

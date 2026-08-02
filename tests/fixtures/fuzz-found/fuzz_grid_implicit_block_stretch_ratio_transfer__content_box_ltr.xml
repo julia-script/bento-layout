@@ -1,0 +1,17 @@
+<test name="fuzz_grid_implicit_block_stretch_ratio_transfer__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="flex" box-sizing="content-box" direction="ltr" position="absolute">
+      <div display="grid" box-sizing="content-box" direction="ltr" justify-items="center" grid-template-rows="1px">
+        <div box-sizing="content-box" direction="ltr" aspect-ratio="2"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="2" height="1">
+      <node x="0" y="0" width="2" height="1">
+        <node x="0" y="0" width="2" height="1"/>
+      </node>
+    </node>
+  </expectations>
+</test>
