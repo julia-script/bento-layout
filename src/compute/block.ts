@@ -594,17 +594,34 @@ function determineContentBasedContainerWidth(items: BlockItem[], availableWidth:
     // `-50%` and `+50%`, where this resolved to 50 and 150. Pixel margins do
     // still contribute.
     const itemXMarginSum = resolveOrZero(item.margin.left, null) + resolveOrZero(item.margin.right, null);
-    let width =
-      knownDimensions.width ??
-      measureChildSize(
+    let width = knownDimensions.width;
+    if (width !== null && item.widthIsRatioDerived) {
+      // A ratio-derived width remains automatic and therefore keeps its
+      // min-content automatic minimum (css-sizing-4 §4.3). Blink 7922's
+      // ComputeMinAndMaxContentContributionInternal first takes the ratio
+      // extent, then Encompass()es the min-intrinsic size. Chrome 151 thus
+      // contributes 70px for height:120; aspect-ratio:.5 with 30px of text and
+      // 40px of inline padding under border-box, rather than the ratio's 60px.
+      const minContentWidth = measureChildSize(
         item.node,
-        knownDimensions,
         { width: null, height: null },
-        { width: asMaybeSub(availableSpace.width, itemXMarginSum), height: availableSpace.height },
-        'inherent-size',
+        { width: null, height: null },
+        { width: 'min-content', height: 'max-content' },
+        'content-size',
         'horizontal',
         LINE_TRUE,
       );
+      width = Math.max(width, minContentWidth);
+    }
+    width ??= measureChildSize(
+      item.node,
+      knownDimensions,
+      { width: null, height: null },
+      { width: asMaybeSub(availableSpace.width, itemXMarginSum), height: availableSpace.height },
+      'inherent-size',
+      'horizontal',
+      LINE_TRUE,
+    );
 
     // Intrinsic measurement returns the child's unconstrained content width;
     // clamp that contribution by its used min/max too. This matters when a

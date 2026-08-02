@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=9d129fd0 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Sizing 4 §4.3 floors a ratio-derived automatic inline size by the
+  non-scrollable box's min-content size. During intrinsic block sizing, the
+  60px border-box width transferred from height:120 and aspect-ratio:.5 is
+  therefore floored by 30px of text plus 40px of inline padding, yielding 70px.
+  Regenerate with: pnpm gentest fuzz_block_ratio_intrinsic_auto_min
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: block intrinsic ratio width keeps its automatic minimum</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+  <div style="display: block;">
+    <div style="width: auto; height: 120px; aspect-ratio: 0.5; padding-right: 40px;">HHH</div>
+  </div>
+</div>
+
+</body>
+</html>
