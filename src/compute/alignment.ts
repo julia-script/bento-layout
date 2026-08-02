@@ -90,6 +90,7 @@ export function resolveAlignedAbsoluteAxis(
   isInlineAxis: boolean,
   startIsDominant: boolean,
   alignment: AlignItems | null,
+  applyDefaultOverflow = true,
 ): ResolvedAbsoluteAxis {
   const resolved = resolveAbsoluteAxis(availableSize, inset, margin, usedSize, isInlineAxis, startIsDominant);
 
@@ -154,7 +155,7 @@ export function resolveAlignedAbsoluteAxis(
   // union with the containing block, prioritizing logical start. This is why a
   // centered 80px box in the 50px band `left:20; right:30` lands at x=5, while
   // logical start lands at x=20 LTR and x=0 RTL in Chrome 151.
-  if (!(alignment as AlignItems).safe) {
+  if (applyDefaultOverflow && !(alignment as AlignItems).safe) {
     const useImcb = marginBoxSize <= availableSize - originalStart - originalEnd;
     const safeStart = useImcb ? originalStart : Math.min(originalStart, 0);
     const safeEnd = useImcb ? originalEnd : Math.min(originalEnd, 0);
@@ -180,6 +181,55 @@ export function resolveAlignedAbsoluteAxis(
   }
 
   return { inset: { start: imcbStart, end: imcbEnd }, margin: resolved.margin };
+}
+
+/** Resolve an abspos axis whose both-auto case has a known static rectangle. */
+export function resolveStaticPositionedAbsoluteAxis(
+  availableSize: number,
+  inset: { start: Opt; end: Opt },
+  staticInset: { start: number; end: number },
+  margin: { start: Opt; end: Opt },
+  usedSize: number,
+  isInlineAxis: boolean,
+  startIsDominant: boolean,
+  alignment: AlignItems | null,
+): ResolvedAbsoluteAxis {
+  const startIsAuto = inset.start === null;
+  const endIsAuto = inset.end === null;
+  const hasAutoInset = startIsAuto || endIsAuto;
+  const resolvedMargin: { start: Opt; end: Opt } = hasAutoInset
+    ? { start: margin.start ?? 0, end: margin.end ?? 0 }
+    : margin;
+
+  if (startIsAuto !== endIsAuto) {
+    // css-align-3 #justify-abspos/#align-abspos: with exactly one auto inset
+    // the CSS2 equation
+    // completely determines position; alignment has no effect. Blink 7922
+    // makes that auto side the weak edge in ComputeUnclampedIMCBInOneAxis,
+    // then ComputeInsets moves it by all remaining free space.
+    let resolvedStart = inset.start ?? 0;
+    let resolvedEnd = inset.end ?? 0;
+    const marginStart = resolvedMargin.start ?? 0;
+    const marginEnd = resolvedMargin.end ?? 0;
+    const freeSpace = availableSize - resolvedStart - resolvedEnd - usedSize - marginStart - marginEnd;
+    if (startIsAuto) resolvedStart += freeSpace;
+    else resolvedEnd += freeSpace;
+    return {
+      inset: { start: resolvedStart, end: resolvedEnd },
+      margin: { start: marginStart, end: marginEnd },
+    };
+  }
+
+  return resolveAlignedAbsoluteAxis(
+    availableSize,
+    startIsAuto ? staticInset : inset,
+    resolvedMargin,
+    usedSize,
+    isInlineAxis,
+    startIsDominant,
+    alignment,
+    !startIsAuto,
+  );
 }
 
 /** Resolve the safe/unsafe overflow-position fallback for a self-alignment value. */

@@ -1,5 +1,6 @@
 // Public API: plain-object node trees + computeLayout.
 
+import { resolveStaticPositionedAbsoluteAxis } from './compute/alignment.js';
 import { maybeApplyAspectRatioUsed, toUsedBorderBoxSize } from './compute/aspectRatio.js';
 import { measureChildSize, performChildLayout } from './compute/dispatch.js';
 import type { Size } from './geometry.js';
@@ -7,7 +8,7 @@ import { applyAspectRatioClamped } from './geometry.js';
 import type { Opt } from './math.js';
 import { mMax, round, vClamp } from './math.js';
 import type { AvailableSpace, Style } from './style.js';
-import { asIntoOption, isRepeat, maybeResolveSize, resolveRectOrZero } from './style.js';
+import { asIntoOption, isRepeat, maybeResolve, maybeResolveSize, resolveRectOrZero } from './style.js';
 import type { Layout, Line } from './tree.js';
 import { internals, type LayoutNode, resolveMarginSet } from './tree.js';
 
@@ -469,25 +470,16 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
   const style = rootInternal.style;
   const padding = resolveRectOrZero(style.padding, parentSize.width);
   const border = resolveRectOrZero(style.border, parentSize.width);
-  const margin = resolveRectOrZero(style.margin, parentSize.width);
+  let margin = resolveRectOrZero(style.margin, parentSize.width);
   const scrollbarSize = {
     width: style.overflow.y === 'scroll' ? style.scrollbarWidth : 0,
     height: style.overflow.x === 'scroll' ? style.scrollbarWidth : 0,
   };
-  // With both inline insets auto, an absolute root uses its static-position
-  // rectangle (css-align-3 §6.1.2). Blink 7922 feeds the physical static offset
-  // into absolute_utils::ComputeUnclampedIMCBInOneAxis; it does not mirror the
-  // used box from inline-start. Chrome therefore puts empty, 1px, and 20px RTL
-  // body roots at x=0 in a 1280px viewport, not x=1280/1279/1260.
-  const absoluteRootUsesStaticInlinePosition =
-    style.position === 'absolute' && style.inset.left === 'auto' && style.inset.right === 'auto';
-  const location = {
+  let location = {
     x: flexRootUsesFlowStretchFit
       ? margin.left
-      : !absoluteRootUsesStaticInlinePosition && style.direction === 'rtl'
-        ? parentSize.width !== null
-          ? parentSize.width - output.size.width
-          : 0
+      : style.position !== 'absolute' && style.direction === 'rtl' && parentSize.width !== null
+        ? parentSize.width - output.size.width
         : 0,
     // A margin that collapsed *through* the root's top edge is outside the
     // root's own box, so it offsets the root rather than growing it — Chrome
@@ -497,6 +489,53 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
     // root's own margin, which does not move it, so guard on the same flag.
     y: rootMarginsCollapse.start ? resolveMarginSet(output.topMargin) : 0,
   };
+
+  if (style.position === 'absolute' && parentSize.width !== null && parentSize.height !== null) {
+    const unresolvedMargin = {
+      left: maybeResolve(style.margin.left, parentSize.width),
+      right: maybeResolve(style.margin.right, parentSize.width),
+      top: maybeResolve(style.margin.top, parentSize.width),
+      bottom: maybeResolve(style.margin.bottom, parentSize.width),
+    };
+    const horizontal = resolveStaticPositionedAbsoluteAxis(
+      parentSize.width,
+      {
+        start: maybeResolve(style.inset.left, parentSize.width),
+        end: maybeResolve(style.inset.right, parentSize.width),
+      },
+      // A block container's static-position rectangle spans its inline axis.
+      { start: 0, end: 0 },
+      { start: unresolvedMargin.left, end: unresolvedMargin.right },
+      output.size.width,
+      true,
+      true,
+      style.justifySelf,
+    );
+    const vertical = resolveStaticPositionedAbsoluteAxis(
+      parentSize.height,
+      {
+        start: maybeResolve(style.inset.top, parentSize.height),
+        end: maybeResolve(style.inset.bottom, parentSize.height),
+      },
+      // Its block-axis static rectangle is a zero-size point at block-start.
+      { start: 0, end: parentSize.height },
+      { start: unresolvedMargin.top, end: unresolvedMargin.bottom },
+      output.size.height,
+      false,
+      true,
+      style.alignSelf,
+    );
+    margin = {
+      left: horizontal.margin.start,
+      right: horizontal.margin.end,
+      top: vertical.margin.start,
+      bottom: vertical.margin.end,
+    };
+    location = {
+      x: (horizontal.inset.start ?? 0) + margin.left,
+      y: (vertical.inset.start ?? 0) + margin.top,
+    };
+  }
 
   rootInternal.unroundedLayout = {
     order: 0,

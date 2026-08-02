@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: corrected 20260731 viewport campaign, finding=0edfeec1 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  With exactly one automatic block inset, the CSS2 abspos equation makes that
+  inset the weak edge. An empty root with bottom:0 therefore sits at y=800 in
+  an 800px viewport, rather than at its static y=0 (CSS Align 3 §6.2.2).
+  Regenerate with: pnpm gentest fuzz_abspos_root_auto_start_from_end_inset
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: root abspos automatic start inset resolves from end</title>
+</head>
+<body>
+
+<div
+  id="test-root"
+  data-test-page-viewport-width="1280"
+  data-test-page-viewport-height="800"
+  style="bottom: 0;"
+></div>
+
+</body>
+</html>
