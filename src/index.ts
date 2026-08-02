@@ -7,7 +7,7 @@ import { applyAspectRatioClamped } from './geometry.js';
 import type { Opt } from './math.js';
 import { mMax, round, vClamp } from './math.js';
 import type { AvailableSpace, Style } from './style.js';
-import { asIntoOption, maybeResolveSize, overflowAutoMinSize, resolveRectOrZero } from './style.js';
+import { asIntoOption, maybeResolveSize, resolveRectOrZero } from './style.js';
 import type { Layout, Line } from './tree.js';
 import { internals, type LayoutNode, resolveMarginSet } from './tree.js';
 
@@ -320,9 +320,11 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
     if (rerun.size.height >= output.size.height) output = rerun;
   } else if (
     rootInternal.style.aspectRatio !== null &&
+    rootInternal.style.position === 'absolute' &&
     rootSpecified.height !== null &&
     rootInternal.style.minSize.width === 'auto' &&
-    overflowAutoMinSize(rootInternal.style.overflow) === null
+    rootInternal.style.overflow.x === 'visible' &&
+    (rootInternal.style.overflow.y === 'visible' || rootInternal.style.overflow.y === 'clip')
   ) {
     // css-sizing-4 §4.3 gives the ratio-dependent axis a content-based
     // automatic minimum when overflow is non-scrollable. Blink applies that
@@ -335,10 +337,13 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
     // when a percentage minimum cannot resolve at this root seam.
     //
     // Measured in `content-size` mode so the child does not simply re-derive
-    // the width from the ratio again.
+    // the width from the ratio again. Keep the definite block size, though:
+    // Blink's intrinsic query resolves descendants against that constraint.
+    // Chrome 151, a 7x7 absolute root around an empty 3:1 child has a 21px
+    // automatic inline minimum; measuring with an unknown height reports zero.
     const contentWidth = measureChildSize(
       root,
-      { width: null, height: null },
+      { width: null, height: output.size.height },
       parentSize,
       { width: 'min-content', height: 'max-content' },
       'content-size',

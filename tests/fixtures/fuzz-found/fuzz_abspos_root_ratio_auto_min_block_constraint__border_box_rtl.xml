@@ -1,0 +1,13 @@
+<test name="fuzz_abspos_root_ratio_auto_min_block_constraint__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="flex" direction="rtl" position="absolute" width="7px" height="7px" aspect-ratio="1.5">
+      <div display="flex" direction="rtl" aspect-ratio="3"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="21" height="7">
+      <node x="0" y="0" width="21" height="7"/>
+    </node>
+  </expectations>
+</test>

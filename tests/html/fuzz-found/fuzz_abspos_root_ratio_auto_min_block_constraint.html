@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=7866a935 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Blink resolves an absolute ratio box's inline automatic minimum by measuring
+  min-content with its definite block constraint. The 7px-tall 3:1 child thus
+  contributes 21px even though the root's specified width is 7px.
+  Regenerate with: pnpm gentest fuzz_abspos_root_ratio_auto_min_block_constraint
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: abspos root ratio auto-min keeps block constraint</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex; position: absolute; width: 7px; height: 7px; aspect-ratio: 1.5;">
+  <div style="display: flex; aspect-ratio: 3;"></div>
+</div>
+
+</body>
+</html>
