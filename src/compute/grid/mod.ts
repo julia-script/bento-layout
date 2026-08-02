@@ -129,7 +129,14 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     ),
     height: vMaxAs(
       clampGridAvailableSpace(
-        knownDimensions.height ?? preferredSize.height ?? availableSpace.height,
+        knownDimensions.height ??
+          preferredSize.height ??
+          // Grid §11 treats a content-based automatic block size as
+          // max-content. A numeric containing-block/page height is merely
+          // available space; it does not make this grid's own height definite.
+          // Parent-resolved stretch/grid-area sizes arrive through
+          // knownDimensions, while specified/ratio sizes are preferredSize.
+          (typeof availableSpace.height === 'number' ? 'max-content' : availableSpace.height),
         minSize.height,
         maxSize.height,
       ),

@@ -1,0 +1,13 @@
+<test name="fuzz_grid_auto_block_ignores_containing_height__content_box_rtl" use-rounding="true">
+  <viewport width="1280px" height="800px"/>
+  <input>
+    <div display="grid" box-sizing="content-box" direction="rtl" position="absolute" padding-bottom="600px" grid-template-rows="minmax(0px,auto)">
+      <div box-sizing="content-box" direction="rtl" height="320px"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="0" height="920">
+      <node x="0" y="0" width="0" height="320"/>
+    </node>
+  </expectations>
+</test>
