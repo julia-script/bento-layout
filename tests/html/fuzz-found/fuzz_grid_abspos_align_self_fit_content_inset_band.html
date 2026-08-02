@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: batch seed=20260731, finding=0cb61d3c (mode=mixed), minimized
+  chrome: Chrome/151.0.7922.47
+  CSS Align §6.2.2 makes a non-stretch abspos height fit-content and aligns its
+  margin box inside the inset-modified containing block.
+  Regenerate with: pnpm gentest fuzz_grid_abspos_align_self_fit_content_inset_band
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: grid abspos align-self uses fit-content inset band</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; width: 100px; height: 200px;">
+  <div style="position: absolute; top: 20px; bottom: 30px; left: 0; align-self: flex-start;"></div>
+  <div style="position: absolute; top: 20px; bottom: 30px; left: 20px; align-self: center;">H</div>
+  <div style="position: absolute; top: 20px; bottom: 30px; left: 40px; height: 40px; align-self: flex-end;"></div>
+  <div style="position: absolute; top: 20px; bottom: 130px; left: 60px; height: 80px; align-self: safe center;"></div>
+</div>
+
+</body>
+</html>

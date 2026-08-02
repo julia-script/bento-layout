@@ -14,7 +14,6 @@ import {
   computeAlignmentOffset,
   computeContentSizeContribution,
   insetModifiedContainingBlockSize,
-  resolveAbsoluteAxis,
   resolveAlignedAbsoluteAxis,
   resolveSelfAlignmentSafety,
 } from '../alignment.js';
@@ -344,7 +343,17 @@ export function alignAndPositionItem(
   );
 
   let height = size.height;
-  if (height === null && position === 'absolute' && insetVertical.start !== null && insetVertical.end !== null) {
+  // CSS Align §6.2.2 makes an automatic abspos block size fit-content for
+  // every explicit non-stretch alignment. Blink 7922 selects kFitContent for
+  // those values before sizing into the inset-modified containing block: an
+  // empty centered box in an 11px band is 0px tall at y=5.5, not 11px tall.
+  if (
+    height === null &&
+    position === 'absolute' &&
+    insetVertical.start !== null &&
+    insetVertical.end !== null &&
+    absoluteAxisStretches(alignSelf)
+  ) {
     height = Math.max(gridAreaMinusItemMarginsSize.height - insetVertical.start - insetVertical.end, 0);
   } else if (
     resolvedStyleSize.height === null &&
@@ -419,7 +428,10 @@ export function alignAndPositionItem(
       position === 'absolute'
         ? insetModifiedContainingBlockSize(gridAreaMinusItemMarginsSize.width, insetHorizontal)
         : gridAreaSize.width,
-    height: gridAreaMinusItemMarginsSize.height,
+    height:
+      position === 'absolute'
+        ? insetModifiedContainingBlockSize(gridAreaMinusItemMarginsSize.height, insetVertical)
+        : gridAreaMinusItemMarginsSize.height,
   };
 
   let knownSize: Size<Opt> = size;
@@ -521,17 +533,15 @@ export function alignItemWithinArea(
   const autoMarginCount = (margin.start === null ? 1 : 0) + (margin.end === null ? 1 : 0);
   const absoluteAxis =
     position === 'absolute'
-      ? isInlineAxis
-        ? resolveAlignedAbsoluteAxis(
-            gridAreaSize,
-            inset,
-            margin,
-            resolvedSize,
-            isInlineAxis,
-            direction !== 'rtl',
-            actualAbsposAlignment,
-          )
-        : resolveAbsoluteAxis(gridAreaSize, inset, margin, resolvedSize, isInlineAxis, direction !== 'rtl')
+      ? resolveAlignedAbsoluteAxis(
+          gridAreaSize,
+          inset,
+          margin,
+          resolvedSize,
+          isInlineAxis,
+          direction !== 'rtl',
+          actualAbsposAlignment,
+        )
       : null;
   const freeSpace = Math.max(gridAreaSize - resolvedSize - nonAutoMargin.start - nonAutoMargin.end, 0);
   const autoMarginSize = autoMarginCount > 0 ? freeSpace / autoMarginCount : 0;
