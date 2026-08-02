@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260802 batch, finding=56eb7656 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Flexbox §4.5 clamps an aspect-ratio item's min-content size suggestion by
+  definite cross-axis min/max constraints transferred through the ratio. An
+  auto-sized item with max-height zero therefore contributes zero inline size.
+  Regenerate with: pnpm gentest fuzz_flex_ratio_clamps_auto_min_content_suggestion
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: ratio constraints clamp flex auto-min content suggestion</title>
+</head>
+<body>
+
+<div
+  id="test-root"
+  data-test-page-viewport-width="1280"
+  data-test-page-viewport-height="800"
+  style="display: flex;"
+>
+  <div style="max-height: 0; aspect-ratio: 1;">
+    <div style="border-right: 1px solid;"></div>
+  </div>
+</div>
+
+</body>
+</html>

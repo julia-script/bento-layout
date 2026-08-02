@@ -180,6 +180,7 @@ interface AlgoConstants {
   boxSizing: Style['boxSizing'];
   paddingBorderSize: Size<number>;
   mainSizeIsAuto: boolean;
+  crossSizeIsAuto: boolean;
   margin: Rect<number>;
   border: Rect<number>;
   contentBoxInset: Rect<number>;
@@ -810,6 +811,7 @@ function computeConstants(
     boxSizing: style.boxSizing,
     paddingBorderSize: paddingBorderSum,
     mainSizeIsAuto: main(maybeResolveSize(style.size, parentSize), dir) === null,
+    crossSizeIsAuto: cross(maybeResolveSize(style.size, parentSize), dir) === null,
     margin,
     border,
     gap,
@@ -1400,10 +1402,23 @@ function determineFlexBaseSize(
           specifiedMain !== null && childStyle.boxSizing === 'content-box'
             ? specifiedMain + main(paddingBorderAxesSums, dir)
             : specifiedMain;
+        // Flexbox §4.5 defines the content-size suggestion as min-content
+        // clamped by definite cross min/max constraints converted through the
+        // preferred ratio. This is an earlier stage than the final used
+        // automatic minimum, where Blink deliberately ignores transferred
+        // constraints. Preserve both provenance gates: the container and item
+        // must still have automatic preferred cross sizes. A definite container
+        // cross size selects Blink's final TransferredSizesMode::kIgnore path,
+        // while an explicitly preferred item `height: 0` is itself the cross
+        // source; both keep the intrinsic content contribution.
+        const contentSizeSuggestion =
+          child.aspectRatio !== null && constants.crossSizeIsAuto && cross(rawStyleSize, dir) === null
+            ? vClamp(minContentMainSize, child.transferredMinMainSize, child.transferredMaxMainSize)
+            : minContentMainSize;
         const sizeSuggestion =
           transferredMain !== null
-            ? mMin(Math.max(transferredMain, minContentMainSize), specifiedMainBorderBox)
-            : mMin(minContentMainSize, main(child.size, dir));
+            ? mMin(Math.max(transferredMain, contentSizeSuggestion), specifiedMainBorderBox)
+            : mMin(contentSizeSuggestion, main(child.size, dir));
         // For a definite inline flex layout, clamp the automatic minimum only
         // by the item's own maximum main size. Blink deliberately ignores
         // transferred constraints while applying the inline auto-min length
