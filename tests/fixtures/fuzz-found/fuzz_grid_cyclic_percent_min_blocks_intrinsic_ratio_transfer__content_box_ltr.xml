@@ -1,0 +1,17 @@
+<test name="fuzz_grid_cyclic_percent_min_blocks_intrinsic_ratio_transfer__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div box-sizing="content-box" direction="ltr" position="absolute">
+      <div display="grid" box-sizing="content-box" direction="ltr" width="20px" height="10px">
+        <div box-sizing="content-box" direction="ltr" min-width="30%" min-height="1px" aspect-ratio="2" border-top="1px" border-left="0px" border-bottom="1px" border-right="40px"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="20" height="10">
+      <node x="0" y="0" width="20" height="10">
+        <node x="0" y="0" width="52" height="8"/>
+      </node>
+    </node>
+  </expectations>
+</test>

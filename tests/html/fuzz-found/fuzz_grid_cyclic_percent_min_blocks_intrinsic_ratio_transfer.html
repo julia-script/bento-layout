@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=080cea72 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Sizing §5.2 resolves a cyclic percentage minimum against zero during
+  intrinsic contribution sizing. Blink's grid minimum-contribution path uses
+  that specified minimum without an aspect-ratio transfer, then applies both
+  the resolved and transferred minima during final used sizing.
+  Regenerate with: pnpm gentest fuzz_grid_cyclic_percent_min_blocks_intrinsic_ratio_transfer
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: cyclic grid minimum blocks intrinsic ratio transfer</title>
+</head>
+<body>
+
+<div id="test-root">
+  <div style="display: grid; width: 20px; height: 10px;">
+    <div style="box-sizing: content-box; min-width: 30%; min-height: 1px; aspect-ratio: 2; border: 1px solid; border-left-width: 0; border-right-width: 40px;"></div>
+  </div>
+</div>
+
+</body>
+</html>

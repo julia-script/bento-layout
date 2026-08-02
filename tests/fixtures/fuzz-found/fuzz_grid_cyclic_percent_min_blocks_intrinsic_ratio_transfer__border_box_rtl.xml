@@ -1,0 +1,17 @@
+<test name="fuzz_grid_cyclic_percent_min_blocks_intrinsic_ratio_transfer__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="rtl" position="absolute">
+      <div display="grid" direction="rtl" width="20px" height="10px">
+        <div box-sizing="content-box" direction="rtl" min-width="30%" min-height="1px" aspect-ratio="2" border-top="1px" border-left="0px" border-bottom="1px" border-right="40px"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="20" height="10">
+      <node x="0" y="0" width="20" height="10">
+        <node x="-32" y="0" width="52" height="8"/>
+      </node>
+    </node>
+  </expectations>
+</test>

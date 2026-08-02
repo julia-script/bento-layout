@@ -888,8 +888,8 @@ export function itemMinimumContribution(
   const unresolvedPercentageMinimum = typeof rawMinimum === 'object' ? 0 : null;
   let size =
     absGet(preferredSize, axis) ??
-    absGet(transferredMinimumSize, axis) ??
     unresolvedPercentageMinimum ??
+    absGet(transferredMinimumSize, axis) ??
     overflowAutoMinSize(item.overflow);
 
   if (size === null) {
@@ -927,7 +927,10 @@ export function itemMinimumContribution(
   // `min-height: 97px; aspect-ratio: .5` would otherwise transfer 48.5px; with
   // `width: auto; max-width: 20px`, the same transfer is capped at 20px.
   const transferredMinConstraint =
-    minimumAxisSize === null && preferredAxisSize === null && transferredMinimumAxisSize !== null
+    minimumAxisSize === null &&
+    unresolvedPercentageMinimum === null &&
+    preferredAxisSize === null &&
+    transferredMinimumAxisSize !== null
       ? Math.min(transferredMinimumAxisSize, maximumAxisSize ?? Infinity)
       : null;
   const minSize = minimumAxisSize ?? transferredMinConstraint;

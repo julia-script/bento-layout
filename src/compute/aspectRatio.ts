@@ -15,11 +15,7 @@ function maybeAddSize(size: Size<Opt>, adjustment: Size<number>): Size<Opt> {
  * aspect-ratio calculations. css-sizing-3 §3.3 floors a border-box size at
  * its padding/border, while a content-box size grows by those insets.
  */
-export function toUsedBorderBoxSize(
-  size: Size<Opt>,
-  boxSizing: BoxSizing,
-  paddingBorderSize: Size<number>,
-): Size<Opt> {
+export function toUsedBorderBoxSize(size: Size<Opt>, boxSizing: BoxSizing, paddingBorderSize: Size<number>): Size<Opt> {
   if (boxSizing === 'content-box') return maybeAddSize(size, paddingBorderSize);
   return {
     width: size.width === null ? null : Math.max(size.width, paddingBorderSize.width),
@@ -100,12 +96,17 @@ export function transferUsedConstraintToStretchedAxis(
 
 /**
  * css-sizing-4 §4.4 min-size transfers for a box with a preferred ratio.
+ * Blink combines a transferred minimum with a definite minimum in the
+ * destination axis whenever the preferred size there is automatic; its
+ * ComputeMinMaxInlineSizes takes their maximum after resolving both.
  * A transferred minimum is capped by the destination maximum: Chrome sizes
  * an abspos `min-height: 5; max-width: 0; aspect-ratio: 1` box to 0x5, not 5x5.
  */
 export function transferMinSizeThroughAspectRatio(
   minSize: Size<number>,
-  resolvedMinSize: Size<Opt>,
+  // Kept in the shared signature because callers already resolve both ranges;
+  // Blink's used-size transfer is gated by the preferred size, not this value.
+  _resolvedMinSize: Size<Opt>,
   resolvedStyleSize: Size<Opt>,
   resolvedMaxSize: Size<Opt>,
   aspectRatio: number | null,
@@ -128,11 +129,11 @@ export function transferMinSizeThroughAspectRatio(
   const maxSize = maybeAddSize(resolvedMaxSize, boxSizingAdjustment);
   return {
     width:
-      resolvedStyleSize.width === null && resolvedMinSize.width === null
+      resolvedStyleSize.width === null
         ? Math.max(minSize.width, Math.min(fromHeight.width ?? 0, maxSize.width ?? Infinity))
         : minSize.width,
     height:
-      resolvedStyleSize.height === null && resolvedMinSize.height === null
+      resolvedStyleSize.height === null
         ? Math.max(minSize.height, Math.min(fromWidth.height ?? 0, maxSize.height ?? Infinity))
         : minSize.height,
   };
