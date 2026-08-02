@@ -1165,10 +1165,13 @@ function determineFlexBaseSize(
       boxSizingAdjustment = main(sumAxes(rectAdd(padding, border)), dir);
     }
     const flexBasis = mAdd(maybeResolve(childStyle.flexBasis, containerMainSize), boxSizingAdjustment);
-    // `flex-basis` other than `auto` replaces the style main size outright, so
-    // that size must not resurface as a clamp on the item's intrinsic
-    // contribution. See determineContainerMainSize.
-    child.flexBasisIsExplicit = flexBasis !== null;
+    // `flex-basis` other than `auto` replaces the style main size outright,
+    // even when its percentage cannot resolve. Flexbox §7.2.3 makes that
+    // unresolved percentage's used basis `content`; it does not turn it into
+    // `auto` and fall back to width/height. Keep authored provenance separate
+    // from numeric resolvability so later contribution sizing observes the
+    // same distinction.
+    child.flexBasisIsExplicit = childStyle.flexBasis !== 'auto';
 
     const childAvailableSpace = withCross(
       withMain<AvailableSpace>(
@@ -1239,7 +1242,7 @@ function determineFlexBaseSize(
         mainSize === null && child.aspectRatio !== null && transferSource !== null
           ? transferThroughRatio(transferSource, child, dir, 'cross-to-main')
           : null;
-      const definiteFlexBasis = flexBasis ?? mainSize ?? transferredMain;
+      const definiteFlexBasis = flexBasis ?? (child.flexBasisIsExplicit ? null : mainSize) ?? transferredMain;
       child.flexBasisIsDefinite = definiteFlexBasis !== null;
       if (definiteFlexBasis !== null) return definiteFlexBasis;
 

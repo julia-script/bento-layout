@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260802 batch, finding=be8f7ea1 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Flexbox §7.2.3 makes a percentage flex-basis resolve to content when the
+  container's main size is indefinite. It remains distinct from auto, so the
+  item's preferred height must not replace its measured content basis.
+  Regenerate with: pnpm gentest fuzz_flex_unresolved_percentage_basis_is_content
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: unresolved percentage flex basis becomes content</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex; flex-direction: column; width: 0; height: auto;">
+  <div style="height: 1px; flex-basis: 0%;">H</div>
+</div>
+
+</body>
+</html>
