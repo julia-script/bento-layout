@@ -401,6 +401,7 @@ function resolveItemBaselines(
 ): void {
   for (const item of items) {
     item.baseline = null;
+    item.baselineIsSynthesized = false;
     item.baselineShim = 0;
   }
 
@@ -448,6 +449,7 @@ function resolveItemBaselines(
       const baseline = measuredSizeAndBaselines.firstBaselines.y;
       const height = measuredSizeAndBaselines.size.height;
       if (itemFallsBackFromBlockBaselineAlignment(item, baseline === null)) continue;
+      item.baselineIsSynthesized = baseline === null;
       item.baseline = (baseline ?? height) + resolveOrZero(item.margin.top, gridAreaSize.width);
       baselineItems.push(item);
     }
@@ -462,19 +464,8 @@ function resolveItemBaselines(
   }
 }
 
-/**
- * Recompute block-axis baselines once both track axes have their final geometry.
- *
- * Blink's track-sizing baseline pass measures against only one definite axis;
- * its final pass uses the full grid area. Percentage block sizes in fixed rows
- * therefore acquire a different synthesized baseline in the final pass.
- */
-export function resolveFinalItemBaselines(columns: GridTrack[], rows: GridTrack[], items: GridItem[]): void {
-  for (const item of items) {
-    item.baseline = null;
-    item.baselineShim = 0;
-  }
-
+/** Recompute shims from baselines measured against final two-axis grid areas. */
+export function resolveFinalItemBaselineShims(items: GridItem[]): void {
   items.sort((a, b) => a.row.start - b.row.start);
   let index = 0;
   while (index < items.length) {
@@ -488,26 +479,11 @@ export function resolveFinalItemBaselines(columns: GridTrack[], rows: GridTrack[
 
     const baselineItems: GridItem[] = [];
     for (const item of baselineCandidates) {
-      const gridAreaSize = {
-        width:
-          (columns[item.columnIndexes.end] ?? unreachable()).offset -
-          (columns[item.columnIndexes.start + 1] ?? unreachable()).offset,
-        height:
-          (rows[item.rowIndexes.end] ?? unreachable()).offset -
-          (rows[item.rowIndexes.start + 1] ?? unreachable()).offset,
-      };
-      const measuredSizeAndBaselines = performChildLayout(
-        item.node,
-        { width: null, height: null },
-        gridAreaSize,
-        gridAreaSize,
-        'inherent-size',
-      );
-      const baseline = measuredSizeAndBaselines.firstBaselines.y;
-      if (itemFallsBackFromBlockBaselineAlignment(item, baseline === null)) continue;
-
-      item.baseline =
-        (baseline ?? measuredSizeAndBaselines.size.height) + resolveOrZero(item.margin.top, gridAreaSize.width);
+      item.baselineShim = 0;
+      if (itemFallsBackFromBlockBaselineAlignment(item, item.baselineIsSynthesized)) {
+        item.baseline = null;
+        continue;
+      }
       baselineItems.push(item);
     }
 

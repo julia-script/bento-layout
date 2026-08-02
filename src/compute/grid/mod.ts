@@ -29,7 +29,7 @@ import { computeGridSizeEstimate } from './implicit.js';
 import { placeGridItems } from './placement.js';
 import {
   determineIfItemCrossesFlexibleOrIntrinsicTracks,
-  resolveFinalItemBaselines,
+  resolveFinalItemBaselineShims,
   resolveItemTrackIndexes,
   trackSizingAlgorithm,
 } from './trackSizing.js';
@@ -730,11 +730,34 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     false,
   );
 
-  // Blink 7922 computes provisional baselines while sizing intrinsic tracks,
-  // then repeats the calculation with both axes' final grid-area geometry.
-  // This is observable for synthesized baselines whose percentage block size
-  // resolves only after row sizing (css-grid-1 §10.3).
-  if (hasBaselineAlignedItem) resolveFinalItemBaselines(columns, rows, items);
+  const containerAlignmentStyles = { horizontal: justifyItems, vertical: alignItems };
+  const gridAreaForItem = (item: GridItem): Rect<number> => ({
+    top: (rows[item.rowIndexes.start + 1] ?? unreachable()).offset,
+    bottom: (rows[item.rowIndexes.end] ?? unreachable()).offset,
+    left: (columns[item.columnIndexes.start + 1] ?? unreachable()).offset,
+    right: (columns[item.columnIndexes.end] ?? unreachable()).offset,
+  });
+
+  // Blink 7922's CompleteFinalBaselineAlignment measures grid items in a
+  // layout space with both final track axes. Run the same baseline-only pass
+  // before positioning: an auto-sized ratio item first acquires its stretched
+  // inline size here, so its synthesized block baseline can change from the
+  // provisional track-sizing value.
+  if (hasBaselineAlignedItem) {
+    for (const item of items) {
+      const [, , , baseline, baselineIsSynthesized] = alignAndPositionItem(
+        item.node,
+        item.sourceOrder,
+        gridAreaForItem(item),
+        containerAlignmentStyles,
+        0,
+        direction,
+      );
+      item.baseline = baseline;
+      item.baselineIsSynthesized = baselineIsSynthesized;
+    }
+    resolveFinalItemBaselineShims(items);
+  }
 
   // Grid placement is flow-relative while the offset properties are physical
   // (css-grid-1 §9.1), so absolute placement resolves against a flow-ordered
@@ -815,17 +838,10 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
   // Sort items back into source order
   items.sort((a, b) => a.sourceOrder - b.sourceOrder);
 
-  const containerAlignmentStyles = { horizontal: justifyItems, vertical: alignItems };
-
   // Position in-flow children
   for (let index = 0; index < items.length; index++) {
     const item = items[index] ?? unreachable();
-    const gridArea: Rect<number> = {
-      top: (rows[item.rowIndexes.start + 1] ?? unreachable()).offset,
-      bottom: (rows[item.rowIndexes.end] ?? unreachable()).offset,
-      left: (columns[item.columnIndexes.start + 1] ?? unreachable()).offset,
-      right: (columns[item.columnIndexes.end] ?? unreachable()).offset,
-    };
+    const gridArea = gridAreaForItem(item);
     const [, yPosition, height] = alignAndPositionItem(
       item.node,
       index,

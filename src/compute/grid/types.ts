@@ -525,6 +525,7 @@ export interface GridItem {
   alignSelf: AlignItems;
   justifySelf: AlignItems;
   baseline: Opt;
+  baselineIsSynthesized: boolean;
   baselineShim: number;
 
   /** Placement as GridTrackVec indices */
@@ -572,6 +573,7 @@ export function newGridItem(
     alignSelf: style.alignSelf ?? parentAlignItems,
     justifySelf: style.justifySelf ?? parentJustifyItems,
     baseline: null,
+    baselineIsSynthesized: false,
     baselineShim: 0,
     rowIndexes: { start: 0, end: 0 },
     columnIndexes: { start: 0, end: 0 },

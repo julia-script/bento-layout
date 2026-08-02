@@ -119,7 +119,7 @@ export function alignTracks(
 
 /**
  * Align and size a grid item into its final position.
- * Returns [contentSizeContribution, yPosition, height].
+ * Returns [contentSizeContribution, yPosition, height, blockBaseline, baselineIsSynthesized].
  */
 export function alignAndPositionItem(
   node: LayoutNode,
@@ -128,7 +128,7 @@ export function alignAndPositionItem(
   containerAlignmentStyles: { horizontal: AlignItems | null; vertical: AlignItems | null },
   baselineShim: number,
   direction: Direction,
-): [Size<number>, number, number] {
+): [Size<number>, number, number, number, boolean] {
   const gridAreaSize = { width: gridArea.right - gridArea.left, height: gridArea.bottom - gridArea.top };
 
   const nd = internals(node);
@@ -521,7 +521,9 @@ export function alignAndPositionItem(
     overflow,
   );
 
-  return [contribution, y, finalSize.height];
+  const baselineIsSynthesized = layoutOutput.firstBaselines.y === null;
+  const baseline = (layoutOutput.firstBaselines.y ?? finalSize.height) + (margin.top ?? 0);
+  return [contribution, y, finalSize.height, baseline, baselineIsSynthesized];
 }
 
 /** Finalize first-baseline alignment in the grid's inline axis. */

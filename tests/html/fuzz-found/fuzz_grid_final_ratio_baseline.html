@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=e8fbadaa (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  The ratio item's inline stretch becomes definite only after its intrinsic
+  column is sized by the second-row item. Grid baseline alignment must then be
+  recomputed from the ratio item's final 27x14 box, moving the empty peer to
+  y=14. Regenerate with: pnpm gentest fuzz_grid_final_ratio_baseline
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: recompute ratio baseline after grid track sizing</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; grid-template-columns: minmax(min-content, max-content) auto; grid-template-rows: auto auto; align-items: baseline;">
+  <div style="aspect-ratio: 2; grid-column: 1 / 2; grid-row: 1 / 2;"></div>
+  <div style="grid-column: 2 / 3; grid-row: 1 / 2;"></div>
+  <div style="padding: 1px 10px 1px 17px; grid-column: 1 / 2; grid-row: 2 / 3;"></div>
+</div>
+
+</body>
+</html>
