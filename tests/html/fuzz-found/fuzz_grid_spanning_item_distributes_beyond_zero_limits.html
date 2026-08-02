@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=a0075a32 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Grid §11.5.1 keeps zero-contribution tracks affected when distributing
+  a spanning item's remaining space beyond the tracks' growth limits.
+  Regenerate with: pnpm gentest fuzz_grid_spanning_item_distributes_beyond_zero_limits
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: spanning grid item distributes beyond zero limits</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; width: 17px; height: 20px; grid-template-columns: auto auto;">
+  <div style="margin-left: 55px; margin-right: 120px; grid-column: 1 / span 2;"></div>
+  <div style="grid-column: 1;"></div>
+  <div style="width: 72px; grid-column: 2;"></div>
+</div>
+
+</body>
+</html>

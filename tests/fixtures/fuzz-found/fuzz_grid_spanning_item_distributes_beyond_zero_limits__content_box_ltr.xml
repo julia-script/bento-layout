@@ -1,0 +1,17 @@
+<test name="fuzz_grid_spanning_item_distributes_beyond_zero_limits__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" box-sizing="content-box" direction="ltr" position="absolute" width="17px" height="20px" grid-template-columns="auto auto">
+      <div box-sizing="content-box" direction="ltr" margin-left="55px" margin-right="120px" grid-column-start="1" grid-column-end="span 2"/>
+      <div box-sizing="content-box" direction="ltr" grid-column-start="1"/>
+      <div box-sizing="content-box" direction="ltr" width="72px" grid-column-start="2"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="17" height="20">
+      <node x="55" y="0" width="0" height="10"/>
+      <node x="0" y="10" width="52" height="10"/>
+      <node x="52" y="10" width="72" height="10"/>
+    </node>
+  </expectations>
+</test>

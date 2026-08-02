@@ -819,18 +819,16 @@ function distributeItemSpaceToBaseSize(
   // Skip if there is no space or no affected tracks
   if (space === 0 || !tracks.some(affected)) return;
 
-  // A track whose own single-span items all contributed 0 is held at its base
-  // size, but only while a track without that handicap can absorb the space
-  // instead. If every affected track is in that state there is nothing to
-  // prefer, so they all grow equally (the spec's "distribute space beyond
-  // limits" step) and the flag is ignored.
-  const wasAffected = affected;
-  const zeroLimited = (track: GridTrack): boolean => track.limitedByZeroContribution && wasAffected(track);
-  if (tracks.some(zeroLimited) && tracks.some((t) => wasAffected(t) && !zeroLimited(t))) {
-    affected = (track) => wasAffected(track) && !zeroLimited(track);
-  }
-
   const getBaseSize = (track: GridTrack): number => track.baseSize;
+  // A zero-contribution track has no up-to-limits growth potential, but it
+  // remains affected. Grid §11.5.1 unfreezes every affected intrinsic-max
+  // track when distributing beyond limits; Blink's BeyondLimitsGrowthPotential
+  // likewise returns infinity for every base-size contribution. Filtering the
+  // track out here incorrectly excludes it from that second phase: Chrome 151
+  // splits the remaining 103px of a 175px span equally over base sizes [0, 72],
+  // producing [51.5, 123.5], rather than assigning all 103px to the second track.
+  const effectiveTrackLimit = (track: GridTrack): number =>
+    track.limitedByZeroContribution ? track.baseSize : trackLimit(track);
 
   // 1. Find the space to distribute
   const trackSizes = tracks.reduce((sum, track) => sum + track.baseSize, 0);
@@ -838,7 +836,14 @@ function distributeItemSpaceToBaseSize(
 
   // 2. Distribute space up to limits
   const THRESHOLD = 0.000001;
-  extraSpace = distributeSpaceUpToLimits(extraSpace, tracks, affected, distributionProportion, getBaseSize, trackLimit);
+  extraSpace = distributeSpaceUpToLimits(
+    extraSpace,
+    tracks,
+    affected,
+    distributionProportion,
+    getBaseSize,
+    effectiveTrackLimit,
+  );
 
   // 3. Distribute remaining space beyond limits (if any)
   if (extraSpace > THRESHOLD) {
