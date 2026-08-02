@@ -2123,7 +2123,13 @@ function determineHypotheticalCrossSize(
     const ratioAutomaticMinimumApplies =
       child.crossIsArDerived &&
       cross(childStyle.minSize, constants.dir) === 'auto' &&
-      overflowAutoMinSize(child.overflow) === null;
+      overflowAutoMinSize(child.overflow) === null &&
+      // Measurement-backed leaves already return their used size for the
+      // known flexed main axis. Blink 7922 likewise takes the child's layout
+      // result directly in the hypothetical cross-size pass; adding its
+      // intrinsic block size again would defeat the ratio (`H` at 10px wide
+      // and 1.5:1 is 10x7 in Chrome, not its intrinsic 10x10).
+      internals(child.node).measure === undefined;
     const intrinsicCrossMinimum = ratioAutomaticMinimumApplies
       ? measureChildSize(
           child.node,

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: next campaign 20260802, finding=1091d20b (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  During flex cross-size determination Blink lays the item out with its flexed
+  inline size and uses the ratio-derived block size. The text's unconstrained
+  intrinsic line height must not be added as a second automatic-minimum floor:
+  a 10px-wide "H" at aspect-ratio:1.5 is 10x7, not 10x10.
+  Regenerate with: pnpm gentest fuzz_flex_measured_ratio_cross_size
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: measured flex item keeps ratio-derived cross size</title>
+</head>
+<body>
+
+<div id="test-root">
+  <div style="aspect-ratio: 1.5;">H</div>
+</div>
+
+</body>
+</html>
