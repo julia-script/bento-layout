@@ -1830,12 +1830,17 @@ function resolveFlexibleLengths(line: FlexLine, constants: AlgoConstants): void 
     let freeSpace: number;
     if (growing && sumFlexGrow < 1) {
       freeSpace = vMin(
-        initialFreeSpace * sumFlexGrow - totalMainAxisGap,
+        // initialFreeSpace already excludes the line's gaps. Flexbox §9.7
+        // scales that value directly when the unfrozen factor sum is below 1;
+        // Blink's LineFlexer likewise subtracts each gap while computing
+        // initial_free_space_ and never subtracts it again. Chrome: 320px with
+        // a 55px gap and grow .5 gives (320 - 55) * .5 = 132.5px, not 77.5px.
+        initialFreeSpace * sumFlexGrow,
         mSub(main(constants.nodeInnerSize, constants.dir), usedSpace),
       );
     } else if (shrinking && sumFlexShrink < 1) {
       freeSpace = vMax(
-        initialFreeSpace * sumFlexShrink - totalMainAxisGap,
+        initialFreeSpace * sumFlexShrink,
         mSub(main(constants.nodeInnerSize, constants.dir), usedSpace),
       );
     } else {

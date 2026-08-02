@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, findings=680d671b,bf0bd195 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Flexbox §9.7 calculates initial free space after accounting for gaps, then
+  scales that value directly when the unfrozen flex-factor sum is below one.
+  The 0.5 item therefore receives (320px - 55px) * 0.5 = 132.5px.
+  Regenerate with: pnpm gentest fuzz_flex_fractional_grow_gap_free_space
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: gap is not subtracted after fractional flex scaling</title>
+</head>
+<body>
+
+<div id="test-root" style="width: 320px; height: 200px; column-gap: 55px;">
+  <div></div>
+  <div style="flex-grow: 0.5;"></div>
+</div>
+
+</body>
+</html>

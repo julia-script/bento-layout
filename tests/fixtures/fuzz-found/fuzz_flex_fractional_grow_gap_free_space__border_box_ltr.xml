@@ -1,0 +1,15 @@
+<test name="fuzz_flex_fractional_grow_gap_free_space__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="ltr" position="absolute" width="320px" height="200px" column-gap="55px">
+      <div direction="ltr"/>
+      <div direction="ltr" flex-grow="0.5"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="320" height="200">
+      <node x="0" y="0" width="0" height="200"/>
+      <node x="55" y="0" width="133" height="200"/>
+    </node>
+  </expectations>
+</test>
