@@ -250,13 +250,14 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
   const rootMarginsCollapse: Line<boolean> = { start: true, end: true };
 
   // CSS2 §10.3.7's shrink-to-fit formula governs an absolutely positioned
-  // auto-width block or flex root when both inline insets are auto. Blink 7922
-  // selects kFitContent in OutOfFlowLayoutPart before final layout even when
-  // the box has a preferred aspect ratio. Two 50px soft-wrapping runs in 70px
-  // of available space become 70x20, not their 100x10 max-content layout; an
-  // empty shrinkable 1px flex-basis contribution remains 0x0 at ratio 1.
+  // auto-width root when both inline insets are auto. Blink 7922 selects
+  // kFitContent from the inset state in OutOfFlowLayoutPart, independently of
+  // the box's formatting context and even when it has a preferred aspect
+  // ratio. Two 50px soft-wrapping runs in 70px of available space become
+  // 70x20, not their 100x10 max-content layout; an empty shrinkable 1px
+  // flex-basis contribution remains 0x0 at ratio 1.
   if (
-    (rootStyle.display === 'block' || rootStyle.display === 'flex') &&
+    (rootStyle.display === 'block' || rootStyle.display === 'flex' || rootStyle.display === 'grid') &&
     rootStyle.position === 'absolute' &&
     rootStyle.inset.left === 'auto' &&
     rootStyle.inset.right === 'auto' &&

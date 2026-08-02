@@ -1,0 +1,13 @@
+<test name="fuzz_abspos_grid_shrink_to_fit_dependency_layout__border_box_ltr" use-rounding="true">
+  <viewport width="1280px" height="800px"/>
+  <input>
+    <div display="grid" direction="ltr" position="absolute">
+      <div direction="ltr" aspect-ratio="1" padding-left="1px" padding-right="100%"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="2" height="3">
+      <node x="0" y="0" width="4" height="4"/>
+    </node>
+  </expectations>
+</test>
