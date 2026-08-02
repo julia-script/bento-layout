@@ -2366,7 +2366,44 @@ function determineUsedCrossSize(flexLines: FlexLine[], constants: AlgoConstants)
           detail: 'stretched to the flex line cross size',
         });
       } else {
-        setCross(child.targetSize, constants.dir, cross(child.hypotheticalInnerSize, constants.dir));
+        // Flexbox §9.4 step 11 recalculates a cross size that depends on
+        // available cross space against the flex line, not the container.
+        // This matters for a column item's auto inline size: Blink's
+        // BuildSpaceForLayout replaces its available inline size with
+        // `line_cross_size` before ComputeInlineSizeForFragment. Chrome 151,
+        // a 97px-wide wrapping column whose sibling makes the line 255px wide,
+        // expands text from its 97px hypothetical width to its 120px
+        // max-content width while preserving the already-resolved 20px height.
+        const autoInlineDependsOnLine =
+          constants.isColumn && child.aspectRatio === null && cross(childStyle.size, constants.dir) === 'auto';
+        if (autoInlineDependsOnLine) {
+          const usedCross = Math.max(
+            vClamp(
+              measureFitContentCrossSize(
+                child.node,
+                withMain({ width: null, height: null }, constants.dir, main(child.targetSize, constants.dir)),
+                constants.nodeInnerSize,
+                withCross(
+                  withMain<AvailableSpace>(
+                    { width: 'max-content', height: 'max-content' },
+                    constants.dir,
+                    main(constants.containerSize, constants.dir),
+                  ),
+                  constants.dir,
+                  lineCrossSize,
+                ),
+                child.margin,
+                constants.dir,
+              ),
+              cross(child.minSize, constants.dir),
+              cross(child.maxSize, constants.dir),
+            ),
+            rectCrossAxisSum(rectAdd(child.padding, child.border), constants.dir),
+          );
+          setCross(child.targetSize, constants.dir, usedCross);
+        } else {
+          setCross(child.targetSize, constants.dir, cross(child.hypotheticalInnerSize, constants.dir));
+        }
       }
 
       setCross(

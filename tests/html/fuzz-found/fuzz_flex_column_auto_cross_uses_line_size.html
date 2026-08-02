@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=53665f6f (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Flexbox §9.4 step 11 recalculates an auto inline cross size against the
+  flex line's cross size. The wide sibling makes the line 255px, so the text
+  uses its 120px max-content width rather than the 97px container width.
+  Regenerate with: pnpm gentest fuzz_flex_column_auto_cross_uses_line_size
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: column auto cross size uses the flex line</title>
+</head>
+<body>
+
+<div id="test-root" style="max-width: 97px; flex-direction: column; flex-wrap: wrap; align-items: end;">
+  <div style="margin-left: 55px; margin-right: 200px;"></div>
+  <div>HH&#8203;HH&#8203;HHHH&#8203;HHH&#8203;H</div>
+</div>
+
+</body>
+</html>
