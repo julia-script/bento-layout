@@ -764,9 +764,12 @@ function itemKnownDimensions(item: GridItem, gridAreaSize: Size<Opt>): Size<Opt>
  *
  * Grid §11 sizes rows after columns and requires block-axis contributions to
  * use the resulting inline available space. For every non-stretch self
- * alignment, Grid §6.6 makes an automatic inline size fit-content. Blink's
- * `BlockContributionSize()` gets that used width from its measurement
- * constraint space before reading the fragment's block size.
+ * alignment, Grid §6.6 makes an automatic inline size fit-content. Grid §10.2
+ * gives auto margins precedence over self-alignment, so an inline auto margin
+ * also suppresses implicit stretch. Blink 7922 keeps `kFitContent` when
+ * `AxisEdgeFromItemPosition()` sees that margin; its `BlockContributionSize()`
+ * gets the used width from the measurement constraint space before reading
+ * the fragment's block size.
  */
 function itemContributionKnownDimensions(item: GridItem, axis: AbsoluteAxis, gridAreaSize: Size<Opt>): Size<Opt> {
   const knownDimensions = itemKnownDimensions(item, gridAreaSize);
@@ -774,7 +777,7 @@ function itemContributionKnownDimensions(item: GridItem, axis: AbsoluteAxis, gri
     axis !== 'vertical' ||
     knownDimensions.width !== null ||
     gridAreaSize.width === null ||
-    item.justifySelf.keyword === 'stretch'
+    (item.justifySelf.keyword === 'stretch' && item.margin.left !== 'auto' && item.margin.right !== 'auto')
   ) {
     return knownDimensions;
   }

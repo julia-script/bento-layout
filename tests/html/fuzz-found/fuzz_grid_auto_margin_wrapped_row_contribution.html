@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: seed=20260731 index=969 (mode=mixed), id=e24776c0
+  date: 2026-08-02
+  chrome: Chrome/151.0.7922.47
+  An inline auto margin takes precedence over the grid item's implicit stretch
+  alignment (css-grid-1 §10.2), so its automatic inline size is fit-content.
+  Row track sizing must measure the item's block contribution at that used
+  inline size (css-grid-1 §11). Blink 7922 preserves kFitContent in
+  AxisEdgeFromItemPosition and BlockContributionSize therefore sees the 50px
+  width, wrapping this text to three 10px lines rather than one 120px line.
+  Regenerate the XML fixtures with:
+  pnpm gentest fuzz_grid_auto_margin_wrapped_row_contribution
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: grid auto margin wraps row contribution</title>
+</head>
+<body>
+
+<div id="test-root" style="width: 40px; height: 1px;">
+  <div style="display: grid;">
+    <div style="margin: 97px auto 55px 17px;">
+      <div>HHHHH&#8203;HHHH&#8203;HHH</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
