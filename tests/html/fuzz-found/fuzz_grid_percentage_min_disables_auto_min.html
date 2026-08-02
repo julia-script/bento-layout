@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: batch seed=20260731, finding=0345bc04 (mode=mixed), minimized
+  chrome: Chrome/151.0.7922.47
+  A percentage min-height with an indefinite intrinsic contribution basis is
+  still specified, so it disables the grid item's automatic content minimum.
+  Regenerate with: pnpm gentest fuzz_grid_percentage_min_disables_auto_min
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: grid percentage minimum disables auto minimum</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; height: 1px;">
+  <div style="min-height: 50%;">H</div>
+</div>
+
+</body>
+</html>

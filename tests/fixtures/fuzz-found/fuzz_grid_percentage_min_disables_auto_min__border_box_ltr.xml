@@ -1,0 +1,15 @@
+<test name="fuzz_grid_percentage_min_disables_auto_min__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" direction="ltr" position="absolute" height="1px">
+      <text direction="ltr" min-height="50%">
+        H
+      </text>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="10" height="1">
+      <node x="0" y="0" width="10" height="1"/>
+    </node>
+  </expectations>
+</test>

@@ -945,7 +945,22 @@ export function itemMinimumContribution(
     boxSizingAdjustment,
   );
 
-  let size = absGet(preferredSize, axis) ?? absGet(transferredMinimumSize, axis) ?? overflowAutoMinSize(item.overflow);
+  // Track sizing deliberately leaves the contribution axis's grid-area size
+  // indefinite. A percentage minimum therefore cannot resolve yet, but it is
+  // still a specified minimum — not `auto` — so it disables the grid item's
+  // content-based automatic minimum (css-grid-1 §6.6). Blink similarly keeps
+  // percent min lengths distinct from auto while computing contributions.
+  // Contribute zero at this intrinsic stage; item layout later resolves the
+  // percentage against the final, definite grid area. Chrome, a 1px-tall grid
+  // with `min-height: 50%` around 10px text, stretches the item to 1px rather
+  // than letting an accidental automatic minimum hold it at 10px.
+  const rawMinimum = absGet(item.minSize, axis);
+  const unresolvedPercentageMinimum = typeof rawMinimum === 'object' ? 0 : null;
+  let size =
+    absGet(preferredSize, axis) ??
+    absGet(transferredMinimumSize, axis) ??
+    unresolvedPercentageMinimum ??
+    overflowAutoMinSize(item.overflow);
 
   if (size === null) {
     // Automatic minimum size. See https://www.w3.org/TR/css-grid-1/#min-size-auto
