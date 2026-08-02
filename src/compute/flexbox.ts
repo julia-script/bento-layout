@@ -1200,7 +1200,7 @@ function determineFlexBaseSize(
       dir,
       mClamp(cross(childKnownDimensions, dir), cross(transferredMinSize, dir), cross(transferredMaxSize, dir)),
     );
-    if (
+    const willStretchChildCross =
       !constants.isWrap &&
       ((cross(constants.nodeInnerSize, dir) !== null &&
         (constants.isColumn ||
@@ -1212,8 +1212,8 @@ function determineFlexBaseSize(
       !child.alignSelf.safe &&
       !rectCrossStart(child.marginIsAuto, constants.dir) &&
       !rectCrossEnd(child.marginIsAuto, constants.dir) &&
-      cross(childKnownDimensions, dir) === null
-    ) {
+      cross(childKnownDimensions, dir) === null;
+    if (willStretchChildCross) {
       // Only a single-line container with its own definite cross size makes
       // this stretched size definite during flex-base calculation
       // (css-flexbox-1 §9.8; Blink gates the same path on !is_multi_line_ and
@@ -1424,6 +1424,7 @@ function determineFlexBaseSize(
           })()
         : 0;
 
+    const ignoresTransferredSizesForInlineAutoMin = constants.isRow && willStretchChildCross;
     child.resolvedMinimumMainSize =
       styleMinMainSize ??
       ((): number => {
@@ -1500,7 +1501,10 @@ function determineFlexBaseSize(
         // while an explicitly preferred item `height: 0` is itself the cross
         // source; both keep the intrinsic content contribution.
         const contentSizeSuggestion =
-          child.aspectRatio !== null && constants.crossSizeIsAuto && cross(rawStyleSize, dir) === null
+          child.aspectRatio !== null &&
+          constants.crossSizeIsAuto &&
+          cross(rawStyleSize, dir) === null &&
+          !ignoresTransferredSizesForInlineAutoMin
             ? vClamp(minContentMainSize, child.transferredMinMainSize, child.transferredMaxMainSize)
             : minContentMainSize;
         const sizeSuggestion =
@@ -1516,11 +1520,10 @@ function determineFlexBaseSize(
         // such ignore mode, and intrinsic flex contributions still honor the
         // transferred maximum (the same item in an auto-width root contributes
         // 0px), so retain the transferred clamp in those paths.
-        const autoMinMax =
-          constants.isRow && typeof main(availableSpace, dir) === 'number'
-            ? main(child.maxSize, dir)
-            : main(transferredMaxSize, dir);
-        const clampedMinContentSize = mMin(sizeSuggestion, autoMinMax) as number;
+        const autoMinMax = ignoresTransferredSizesForInlineAutoMin
+          ? main(child.maxSize, dir)
+          : main(transferredMaxSize, dir);
+        const clampedMinContentSize = mMin(sizeSuggestion, autoMinMax) ?? sizeSuggestion ?? 0;
         return vMax(clampedMinContentSize, main(paddingBorderAxesSums, dir));
       })();
 
@@ -1531,9 +1534,10 @@ function determineFlexBaseSize(
     // for `max-height:20px; aspect-ratio:2`. An explicit flex-basis bypasses
     // both transferred bounds at this hypothetical boundary.
     const transferredHypotheticalMin = child.flexBasisIsExplicit ? null : child.transferredMinMainSize;
-    const hypotheticalMax = child.flexBasisIsExplicit
-      ? main(child.maxSize, constants.dir)
-      : main(transferredMaxSize, constants.dir);
+    const hypotheticalMax =
+      child.flexBasisIsExplicit || ignoresTransferredSizesForInlineAutoMin
+        ? main(child.maxSize, constants.dir)
+        : main(transferredMaxSize, constants.dir);
     const hypotheticalInnerMinMain = vMax(child.resolvedMinimumMainSize, main(paddingBorderAxesSums, constants.dir));
     const hypotheticalInnerSize = vClamp(
       child.flexBasis,

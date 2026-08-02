@@ -1,0 +1,23 @@
+<test name="fuzz_flex_stretched_auto_min_ignores_transferred_max__content_box_ltr" use-rounding="true">
+  <viewport width="1280px" height="800px"/>
+  <input>
+    <div box-sizing="content-box" direction="ltr" position="absolute">
+      <div box-sizing="content-box" direction="ltr">
+        <div box-sizing="content-box" direction="ltr">
+          <text box-sizing="content-box" direction="ltr" max-height="0px" aspect-ratio="1">
+            H
+          </text>
+        </div>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="0" height="0">
+      <node x="0" y="0" width="0" height="0">
+        <node x="0" y="0" width="10" height="0">
+          <node x="0" y="0" width="10" height="0"/>
+        </node>
+      </node>
+    </node>
+  </expectations>
+</test>
