@@ -111,6 +111,7 @@ interface FlexItem {
 
   // --- Per-pass (must be reset on reuse) ---
   resolvedMinimumMainSize: number;
+  minContentContribution: number;
 
   flexBasis: number;
   /** `flex-basis` was specified (not `auto`), so it replaces the style main size. */
@@ -785,6 +786,7 @@ function generateAnonymousFlexItems(node: LayoutNode, constants: AlgoConstants):
       frozen: false,
 
       resolvedMinimumMainSize: 0,
+      minContentContribution: 0,
       hypotheticalInnerSize: sizeZero(),
       hypotheticalOuterSize: sizeZero(),
       crossIsArDerived: false,
@@ -1138,35 +1140,39 @@ function determineFlexBaseSize(
     // Note: the `parent_size` in the main axis is deliberately not set (percentage size in an
     // axis should not contribute to a min-content contribution in that same axis).
     const styleMinMainSize = main(child.minSize, dir) ?? overflowAutoMinSize(child.overflow);
+    const needsMinContentContribution =
+      constants.isRow && constants.isWrap && typeof main(availableSpace, dir) !== 'number';
+    const minContentMainSize =
+      styleMinMainSize === null || needsMinContentContribution
+        ? ((): number => {
+            const minContentAvailableSpace = withCross<AvailableSpace>(
+              { width: 'min-content', height: 'min-content' },
+              dir,
+              crossAxisAvailableSpace,
+            );
+            // The *content* size suggestion must be measured without the cross
+            // size imposed: with it, an item that has an `aspect-ratio` derives
+            // its main size straight from the ratio and never consults its
+            // content, so content wider than the ratio is invisible here. The
+            // ratio's own contribution arrives separately as `transferredMain`
+            // below, and the two are joined — they are distinct suggestions in
+            // css-flexbox-1 §4.5, not alternatives.
+            const contentMeasureKnownDimensions =
+              child.aspectRatio !== null ? withCross(childKnownDimensions, dir, null) : childKnownDimensions;
+            return measureChildSize(
+              child.node,
+              contentMeasureKnownDimensions,
+              childInsetParentSize,
+              minContentAvailableSpace,
+              'content-size',
+              mainAxis(dir),
+            );
+          })()
+        : 0;
 
     child.resolvedMinimumMainSize =
       styleMinMainSize ??
       ((): number => {
-        const minContentMainSize = ((): number => {
-          const childAvailableSpace = withCross<AvailableSpace>(
-            { width: 'min-content', height: 'min-content' },
-            dir,
-            crossAxisAvailableSpace,
-          );
-          // The *content* size suggestion must be measured without the cross
-          // size imposed: with it, an item that has an `aspect-ratio` derives
-          // its main size straight from the ratio and never consults its
-          // content, so content wider than the ratio is invisible here. The
-          // ratio's own contribution arrives separately as `transferredMain`
-          // below, and the two are joined — they are distinct suggestions in
-          // css-flexbox-1 §4.5, not alternatives.
-          const contentMeasureKnownDimensions =
-            child.aspectRatio !== null ? withCross(childKnownDimensions, dir, null) : childKnownDimensions;
-          return measureChildSize(
-            child.node,
-            contentMeasureKnownDimensions,
-            childInsetParentSize,
-            childAvailableSpace,
-            'content-size',
-            mainAxis(dir),
-          );
-        })();
-
         // 4.5. Automatic Minimum Size of Flex Items.
         //
         // The content-based minimum is the *content size suggestion*, joined by
@@ -1253,6 +1259,25 @@ function determineFlexBaseSize(
 
     setMain(child.hypotheticalInnerSize, constants.dir, hypotheticalInnerSize);
     setMain(child.hypotheticalOuterSize, constants.dir, hypotheticalOuterSize);
+
+    if (needsMinContentContribution) {
+      // css-flexbox-1 §9.9.1: the min-content main size of a multi-line
+      // container is the largest *min-content contribution*. This is the
+      // item's intrinsic contribution before flex-basis/grow/shrink caps;
+      // Blink records ComputeMinAndMaxContentContribution(...).min_size here
+      // and uses it as a floor for both intrinsic container sizes.
+      const specifiedMain = main(rawStyleSize, dir);
+      const specifiedMainBorderBox =
+        specifiedMain !== null && childStyle.boxSizing === 'content-box'
+          ? specifiedMain + main(paddingBorderAxesSums, dir)
+          : specifiedMain;
+      child.minContentContribution =
+        vClamp(
+          Math.max(minContentMainSize, child.resolvedMinimumMainSize, specifiedMainBorderBox ?? 0),
+          main(child.minSize, dir),
+          main(child.maxSize, dir),
+        ) + rectMainAxisSum(child.margin, dir);
+    }
   }
 }
 
@@ -1359,30 +1384,12 @@ function determineContainerMainSize(
       // preferred-height items of 120px and 320px to 440px (450px with a 10px
       // gap), while this minimum-only shortcut collapses both empty items to 0.
       if (mainAvs === 'min-content' && constants.isWrap && constants.isRow) {
-        const longestLineLength = lines.reduce((acc, line) => {
-          const lineMainAxisGap = sumAxisGaps(main(constants.gap, constants.dir), line.items.length);
-          const totalTargetSize = line.items.reduce((sum, child) => {
-            const paddingBorderSum = rectMainAxisSum(rectAdd(child.padding, child.border), constants.dir);
-            // Floor by the *resolved* minimum, not the style `min-*`: with
-            // `flex: 1 0 0` and no explicit min, the style min is null and the
-            // basis is 0, so a wrapping container reported a min-content main
-            // size of 0 and its items' content never contributed. The general
-            // path below already uses resolvedMinimumMainSize, which carries
-            // the §4.5 automatic minimum.
-            //
-            // The flex base size is a floor only for an item that cannot shrink
-            // — the same test the general path applies via `flexBasisMin`.
-            // A shrinkable item gives up its basis under a min-content
-            // constraint: Chrome sizes `flex-basis: 10px` with default shrink
-            // to 0 when empty and to 24 (its text) with content, but keeps the
-            // 10 once `flex-shrink: 0`.
-            const basisFloor = child.flexShrink === 0 ? child.flexBasis : 0;
-            const childMin = vMax(vMax(basisFloor, main(child.minSize, constants.dir)), child.resolvedMinimumMainSize);
-            return sum + Math.max(childMin + rectMainAxisSum(child.margin, constants.dir), paddingBorderSum);
-          }, 0);
-          return Math.max(acc, totalTargetSize + lineMainAxisGap);
-        }, 0);
-        return longestLineLength + mainContentBoxInset;
+        const largestContribution = lines.reduce(
+          (largest, line) =>
+            line.items.reduce((lineLargest, item) => Math.max(lineLargest, item.minContentContribution), largest),
+          0,
+        );
+        return largestContribution + mainContentBoxInset;
       }
 
       // MinContent | MaxContent
@@ -1608,6 +1615,15 @@ function determineContainerMainSize(
 
         const gapSum = sumAxisGaps(main(constants.gap, constants.dir), line.items.length);
         mainSize = Math.max(mainSize, itemMainSizeSum + gapSum);
+      }
+
+      if (constants.isWrap && constants.isRow) {
+        const largestContribution = lines.reduce(
+          (largest, line) =>
+            line.items.reduce((lineLargest, item) => Math.max(lineLargest, item.minContentContribution), largest),
+          0,
+        );
+        mainSize = Math.max(mainSize, largestContribution);
       }
 
       return mainSize + mainContentBoxInset;
