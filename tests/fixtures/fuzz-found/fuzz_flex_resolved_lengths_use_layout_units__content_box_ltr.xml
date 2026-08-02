@@ -1,0 +1,21 @@
+<test name="fuzz_flex_resolved_lengths_use_layout_units__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div box-sizing="content-box" direction="ltr" position="absolute">
+      <div box-sizing="content-box" direction="ltr">
+        <div box-sizing="content-box" direction="ltr" width="97px" height="75%">
+          <div box-sizing="content-box" direction="ltr" width="20%" height="60%" margin-top="100%" margin-left="30%" margin-bottom="auto" margin-right="3px"/>
+        </div>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="97" height="97">
+      <node x="0" y="0" width="97" height="97">
+        <node x="0" y="0" width="97" height="73">
+          <node x="29" y="97" width="19" height="44"/>
+        </node>
+      </node>
+    </node>
+  </expectations>
+</test>

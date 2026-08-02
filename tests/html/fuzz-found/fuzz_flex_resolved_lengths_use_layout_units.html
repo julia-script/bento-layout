@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=df6671bc (mode=flex)
+  chrome: Chrome/151.0.7922.47
+  Blink converts each resolved CSS length to its 1/64px LayoutUnit before
+  combining margins and sizes. Here 30% and 20% of 97px become 29.09375px and
+  19.390625px, keeping their summed edge below the 48.5px rounding boundary.
+  Regenerate with: pnpm gentest fuzz_flex_resolved_lengths_use_layout_units
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: flex resolved lengths use layout units</title>
+</head>
+<body>
+
+<div id="test-root">
+  <div>
+    <div style="width: 97px; height: 75%;">
+      <div style="width: 20%; height: 60%; margin: 100% 3px auto 30%;"></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

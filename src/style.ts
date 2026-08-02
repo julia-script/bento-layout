@@ -992,8 +992,14 @@ export function mergeStyle(base: Style, input: StyleInput): Style {
 /** LengthPercentage[Auto]/Dimension → Option<f32> against an optional basis. */
 export function maybeResolve(value: LengthPercentageAuto, context: Opt): Opt {
   if (value === 'auto') return null;
-  if (typeof value === 'number') return value;
-  return context !== null ? context * value.percent : null;
+  const resolved = typeof value === 'number' ? value : context !== null ? context * value.percent : null;
+  if (resolved === null) return null;
+  // Blink stores every resolved CSS length in a 1/64px LayoutUnit. Its
+  // FixedPoint(float) constructor truncates toward zero, including values from
+  // MinimumValueForLength. Keep style lengths on that same grid before layout
+  // arithmetic combines them: in Chrome 151, 30% + 20% of 97px is
+  // 29.09375 + 19.390625 = 48.484375, not the unquantized 48.5px.
+  return Math.trunc(resolved * 64) / 64;
 }
 
 export function resolveOrZero(value: LengthPercentageAuto, context: Opt): number {
