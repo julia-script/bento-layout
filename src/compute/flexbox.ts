@@ -1224,15 +1224,12 @@ function determineContainerMainSize(
         const longestLineLength = lines.reduce((acc, line) => {
           const lineMainAxisGap = sumAxisGaps(main(constants.gap, constants.dir), line.items.length);
           const totalTargetSize = line.items.reduce((sum, child) => {
-            const paddingBorderSum = rectMainAxisSum(rectAdd(child.padding, child.border), constants.dir);
-            return (
-              sum +
-              Math.max(
-                vMax(child.flexBasis, main(child.minSize, constants.dir)) +
-                  rectMainAxisSum(child.margin, constants.dir),
-                paddingBorderSum,
-              )
-            );
+            // Use the §9.2 hypothetical main size, which has already been
+            // clamped by the used minimum. Reconstructing it from flex-basis
+            // and the style min drops the §4.5 automatic minimum: Chrome gives
+            // a `flex-basis: 0` text item 10px here, not 0. Blink likewise
+            // sizes this path from `max_sum_hypothetical_main_size`.
+            return sum + main(child.hypotheticalOuterSize, constants.dir);
           }, 0);
           return Math.max(acc, totalTargetSize + lineMainAxisGap);
         }, 0);

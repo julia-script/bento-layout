@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: batch seed=20260731, finding=80f323ec (mode=flex), minimized
+  chrome: Chrome/151.0.7922.47
+  An auto-height nested column keeps its text child's content-based automatic
+  minimum when its containing row offers 0px of cross-axis available space.
+  Regenerate with: pnpm gentest fuzz_flex_numeric_available_auto_minimum
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: numeric available space preserves flex automatic minimum</title>
+</head>
+<body>
+
+<div id="test-root" style="height: 0; align-items: center;">
+  <div style="flex-direction: column;">
+    <div style="flex-basis: 0;">H</div>
+  </div>
+</div>
+
+</body>
+</html>
