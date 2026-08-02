@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=bca2bec5 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Sizing 3 §5.2.1 ignores cyclic percentage maximum sizes while computing
+  intrinsic contributions. The 20px gutter sizes the parent track; max-width
+  clamps only the final ratio item to 12px.
+  Regenerate with: pnpm gentest fuzz_grid_cyclic_percent_max_ratio_contribution
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: cyclic percentage max does not feed back through ratio</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; position: absolute;">
+  <div style="display: grid; max-width: 60%; aspect-ratio: 1; grid-template-columns: auto auto; column-gap: 20px;"></div>
+</div>
+
+</body>
+</html>

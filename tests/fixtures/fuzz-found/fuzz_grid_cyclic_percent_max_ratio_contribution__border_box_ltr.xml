@@ -1,0 +1,13 @@
+<test name="fuzz_grid_cyclic_percent_max_ratio_contribution__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" direction="ltr" position="absolute">
+      <div display="grid" direction="ltr" max-width="60%" aspect-ratio="1" column-gap="20px" grid-template-columns="auto auto"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="20" height="12">
+      <node x="0" y="0" width="12" height="12"/>
+    </node>
+  </expectations>
+</test>

@@ -497,11 +497,27 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
           innerNodeSize,
           (track) => track.baseSize,
         );
-        const availableSpaceForItem: Size<Opt> = { width: null, height: gridAreaSize.height };
+        // CSS Sizing 3 §5.2.1 treats a cyclic percentage max/preferred size as
+        // its initial value while calculating intrinsic contributions. If a
+        // ratio item crosses intrinsic tracks in both axes, its first row pass
+        // can nevertheless contain a block size derived from that percentage.
+        // Feeding that self-derived block size back into the column rerun
+        // applies the percentage twice. Chrome 151 keeps a 20px intrinsic gap
+        // as the column contribution and only clamps the final item to 60% =
+        // 12px; the feedback loop produced a 12px track and a 7.2px item.
+        const cyclicPercentageInlineConstraint =
+          gridAreaSize.width === null &&
+          item.aspectRatio !== null &&
+          item.crossesIntrinsicRow &&
+          (typeof item.size.width === 'object' || typeof item.maxSize.width === 'object');
+        const contributionGridAreaSize = cyclicPercentageInlineConstraint
+          ? { ...gridAreaSize, height: null }
+          : gridAreaSize;
+        const availableSpaceForItem: Size<Opt> = { width: null, height: contributionGridAreaSize.height };
         const newMinContentContribution = itemMinContentContribution(
           item,
           'horizontal',
-          gridAreaSize,
+          contributionGridAreaSize,
           availableSpaceForItem,
         );
 
