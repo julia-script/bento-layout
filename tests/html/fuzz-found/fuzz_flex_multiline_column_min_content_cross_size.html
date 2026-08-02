@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated batch, minimized from finding 6bb76ee1
+  date: 2026-08-02
+  chrome: Chrome/151.0.7922.47
+  CSS Flexbox §9.9.2 defines a multi-line column flex container's min-content
+  cross size as its largest item min-content contribution. It is not the sum
+  of the cross sizes of its wrapped lines, which is the max-content rule.
+  Regenerate with: pnpm gentest fuzz_flex_multiline_column_min_content_cross_size
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: multiline column min-content cross size</title>
+</head>
+<body>
+
+<div id="test-root" style="width: 4px; height: 0;">
+  <div style="display: flex; flex-direction: column; flex-wrap: wrap;">
+    <div style="min-width: 3px;"></div>
+    <div style="border-top: 1px solid; border-right: 2px solid;"></div>
+  </div>
+</div>
+
+</body>
+</html>

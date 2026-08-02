@@ -361,6 +361,23 @@ function computePreliminary(node: LayoutNode, inputs: LayoutInput, ratioMainAuto
   // 1. Generate anonymous flex items as described in §4 Flex Items.
   let flexItems = generateAnonymousFlexItems(node, constants);
 
+  // css-flexbox-1 §9.9.2: a multi-line column's min-content cross size is
+  // the largest min-content contribution of its items. The sum of flex line
+  // cross sizes is its *max-content* size instead. Keep running the normal
+  // algorithm so the other requested axis is still available, then replace
+  // only this intrinsic result before returning. Chrome, two 0px-tall items
+  // forced onto separate column lines with cross contributions 3px and 2px,
+  // reports min-content width 3px and max-content width 5px.
+  const intrinsicMinColumnCross =
+    runMode === 'compute-size' &&
+    inputs.axis !== 'vertical' &&
+    constants.isColumn &&
+    constants.isWrap &&
+    cross(constants.nodeOuterSize, constants.dir) === null &&
+    cross(outerAvailableSpace, constants.dir) === 'min-content'
+      ? determineIntrinsicColumnCrossSize(flexItems, constants, outerAvailableSpace)
+      : null;
+
   // Blink resolves the intrinsic inline size of a non-wrapping column before
   // flexing (FlexLayoutAlgorithm::ComputeMinMaxSizes). Do that two-pass setup
   // when an item subtree contains an aspect ratio: a descendant's ratio can
@@ -567,6 +584,9 @@ function computePreliminary(node: LayoutNode, inputs: LayoutInput, ratioMainAuto
   // We have the container size.
   // If our caller does not care about performing layout we are done now.
   if (runMode === 'compute-size') {
+    if (intrinsicMinColumnCross !== null) {
+      setCross(constants.containerSize, constants.dir, intrinsicMinColumnCross);
+    }
     return fromOuterSize(constants.containerSize);
   }
 

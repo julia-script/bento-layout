@@ -1,0 +1,19 @@
+<test name="fuzz_flex_multiline_column_min_content_cross_size__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="rtl" position="absolute" width="4px" height="0px">
+      <div display="flex" direction="rtl" flex-direction="column" flex-wrap="wrap">
+        <div direction="rtl" min-width="3px"/>
+        <div direction="rtl" border-top="1px" border-right="2px"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="4" height="0">
+      <node x="0" y="0" width="4" height="0">
+        <node x="1" y="0" width="3" height="0"/>
+        <node x="-1" y="0" width="2" height="1"/>
+      </node>
+    </node>
+  </expectations>
+</test>
