@@ -1716,15 +1716,32 @@ function determineHypotheticalCrossSize(
     // is capped by the axis's own explicit maximum (css-sizing-4 §5.2.2; matches
     // Chrome). An explicit minimum still beats the maximum as usual.
     const rawMinCross = cross(child.minSize, constants.dir);
-    const arMinCross = cross(maybeApplyAspectRatio(child.minSize, child.aspectRatio), constants.dir);
+    const rawMinMain = main(child.minSize, constants.dir);
+    // Min/max values in the flex algorithm are border-box sizes, but an
+    // explicit ratio under `box-sizing: content-box` relates the content boxes
+    // (css-sizing-4 §4.1). Blink likewise passes BoxSizingForAspectRatio into
+    // ComputeTransferredMinMaxBlockSizes. Transfer through the shared helper
+    // so the source inset is stripped and the target inset restored: Chrome
+    // transfers `min-width: 0; padding-right: 1px; aspect-ratio: 1` to a 0px
+    // content-box height, not the already-expanded 1px border-box width.
+    const arMinCross =
+      rawMinCross ??
+      (child.aspectRatio !== null && rawMinMain !== null
+        ? transferThroughRatio(rawMinMain, child, constants.dir, 'main-to-cross')
+        : null);
     const transferredMinCross = !crossStyleIsAuto
       ? rawMinCross
       : rawMinCross !== null
         ? rawMinCross
         : mMin(arMinCross, cross(child.maxSize, constants.dir));
+    const rawMaxCross = cross(child.maxSize, constants.dir);
+    const rawMaxMain = main(child.maxSize, constants.dir);
     const transferredMaxCross = crossStyleIsAuto
-      ? cross(maybeApplyAspectRatio(child.maxSize, child.aspectRatio), constants.dir)
-      : cross(child.maxSize, constants.dir);
+      ? (rawMaxCross ??
+        (child.aspectRatio !== null && rawMaxMain !== null
+          ? transferThroughRatio(rawMaxMain, child, constants.dir, 'main-to-cross')
+          : null))
+      : rawMaxCross;
 
     // An aspect-ratio item with a definite used main size derives its automatic
     // cross size from the ratio rather than from content (css-sizing-4 §5.1).

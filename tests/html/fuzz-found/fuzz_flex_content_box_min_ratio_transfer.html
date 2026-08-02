@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: batch seed=20260731, finding=09e7fa43 (mode=mixed), minimized
+  chrome: Chrome/151.0.7922.47
+  A min-size transferred through aspect-ratio uses the box selected by
+  box-sizing, rather than transferring the already-expanded border box.
+  Regenerate with: pnpm gentest fuzz_flex_content_box_min_ratio_transfer
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: content-box min-size aspect-ratio transfer</title>
+</head>
+<body>
+
+<div id="test-root">
+  <div style="min-width: 0; aspect-ratio: 1; padding-right: 1px;"></div>
+</div>
+
+</body>
+</html>

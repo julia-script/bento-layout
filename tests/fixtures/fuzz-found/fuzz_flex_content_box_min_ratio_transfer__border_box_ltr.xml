@@ -1,0 +1,13 @@
+<test name="fuzz_flex_content_box_min_ratio_transfer__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="ltr" position="absolute">
+      <div direction="ltr" min-width="0px" aspect-ratio="1" padding-right="1px"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="1" height="1">
+      <node x="0" y="0" width="1" height="1"/>
+    </node>
+  </expectations>
+</test>
