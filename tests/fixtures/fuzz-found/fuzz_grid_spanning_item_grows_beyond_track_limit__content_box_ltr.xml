@@ -1,0 +1,15 @@
+<test name="fuzz_grid_spanning_item_grows_beyond_track_limit__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" box-sizing="content-box" direction="ltr" position="absolute" width="3px" height="40px" grid-template-rows="1px" grid-template-columns="1px 337px">
+      <div box-sizing="content-box" direction="ltr" margin-top="10px" margin-left="320px" margin-bottom="0px" margin-right="17px"/>
+      <div box-sizing="content-box" direction="ltr" width="1px" height="320px" grid-row-start="span 2" grid-row-end="2"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="3" height="40">
+      <node x="321" y="10" width="0" height="309"/>
+      <node x="0" y="0" width="1" height="320"/>
+    </node>
+  </expectations>
+</test>

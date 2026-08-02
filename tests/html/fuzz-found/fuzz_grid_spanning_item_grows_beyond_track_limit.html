@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=c7829e75 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Grid §11.5.1 unfreezes affected base sizes when a spanning item's
+  contribution still does not fit after growing tracks to their limits.
+  Regenerate with: pnpm gentest fuzz_grid_spanning_item_grows_beyond_track_limit
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: spanning grid item grows an intrinsic track beyond its limit</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; position: absolute; width: 3px; height: 40px; grid-template-columns: 1px 337px; grid-template-rows: 1px;">
+  <div style="margin: 10px 17px 0 320px;"></div>
+  <div style="width: 1px; height: 320px; grid-row: span 2 / 2;"></div>
+</div>
+
+</body>
+</html>

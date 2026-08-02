@@ -814,18 +814,28 @@ function distributeItemSpaceToBaseSize(
 
   // 3. Distribute remaining space beyond limits (if any)
   if (extraSpace > THRESHOLD) {
-    let filter: (track: GridTrack) => boolean =
+    const preferredBeyondLimitTrack: (track: GridTrack) => boolean =
       intrinsicContributionType === 'minimum'
         ? (track) => maxIsIntrinsicLocal(track)
         : (track) =>
             track.minTrackSizingFunction === 'max-content' || maxIsMaxOrFitContent(track.maxTrackSizingFunction);
+    const preferredAffectedTrack = (track: GridTrack): boolean => affected(track) && preferredBeyondLimitTrack(track);
+    const beyondLimitTrack = tracks.some(preferredAffectedTrack) ? preferredAffectedTrack : affected;
 
-    const numberOfTracks = tracks.filter(affected).filter(filter).length;
-    if (numberOfTracks === 0) {
-      filter = () => true;
-    }
-
-    distributeSpaceUpToLimits(extraSpace, tracks, filter, distributionProportion, getBaseSize, trackLimit);
+    // css-grid-1 §11.5.1 explicitly unfreezes base sizes here. Their growth
+    // limits constrained the first distribution, but no longer cap this one;
+    // Blink's BeyondLimitsGrowthPotential likewise returns infinity for every
+    // base-size contribution. Keep the selection within the affected tracks:
+    // a fixed sibling row is never eligible merely because no preferred
+    // intrinsic-max track exists.
+    distributeSpaceUpToLimits(
+      extraSpace,
+      tracks,
+      beyondLimitTrack,
+      distributionProportion,
+      getBaseSize,
+      () => Infinity,
+    );
   }
 
   // 4. Promote item-incurred increases to planned increases
