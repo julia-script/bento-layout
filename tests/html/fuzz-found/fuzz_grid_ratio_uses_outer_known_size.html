@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=1f420f21 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Sizing 4 §4.1 makes a content-box preferred ratio relate the content
+  boxes even when the grid's known size is represented as an outer size.
+  Regenerate with: pnpm gentest fuzz_grid_ratio_uses_outer_known_size
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: grid ratio uses the outer known size</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; box-sizing: content-box; aspect-ratio: 2; padding: 40px 200px 10px 120px;"></div>
+
+</body>
+</html>

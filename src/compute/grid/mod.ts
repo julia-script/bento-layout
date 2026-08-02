@@ -3,7 +3,7 @@
 
 import { unreachable } from '../../assert.js';
 import type { Rect, Size } from '../../geometry.js';
-import { applyAspectRatioClamped, maybeApplyAspectRatio, rectAdd, sumAxes } from '../../geometry.js';
+import { applyAspectRatioClamped, rectAdd, sumAxes } from '../../geometry.js';
 import type { Opt } from '../../math.js';
 import { mClamp, mSub, vClamp } from '../../math.js';
 import type { AvailableSpace, Direction } from '../../style.js';
@@ -20,6 +20,7 @@ import {
 } from '../../style.js';
 import type { LayoutInput, LayoutNode, LayoutOutput } from '../../tree.js';
 import { fromOuterSize, fromSizesAndBaselines, internals, layoutWithOrder } from '../../tree.js';
+import { maybeApplyAspectRatioUsed } from '../aspectRatio.js';
 import { performChildLayout } from '../dispatch.js';
 import { alignAndPositionItem, alignTracks } from './alignment.js';
 import type { AutoRepeatStrategy } from './explicit.js';
@@ -127,7 +128,12 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
   // height. Flex and block layout already do this (the `derivedFromKnown` step
   // in flexbox.ts); a grid root with `aspect-ratio: .5` around a `min-width: 97`
   // item was 97x10 in Chrome's 97x194.
-  const derivedFromKnown = maybeApplyAspectRatio(knownDimensions, aspectRatio);
+  const derivedFromKnown = maybeApplyAspectRatioUsed(
+    knownDimensions,
+    aspectRatio,
+    style.boxSizing,
+    paddingBorderSize,
+  );
 
   const outerNodeSize: Size<Opt> = {
     width: vMaxOpt(
@@ -367,10 +373,21 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     !isScrollContainer(style.overflow.y);
   const rowFloor = (rowSum: number): Opt =>
     heightIsRatioDerived ? Math.max(resolvedStyleSize.height as number, rowSum) : resolvedStyleSize.height;
+  // Under border-box sizing the block-axis padding/border floor is itself a
+  // used outer size, so it transfers through the preferred ratio into an
+  // automatic inline size. Chrome 151 sizes an empty ratio-20 grid with 50px
+  // of vertical and 320px of horizontal insets to 1000x50, while content-box
+  // keeps 320x50 because its ratio relates the zero-sized content boxes.
+  const ratioInlineInsetFloor =
+    style.boxSizing === 'border-box' &&
+    aspectRatio !== null &&
+    maybeResolveSize(style.size, parentSize).width === null
+      ? paddingBorderSize.height * aspectRatio
+      : 0;
   const containerBorderBox = {
     width: Math.max(
       vClamp(
-        resolvedStyleSize.width ?? initialColumnSum + horizontalSum(contentBoxInset),
+        Math.max(resolvedStyleSize.width ?? initialColumnSum + horizontalSum(contentBoxInset), ratioInlineInsetFloor),
         minSize.width,
         maxSize.width,
       ),
