@@ -525,7 +525,7 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
           gridAreaSize.width === null &&
           item.aspectRatio !== null &&
           item.crossesIntrinsicRow &&
-          (typeof item.size.width === 'object' || typeof item.maxSize.width === 'object');
+          typeof item.maxSize.width === 'object';
         // Blink's kForColumns measure space leaves the cyclic inline area
         // indefinite but still passes Rows.CalculateAvailableSize() as its
         // block containing size. Sizing 4 §4.2 can therefore transfer an
@@ -616,15 +616,12 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     const flexibleRowsNeedDefinitePass = typeof availableGridSpace.height !== 'number' && rows.some(trackIsFlexible);
     rerunRowSizing = (parentHeightIndefinite && hasPercentageRow) || flexibleRowsNeedDefinitePass;
 
-    if (!rerunRowSizing && !intrinsicColumnContributionChanged) {
-      // Blink 7922 does not start a second row dependency pass merely because
-      // its additional column pass changed an item's inline contribution.
-      // CompleteTrackSizingAlgorithm records the item row span after the
-      // first row pass and repeats both axes only when finalizing that row
-      // geometry changes the span. Chrome therefore keeps the first-pass row
-      // for cyclic percentage padding: with 320px inline padding and ratio 3,
-      // padding-bottom from 0%..100% produces row heights 108, 108, 108, 167,
-      // 247, 327 while the finally wider item is allowed to overflow it.
+    if (!rerunRowSizing) {
+      // Grid §11.3's dependency pass runs columns and then rows. Re-evaluate
+      // the row contribution even when the preceding column pass changed it:
+      // Blink's freshly initialized additional pass observes the new inline
+      // area here. Suppressing this comparison froze the first-pass row and
+      // lost cyclic percentage padding that resolves in used layout.
       intrinsicRowContributionChanged = items
         .filter((item) => item.crossesIntrinsicColumn)
         .some((item) => {
@@ -665,13 +662,22 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     }
 
     if (rerunRowSizing) {
+      // Blink freezes the grid's used block size before its bounded dependency
+      // pass, then freshly sizes rows against that now-definite space. Keep the
+      // original available space for percentage/flexible-row reruns, which are
+      // separate first-pass dependencies. For Grid §11.3 step 4, however, an
+      // indefinite value would let intrinsic rows grow past the frozen box even
+      // when their minimum contribution is zero.
+      const rowRerunAvailableGridSpace = intrinsicRowContributionChanged
+        ? { ...availableGridSpace, height: containerContentBox.height }
+        : availableGridSpace;
       trackSizingAlgorithm(
         'vertical',
         minSize.height,
         maxSize.height,
         alignContent,
         justifyContent,
-        availableGridSpace,
+        rowRerunAvailableGridSpace,
         null,
         innerNodeSize,
         rows,
@@ -684,37 +690,25 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     }
   }
 
-  if (
-    (intrinsicColumnContributionChanged && !hasPercentageColumn) ||
-    (intrinsicRowContributionChanged && !hasPercentageRow)
-  ) {
+  if (intrinsicColumnContributionChanged && !hasPercentageColumn) {
     const finalColumnSum = columns.reduce((sum, track) => sum + track.baseSize, 0);
-    const finalRowSum = rows.reduce((sum, track) => sum + track.baseSize, 0);
-
-    if (intrinsicColumnContributionChanged && !hasPercentageColumn) {
-      containerBorderBox.width = Math.max(
-        vClamp(
-          resolvedStyleSize.width ?? finalColumnSum + horizontalSum(contentBoxInset),
-          minSize.width,
-          maxSize.width,
-        ),
-        paddingBorderSize.width,
-      );
-      containerContentBox.width = Math.max(0, containerBorderBox.width - horizontalSum(contentBoxInset));
-    }
-
-    if (intrinsicRowContributionChanged && !hasPercentageRow) {
-      containerBorderBox.height = Math.max(
-        vClamp(
-          rowFloor(finalRowSum + verticalSum(contentBoxInset)) ?? finalRowSum + verticalSum(contentBoxInset),
-          minSize.height,
-          maxSize.height,
-        ),
-        paddingBorderSize.height,
-      );
-      containerContentBox.height = Math.max(0, containerBorderBox.height - verticalSum(contentBoxInset));
-    }
+    containerBorderBox.width = Math.max(
+      vClamp(
+        resolvedStyleSize.width ?? finalColumnSum + horizontalSum(contentBoxInset),
+        minSize.width,
+        maxSize.width,
+      ),
+      paddingBorderSize.width,
+    );
+    containerContentBox.width = Math.max(0, containerBorderBox.width - horizontalSum(contentBoxInset));
   }
+
+  // Sizing 3 §5.2.1 freezes the container's used block size before cyclic
+  // percentage dependency reruns. Updated rows and their items may overflow
+  // that box; they do not feed their final intrinsic sum back into its height.
+  // Blink 7922 likewise stores intrinsic_block_size before its additional
+  // columns-then-rows pass. Inline intrinsic sizing above is different: that
+  // dependency pass is precisely what resolves the container's width.
 
   // Blink's intrinsic grid sizing completes block-axis tracks and, when an
   // aspect-ratio item's inline contribution depends on their used size,

@@ -1,0 +1,13 @@
+<test name="fuzz_grid_cyclic_preferred_width_dependency_pass__content_box_rtl" use-rounding="true">
+  <viewport width="1280px" height="800px"/>
+  <input>
+    <div display="grid" box-sizing="content-box" direction="rtl" position="absolute" width="0px">
+      <div box-sizing="content-box" direction="rtl" width="0%" aspect-ratio="1" padding-left="1px" padding-right="100%"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="0" height="0">
+      <node x="-2" y="0" width="2" height="0"/>
+    </node>
+  </expectations>
+</test>

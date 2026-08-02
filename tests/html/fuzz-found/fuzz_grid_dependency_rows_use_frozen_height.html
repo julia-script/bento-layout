@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: reduced one-property counterexample to the 20260802 viewport campaign
+  chrome: Chrome/151.0.7922.47
+  Grid §11.3 reruns rows against the container's already-resolved block size.
+  A zero minimum contribution can therefore leave the track at 2px while its
+  3px ratio item overflows; the final row sum does not resize the container.
+  Regenerate with: pnpm gentest fuzz_grid_dependency_rows_use_frozen_height
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: dependency rows use the frozen grid height</title>
+</head>
+<body>
+
+<div
+  id="test-root"
+  data-test-page-viewport-width="1280"
+  data-test-page-viewport-height="800"
+  style="display: grid; width: 0;"
+>
+  <div style="min-height: 0; aspect-ratio: 1; padding-left: 100%; padding-right: 1px;"></div>
+  <div></div>
+</div>
+
+</body>
+</html>

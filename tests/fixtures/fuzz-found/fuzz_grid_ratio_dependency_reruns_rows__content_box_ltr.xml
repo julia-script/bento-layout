@@ -1,0 +1,19 @@
+<test name="fuzz_grid_ratio_dependency_reruns_rows__content_box_ltr" use-rounding="true">
+  <viewport width="1280px" height="800px"/>
+  <input>
+    <div box-sizing="content-box" direction="ltr" position="absolute" height="12px">
+      <div display="grid" box-sizing="content-box" direction="ltr">
+        <div box-sizing="content-box" direction="ltr" aspect-ratio="1"/>
+        <div box-sizing="content-box" direction="ltr"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="6" height="12">
+      <node x="0" y="0" width="6" height="12">
+        <node x="0" y="0" width="9" height="9"/>
+        <node x="0" y="11" width="9" height="1"/>
+      </node>
+    </node>
+  </expectations>
+</test>
