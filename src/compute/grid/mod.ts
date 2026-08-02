@@ -150,9 +150,26 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     height: outerNodeSize.height !== null ? outerNodeSize.height - verticalSum(contentBoxInset) : null,
   };
 
+  // A ratio-derived automatic block size is definite, but its automatic
+  // minimum can still be the grid's intrinsic row extent (css-sizing-4 §4.3).
+  // During flex hypothetical-cross-size measurement Blink compares the ratio
+  // content size with an intrinsic child layout. Do not return the former
+  // before track sizing has produced the latter: a zero-width 1:1 grid with a
+  // 1px row contributes 1px to its flex line, not zero. Explicit min-height or
+  // scrollable block overflow disables that automatic minimum.
+  const mustMeasureAutomaticRatioBlockMinimum =
+    aspectRatio !== null &&
+    maybeResolveSize(style.size, parentSize).height === null &&
+    style.minSize.height === 'auto' &&
+    !isScrollContainer(style.overflow.y);
+
   // Short-circuit if computing size and size fully determined
   if (runMode === 'compute-size') {
-    if (outerNodeSize.width !== null && outerNodeSize.height !== null) {
+    if (
+      outerNodeSize.width !== null &&
+      outerNodeSize.height !== null &&
+      !(inputs.axis === 'vertical' && mustMeasureAutomaticRatioBlockMinimum)
+    ) {
       return fromOuterSize({ width: outerNodeSize.width, height: outerNodeSize.height });
     }
     if (inputs.axis === 'horizontal' && outerNodeSize.width !== null) {
@@ -370,6 +387,7 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     aspectRatio !== null &&
     resolvedStyleSize.height !== null &&
     maybeResolveSize(style.size, parentSize).height === null &&
+    style.minSize.height === 'auto' &&
     !isScrollContainer(style.overflow.y);
   const rowFloor = (rowSum: number): Opt =>
     heightIsRatioDerived ? Math.max(resolvedStyleSize.height as number, rowSum) : resolvedStyleSize.height;

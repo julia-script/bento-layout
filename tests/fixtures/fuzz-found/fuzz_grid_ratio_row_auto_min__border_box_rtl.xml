@@ -1,0 +1,15 @@
+<test name="fuzz_grid_ratio_row_auto_min__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="flex" direction="rtl" position="absolute">
+      <div display="grid" direction="rtl" align-self="flex-start" aspect-ratio="1" grid-template-rows="minmax(1px,auto)"/>
+      <div display="grid" direction="rtl" align-self="flex-start" min-height="0px" aspect-ratio="1" grid-template-rows="minmax(1px,auto)"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="0" height="1">
+      <node x="0" y="0" width="0" height="1"/>
+      <node x="0" y="0" width="0" height="0"/>
+    </node>
+  </expectations>
+</test>

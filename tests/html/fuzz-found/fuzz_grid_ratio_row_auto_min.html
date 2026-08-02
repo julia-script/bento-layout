@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=e613795f (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Sizing 4 §4.3 makes the intrinsic row extent the automatic minimum in
+  the ratio-dependent block axis. Flexbox §9.4 must include that extent in the
+  item's hypothetical cross size; an explicit min-height disables the rule.
+  Regenerate with: pnpm gentest fuzz_grid_ratio_row_auto_min
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: grid ratio block size includes row automatic minimum</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex;">
+  <div style="display: grid; aspect-ratio: 1; grid-template-rows: minmax(1px, auto); align-self: flex-start;"></div>
+  <div style="display: grid; aspect-ratio: 1; min-height: 0; grid-template-rows: minmax(1px, auto); align-self: flex-start;"></div>
+</div>
+
+</body>
+</html>
