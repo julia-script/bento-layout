@@ -2834,7 +2834,14 @@ function resolveCrossAxisAutoMargins(flexLines: FlexLine[], constants: AlgoConst
       let groupEnd = 0;
       for (const child of line.items) {
         if (child.alignSelf.keyword !== 'baseline' || child.alignSelf.safe) continue;
-        groupEnd = Math.max(groupEnd, maxBaseline - child.baseline + cross(child.outerTargetSize, constants.dir));
+        // Flexbox §9.4 builds the line's baseline group from each item's
+        // hypothetical outer cross size. Final layout can later enlarge an
+        // automatic cross size; using that target here silently changes the
+        // already-established group extent and over-shifts reversed columns.
+        groupEnd = Math.max(
+          groupEnd,
+          maxBaseline - child.baseline + cross(child.hypotheticalOuterSize, constants.dir),
+        );
       }
       return lineCrossSize - groupEnd;
     })();

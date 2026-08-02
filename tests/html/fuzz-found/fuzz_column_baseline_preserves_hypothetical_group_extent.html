@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: reduced from 20260802 viewport campaign finding=68b894e8 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Flexbox §9.4 establishes a baseline group's extent from hypothetical outer
+  cross sizes. A later final-layout expansion must not rewrite that extent.
+  Regenerate with: pnpm gentest fuzz_column_baseline_preserves_hypothetical_group_extent
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: column baseline keeps hypothetical group extent</title>
+</head>
+<body>
+
+<div
+  id="test-root"
+  data-test-page-viewport-width="1280"
+  data-test-page-viewport-height="800"
+  style="width: 0;"
+>
+  <div style="overflow-x: hidden; flex-direction: column; flex-wrap: wrap;">
+    <div style="align-self: baseline;">H&#x200b;H</div>
+    <div>HH</div>
+  </div>
+</div>
+
+</body>
+</html>
