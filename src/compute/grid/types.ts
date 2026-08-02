@@ -38,7 +38,7 @@ import {
   trackDefiniteValue,
   trackUsesPercentage,
 } from '../../style.js';
-import type { LayoutNode } from '../../tree.js';
+import { internals, type LayoutNode } from '../../tree.js';
 import {
   maybeApplyAspectRatioUsed,
   transferMaxSizeThroughAspectRatio,
@@ -928,13 +928,42 @@ function itemRatioAutomaticInlineMinimum(item: GridItem, gridAreaSize: Size<Opt>
   const maxSize = maybeAddSize(maybeResolveSize(item.maxSize, gridAreaSize), boxSizingAdjustment);
   const minContentWidth = measureChildSize(
     item.node,
-    { width: null, height: null },
+    // Blink's additional intrinsic column pass keeps the block size resolved
+    // by the preceding row pass. That lets a stretched ratio descendant
+    // enlarge the item's min-intrinsic inline size: with a 480px row, a
+    // content-box 1.5:1 child with 320px block and 240px inline padding
+    // contributes 480px, not its first-pass 240px (Grid §11.5; Sizing 4 §4.3).
+    { width: null, height: knownDimensions.height },
     gridAreaSize,
     { width: 'min-content', height: 'max-content' },
     'content-size',
     'horizontal',
   );
-  return Math.min(minContentWidth, maxSize.width ?? Infinity);
+  // On that additional pass Blink's MinIntrinsic automatic minimum also
+  // transfers the intrinsic block floor through the item's own ratio. Keep
+  // this out of the first column pass (where no row size exists): applying it
+  // there changes ordinary grid min-content sizing rather than completing the
+  // row-dependent contribution.
+  const transferredIntrinsicBlock =
+    knownDimensions.height !== null && internals(item.node).measure === undefined
+      ? maybeApplyAspectRatioUsed(
+          {
+            width: null,
+            height: measureChildSize(
+              item.node,
+              { width: null, height: null },
+              gridAreaSize,
+              { width: 'min-content', height: 'max-content' },
+              'content-size',
+              'vertical',
+            ),
+          },
+          item.aspectRatio,
+          item.boxSizing,
+          paddingBorderSize,
+        ).width
+      : null;
+  return Math.min(Math.max(minContentWidth, transferredIntrinsicBlock ?? 0), maxSize.width ?? Infinity);
 }
 
 export function itemMinContentContribution(

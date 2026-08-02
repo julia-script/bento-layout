@@ -1,0 +1,21 @@
+<test name="fuzz_grid_ratio_min_intrinsic_block_pass__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="rtl" position="absolute">
+      <div display="grid" direction="rtl">
+        <div direction="rtl" aspect-ratio="0.5">
+          <div direction="rtl" aspect-ratio="1.5" padding-top="120px" padding-left="200px" padding-bottom="200px" padding-right="40px"/>
+        </div>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="1440" height="2880">
+      <node x="0" y="0" width="1440" height="2880">
+        <node x="-2880" y="0" width="4320" height="8640">
+          <node x="-8640" y="0" width="12960" height="8640"/>
+        </node>
+      </node>
+    </node>
+  </expectations>
+</test>
