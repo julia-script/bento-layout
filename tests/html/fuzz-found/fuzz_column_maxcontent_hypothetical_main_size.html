@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: 20260802 viewport campaign, finding=2a45548c (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Flexbox §9.2 sizes an automatic-height column from its items' hypothetical
+  main sizes. A growable item whose specified height caps its automatic
+  minimum at zero must not reopen to its text's max-content height.
+  Regenerate with: pnpm gentest fuzz_column_maxcontent_hypothetical_main_size
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: column max-content block size uses hypothetical items</title>
+</head>
+<body>
+
+<div
+  id="test-root"
+  data-test-page-viewport-width="1280"
+  data-test-page-viewport-height="800"
+>
+  <div style="flex-direction: column;">
+    <div style="height: 0; flex-grow: 1;">H</div>
+  </div>
+</div>
+
+</body>
+</html>

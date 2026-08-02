@@ -1,0 +1,19 @@
+<test name="fuzz_column_maxcontent_hypothetical_main_size__border_box_ltr" use-rounding="true">
+  <viewport width="1280px" height="800px"/>
+  <input>
+    <div direction="ltr" position="absolute">
+      <div direction="ltr" flex-direction="column">
+        <text direction="ltr" flex-grow="1" height="0px">
+          H
+        </text>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="10" height="0">
+      <node x="0" y="0" width="10" height="0">
+        <node x="0" y="0" width="10" height="0"/>
+      </node>
+    </node>
+  </expectations>
+</test>

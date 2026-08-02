@@ -1559,26 +1559,39 @@ function determineContainerMainSize(
 ): void {
   const dir = constants.dir;
   const mainContentBoxInset = rectMainAxisSum(constants.contentBoxInset, constants.dir);
+  const longestHypotheticalLine = (): number =>
+    lines.reduce((acc, line) => {
+      const lineMainAxisGap = sumAxisGaps(main(constants.gap, constants.dir), line.items.length);
+      const totalTargetSize = line.items.reduce(
+        (sum, child) => sum + main(child.hypotheticalOuterSize, constants.dir),
+        0,
+      );
+      return Math.max(acc, totalTargetSize + lineMainAxisGap);
+    }, 0);
 
   let outerMainSize: number =
     main(constants.nodeOuterSize, constants.dir) ??
     ((): number => {
       const mainAvs = main(availableSpace, dir);
       if (typeof mainAvs === 'number') {
-        const longestLineLength = lines.reduce((acc, line) => {
-          const lineMainAxisGap = sumAxisGaps(main(constants.gap, constants.dir), line.items.length);
-          const totalTargetSize = line.items.reduce((sum, child) => {
-            // Use the §9.2 hypothetical main size, which has already been
-            // clamped by the used minimum. Reconstructing it from flex-basis
-            // and the style min drops the §4.5 automatic minimum: Chrome gives
-            // a `flex-basis: 0` text item 10px here, not 0. Blink likewise
-            // sizes this path from `max_sum_hypothetical_main_size`.
-            return sum + main(child.hypotheticalOuterSize, constants.dir);
-          }, 0);
-          return Math.max(acc, totalTargetSize + lineMainAxisGap);
-        }, 0);
+        // Use the §9.2 hypothetical main size, which has already been clamped
+        // by the used minimum. Reconstructing it from flex-basis and the style
+        // min drops the §4.5 automatic minimum: Chrome gives a `flex-basis: 0`
+        // text item 10px here, not 0. Blink likewise sizes this path from
+        // `max_sum_hypothetical_main_size`.
+        const longestLineLength = longestHypotheticalLine();
         const size = longestLineLength + mainContentBoxInset;
         return lines.length > 1 ? Math.max(size, mainAvs) : size;
+      }
+
+      // Flex §9.2 makes an automatic block size the max-content size. For a
+      // column, Blink 7922 obtains that intrinsic block size directly from
+      // `max_sum_hypothetical_main_size` in PlaceFlexItems, after §4.5 has
+      // applied the item's automatic minimum. Do not run the generic
+      // contribution arithmetic below: it can re-open a definite `height: 0`
+      // flex item to its 10px content merely because the item is growable.
+      if (mainAvs === 'max-content' && !constants.isRow) {
+        return longestHypotheticalLine() + mainContentBoxInset;
       }
 
       // Keep this shortcut to wrapping rows. Under a min-content constraint
