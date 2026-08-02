@@ -215,13 +215,22 @@ function computeInner(node: LayoutNode, inputs: LayoutInput, blockCtx: BlockCont
   // the ratio derives from the clamped specified size.
   const minSize = maybeAddSize(maybeResolveSize(style.minSize, parentSize), boxSizingAdjustment);
   const maxSize = maybeAddSize(maybeResolveSize(style.maxSize, parentSize), boxSizingAdjustment);
-  const size = applyAspectRatioClamped(
-    maybeAddSize(maybeResolveSize(style.size, parentSize), boxSizingAdjustment),
-    minSize,
-    maxSize,
-    aspectRatio,
-    boxSizingAdjustment,
-  );
+  // `content-size` asks for the box's intrinsic content contribution while
+  // the caller owns its preferred size. As in leaf and flex layout, suppress
+  // this box's own preferred size and aspect-ratio transfer in that mode;
+  // known dimensions still constrain descendants. This lets an automatic
+  // ratio-dependent width query keep a definite height without resolving the
+  // queried width straight back through the ratio before measuring children.
+  const size =
+    inputs.sizingMode === 'inherent-size'
+      ? applyAspectRatioClamped(
+          maybeAddSize(maybeResolveSize(style.size, parentSize), boxSizingAdjustment),
+          minSize,
+          maxSize,
+          aspectRatio,
+          boxSizingAdjustment,
+        )
+      : { width: null, height: null };
 
   // css-sizing-4: a definite size in one axis transfers through `aspect-ratio`.
   // Only a newly-filled axis is adopted (and clamped); an incoming known size is
@@ -229,11 +238,14 @@ function computeInner(node: LayoutNode, inputs: LayoutInput, blockCtx: BlockCont
   // so content-box transfer must strip the source insets and add the destination
   // insets: Chrome 151, `height: 1px; padding-bottom: 1px; aspect-ratio: 1`
   // under content-box is 1x2, not 2x2.
-  const derived = sizeMaybeClamp(
-    maybeApplyAspectRatioUsed(knownDimensionsIn, aspectRatio, style.boxSizing, paddingBorderSize),
-    minSize,
-    maxSize,
-  );
+  const derived =
+    inputs.sizingMode === 'inherent-size'
+      ? sizeMaybeClamp(
+          maybeApplyAspectRatioUsed(knownDimensionsIn, aspectRatio, style.boxSizing, paddingBorderSize),
+          minSize,
+          maxSize,
+        )
+      : { width: null, height: null };
   const knownDimensions: Size<Opt> = {
     width: knownDimensionsIn.width ?? derived.width,
     height: knownDimensionsIn.height ?? derived.height,

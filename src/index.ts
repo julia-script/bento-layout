@@ -361,7 +361,15 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
       root,
       { width: null, height: output.size.height },
       parentSize,
-      { width: 'min-content', height: 'max-content' },
+      // Keep the resolved inline constraint while measuring the automatic
+      // minimum. This is observable for an auto grid track around an item with
+      // an explicit minimum: Chrome uses the item's Grid §11.5 minimum
+      // contribution (375px of border-box padding), not its 385px min-content
+      // contribution including a 10px glyph. An unconstrained min-content grid
+      // query selects the latter rule. The box's own ratio remains suppressed
+      // by `content-size`, while the numeric constraint lets its formatting
+      // context choose the same contribution path Blink uses for the floor.
+      { width: output.size.width, height: 'max-content' },
       'content-size',
       'horizontal',
     );

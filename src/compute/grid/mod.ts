@@ -128,7 +128,17 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
   // height. Flex and block layout already do this (the `derivedFromKnown` step
   // in flexbox.ts); a grid root with `aspect-ratio: .5` around a `min-width: 97`
   // item was 97x10 in Chrome's 97x194.
-  const derivedFromKnown = maybeApplyAspectRatioUsed(knownDimensions, aspectRatio, style.boxSizing, paddingBorderSize);
+  // `content-size` is the intrinsic-content query, not a second preferred-size
+  // pass. Preserve known dimensions as constraints for descendants, but do
+  // not let this grid's own ratio fill the queried axis before track sizing.
+  // CSS Sizing 4 §4.3 then allows the caller to compare the actual min-content
+  // result with the ratio-derived automatic size. Chrome 151, a 0px-tall 1:1
+  // grid around 5px of inline padding, reports a 5px automatic minimum rather
+  // than short-circuiting its intrinsic query at the ratio-derived 0px.
+  const derivedFromKnown =
+    inputs.sizingMode === 'inherent-size'
+      ? maybeApplyAspectRatioUsed(knownDimensions, aspectRatio, style.boxSizing, paddingBorderSize)
+      : { width: null, height: null };
 
   const outerNodeSize: Size<Opt> = {
     width: vMaxOpt(

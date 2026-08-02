@@ -1,0 +1,15 @@
+<test name="fuzz_grid_ratio_inline_auto_min_uses_minimum_contribution__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" direction="rtl" position="absolute" width="4px" height="0px" aspect-ratio="1">
+      <text direction="rtl" min-width="1px" padding-left="3px" padding-right="2px">
+        H
+      </text>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="5" height="0">
+      <node x="0" y="0" width="5" height="10"/>
+    </node>
+  </expectations>
+</test>

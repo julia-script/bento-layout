@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated batch, minimized from finding c4ad19f1
+  date: 2026-08-02
+  chrome: Chrome/151.0.7922.47
+  CSS Sizing 4 §4.3 floors a ratio-dependent inline size by its automatic
+  minimum. Blink preserves the resolved grid constraint for this query, so an
+  auto track uses Grid §11.5's minimum contribution: the 5px padding floor in
+  border-box and 5px padding plus the 1px minimum in content-box. It does not
+  use the larger min-content contribution from the 10px glyph.
+  Regenerate with: pnpm gentest fuzz_grid_ratio_inline_auto_min_uses_minimum_contribution
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: grid ratio inline auto-min uses minimum contribution</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; width: 4px; height: 0; aspect-ratio: 1;">
+  <div style="min-width: 1px; padding-left: 3px; padding-right: 2px;">H</div>
+</div>
+
+</body>
+</html>
