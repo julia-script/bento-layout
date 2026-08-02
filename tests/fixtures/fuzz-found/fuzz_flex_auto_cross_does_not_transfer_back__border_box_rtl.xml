@@ -1,0 +1,15 @@
+<test name="fuzz_flex_auto_cross_does_not_transfer_back__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="flex" direction="rtl" position="absolute" flex-direction="column" width="0px" height="0px">
+      <div direction="rtl" height="1px" aspect-ratio="1"/>
+      <div direction="rtl" align-self="flex-start" height="1px" aspect-ratio="1" border-left="10px"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="0" height="0">
+      <node x="0" y="0" width="0" height="0"/>
+      <node x="-10" y="0" width="10" height="1"/>
+    </node>
+  </expectations>
+</test>

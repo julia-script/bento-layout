@@ -922,6 +922,12 @@ function determineFlexBaseSize(
 
     // Known dimensions for child sizing
     const childKnownDimensions: Size<Opt> = withMain(child.size, dir, null);
+    // `child.size` includes a ratio-derived automatic cross size, but that does
+    // not make the preferred cross size definite. Blink checks the raw
+    // computed Width/Height for `auto` before allowing a transfer; otherwise a
+    // specified main size can derive an auto cross size which transfers back
+    // into the automatic main minimum and circularly prevents flex shrink.
+    if (cross(rawStyleSize, dir) === null) setCross(childKnownDimensions, dir, null);
     // Clamp the definite cross size by the cross min/max sizes so that sizes
     // transferred through an intrinsic aspect ratio are based on the used cross size.
     setCross(
@@ -1018,6 +1024,15 @@ function determineFlexBaseSize(
             'inherent-size',
             crossAxis(dir),
           )
+        : null;
+    // With no definite preferred/minimum cross size, only the item's own
+    // padding+border floor can supply the ratio transfer used by the automatic
+    // main minimum. Measuring all cross-axis content here would incorrectly
+    // transfer descendants/text. Chrome, an empty non-stretched 1:1 item in a
+    // zero-sized row: no inset -> 0x0, 10px border -> 10x10.
+    const autoMinCrossFloor =
+      child.aspectRatio !== null && crossKnown === null && crossMin === null
+        ? rectCrossAxisSum(rectAdd(child.padding, child.border), dir)
         : null;
 
     child.flexBasis = ((): number => {
@@ -1141,7 +1156,7 @@ function determineFlexBaseSize(
         // is wrong here: `child.size` already carries the ratio-derived value,
         // so a 0 content size erases the transferred suggestion entirely and
         // the item shrinks past its ratio.
-        const definiteCross = crossKnown ?? crossMin ?? fitContentCross;
+        const definiteCross = crossKnown ?? crossMin ?? fitContentCross ?? autoMinCrossFloor;
         const transferredMain =
           child.aspectRatio !== null && definiteCross !== null
             ? transferThroughRatio(definiteCross, child, dir, 'cross-to-main')

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: batch seed=20260731, finding=a2836506 (mode=mixed), minimized
+  chrome: Chrome/151.0.7922.47
+  Flexbox §4.5 requires a definite preferred cross size for a transferred size
+  suggestion. A ratio-derived automatic cross size cannot transfer back and
+  circularly become the main-axis automatic minimum; its inset floor can.
+  Regenerate with: pnpm gentest fuzz_flex_auto_cross_does_not_transfer_back
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: flex automatic cross size does not transfer back</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex; flex-direction: column; width: 0; height: 0;">
+  <div style="width: auto; height: 1px; aspect-ratio: 1;"></div>
+  <div style="width: auto; height: 1px; aspect-ratio: 1; align-self: flex-start; border-left: 10px solid;"></div>
+</div>
+
+</body>
+</html>

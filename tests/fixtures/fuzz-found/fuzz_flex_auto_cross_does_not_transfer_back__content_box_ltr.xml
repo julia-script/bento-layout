@@ -1,0 +1,15 @@
+<test name="fuzz_flex_auto_cross_does_not_transfer_back__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="flex" box-sizing="content-box" direction="ltr" position="absolute" flex-direction="column" width="0px" height="0px">
+      <div box-sizing="content-box" direction="ltr" height="1px" aspect-ratio="1"/>
+      <div box-sizing="content-box" direction="ltr" align-self="flex-start" height="1px" aspect-ratio="1" border-left="10px"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="0" height="0">
+      <node x="0" y="0" width="0" height="0"/>
+      <node x="0" y="0" width="10" height="0"/>
+    </node>
+  </expectations>
+</test>
