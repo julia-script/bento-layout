@@ -223,10 +223,10 @@ export interface GridTrack {
   baseSizePlannedIncrease: number;
   growthLimitPlannedIncrease: number;
   infinitelyGrowable: boolean;
-  /** Set when every single-span item in this track contributed 0, leaving its
-   *  growth limit infinite for want of anything to raise it. Such a track is
-   *  treated as limited while any other track it shares a spanning item with
-   *  can still grow. */
+  /** Set when every item in the current span batch contributed 0 to this
+   *  track, leaving its growth limit infinite for want of anything to raise
+   *  it. Such a track is treated as limited while any other track it shares a
+   *  later spanning item with can still grow. */
   limitedByZeroContribution: boolean;
 }
 

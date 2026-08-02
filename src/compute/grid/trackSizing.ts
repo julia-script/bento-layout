@@ -733,12 +733,27 @@ function resolveIntrinsicTrackSizes(
       // 5. For intrinsic maximums: grow growth limits by min-content contributions
       const hasIntrinsicMaxTrackSizingFunction = (track: GridTrack): boolean =>
         !maxHasDefiniteValue(track.maxTrackSizingFunction, axisInnerNodeSize);
+      const intrinsicMaxTracksAccommodatingThisBatch = new Set<GridTrack>();
       for (const item of batch) {
         const space = itemSizer.minContentContribution(item, axisTracks);
         const range = itemTrackRangeExcludingLines(item, axis);
         const tracks = axisTracks.slice(range.start, range.end);
+        for (const track of tracks) {
+          if (hasIntrinsicMaxTrackSizingFunction(track)) intrinsicMaxTracksAccommodatingThisBatch.add(track);
+        }
         if (space > 0) {
           distributeItemSpaceToGrowthLimit(space, tracks, hasIntrinsicMaxTrackSizingFunction, axisInnerNodeSize);
+        }
+      }
+      // Blink initializes the planned increase of every intrinsic-max track
+      // crossed by an item in this span batch, even when that item's
+      // contribution is zero. This makes the track's infinite growth limit
+      // definite before a later, wider-span batch is processed. Chrome 151:
+      // a zero-height span-2 item followed by a 130px span-3 item keeps its
+      // two rows at 0; only the third row receives the 130px contribution.
+      for (const track of intrinsicMaxTracksAccommodatingThisBatch) {
+        if (track.growthLimit === Infinity && track.growthLimitPlannedIncrease === 0) {
+          track.limitedByZeroContribution = true;
         }
       }
       // Mark tracks whose growth limit changed from infinite to finite as infinitely growable
