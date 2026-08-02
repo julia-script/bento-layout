@@ -10,7 +10,6 @@ import type { AvailableSpace, Direction } from '../../style.js';
 import {
   ALIGN_CONTENT_STRETCH,
   ALIGN_STRETCH,
-  asMaybeClamp,
   isScrollContainer,
   maybeResolveSize,
   resolveRectOrZero,
@@ -40,6 +39,20 @@ import {
   ozResolveAbsolutelyPositionedGridTracks,
   placementLineIntoOriginZero,
 } from './types.js';
+
+/** CSS Grid's available-grid-space rule clamps definite min/max constraints. */
+function clampGridAvailableSpace(space: AvailableSpace, min: Opt, max: Opt): AvailableSpace {
+  if (typeof space === 'number') return vClamp(space, min, max);
+  // An intrinsic constraint remains indefinite without an upper bound, but a
+  // definite maximum becomes the finite space tracks size into. Chrome 151,
+  // `display:grid; max-width:15px` around `H<ZWSP>H` produces a 15px track and
+  // two text lines; sizing under max-content first produced a 20px single line.
+  // A min-content query must remain a min-content query: a nested grid with
+  // `max-width:80px` can still contribute only 40px to a min-content parent.
+  // For max-content, however, the definite cap supplies the finite space to
+  // fill. (The full spec model carries separate available/min/max sizes.)
+  return space === 'max-content' && max !== null ? Math.max(max, min ?? max) : space;
+}
 
 /** Translate an oz line placement by the axis coalescing offset (implicit.ts). */
 function ozLineTranslateAbs(
@@ -103,11 +116,15 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
 
   const constrainedAvailableSpace: Size<AvailableSpace> = {
     width: vMaxAs(
-      asMaybeClamp(knownDimensions.width ?? preferredSize.width ?? availableSpace.width, minSize.width, maxSize.width),
+      clampGridAvailableSpace(
+        knownDimensions.width ?? preferredSize.width ?? availableSpace.width,
+        minSize.width,
+        maxSize.width,
+      ),
       paddingBorderSize.width,
     ),
     height: vMaxAs(
-      asMaybeClamp(
+      clampGridAvailableSpace(
         knownDimensions.height ?? preferredSize.height ?? availableSpace.height,
         minSize.height,
         maxSize.height,

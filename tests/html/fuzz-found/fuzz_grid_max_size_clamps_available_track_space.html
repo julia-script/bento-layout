@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=747c6b97 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Grid's "available grid space" definition clamps intrinsic available
+  space by a definite max-size before track sizing. The 15px cap therefore
+  keeps this auto track below its 20px max-content size and wraps the text.
+  Regenerate with: pnpm gentest fuzz_grid_max_size_clamps_available_track_space
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: grid max-size clamps available track space</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; max-width: 15px;">
+  <div>H&#x200B;H</div>
+</div>
+
+</body>
+</html>

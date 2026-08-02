@@ -1,0 +1,15 @@
+<test name="fuzz_grid_max_size_clamps_available_track_space__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" direction="ltr" position="absolute" max-width="15px">
+      <text direction="ltr">
+        H​H
+      </text>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="15" height="20">
+      <node x="0" y="0" width="15" height="20"/>
+    </node>
+  </expectations>
+</test>
