@@ -79,6 +79,37 @@ The order that works:
 5. **Re-run the probe matrix, then the full suite.** 5000+ fixtures pass today;
    any drop is a regression, not an acceptable trade.
 
+## Check for model dissonance before adding another special case
+
+Several failures around one CSS feature are evidence that the implementation's
+*model* may disagree with the spec, not that each case needs another branch.
+Aspect-ratio exposed this repeatedly: a local calculation could produce the
+right number while the engine had already lost whether a size was automatic or
+definite, intrinsic or used, implicit or explicit stretch, or which axis and
+stage supplied it. Downstream conditionals then fixed one fixture and broke the
+next because the distinction the spec relies on was no longer representable.
+
+Before adding a second special case for the same feature:
+
+1. Write the spec's state transitions end to end: computed values, intrinsic
+   contributions, transferred constraints, used sizes, and final alignment.
+2. Map each transition to the engine field and function that represents it.
+   Record provenance distinctions the spec uses, such as automatic vs definite,
+   preferred vs transferred, implicit vs explicit, and determining vs dependent
+   axis.
+3. If a distinction has been collapsed or two spec stages run in the opposite
+   order, treat that as the root bug. Repair the representation or stage boundary
+   instead of inferring the missing state later from numeric values.
+4. Build the probe matrix around that model: test every stage boundary and the
+   sibling contexts that share it (block/flex/grid, intrinsic/final layout,
+   content/border box). The proposed model must predict the whole matrix before
+   editing.
+
+A useful stop signal is: "this fix needs to know how the current number was
+produced, but that provenance is unavailable here." Do not guess it from the
+number. Move upstream until the implementation can express the spec's rule
+directly.
+
 ## When spec and Chrome disagree, read the engine source
 
 The oracle is pinned Chrome, i.e. **Blink** — match it even where it diverges
