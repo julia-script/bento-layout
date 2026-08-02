@@ -3074,9 +3074,66 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
     // Do not clamp before removing the inset: in a 12px container,
     // `right: 1; max-width: 11` is 11px wide in Chrome, not 10px.
     const insetReservedHeight = top !== null && bottom !== null ? 0 : (top ?? bottom ?? 0);
+    const staticPositionInlineSize = (() => {
+      // With both inline insets auto, CSS2 §10.3.7 first substitutes the
+      // static position. Blink's ComputeUnclampedIMCBInOneAxis then grows the
+      // available band from that point toward the selected alignment edge.
+      // The point is inside the padding box, in logical inline coordinates.
+      const inlineStartInset =
+        constants.layoutDirection === 'rtl'
+          ? constants.contentBoxInset.right - constants.border.right
+          : constants.contentBoxInset.left - constants.border.left;
+      const inlineEndInset =
+        constants.layoutDirection === 'rtl'
+          ? constants.contentBoxInset.left - constants.border.left - constants.scrollbarGutter.x
+          : constants.contentBoxInset.right - constants.border.right - constants.scrollbarGutter.x;
+      const contentInlineSize = Math.max(insetRelativeSize.width - inlineStartInset - inlineEndInset, 0);
+
+      type StaticEdge = 'start' | 'center' | 'end';
+      let edge: StaticEdge;
+      if (constants.isRow) {
+        const keyword = constants.justifyContent?.keyword;
+        if (keyword === 'center' || keyword === 'space-around' || keyword === 'space-evenly') {
+          edge = 'center';
+        } else if (keyword === 'start') {
+          edge = 'start';
+        } else if (keyword === 'end') {
+          edge = 'end';
+        } else if (keyword === 'flex-end') {
+          edge = isReverse(constants.dir) ? 'start' : 'end';
+        } else {
+          // The initial value is flex-start; stretch and space-between use its
+          // single-subject fallback for the static-position rectangle.
+          edge = isReverse(constants.dir) ? 'end' : 'start';
+        }
+      } else {
+        const keyword = alignSelf.keyword;
+        if (keyword === 'center') {
+          edge = 'center';
+        } else if (keyword === 'end') {
+          edge = 'end';
+        } else if (keyword === 'flex-end') {
+          edge = constants.isWrapReverse ? 'start' : 'end';
+        } else if (keyword === 'flex-start' || keyword === 'stretch') {
+          edge = constants.isWrapReverse ? 'end' : 'start';
+        } else {
+          edge = 'start';
+        }
+      }
+
+      const staticOffset =
+        edge === 'start'
+          ? inlineStartInset
+          : edge === 'end'
+            ? inlineStartInset + contentInlineSize
+            : inlineStartInset + contentInlineSize / 2;
+      if (edge === 'start') return Math.max(insetRelativeSize.width - staticOffset, 0);
+      if (edge === 'end') return Math.max(staticOffset, 0);
+      return Math.max(2 * Math.min(staticOffset, insetRelativeSize.width - staticOffset), 0);
+    })();
     const shrinkToFitWidth =
       left === null && right === null
-        ? vClamp(insetRelativeSize.width, minSize.width, maxSize.width)
+        ? vClamp(staticPositionInlineSize, minSize.width, maxSize.width)
         : insetModifiedContainingBlockSize(insetRelativeSize.width, { start: left, end: right });
     const shrinkToFitHeight = asMaybeSub(vClamp(containerHeight, minSize.height, maxSize.height), insetReservedHeight);
     // An automatic abspos inline size is fit-content, not ordinary layout at
@@ -3202,7 +3259,7 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
       // Stretch is an invalid value for justify_content in the flexbox algorithm, so we
       // treat it as if it wasn't set (and thus we default to FlexStart behaviour).
       // The `safe` keyword is deliberately NOT applied here (matches Chrome).
-      const keyword = (constants.justifyContent ?? { keyword: 'start', safe: false }).keyword;
+      const keyword = (constants.justifyContent ?? { keyword: 'flex-start', safe: false }).keyword;
       const startOffset =
         rectMainStart(constants.contentBoxInset, constants.dir) + rectMainStart(resolvedMargin, constants.dir);
       const endOffset =

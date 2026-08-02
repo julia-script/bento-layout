@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=ecaee283 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS2 §10.3.7 substitutes the direction-sensitive static position when both
+  inline insets are auto. Blink grows the shrink-to-fit band from that point:
+  here LTR has 20px available, while RTL has 0px and uses the 10px min-content
+  width.
+  Regenerate with: pnpm gentest fuzz_abspos_static_position_shrink_to_fit
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: abspos shrink-to-fit uses static-position space</title>
+</head>
+<body>
+
+<div id="test-root" style="padding-right: 20px;">
+  <div style="position: absolute;">H&#x200B;H</div>
+</div>
+
+</body>
+</html>

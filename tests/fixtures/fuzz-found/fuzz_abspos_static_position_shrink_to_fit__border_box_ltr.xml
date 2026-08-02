@@ -1,0 +1,15 @@
+<test name="fuzz_abspos_static_position_shrink_to_fit__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="ltr" position="absolute" padding-right="20px">
+      <text direction="ltr" position="absolute">
+        H​H
+      </text>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="20" height="0">
+      <node x="0" y="0" width="20" height="10"/>
+    </node>
+  </expectations>
+</test>
