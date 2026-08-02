@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>RTL auto-fit mirrors the live gutter between occupied spanning tracks</title>
+</head>
+<body>
+
+<div id="test-root">
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(0, auto)); justify-items: center; gap: 0 1px;">
+    <div style="padding-right: 3px; grid-column: span 2;"></div>
+  </div>
+</div>
+
+</body>
+</html>

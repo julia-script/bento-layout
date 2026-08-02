@@ -328,7 +328,7 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     cellOccupancyMatrix.rowIsOccupied(rowIndex + rowLeadTrim),
   );
   if (direction === 'rtl') {
-    reverseNonGutterTracks(columns, finalColCounts);
+    mirrorColumnTracksAndGutters(columns, finalColCounts);
   }
 
   // 6. Track Sizing
@@ -984,8 +984,8 @@ function resolveAbsColumnEdges(
   return { left: Math.min(left, right), right: Math.max(left, right) };
 }
 
-/** Reverses only non-gutter column tracks in-place while preserving line/gutter slots. */
-function reverseNonGutterTracks(tracks: GridTrack[], trackCounts: TrackCounts): void {
+/** Mirrors column tracks and their adjoining gutters into physical RTL order. */
+function mirrorColumnTracksAndGutters(tracks: GridTrack[], trackCounts: TrackCounts): void {
   const totalTracks = trackCounts.negativeImplicit + trackCounts.explicit + trackCounts.positiveImplicit;
   void totalTracks;
   if (trackCounts.explicit <= 1) {
@@ -1006,16 +1006,34 @@ function reverseNonGutterTracks(tracks: GridTrack[], trackCounts: TrackCounts): 
   const explicitTrackCount = trackCounts.explicit;
   if (explicitTrackCount < 2) return;
 
-  let left = trackCounts.negativeImplicit;
-  let right = left + explicitTrackCount - 1;
-  while (left < right) {
-    const li = 2 * left + 1;
-    const ri = 2 * right + 1;
-    const tmp = tracks[li] ?? unreachable();
-    tracks[li] = tracks[ri] ?? unreachable();
-    tracks[ri] = tmp;
-    left += 1;
-    right = Math.max(right - 1, 0);
+  let leftTrack = trackCounts.negativeImplicit;
+  let rightTrack = leftTrack + explicitTrackCount - 1;
+  while (leftTrack < rightTrack) {
+    const leftIndex = 2 * leftTrack + 1;
+    const rightIndex = 2 * rightTrack + 1;
+    const tmp = tracks[leftIndex] ?? unreachable();
+    tracks[leftIndex] = tracks[rightIndex] ?? unreachable();
+    tracks[rightIndex] = tmp;
+    leftTrack += 1;
+    rightTrack = Math.max(rightTrack - 1, 0);
+  }
+
+  // css-grid-1 §7.2.3.2 collapses the gutters on either side of an empty
+  // auto-fit track. Those collapsed internal gutters are part of the mirrored
+  // track geometry: Chrome 151 moves a 7px gutter along with two occupied
+  // tracks in an RTL auto-fit grid. Reversing only the track objects leaves
+  // the live gutter beside the now-empty tracks and makes a spanning grid area
+  // 7px too narrow. Do not include the boundary gutters: they may border
+  // implicit tracks, so their physical side does not change with the explicit
+  // track list.
+  let leftGutter = 2 * trackCounts.negativeImplicit + 2;
+  let rightGutter = 2 * (trackCounts.negativeImplicit + explicitTrackCount - 1);
+  while (leftGutter < rightGutter) {
+    const tmp = tracks[leftGutter] ?? unreachable();
+    tracks[leftGutter] = tracks[rightGutter] ?? unreachable();
+    tracks[rightGutter] = tmp;
+    leftGutter += 2;
+    rightGutter = Math.max(rightGutter - 2, 0);
   }
 }
 
