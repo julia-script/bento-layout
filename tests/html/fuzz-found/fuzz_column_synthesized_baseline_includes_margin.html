@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=488785d2 (mode=flex)
+  chrome: Chrome/151.0.7922.47
+  CSS Align §9.3 synthesizes a baseline from the border box when a flex item
+  has no baseline in the alignment axis. In a column flexbox that synthesized
+  inline-axis baseline includes the item's definite left margin, so both empty
+  items align at the same physical x coordinate in LTR and RTL.
+  Regenerate with: pnpm gentest fuzz_column_synthesized_baseline_includes_margin
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: column synthesized baseline includes the left margin</title>
+</head>
+<body>
+
+<div id="test-root" style="width: 3px; height: 7px; flex-direction: column; align-items: baseline;">
+  <div></div>
+  <div style="margin: auto 320px 17px 90%;"></div>
+</div>
+
+</body>
+</html>

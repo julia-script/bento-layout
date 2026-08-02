@@ -2230,10 +2230,6 @@ function calculateChildrenBaseLines(
   flexLines: FlexLine[],
   constants: AlgoConstants,
 ): void {
-  // Only compute baselines for flex rows because we only support baseline alignment in the cross axis
-  // where that axis is also the inline axis
-  if (!constants.isRow) return;
-
   for (const line of flexLines) {
     // If a flex line has one or zero items participating in baseline alignment then
     // baseline alignment is a no-op so we skip
@@ -2245,6 +2241,17 @@ function calculateChildrenBaseLines(
     for (const child of line.items) {
       // Only calculate baselines for children participating in baseline alignment
       if (!(child.alignSelf.keyword === 'baseline' && !child.alignSelf.safe)) continue;
+
+      if (constants.isColumn) {
+        // A horizontal-writing item has no baseline in a column flexbox's
+        // inline-axis alignment context, so CSS Align §9.3 synthesizes one
+        // from its border box. Blink uses the physical left border edge for
+        // that synthesized coordinate: in a 3px column, an empty item with
+        // margin-left: 90% aligns its zero-margin peer at x=3 in LTR and
+        // x=-317 with a 320px right margin in RTL.
+        child.baseline = child.margin.left;
+        continue;
+      }
 
       const measuredSizeAndBaselines = performChildLayout(
         child.node,
