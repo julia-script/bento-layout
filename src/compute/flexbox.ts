@@ -1214,8 +1214,20 @@ function determineFlexBaseSize(
     const minContentMainSize =
       styleMinMainSize === null || needsMinContentContribution
         ? ((): number => {
+            // Flex §4.5's content-size suggestion in a column is the child's
+            // intrinsic block size at its resolved inline size. Blink 7922's
+            // BlockSizeFunc obtains it from an unconstrained child layout,
+            // not a min-content block constraint. The distinction is visible
+            // for grid: a `minmax(3px, 1fr)` row around 98px of content has a
+            // 98px automatic flex minimum, while min-content constrains it to
+            // the 3px track minimum and lets the flex item shrink to 30px.
+            const intrinsicMainAvailableSpace = constants.isColumn ? 'max-content' : 'min-content';
             const minContentAvailableSpace = withCross<AvailableSpace>(
-              { width: 'min-content', height: 'min-content' },
+              withMain<AvailableSpace>(
+                { width: 'min-content', height: 'min-content' },
+                dir,
+                intrinsicMainAvailableSpace,
+              ),
               dir,
               crossAxisAvailableSpace,
             );

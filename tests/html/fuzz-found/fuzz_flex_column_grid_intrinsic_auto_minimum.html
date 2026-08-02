@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=f65433df (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Flexbox §4.5 uses the grid item's intrinsic block size as its automatic
+  minimum in a column. Its 98px content therefore resists flex shrink even
+  though the sibling's 90px minimum makes their total overflow 120px.
+  Regenerate with: pnpm gentest fuzz_flex_column_grid_intrinsic_auto_minimum
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: grid intrinsic block size floors column flex item</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex; flex-direction: column; width: 10px; height: 120px;">
+  <div style="display: grid; grid-template-rows: max-content minmax(3px, 1fr);">
+    <div style="grid-row: -2; padding-top: 97px; padding-bottom: 1px;"></div>
+  </div>
+  <div style="min-height: 90px;"></div>
+</div>
+
+</body>
+</html>
