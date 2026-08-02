@@ -189,11 +189,13 @@ function clearCaches(node: LayoutNode): void {
 /** Port of compute_root_layout. */
 function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace>): void {
   const rootInternal = internals(root);
+  const rootStyle = rootInternal.style;
   let knownDimensions: Size<Opt> = { width: null, height: null };
   const parentSize: Size<Opt> = {
     width: asIntoOption(availableSpace.width),
     height: asIntoOption(availableSpace.height),
   };
+  const rootSpecified = maybeResolveSize(rootStyle.size, parentSize);
 
   // Block roots automatically stretch-fit their width to definite available space
   if (rootInternal.style.display === 'block') {
@@ -215,6 +217,44 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
   // Passing false on both edges here would mean a root never collapsed at all,
   // and its height would absorb the child margins.
   const rootMarginsCollapse: Line<boolean> = { start: true, end: true };
+
+  // CSS Sizing 3's fit-content formula governs an absolutely positioned
+  // auto-width flex root when both inline insets are auto. Blink 7922 selects
+  // kFitContent in OutOfFlowLayoutPart before final block layout: two 50px
+  // soft-wrapping runs in 70px of available space become 70x20, not their
+  // 100x10 max-content layout.
+  if (
+    rootStyle.display === 'flex' &&
+    rootStyle.position === 'absolute' &&
+    rootStyle.inset.left === 'auto' &&
+    rootStyle.inset.right === 'auto' &&
+    rootStyle.aspectRatio === null &&
+    rootSpecified.width === null &&
+    knownDimensions.width === null &&
+    typeof availableSpace.width === 'number'
+  ) {
+    const contributionKnownDimensions = { ...knownDimensions, width: null };
+    const minContentWidth = measureChildSize(
+      root,
+      contributionKnownDimensions,
+      parentSize,
+      { ...availableSpace, width: 'min-content' },
+      'inherent-size',
+      'horizontal',
+      rootMarginsCollapse,
+    );
+    const maxContentWidth = measureChildSize(
+      root,
+      contributionKnownDimensions,
+      parentSize,
+      { ...availableSpace, width: 'max-content' },
+      'inherent-size',
+      'horizontal',
+      rootMarginsCollapse,
+    );
+    const fitContentWidth = Math.min(maxContentWidth, Math.max(minContentWidth, availableSpace.width));
+    knownDimensions = { ...knownDimensions, width: fitContentWidth };
+  }
 
   // Recursively compute node layout
   let output = performChildLayout(
@@ -263,8 +303,6 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
   // Inline axis only: for a content-sized root Chrome resolves the width first
   // and derives the height, never the reverse — a tall narrow child keeps its
   // content height rather than widening the root.
-  const rootSpecified = maybeResolveSize(rootInternal.style.size, parentSize);
-  const rootStyle = rootInternal.style;
   const rootPadding = resolveRectOrZero(rootStyle.padding, parentSize.width);
   const rootBorder = resolveRectOrZero(rootStyle.border, parentSize.width);
   const rootPaddingBorderSize = {

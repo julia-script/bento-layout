@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: adjacent root-seam bug exposed while auditing finding=f966e2e2
+  chrome: Chrome/151.0.7922.47
+  CSS Sizing 3 defines fit-content as clamp(min-content, stretch-fit,
+  max-content). Blink applies that rule to an absolutely positioned auto-width
+  flex root before final layout, so its soft-wrapping content uses the definite
+  containing-block width rather than always taking its max-content width.
+  Regenerate with: pnpm gentest fuzz_abspos_flex_root_fit_content_width
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: absolute flex root uses fit-content width</title>
+</head>
+<body>
+
+<div class="viewport" style="width: 70px; height: 80px;">
+  <div id="test-root" style="position: absolute;">
+    <div>HHHHH&#8203;HHHHH</div>
+  </div>
+</div>
+
+</body>
+</html>

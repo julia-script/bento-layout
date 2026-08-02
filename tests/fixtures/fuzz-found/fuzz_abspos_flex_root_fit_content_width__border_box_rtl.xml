@@ -1,0 +1,15 @@
+<test name="fuzz_abspos_flex_root_fit_content_width__border_box_rtl" use-rounding="true">
+  <viewport width="70px" height="80px"/>
+  <input>
+    <div direction="rtl" position="absolute">
+      <text direction="rtl">
+        HHHHH​HHHHH
+      </text>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="70" height="20">
+      <node x="0" y="0" width="70" height="20"/>
+    </node>
+  </expectations>
+</test>
