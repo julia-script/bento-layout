@@ -1,0 +1,15 @@
+<test name="fuzz_grid_centered_layout_unit_boundary__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" box-sizing="content-box" direction="ltr" position="absolute" align-content="center" min-height="20px" row-gap="1px">
+      <div box-sizing="content-box" direction="ltr" margin-top="10px" grid-row-start="span 3"/>
+      <div box-sizing="content-box" direction="ltr"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="0" height="20">
+      <node x="0" y="15" width="0" height="0"/>
+      <node x="0" y="16" width="0" height="0"/>
+    </node>
+  </expectations>
+</test>

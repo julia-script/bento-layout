@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=06dd7224 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Align 3 §5.1 centers the grid tracks by splitting the free space.
+  Blink performs that split in fixed-point LayoutUnits, so the second item is
+  positioned at exactly 15.5px and paints at y=16 rather than y=15.
+  Regenerate with: pnpm gentest fuzz_grid_centered_layout_unit_boundary
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: centered grid position stays on its LayoutUnit boundary</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; min-height: 20px; align-content: center; row-gap: 1px;">
+  <div style="margin-top: 10px; grid-row: span 3;"></div>
+  <div></div>
+</div>
+
+</body>
+</html>

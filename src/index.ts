@@ -422,7 +422,14 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
  */
 const LAYOUT_UNIT = 64;
 function snapLU(v: number, towardPositive: boolean): number {
-  return (towardPositive ? Math.ceil(v * LAYOUT_UNIT) : Math.floor(v * LAYOUT_UNIT)) / LAYOUT_UNIT;
+  const scaled = v * LAYOUT_UNIT;
+  const nearest = Math.round(scaled);
+  // Blink performs alignment arithmetic in fixed-point LayoutUnits. Stabilize
+  // ordinary IEEE-754 drift at an exact 1/64px boundary before applying the
+  // flow-directed snap: centered grid content can otherwise compute 15.5px as
+  // 15.499999999999998px and paint one pixel too early.
+  const stable = Math.abs(scaled - nearest) <= Number.EPSILON * Math.max(1, Math.abs(scaled)) * 4 ? nearest : scaled;
+  return (towardPositive ? Math.ceil(stable) : Math.floor(stable)) / LAYOUT_UNIT;
 }
 
 /**
