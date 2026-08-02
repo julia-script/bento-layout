@@ -1,0 +1,9 @@
+<test name="fuzz_abspos_block_root_shrink_to_fit__border_box_rtl" use-rounding="true">
+  <viewport width="1280px" height="800px"/>
+  <input>
+    <div display="block" direction="rtl" position="absolute"/>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="0" height="0"/>
+  </expectations>
+</test>

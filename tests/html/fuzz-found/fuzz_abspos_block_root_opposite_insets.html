@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  CSS2 §10.3.7 solves an absolutely positioned auto width from its definite
+  opposite inline insets. This guards the sibling path to shrink-to-fit.
+  Regenerate with: pnpm gentest fuzz_abspos_block_root_opposite_insets
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: absolute block root solves opposite insets</title>
+</head>
+<body>
+
+<div
+  id="test-root"
+  data-test-page-viewport-width="1280"
+  data-test-page-viewport-height="800"
+  style="display: block; left: 10px; right: 20px;"
+></div>
+
+</body>
+</html>

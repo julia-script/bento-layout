@@ -1,0 +1,9 @@
+<test name="fuzz_abspos_block_root_opposite_insets__content_box_ltr" use-rounding="true">
+  <viewport width="1280px" height="800px"/>
+  <input>
+    <div display="block" box-sizing="content-box" direction="ltr" position="absolute" left="10px" right="20px"/>
+  </input>
+  <expectations>
+    <node x="10" y="0" width="1250" height="0"/>
+  </expectations>
+</test>

@@ -207,10 +207,30 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
   // to encode a grid that was actually a flex item. Until the root API carries
   // that parent formatting context, applying flow stretch to every grid root
   // would reinterpret those fixtures rather than fix their layout.
+  const blockRootUsesFlowStretchFit =
+    rootInternal.style.display === 'block' && rootInternal.style.position !== 'absolute';
   const flexRootUsesFlowStretchFit =
     rootInternal.style.display === 'flex' && rootInternal.style.position !== 'absolute';
-  if (rootInternal.style.display === 'block' || flexRootUsesFlowStretchFit) {
+  if (blockRootUsesFlowStretchFit || flexRootUsesFlowStretchFit) {
     knownDimensions = blockRootKnownDimensions(rootInternal.style, parentSize, availableSpace);
+  }
+
+  // CSS2 §10.3.7 solves an absolute auto width from opposite definite insets;
+  // this is the out-of-flow counterpart of stretch-fit, not intrinsic sizing.
+  // Keep it separate from the in-flow block rule above so two auto insets take
+  // the shrink-to-fit path below instead of inheriting the page width.
+  if (
+    rootStyle.display === 'block' &&
+    rootStyle.position === 'absolute' &&
+    rootSpecified.width === null &&
+    parentSize.width !== null
+  ) {
+    const insetLeft = maybeResolve(rootStyle.inset.left, parentSize.width);
+    const insetRight = maybeResolve(rootStyle.inset.right, parentSize.width);
+    if (insetLeft !== null && insetRight !== null) {
+      const margin = resolveRectOrZero(rootStyle.margin, parentSize.width);
+      knownDimensions.width = Math.max(parentSize.width - insetLeft - insetRight - margin.left - margin.right, 0);
+    }
   }
 
   // A root block in normal flow is an ordinary in-flow box, so its own margins
@@ -229,13 +249,13 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
   // and its height would absorb the child margins.
   const rootMarginsCollapse: Line<boolean> = { start: true, end: true };
 
-  // CSS Sizing 3's fit-content formula governs an absolutely positioned
-  // auto-width flex root when both inline insets are auto. Blink 7922 selects
-  // kFitContent in OutOfFlowLayoutPart before final block layout: two 50px
+  // CSS2 §10.3.7's shrink-to-fit formula governs an absolutely positioned
+  // auto-width block or flex root when both inline insets are auto. Blink 7922
+  // selects kFitContent in OutOfFlowLayoutPart before final layout: two 50px
   // soft-wrapping runs in 70px of available space become 70x20, not their
   // 100x10 max-content layout.
   if (
-    rootStyle.display === 'flex' &&
+    (rootStyle.display === 'block' || rootStyle.display === 'flex') &&
     rootStyle.position === 'absolute' &&
     rootStyle.inset.left === 'auto' &&
     rootStyle.inset.right === 'auto' &&

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: 20260802 viewport campaign, finding=ac7f3030 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS2 §10.3.7 gives an absolutely positioned auto-width block with both
+  inline insets auto its shrink-to-fit width, not the in-flow stretch width.
+  Regenerate with: pnpm gentest fuzz_abspos_block_root_shrink_to_fit
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: absolute block root shrinks to fit</title>
+</head>
+<body>
+
+<div
+  id="test-root"
+  data-test-page-viewport-width="1280"
+  data-test-page-viewport-height="800"
+  style="display: block;"
+></div>
+
+</body>
+</html>
