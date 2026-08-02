@@ -274,6 +274,21 @@ describe('fuzz shrinker (spec: Minimal reproduction)', () => {
     expect(result.tree.root.style.flexDirection).toBe('column');
   });
 
+  it('only tries keywords valid for content-distribution properties', async () => {
+    const tree: FuzzTree = {
+      root: { style: { alignContent: { keyword: 'space-evenly', safe: false } }, children: [] },
+    };
+    const stillFails = (candidate: FuzzTree): boolean => {
+      const keyword = candidate.root.style.alignContent?.keyword as string | undefined;
+      if (keyword === 'baseline') throw new Error('align-content does not accept baseline');
+      return keyword === 'space-between' || keyword === 'space-around' || keyword === 'space-evenly';
+    };
+
+    const result = await shrinkTree(tree, async (candidate) => stillFails(candidate));
+
+    expect(result.tree.root.style.alignContent).toEqual({ keyword: 'space-between', safe: false });
+  });
+
   it('shrinks viewport dimensions when removing the viewport heals the failure', async () => {
     const tree: FuzzTree = {
       root: { style: {}, children: [] },

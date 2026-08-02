@@ -237,18 +237,20 @@ function stringCandidates(key: keyof Style, valuePath: ValuePath, value: string)
   if (allowsDimensionKeywords(key, valuePath)) {
     ordered = ['auto', 'min-content', 'max-content'];
   } else if (leaf === 'keyword') {
-    ordered = [
-      'start',
-      'center',
-      'stretch',
-      'end',
-      'flex-start',
-      'flex-end',
-      'baseline',
-      'space-between',
-      'space-around',
-      'space-evenly',
-    ];
+    ordered =
+      key === 'alignContent' || key === 'justifyContent'
+        ? [
+            'start',
+            'center',
+            'stretch',
+            'end',
+            'flex-start',
+            'flex-end',
+            'space-between',
+            'space-around',
+            'space-evenly',
+          ]
+        : ['start', 'center', 'stretch', 'end', 'flex-start', 'flex-end', 'baseline'];
   } else if (key === 'display') {
     ordered = ['block', 'flex', 'grid', 'none'];
   } else if (key === 'position') {
