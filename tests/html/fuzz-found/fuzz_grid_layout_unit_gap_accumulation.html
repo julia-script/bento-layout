@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: seed=20260731, minimized from finding 05468fa5
+  date: 2026-08-02
+  chrome: Chrome/151.0.7922.47
+  Grid §10 treats each gutter as an empty fixed-size track. Blink 7922 resolves
+  the gutter once into a 1/64px LayoutUnit in CalculateGutterSize(), then
+  repeatedly adds that quantized value in FinalizeSetsGeometry(). Thus each
+  10%-of-1px gutter is 6/64px and five gutters total 30/64px, keeping the item
+  before the 0.5px rounding boundary.
+  Regenerate with: pnpm gentest fuzz_grid_layout_unit_gap_accumulation
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: grid gaps accumulate at Blink LayoutUnit precision</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; width: 10px; height: 1px; border: solid; border-width: 120px 0 10px 320px; grid-template-rows: minmax(10px, 1fr) 120px repeat(2, max-content minmax(10px, 3fr)) auto; column-gap: 1%; row-gap: 10%;">
+  <div style="grid-row: -3;"></div>
+</div>
+
+</body>
+</html>

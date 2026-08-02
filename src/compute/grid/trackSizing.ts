@@ -39,6 +39,7 @@ import {
   itemTrackRangeExcludingLines,
   lineSpan,
   ozLineToNextTrack,
+  toBlinkLayoutUnit,
   trackHasIntrinsicSizingFunction,
   trackIsFlexible,
 } from './types.js';
@@ -371,6 +372,16 @@ function flushPlannedGrowthLimitIncreases(tracks: GridTrack[], setInfinitelyGrow
 /** 11.4 Initialise Track sizes */
 function initializeTrackSizes(axisTracks: GridTrack[], axisInnerNodeSize: Opt): void {
   for (const track of axisTracks) {
+    if (track.kind === 'gutter') {
+      // Grid §11 treats gutters as fixed tracks. Blink 7922 resolves the gap
+      // once through MinimumValueForLength into a 1/64px LayoutUnit, then adds
+      // that same quantized value between every track. Five 10%-of-1px gutters
+      // therefore total 30/64px, not the exact 0.5px.
+      const gutterSize = toBlinkLayoutUnit(trackDefiniteValue(track.minTrackSizingFunction, axisInnerNodeSize) ?? 0);
+      track.baseSize = gutterSize;
+      track.growthLimit = gutterSize;
+      continue;
+    }
     track.baseSize = trackDefiniteValue(track.minTrackSizingFunction, axisInnerNodeSize) ?? 0;
     track.growthLimit = trackDefiniteValue(track.maxTrackSizingFunction, axisInnerNodeSize) ?? Infinity;
     if (track.growthLimit < track.baseSize) {

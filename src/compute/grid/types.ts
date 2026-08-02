@@ -48,14 +48,17 @@ import { measureChildSize } from '../dispatch.js';
 
 const BLINK_LAYOUT_UNIT_DENOMINATOR = 64;
 
+export function toBlinkLayoutUnit(value: number): number {
+  return Math.trunc(value * BLINK_LAYOUT_UNIT_DENOMINATOR) / BLINK_LAYOUT_UNIT_DENOMINATOR;
+}
+
 /**
  * Blink stores resolved layout lengths in 1/64px fixed point and truncates
  * float conversions toward zero. Grid intrinsic contributions observe that
  * conversion per edge, before padding/border sums are formed.
  */
 function resolveGridInsetOrZero(value: LengthPercentage, context: Opt): number {
-  const resolved = resolveOrZero(value, context);
-  return Math.trunc(resolved * BLINK_LAYOUT_UNIT_DENOMINATOR) / BLINK_LAYOUT_UNIT_DENOMINATOR;
+  return toBlinkLayoutUnit(resolveOrZero(value, context));
 }
 
 export function resolveGridInsets(insets: Rect<LengthPercentage>, context: Opt): Rect<number> {
