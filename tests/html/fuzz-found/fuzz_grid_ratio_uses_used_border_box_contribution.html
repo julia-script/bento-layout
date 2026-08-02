@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: 20260802 viewport campaign, finding=017c990d (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Sizing 3 §3.3 floors a border-box content box at zero before Sizing 4
+  §4.1 transfers its used ratio-determining size. Grid track contributions must
+  retain that used-box stage and the automatic provenance of the other axis.
+  Regenerate with: pnpm gentest fuzz_grid_ratio_uses_used_border_box_contribution
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: grid ratio contribution uses the used border box</title>
+</head>
+<body>
+
+<div
+  id="test-root"
+  data-test-page-viewport-width="1280"
+  data-test-page-viewport-height="800"
+  style="display: flex; width: 0;"
+>
+  <div style="display: grid;">
+    <div style="height: 0; aspect-ratio: 1; border-bottom: 1px solid;"></div>
+  </div>
+</div>
+
+</body>
+</html>

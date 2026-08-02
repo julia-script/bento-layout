@@ -41,6 +41,7 @@ import {
 import { internals, type LayoutNode } from '../../tree.js';
 import {
   maybeApplyAspectRatioUsed,
+  toUsedBorderBoxSize,
   transferMaxSizeThroughAspectRatio,
   transferMinSizeThroughAspectRatio,
 } from '../aspectRatio.js';
@@ -684,7 +685,18 @@ function itemKnownDimensions(item: GridItem, gridAreaSize: Size<Opt>): Size<Opt>
   const paddingBorderSize = sumAxes(rectAdd(padding, border));
   const boxSizingAdjustment = item.boxSizing === 'content-box' ? paddingBorderSize : { width: 0, height: 0 };
   const resolvedStyleSize = maybeResolveSize(item.size, gridAreaSize);
-  const inherentSize = maybeAddSize(maybeApplyAspectRatio(resolvedStyleSize, aspectRatio), boxSizingAdjustment);
+  // Grid intrinsic contributions transfer from the *used* ratio-determining
+  // size. CSS Sizing 3 §3.3 floors a border-box content box at zero before
+  // Sizing 4 §4.1 applies the preferred ratio. Chrome, `height:0` plus 1px of
+  // block border and `aspect-ratio:1`, therefore contributes 1px inline under
+  // border-box (but 0px under content-box). Transferring the authored zero
+  // first permanently lost that inset floor from the auto track contribution.
+  const inherentSize = maybeApplyAspectRatioUsed(
+    toUsedBorderBoxSize(resolvedStyleSize, item.boxSizing, paddingBorderSize),
+    aspectRatio,
+    item.boxSizing,
+    paddingBorderSize,
+  );
   const resolvedMinSize = maybeResolveSize(item.minSize, gridAreaSize);
   const resolvedMaxSize = maybeResolveSize(item.maxSize, gridAreaSize);
   const minSizeRaw = maybeAddSize(resolvedMinSize, boxSizingAdjustment);
@@ -1062,7 +1074,15 @@ export function itemMinimumContribution(
   const resolvedStyleSize = maybeResolveSize(item.size, gridAreaSize);
   const resolvedMinSize = maybeResolveSize(item.minSize, gridAreaSize);
   const resolvedMaxSize = maybeResolveSize(item.maxSize, gridAreaSize);
-  const preferredSize = maybeAddSize(maybeApplyAspectRatio(resolvedStyleSize, item.aspectRatio), boxSizingAdjustment);
+  // Keep track sizing on the same used-box stage as itemKnownDimensions.
+  // Otherwise this path reintroduced the authored zero as a definite inline
+  // contribution before the correctly measured 1px result could be consulted.
+  const preferredSize = maybeApplyAspectRatioUsed(
+    toUsedBorderBoxSize(resolvedStyleSize, item.boxSizing, paddingBorderSize),
+    item.aspectRatio,
+    item.boxSizing,
+    paddingBorderSize,
+  );
   const minimumSize = maybeAddSize(resolvedMinSize, boxSizingAdjustment);
   const maximumSize = maybeAddSize(resolvedMaxSize, boxSizingAdjustment);
   const transferredMinimumSize = maybeAddSize(
@@ -1090,7 +1110,8 @@ export function itemMinimumContribution(
   // must not fabricate a 1px preferred width that preempts `min-width: 0`.
   // Blink's CalculateIntrinsicMinimumContribution makes the same raw-length
   // distinction and applies ratio transfer as a separate constraint stage.
-  const preferredAxisSize = typeof rawPreferred === 'object' ? null : absGet(preferredSize, axis);
+  const preferredAxisSize =
+    rawPreferred === 'auto' || typeof rawPreferred === 'object' ? null : absGet(preferredSize, axis);
   const rawMinimum = absGet(item.minSize, axis);
   const unresolvedPercentageMinimum = typeof rawMinimum === 'object' ? 0 : null;
   // Row sizing keeps its existing transferred-minimum shortcut to avoid
