@@ -165,9 +165,10 @@ export function placeGridItems(
   const secondaryAxisGridStartLine = implicitStartLine(cellOccupancyMatrix.trackCounts(secondaryAxis));
   const secondaryAxisGridEndLine = implicitEndLine(cellOccupancyMatrix.trackCounts(secondaryAxis));
   const primaryAxisIsReversed = axisIsReversed(direction, primaryAxis);
+  const secondaryAxisIsReversed = axisIsReversed(direction, secondaryAxis);
   const gridStartPosition: [number, number] = [
     searchStartLine(primaryAxisGridStartLine, primaryAxisGridEndLine, primaryAxisIsReversed),
-    searchStartLine(secondaryAxisGridStartLine, secondaryAxisGridEndLine, axisIsReversed(direction, secondaryAxis)),
+    searchStartLine(secondaryAxisGridStartLine, secondaryAxisGridEndLine, secondaryAxisIsReversed),
   ];
   let gridPosition: [number, number] = gridStartPosition;
 
@@ -201,10 +202,16 @@ export function placeGridItems(
     // otherwise place the next item after the current one.
     if (gridAutoFlowIsDense(gridAutoFlow)) {
       gridPosition = gridStartPosition;
-    } else if (primaryAxisIsReversed) {
-      gridPosition = [primarySpan.start, secondarySpan.start];
     } else {
-      gridPosition = [primarySpan.end, secondarySpan.start];
+      // The sparse cursor remains on the placed item's flow-relative start in
+      // the wrapping axis. A reversed span's generating cursor is `end - 1`,
+      // not its physical `start`: css-grid-1 §8.5 defines auto-placement in
+      // writing-mode-relative line order, and Blink 7922 likewise retains the
+      // logical minor line when advancing its cursor. Saving physical `start`
+      // made a later RTL column-flow item restart at the far left (x=0 rather
+      // than Chrome's x=207 after a three-column spanning item).
+      const secondaryCursor = secondaryAxisIsReversed ? secondarySpan.end - 1 : secondarySpan.start;
+      gridPosition = [primaryAxisIsReversed ? primarySpan.start : primarySpan.end, secondaryCursor];
     }
   }
 }

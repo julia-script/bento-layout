@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found (rehydrated 20260731 batch). Sparse column auto-flow keeps its
+  cursor on the spanning item's flow-relative column start. In RTL that line
+  is the physical end of the mirrored span, not its physical start; the third
+  item therefore belongs in the second column from the right.
+  Regenerate the XML fixtures with:
+  pnpm gentest fuzz_grid_rtl_column_flow_sparse_cursor
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: RTL sparse column flow preserves the logical cursor</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; grid-auto-flow: column; grid-template-rows: 40px 40px; grid-auto-columns: 30px;">
+  <div style="grid-row: span 2 / span 1;"></div>
+  <div style="grid-column: span 3 / span 2;"></div>
+  <div style="width: 10px;"></div>
+</div>
+
+</body>
+</html>

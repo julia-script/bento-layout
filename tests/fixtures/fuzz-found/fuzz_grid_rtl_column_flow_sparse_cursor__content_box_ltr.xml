@@ -1,0 +1,17 @@
+<test name="fuzz_grid_rtl_column_flow_sparse_cursor__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" box-sizing="content-box" direction="ltr" position="absolute" grid-auto-flow="column" grid-template-rows="40px 40px" grid-auto-columns="30px">
+      <div box-sizing="content-box" direction="ltr" grid-row-start="span 2" grid-row-end="span 1"/>
+      <div box-sizing="content-box" direction="ltr" grid-column-start="span 3" grid-column-end="span 2"/>
+      <div box-sizing="content-box" direction="ltr" width="10px"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="120" height="80">
+      <node x="0" y="0" width="30" height="80"/>
+      <node x="30" y="0" width="90" height="40"/>
+      <node x="30" y="40" width="10" height="40"/>
+    </node>
+  </expectations>
+</test>
