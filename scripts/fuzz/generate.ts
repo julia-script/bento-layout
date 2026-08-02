@@ -32,8 +32,10 @@ export interface FuzzNode {
 
 export interface FuzzTree {
   root: FuzzNode;
-  /** Definite viewport (rendered as a `.viewport` wrapper); absent = max-content. */
+  /** Legacy definite viewport rendered as a `.viewport` wrapper. */
   viewport?: { width: number; height: number };
+  /** Definite browser page viewport, recorded without adding a DOM wrapper. */
+  pageViewport?: { width: number; height: number };
 }
 
 // --- Style-space coverage ----------------------------------------------------
@@ -452,11 +454,12 @@ export function generateTree(seed: number, mode: FuzzMode, maxNodes = 40): FuzzT
     wDef: false,
     hDef: false,
   });
-  // No viewport wrapper in v1: a definite-size `.viewport` makes the root a
-  // flex item of the wrapper in Chrome (grow/stretch interactions the engine's
-  // root model doesn't express). Definite available space is exercised via
-  // px-sized roots instead. The FuzzTree.viewport plumbing stays for
-  // hand-written reproductions.
+  // Keep the generated tree itself intrinsic. Campaign drivers apply their
+  // oracle constraint afterwards: intrinsic runs stabilize a widening browser
+  // page, while definite runs attach page-viewport metadata without a wrapper.
+  // A `.viewport` wrapper would make the root a flex item in Chrome, which is
+  // a different layout question; that legacy field remains for hand-written
+  // probes only.
   return { root };
 }
 
@@ -510,8 +513,10 @@ export function treeRespectsPercentInvariant(tree: FuzzTree): boolean {
     const ownH = axisDefinite(node.style.size?.height, hDef);
     return node.children.every((c) => walk(c, ownW, ownH));
   };
-  // Root definiteness comes from its own (px-only) size.
-  const rootW = typeof tree.root.style.size?.width === 'number';
-  const rootH = typeof tree.root.style.size?.height === 'number';
-  return tree.root.children.every((c) => walk(c, rootW, rootH));
+  // Percentages on the root resolve against its containing block, not against
+  // the root's own size. Intrinsic campaigns have no definite containing block;
+  // wrapper/page-viewport probes do. Start at the root so shrinking cannot
+  // promote a percentage-using child past this invariant.
+  const rootParentIsDefinite = tree.viewport !== undefined || tree.pageViewport !== undefined;
+  return walk(tree.root, rootParentIsDefinite, rootParentIsDefinite);
 }

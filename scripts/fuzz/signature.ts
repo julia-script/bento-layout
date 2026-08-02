@@ -10,7 +10,11 @@ export function treeSignature(tree: FuzzTree): string {
     ...(node.text !== undefined ? { text: node.text } : {}),
     children: node.children.map(canonNode),
   });
-  return JSON.stringify({ root: canonNode(tree.root), viewport: tree.viewport ?? null });
+  return JSON.stringify({
+    root: canonNode(tree.root),
+    viewport: tree.viewport ?? null,
+    ...(tree.pageViewport === undefined ? {} : { pageViewport: tree.pageViewport }),
+  });
 }
 
 /** FNV-1a hash of a signature — used for persisted fixture names. */

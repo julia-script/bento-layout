@@ -12,6 +12,7 @@
 // and written to tests/html/fuzz-found/ for `pnpm gentest` to pick up.
 //
 // Usage: pnpm fuzz [--seed N] [--iterations N] [--mode flex|grid|block|mixed]
+//                  [--oracle intrinsic|viewport|mixed]
 //                  [--only N] [--max-findings N] [--no-write]
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -20,7 +21,15 @@ import { fileURLToPath } from 'node:url';
 import puppeteer from 'puppeteer';
 import { checkTree, createExecutor } from './fuzz/check.js';
 import type { FuzzMode, FuzzTree } from './fuzz/generate.js';
-import { countNodes, generateTree, treeRespectsPercentInvariant } from './fuzz/generate.js';
+import { countNodes, generateTree } from './fuzz/generate.js';
+import type { FuzzOracleConstraint, FuzzOracleMode } from './fuzz/oracle.js';
+import {
+  isFuzzOracleMode,
+  oracleConstraintAt,
+  oracleConstraintOf,
+  treeRespectsOracleInvariant,
+  withOracleConstraint,
+} from './fuzz/oracle.js';
 import { deriveSeed } from './fuzz/prng.js';
 import { fuzzTreeToHtml } from './fuzz/serialize.js';
 import { shrinkTree } from './fuzz/shrink.js';
@@ -45,7 +54,10 @@ function loadKnownDivergences(): KnownDivergence[] {
 
 // --- Persistence (failure-to-fixture) ----------------------------------------
 
-function persistFinding(tree: FuzzTree, meta: { seed: number; index: number; chrome: string }): string {
+function persistFinding(
+  tree: FuzzTree,
+  meta: { seed: number; index: number; chrome: string; oracle: FuzzOracleConstraint },
+): string {
   const hash = signatureHash(treeSignature(tree));
   const name = `fuzz_${hash}`;
   const html = fuzzTreeToHtml(tree, {
@@ -53,6 +65,7 @@ function persistFinding(tree: FuzzTree, meta: { seed: number; index: number; chr
     title: `Fuzz-found conformance mismatch (${name})`,
     headerComment: [
       `fuzz-found: seed=${meta.seed} index=${meta.index}`,
+      `oracle: ${meta.oracle}`,
       `date: ${new Date().toISOString().slice(0, 10)}`,
       `chrome: ${meta.chrome}`,
       `Regenerate the XML fixtures with: pnpm gentest ${name}`,
@@ -75,6 +88,7 @@ async function main(): Promise<void> {
   const seed = Number(argValue('--seed') ?? Date.now() >>> 0);
   const iterations = Number(argValue('--iterations') ?? 200);
   const mode = (argValue('--mode') ?? 'mixed') as FuzzMode;
+  const oracleMode = (argValue('--oracle') ?? 'mixed') as FuzzOracleMode;
   const only = argValue('--only') !== undefined ? Number(argValue('--only')) : null;
   const maxFindings = Number(argValue('--max-findings') ?? 5);
   const write = !process.argv.includes('--no-write');
@@ -83,8 +97,15 @@ async function main(): Promise<void> {
     console.error(`unknown mode: ${mode}`);
     process.exit(2);
   }
+  if (!isFuzzOracleMode(oracleMode)) {
+    console.error(`unknown oracle mode: ${oracleMode}`);
+    process.exit(2);
+  }
 
-  console.log(`fuzz: seed=${seed} iterations=${iterations} mode=${mode}${only !== null ? ` only=${only}` : ''}`);
+  console.log(
+    `fuzz: seed=${seed} iterations=${iterations} mode=${mode} oracle=${oracleMode}` +
+      `${only !== null ? ` only=${only}` : ''}`,
+  );
 
   const browser = await puppeteer.launch({
     headless: true,
@@ -102,14 +123,17 @@ async function main(): Promise<void> {
 
   for (const index of indices) {
     const treeSeed = deriveSeed(seed, index);
-    const tree = generateTree(treeSeed, mode);
+    const requestedOracle = oracleConstraintAt(oracleMode, index);
+    const makeTree = (): FuzzTree => withOracleConstraint(generateTree(treeSeed, mode), requestedOracle);
+    const tree = makeTree();
+    const oracle = oracleConstraintOf(tree);
     const mismatches = await checkTree(exec, tree);
     checked++;
 
     if (mismatches.length === 0) continue;
 
     // Flake guard: regenerate from seed and re-render before believing it.
-    const recheck = await checkTree(exec, generateTree(treeSeed, mode));
+    const recheck = await checkTree(exec, makeTree());
     if (recheck.length === 0) {
       console.warn(`tree ${index}: mismatch did not reproduce on re-check — ignored (flake)`);
       continue;
@@ -121,7 +145,7 @@ async function main(): Promise<void> {
       tree,
       async (candidate) => (await checkTree(exec, candidate)).length > 0,
       250,
-      treeRespectsPercentInvariant,
+      treeRespectsOracleInvariant,
     );
     const minimal = shrunk.tree;
     const finalMismatches = await checkTree(exec, minimal);
@@ -144,10 +168,10 @@ async function main(): Promise<void> {
       console.log(`  ${m.variant} ${m.path} ${m.axis}: chrome=${m.expected} engine=${m.actual}`);
     }
     if (finalMismatches.length > 8) console.log(`  … and ${finalMismatches.length - 8} more`);
-    console.log(`  reproduce: pnpm fuzz --seed ${seed} --only ${index} --mode ${mode}`);
+    console.log(`  reproduce: pnpm fuzz --seed ${seed} --only ${index} --mode ${mode} --oracle ${oracle}`);
 
     if (write) {
-      const file = persistFinding(minimal, { seed, index, chrome });
+      const file = persistFinding(minimal, { seed, index, chrome, oracle });
       console.log(`  persisted: ${file}`);
     }
 

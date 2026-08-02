@@ -2,7 +2,7 @@
 //
 // A batch file carries every finding's shrunk tree plus Chrome's frozen
 // verdict, which makes it fast but several MB — too big to track. The manifest
-// keeps only what a finding is *derived* from: `(seed, index, mode)`. That is a
+// keeps only what a finding is *derived* from: `(seed, index, mode, oracle)`. That is a
 // few tens of KB, commits cleanly, and rehydrates into a full batch on any
 // machine with the pinned Chrome.
 //
@@ -20,7 +20,9 @@ import { fileURLToPath } from 'node:url';
 import puppeteer from 'puppeteer';
 import { checkFixtures, checkTree, createExecutor, type Executor, renderFixtures } from './fuzz/check.js';
 import type { FuzzMode } from './fuzz/generate.js';
-import { countNodes, generateTree, treeRespectsPercentInvariant } from './fuzz/generate.js';
+import { countNodes, generateTree } from './fuzz/generate.js';
+import type { FuzzOracleConstraint } from './fuzz/oracle.js';
+import { oracleConstraintOf, treeRespectsOracleInvariant, withOracleConstraint } from './fuzz/oracle.js';
 import { deriveSeed } from './fuzz/prng.js';
 import { shrinkTree } from './fuzz/shrink.js';
 import { signatureHash, treeSignature } from './fuzz/signature.js';
@@ -34,6 +36,8 @@ interface ManifestEntry {
   seed: number;
   index: number;
   mode: FuzzMode;
+  /** Absent in legacy manifests means the historical 1280×800 page viewport. */
+  oracle?: FuzzOracleConstraint;
 }
 
 interface Manifest {
@@ -67,7 +71,14 @@ function save(): void {
   const manifest: Manifest = {
     chrome: batch.chrome,
     createdAt: batch.createdAt,
-    entries: batch.findings.map((f) => ({ seed: f.seed, index: f.index, mode: f.mode })),
+    entries: batch.findings.map((f) => ({
+      seed: f.seed,
+      index: f.index,
+      mode: f.mode,
+      // Legacy batches rendered Chrome at Puppeteer's 1280×800 page even
+      // though their XML mislabeled that space as max-content.
+      oracle: f.oracle ?? 'viewport',
+    })),
   };
   writeFileSync(out, `${JSON.stringify(manifest, null, 2)}\n`);
   const kb = (JSON.stringify(manifest).length / 1024).toFixed(0);
@@ -113,7 +124,12 @@ async function rehydrate(): Promise<void> {
         const entry = manifest.entries[i];
         if (entry === undefined) return;
 
-        const tree = generateTree(deriveSeed(entry.seed, entry.index), entry.mode);
+        const requestedOracle = entry.oracle ?? 'viewport';
+        const tree = withOracleConstraint(
+          generateTree(deriveSeed(entry.seed, entry.index), entry.mode),
+          requestedOracle,
+        );
+        const oracle = oracleConstraintOf(tree);
         done++;
         if (done % 50 === 0) {
           const rate = done / ((Date.now() - started) / 1000);
@@ -133,7 +149,7 @@ async function rehydrate(): Promise<void> {
           tree,
           async (candidate) => (await checkTree(exec, candidate)).length > 0,
           250,
-          treeRespectsPercentInvariant,
+          treeRespectsOracleInvariant,
         );
         const minimal = shrunk.tree;
         const id = signatureHash(treeSignature(minimal));
@@ -146,6 +162,7 @@ async function rehydrate(): Promise<void> {
           seed: entry.seed,
           index: entry.index,
           mode: entry.mode,
+          oracle,
           nodes: countNodes(minimal.root),
           tree: minimal,
           fixtures,

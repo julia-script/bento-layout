@@ -142,6 +142,18 @@ fail, so a tree minimized before a fix is not minimal after it. Findings a fix
 already resolved are reported as "already fixed" and drop out — that is the
 progress signal, not an error.
 
+Fuzz campaigns alternate two explicit oracle-space regimes by default
+(`--oracle mixed`): `intrinsic` widens Chrome's page until the complete geometry
+stabilizes before recording `max-content`, while `viewport` records the exact
+1280×800 page viewport as numeric available space without inserting a DOM
+wrapper. The oracle regime is stored in both the batch and seed manifest; use
+`--oracle intrinsic` or `--oracle viewport` to isolate one. Never substitute a
+`.viewport` wrapper for page metadata: the wrapper makes the root a flex item
+and changes the layout being compared. Legacy manifests without oracle
+metadata migrate as 1280×800 `viewport` campaigns, matching the page they were
+actually rendered in; interpreting them as intrinsic would rewrite the frozen
+campaign.
+
 A finding worth keeping permanently gets promoted to a real fixture under
 `tests/fixtures/fuzz-found/` via `pnpm fuzz` + `pnpm gentest`. Those are what
 actually guard against regressions; the batch is only a work queue.

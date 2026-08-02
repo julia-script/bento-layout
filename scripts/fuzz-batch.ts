@@ -10,6 +10,7 @@
 // leaves a usable batch file.
 //
 // Usage: pnpm fuzz-batch [--seed N] [--iterations N] [--mode flex|grid|block|mixed]
+//                        [--oracle intrinsic|viewport|mixed]
 //                        [--target N] [--concurrency N] [--out FILE] [--append]
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -19,7 +20,15 @@ import type { Browser } from 'puppeteer';
 import puppeteer from 'puppeteer';
 import { checkFixtures, checkTree, createExecutor, type Executor, renderFixtures } from './fuzz/check.js';
 import type { FuzzMode, FuzzTree } from './fuzz/generate.js';
-import { countNodes, generateTree, treeRespectsPercentInvariant } from './fuzz/generate.js';
+import { countNodes, generateTree } from './fuzz/generate.js';
+import type { FuzzOracleConstraint, FuzzOracleMode } from './fuzz/oracle.js';
+import {
+  isFuzzOracleMode,
+  oracleConstraintAt,
+  oracleConstraintOf,
+  treeRespectsOracleInvariant,
+  withOracleConstraint,
+} from './fuzz/oracle.js';
 import { deriveSeed } from './fuzz/prng.js';
 import { shrinkTree } from './fuzz/shrink.js';
 import { signatureHash, treeSignature } from './fuzz/signature.js';
@@ -30,10 +39,12 @@ const BATCH_DIR = join(ROOT, 'tests', 'fuzz-batches');
 export interface BatchFinding {
   /** FNV-1a hash of the shrunk signature — stable id across runs. */
   id: string;
-  /** Reproduction: `pnpm fuzz --seed <seed> --only <index> --mode <mode>`. */
+  /** Reproduction: `pnpm fuzz --seed <seed> --only <index> --mode <mode> --oracle <oracle>`. */
   seed: number;
   index: number;
   mode: FuzzMode;
+  /** Oracle regime. Absent in legacy batches means the historical 1280×800 viewport. */
+  oracle?: FuzzOracleConstraint;
   nodes: number;
   /** Shrunk tree, ready for `pnpm fuzz-triage '<json>'`. */
   tree: FuzzTree;
@@ -82,6 +93,7 @@ async function main(): Promise<void> {
   const seed = Number(argValue('--seed') ?? Date.now() >>> 0);
   const iterations = Number(argValue('--iterations') ?? 20000);
   const mode = (argValue('--mode') ?? 'mixed') as FuzzMode;
+  const oracleMode = (argValue('--oracle') ?? 'mixed') as FuzzOracleMode;
   const target = Number(argValue('--target') ?? 1000);
   const concurrency = Number(argValue('--concurrency') ?? 8);
   const append = process.argv.includes('--append');
@@ -90,9 +102,13 @@ async function main(): Promise<void> {
     console.error(`unknown mode: ${mode}`);
     process.exit(2);
   }
+  if (!isFuzzOracleMode(oracleMode)) {
+    console.error(`unknown oracle mode: ${oracleMode}`);
+    process.exit(2);
+  }
 
   mkdirSync(BATCH_DIR, { recursive: true });
-  const out = argValue('--out') ?? join(BATCH_DIR, `batch-${seed}-${mode}.json`);
+  const out = argValue('--out') ?? join(BATCH_DIR, `batch-${seed}-${mode}-${oracleMode}.json`);
 
   const browser: Browser = await puppeteer.launch({
     headless: true,
@@ -107,7 +123,7 @@ async function main(): Promise<void> {
   const startedWith = findings.length;
 
   console.log(
-    `fuzz-batch: seed=${seed} iterations=${iterations} mode=${mode} target=${target} ` +
+    `fuzz-batch: seed=${seed} iterations=${iterations} mode=${mode} oracle=${oracleMode} target=${target} ` +
       `concurrency=${concurrency}${startedWith > 0 ? ` (resuming from ${startedWith})` : ''}\n  out: ${out}`,
   );
 
@@ -124,7 +140,10 @@ async function main(): Promise<void> {
     async (index, slot) => {
       const exec = execs[slot] as Executor;
       const treeSeed = deriveSeed(seed, index);
-      const tree = generateTree(treeSeed, mode);
+      const requestedOracle = oracleConstraintAt(oracleMode, index);
+      const makeTree = (): FuzzTree => withOracleConstraint(generateTree(treeSeed, mode), requestedOracle);
+      const tree = makeTree();
+      const oracle = oracleConstraintOf(tree);
       const mismatches = await checkTree(exec, tree);
       checked++;
       if (checked % 50 === 0) {
@@ -138,13 +157,13 @@ async function main(): Promise<void> {
 
       // Flake guard, same as `pnpm fuzz`: regenerate and re-render before
       // spending a shrink budget on it.
-      if ((await checkTree(exec, generateTree(treeSeed, mode))).length === 0) return;
+      if ((await checkTree(exec, makeTree())).length === 0) return;
 
       const shrunk = await shrinkTree(
         tree,
         async (candidate) => (await checkTree(exec, candidate)).length > 0,
         250,
-        treeRespectsPercentInvariant,
+        treeRespectsOracleInvariant,
       );
       const minimal = shrunk.tree;
       const id = signatureHash(treeSignature(minimal));
@@ -159,6 +178,7 @@ async function main(): Promise<void> {
         seed,
         index,
         mode,
+        oracle,
         nodes: countNodes(minimal.root),
         tree: minimal,
         fixtures,

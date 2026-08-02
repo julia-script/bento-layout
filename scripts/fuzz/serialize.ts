@@ -208,8 +208,8 @@ function cssInline(style: Partial<Style>): string {
     .join(' ');
 }
 
-function nodeToHtml(node: FuzzNode, indent: string, isRoot: boolean): string {
-  const id = isRoot ? ' id="test-root"' : '';
+function nodeToHtml(node: FuzzNode, indent: string, isRoot: boolean, rootMetadata = ''): string {
+  const id = isRoot ? ` id="test-root"${rootMetadata}` : '';
   const css = cssInline(node.style);
   const styleAttr = css.length > 0 ? ` style="${escapeAttr(css)}"` : '';
   if (node.children.length === 0) {
@@ -237,7 +237,14 @@ export function fuzzTreeToHtml(tree: FuzzTree, opts: HtmlOptions): string {
       ? `  <script>${opts.supportJs ?? ''}</script>\n  <style>${opts.supportCss ?? ''}</style>`
       : `  <script src="../support/test_helper.js"></script>\n  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">`;
 
-  const rootHtml = nodeToHtml(tree.root, '', true);
+  if (tree.viewport !== undefined && tree.pageViewport !== undefined) {
+    throw new Error('a fuzz tree cannot use both a wrapper viewport and a page viewport');
+  }
+  const pageViewportMetadata =
+    tree.pageViewport === undefined
+      ? ''
+      : ` data-test-page-viewport-width="${tree.pageViewport.width}" data-test-page-viewport-height="${tree.pageViewport.height}"`;
+  const rootHtml = nodeToHtml(tree.root, '', true, pageViewportMetadata);
   const body =
     tree.viewport !== undefined
       ? `<div class="viewport" style="width: ${tree.viewport.width}px; height: ${tree.viewport.height}px;">\n${rootHtml}\n</div>`

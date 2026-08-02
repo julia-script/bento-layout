@@ -91,6 +91,17 @@ class TrackSizingParser {
 }
 
 function parseViewportConstraint(e) {
+  const pageViewportWidth = e.getAttribute('data-test-page-viewport-width');
+  const pageViewportHeight = e.getAttribute('data-test-page-viewport-height');
+  if (pageViewportWidth !== null || pageViewportHeight !== null) {
+    if (pageViewportWidth === null || pageViewportHeight === null) {
+      throw new Error('page viewport metadata requires both width and height');
+    }
+    return {
+      width: parseDimension(`${pageViewportWidth}px`),
+      height: parseDimension(`${pageViewportHeight}px`),
+    }
+  }
   if (e.parentNode.classList.contains('viewport')) {
     return {
       width: parseDimension(e.parentNode.style.width || 'max-content'),
