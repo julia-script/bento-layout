@@ -1,0 +1,13 @@
+<test name="fuzz_flex_column_content_box_percentage_basis__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="rtl" position="absolute" flex-direction="column" width="200px">
+      <div direction="rtl" flex-basis="55px" padding-top="20%" padding-bottom="75%"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="200" height="190">
+      <node x="0" y="0" width="200" height="190"/>
+    </node>
+  </expectations>
+</test>

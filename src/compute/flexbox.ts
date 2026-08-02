@@ -941,14 +941,20 @@ function determineFlexBaseSize(
       );
     }
 
-    const containerWidth = main(constants.nodeInnerSize, dir);
+    // Percentage padding always resolves against the containing block's inline
+    // size, even when it becomes a column item's main-axis inset. Using the
+    // flex main size here made that reference indefinite in columns and erased
+    // the content-box adjustment: Chrome gives 245px for `flex-basis: 55px`
+    // plus 190px of percentage block padding in a 200px-wide container.
+    const containerInlineSize = constants.nodeInnerSize.width;
+    const containerMainSize = main(constants.nodeInnerSize, dir);
     let boxSizingAdjustment = 0;
     if (childStyle.boxSizing === 'content-box') {
-      const padding = resolveRectOrZero(childStyle.padding, containerWidth);
-      const border = resolveRectOrZero(childStyle.border, containerWidth);
+      const padding = resolveRectOrZero(childStyle.padding, containerInlineSize);
+      const border = resolveRectOrZero(childStyle.border, containerInlineSize);
       boxSizingAdjustment = main(sumAxes(rectAdd(padding, border)), dir);
     }
-    const flexBasis = mAdd(maybeResolve(childStyle.flexBasis, containerWidth), boxSizingAdjustment);
+    const flexBasis = mAdd(maybeResolve(childStyle.flexBasis, containerMainSize), boxSizingAdjustment);
     // `flex-basis` other than `auto` replaces the style main size outright, so
     // that size must not resurface as a clamp on the item's intrinsic
     // contribution. See determineContainerMainSize.

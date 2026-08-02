@@ -1,0 +1,13 @@
+<test name="fuzz_flex_column_content_box_percentage_basis__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div box-sizing="content-box" direction="ltr" position="absolute" flex-direction="column" width="200px">
+      <div box-sizing="content-box" direction="ltr" flex-basis="55px" padding-top="20%" padding-bottom="75%"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="200" height="245">
+      <node x="0" y="0" width="200" height="245"/>
+    </node>
+  </expectations>
+</test>

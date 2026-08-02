@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: batch seed=20260731, finding=cae1af1d (mode=mixed), minimized
+  chrome: Chrome/151.0.7922.47
+  A column item's percentage block-axis padding resolves against the
+  container's inline size before converting a content-box flex basis outward.
+  Regenerate with: pnpm gentest fuzz_flex_column_content_box_percentage_basis
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: column content-box percentage flex basis</title>
+</head>
+<body>
+
+<div id="test-root" style="width: 200px; flex-direction: column;">
+  <div style="flex-basis: 55px; padding-top: 20%; padding-bottom: 75%;"></div>
+</div>
+
+</body>
+</html>
