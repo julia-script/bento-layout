@@ -1097,9 +1097,34 @@ function performAbsoluteLayoutOnAbsoluteChildren(
       'content-size',
     );
 
+    const measuredWidth = vClamp(knownDimensions.width ?? measuredSize.width, minSize.width, maxSize.width);
+    // With two automatic sizes and an auto inset, Blink resolves the
+    // fit-content inline size first, then lays out the block axis with that
+    // inline size fixed (absolute_utils.cc ComputeOofInlineDimensions then
+    // ComputeOofBlockDimensions). css-sizing-4 §4.2 makes the automatic block
+    // size ratio-dependent at that point. Chrome 151, one 10px-wide text glyph
+    // with `aspect-ratio: .5`, is therefore 10x20 rather than its intrinsic
+    // 10x10 line box; ratios 2 and 3 produce heights 5 and 3 respectively.
+    const measuredRatioSize =
+      aspectRatio !== null && knownDimensions.width === null && knownDimensions.height === null
+        ? sizeMaybeClamp(
+            maybeApplyAspectRatioUsed(
+              { width: measuredWidth, height: null },
+              aspectRatio,
+              childStyle.boxSizing,
+              paddingBorderSum,
+            ),
+            minSize,
+            maxSize,
+          )
+        : { width: null, height: null };
     const finalSize: Size<number> = {
-      width: vClamp(knownDimensions.width ?? measuredSize.width, minSize.width, maxSize.width),
-      height: vClamp(knownDimensions.height ?? measuredSize.height, minSize.height, maxSize.height),
+      width: measuredWidth,
+      height: vClamp(
+        knownDimensions.height ?? measuredRatioSize.height ?? measuredSize.height,
+        minSize.height,
+        maxSize.height,
+      ),
     };
 
     const layoutOutput = performChildLayout(
