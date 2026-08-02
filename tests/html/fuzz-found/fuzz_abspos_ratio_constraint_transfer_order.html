@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: batch seed=20260731, finding=096884ec (mode=mixed), minimized
+  chrome: Chrome/151.0.7922.47
+  CSS Sizing 4 §4.4 transfers ratio constraints only onto an indefinite
+  destination. Transferred maxima are floored by a definite destination size,
+  and transferred minima are capped by an explicit destination maximum.
+  Regenerate with: pnpm gentest fuzz_abspos_ratio_constraint_transfer_order
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: abspos ratio constraint transfer order</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block; width: 20px; height: 20px;">
+  <div style="position: absolute; width: auto; height: 1px; max-width: 0; aspect-ratio: 1;"></div>
+  <div style="display: flex; position: relative; width: 20px; height: 20px;">
+    <div style="position: absolute; width: 1px; height: auto; max-height: 0; aspect-ratio: 1;"></div>
+    <div style="position: absolute; min-height: 5px; max-width: 0; aspect-ratio: 1;"></div>
+  </div>
+</div>
+
+</body>
+</html>

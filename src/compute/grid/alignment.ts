@@ -15,14 +15,14 @@ import {
   resolveAbsoluteAxis,
   resolveSelfAlignmentSafety,
 } from '../alignment.js';
-import { measureChildSize, measureChildSizeBoth, performChildLayout } from '../dispatch.js';
-import type { GridTrack } from './types.js';
 import {
   maybeApplyAspectRatioUsed,
-  resolveGridInsets,
   transferMaxSizeThroughAspectRatio,
   transferMinSizeThroughAspectRatio,
-} from './types.js';
+} from '../aspectRatio.js';
+import { measureChildSize, measureChildSizeBoth, performChildLayout } from '../dispatch.js';
+import type { GridTrack } from './types.js';
+import { resolveGridInsets } from './types.js';
 
 const ALIGN_START: AlignItems = { keyword: 'start', safe: false };
 const ALIGN_STRETCH_LOCAL: AlignItems = { keyword: 'stretch', safe: false };

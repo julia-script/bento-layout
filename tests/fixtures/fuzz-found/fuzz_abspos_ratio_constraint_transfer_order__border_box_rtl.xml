@@ -1,0 +1,21 @@
+<test name="fuzz_abspos_ratio_constraint_transfer_order__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" direction="rtl" position="absolute" width="20px" height="20px">
+      <div direction="rtl" position="absolute" height="1px" max-width="0px" aspect-ratio="1"/>
+      <div display="flex" direction="rtl" width="20px" height="20px">
+        <div direction="rtl" position="absolute" width="1px" max-height="0px" aspect-ratio="1"/>
+        <div direction="rtl" position="absolute" min-height="5px" max-width="0px" aspect-ratio="1"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="20" height="20">
+      <node x="20" y="0" width="0" height="1"/>
+      <node x="0" y="0" width="20" height="20">
+        <node x="19" y="0" width="1" height="0"/>
+        <node x="20" y="0" width="0" height="5"/>
+      </node>
+    </node>
+  </expectations>
+</test>

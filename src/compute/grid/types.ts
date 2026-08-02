@@ -39,6 +39,11 @@ import {
   trackUsesPercentage,
 } from '../../style.js';
 import type { LayoutNode } from '../../tree.js';
+import {
+  maybeApplyAspectRatioUsed,
+  transferMaxSizeThroughAspectRatio,
+  transferMinSizeThroughAspectRatio,
+} from '../aspectRatio.js';
 import { measureChildSize } from '../dispatch.js';
 
 const BLINK_LAYOUT_UNIT_DENOMINATOR = 64;
@@ -608,96 +613,6 @@ export function itemMarginsAxisSumsWithBaselineShims(item: GridItem, innerNodeWi
     top: resolveOrZero(item.margin.top, innerNodeWidth) + item.baselineShim,
     bottom: resolveOrZero(item.margin.bottom, innerNodeWidth),
   });
-}
-
-/** Compute known_dimensions for child sizing (applies stretch alignment) */
-/**
- * Like `maybeApplyAspectRatio`, but for *used* (border-box) sizes: under
- * `box-sizing: content-box` the ratio relates the content box, so the source
- * axis's padding+border is stripped before the ratio is applied and the target
- * axis's added back (css-sizing-4 §5). A stretched grid area height of 27 with
- * ratio 1 and border sums 17w/27h yields width 17, not 27.
- *
- * The style-value sites (`maybeResolveSize(...)` then `maybeAddSize(...,
- * boxSizingAdjustment)`) stay on plain `maybeApplyAspectRatio` — there the
- * ratio is applied to content-box values *before* the adjustment, which is
- * already correct.
- */
-export function maybeApplyAspectRatioUsed(
-  size: Size<Opt>,
-  aspectRatio: number | null,
-  boxSizing: BoxSizing,
-  pbSum: Size<number>,
-): Size<Opt> {
-  if (aspectRatio === null || boxSizing !== 'content-box') return maybeApplyAspectRatio(size, aspectRatio);
-  if (size.width !== null && size.height === null) {
-    return { width: size.width, height: Math.max(size.width - pbSum.width, 0) / aspectRatio + pbSum.height };
-  }
-  if (size.width === null && size.height !== null) {
-    return { width: Math.max(size.height - pbSum.height, 0) * aspectRatio + pbSum.width, height: size.height };
-  }
-  return { ...size };
-}
-
-/** css-sizing-4 §4.4 min-size transfers for a box with a preferred ratio. */
-export function transferMinSizeThroughAspectRatio(
-  minSize: Size<number>,
-  resolvedMinSize: Size<Opt>,
-  resolvedStyleSize: Size<Opt>,
-  resolvedMaxSize: Size<Opt>,
-  aspectRatio: number | null,
-  boxSizing: BoxSizing,
-  paddingBorderSize: Size<number>,
-): Size<number> {
-  const fromWidth = maybeApplyAspectRatioUsed(
-    { width: minSize.width, height: null },
-    aspectRatio,
-    boxSizing,
-    paddingBorderSize,
-  );
-  const fromHeight = maybeApplyAspectRatioUsed(
-    { width: null, height: minSize.height },
-    aspectRatio,
-    boxSizing,
-    paddingBorderSize,
-  );
-  const boxSizingAdjustment = boxSizing === 'content-box' ? paddingBorderSize : { width: 0, height: 0 };
-  const maxSize = maybeAddSize(resolvedMaxSize, boxSizingAdjustment);
-  return {
-    width:
-      resolvedStyleSize.width === null && resolvedMinSize.width === null
-        ? Math.max(minSize.width, Math.min(fromHeight.width ?? 0, maxSize.width ?? Infinity))
-        : minSize.width,
-    height:
-      resolvedStyleSize.height === null && resolvedMinSize.height === null
-        ? Math.max(minSize.height, Math.min(fromWidth.height ?? 0, maxSize.height ?? Infinity))
-        : minSize.height,
-  };
-}
-
-/** css-sizing-4 §4.4 max-size transfers, floored by definite destination sizes. */
-export function transferMaxSizeThroughAspectRatio(
-  resolvedMaxSize: Size<Opt>,
-  resolvedStyleSize: Size<Opt>,
-  minSize: Size<number>,
-  aspectRatio: number | null,
-  boxSizing: BoxSizing,
-  paddingBorderSize: Size<number>,
-): Size<Opt> {
-  const boxSizingAdjustment = boxSizing === 'content-box' ? paddingBorderSize : { width: 0, height: 0 };
-  const preferredSize = maybeAddSize(resolvedStyleSize, boxSizingAdjustment);
-  const maxSize = maybeAddSize(maybeApplyAspectRatio(resolvedMaxSize, aspectRatio), boxSizingAdjustment);
-
-  return {
-    width:
-      resolvedMaxSize.width === null && maxSize.width !== null
-        ? Math.max(maxSize.width, preferredSize.width ?? 0, minSize.width)
-        : maxSize.width,
-    height:
-      resolvedMaxSize.height === null && maxSize.height !== null
-        ? Math.max(maxSize.height, preferredSize.height ?? 0, minSize.height)
-        : maxSize.height,
-  };
 }
 
 function itemKnownDimensions(item: GridItem, gridAreaSize: Size<Opt>): Size<Opt> {

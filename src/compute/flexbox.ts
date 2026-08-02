@@ -58,6 +58,7 @@ import {
   resolveAbsoluteAxis,
   resolveSelfAlignmentSafety,
 } from './alignment.js';
+import { transferMaxSizeThroughAspectRatio, transferMinSizeThroughAspectRatio } from './aspectRatio.js';
 import { measureChildSize, measureChildSizeBoth, performChildLayout } from './dispatch.js';
 
 /** The intermediate results of a flexbox calculation for a single item */
@@ -2706,21 +2707,30 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
     const bottom = maybeResolve(childStyle.inset.bottom, insetRelativeSize.height);
 
     // Compute known dimensions from min/max/inherent size styles
-    const styleSize = maybeAddSize(
-      maybeApplyAspectRatio(maybeResolveSize(childStyle.size, insetRelativeSize), aspectRatio),
-      boxSizingAdjustment,
+    const resolvedStyleSize = maybeResolveSize(childStyle.size, insetRelativeSize);
+    const resolvedMinSize = maybeResolveSize(childStyle.minSize, insetRelativeSize);
+    const resolvedMaxSize = maybeResolveSize(childStyle.maxSize, insetRelativeSize);
+    const styleSize = maybeAddSize(maybeApplyAspectRatio(resolvedStyleSize, aspectRatio), boxSizingAdjustment);
+    const minSizeRaw = maybeAddSize(resolvedMinSize, boxSizingAdjustment);
+    const minSize = transferMinSizeThroughAspectRatio(
+      {
+        width: Math.max(minSizeRaw.width ?? paddingBorderSum.width, paddingBorderSum.width),
+        height: Math.max(minSizeRaw.height ?? paddingBorderSum.height, paddingBorderSum.height),
+      },
+      resolvedMinSize,
+      resolvedStyleSize,
+      resolvedMaxSize,
+      aspectRatio,
+      childStyle.boxSizing,
+      paddingBorderSum,
     );
-    const minSizeRaw = maybeAddSize(
-      maybeApplyAspectRatio(maybeResolveSize(childStyle.minSize, insetRelativeSize), aspectRatio),
-      boxSizingAdjustment,
-    );
-    const minSize: Size<Opt> = {
-      width: mMax(minSizeRaw.width ?? paddingBorderSum.width, paddingBorderSum.width),
-      height: mMax(minSizeRaw.height ?? paddingBorderSum.height, paddingBorderSum.height),
-    };
-    const maxSize = maybeAddSize(
-      maybeApplyAspectRatio(maybeResolveSize(childStyle.maxSize, insetRelativeSize), aspectRatio),
-      boxSizingAdjustment,
+    const maxSize = transferMaxSizeThroughAspectRatio(
+      resolvedMaxSize,
+      resolvedStyleSize,
+      minSize,
+      aspectRatio,
+      childStyle.boxSizing,
+      paddingBorderSum,
     );
     let knownDimensions = sizeMaybeClamp(styleSize, minSize, maxSize);
 

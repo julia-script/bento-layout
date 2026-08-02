@@ -40,6 +40,7 @@ import {
   computeContentSizeContribution,
   resolveAbsoluteAxis,
 } from './alignment.js';
+import { transferMaxSizeThroughAspectRatio, transferMinSizeThroughAspectRatio } from './aspectRatio.js';
 import { computeChildLayout, measureChildSize, measureChildSizeBoth, performChildLayout } from './dispatch.js';
 
 const LINE_TRUE: Line<boolean> = { start: true, end: true };
@@ -923,21 +924,30 @@ function performAbsoluteLayoutOnAbsoluteChildren(
     const bottom = maybeResolve(childStyle.inset.bottom, areaHeight);
 
     // Compute known dimensions from min/max/inherent size styles
-    const styleSize = maybeAddSize(
-      maybeApplyAspectRatio(maybeResolveSize(childStyle.size, areaSize), aspectRatio),
-      boxSizingAdjustment,
+    const resolvedStyleSize = maybeResolveSize(childStyle.size, areaSize);
+    const resolvedMinSize = maybeResolveSize(childStyle.minSize, areaSize);
+    const resolvedMaxSize = maybeResolveSize(childStyle.maxSize, areaSize);
+    const styleSize = maybeAddSize(maybeApplyAspectRatio(resolvedStyleSize, aspectRatio), boxSizingAdjustment);
+    const minSizeRaw = maybeAddSize(resolvedMinSize, boxSizingAdjustment);
+    const minSize = transferMinSizeThroughAspectRatio(
+      {
+        width: Math.max(minSizeRaw.width ?? paddingBorderSum.width, paddingBorderSum.width),
+        height: Math.max(minSizeRaw.height ?? paddingBorderSum.height, paddingBorderSum.height),
+      },
+      resolvedMinSize,
+      resolvedStyleSize,
+      resolvedMaxSize,
+      aspectRatio,
+      childStyle.boxSizing,
+      paddingBorderSum,
     );
-    const minSizeRaw = maybeAddSize(
-      maybeApplyAspectRatio(maybeResolveSize(childStyle.minSize, areaSize), aspectRatio),
-      boxSizingAdjustment,
-    );
-    const minSize: Size<Opt> = {
-      width: Math.max(minSizeRaw.width ?? paddingBorderSum.width, paddingBorderSum.width),
-      height: Math.max(minSizeRaw.height ?? paddingBorderSum.height, paddingBorderSum.height),
-    };
-    const maxSize = maybeAddSize(
-      maybeApplyAspectRatio(maybeResolveSize(childStyle.maxSize, areaSize), aspectRatio),
-      boxSizingAdjustment,
+    const maxSize = transferMaxSizeThroughAspectRatio(
+      resolvedMaxSize,
+      resolvedStyleSize,
+      minSize,
+      aspectRatio,
+      childStyle.boxSizing,
+      paddingBorderSum,
     );
     let knownDimensions = sizeMaybeClamp(styleSize, minSize, maxSize);
 
