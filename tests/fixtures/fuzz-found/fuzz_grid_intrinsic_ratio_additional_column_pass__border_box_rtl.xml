@@ -1,0 +1,17 @@
+<test name="fuzz_grid_intrinsic_ratio_additional_column_pass__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="rtl" position="absolute">
+      <div display="grid" direction="rtl" height="1px">
+        <div direction="rtl" min-height="0px" aspect-ratio="1"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="1" height="1">
+      <node x="0" y="0" width="1" height="1">
+        <node x="0" y="0" width="1" height="1"/>
+      </node>
+    </node>
+  </expectations>
+</test>

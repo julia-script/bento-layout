@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: minimized while diagnosing finding=080cea72
+  chrome: Chrome/151.0.7922.47
+  Blink's intrinsic grid sizing completes the block-axis tracks and reruns
+  columns when an aspect-ratio item's inline contribution depends on that
+  block size. The 1px auto row therefore gives this grid a 1px intrinsic width.
+  Regenerate with: pnpm gentest fuzz_grid_intrinsic_ratio_additional_column_pass
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: intrinsic grid performs ratio-dependent column pass</title>
+</head>
+<body>
+
+<div id="test-root">
+  <div style="display: grid; width: auto; height: 1px;">
+    <div style="min-height: 0; aspect-ratio: 1;"></div>
+  </div>
+</div>
+
+</body>
+</html>

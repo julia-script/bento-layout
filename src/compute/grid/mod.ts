@@ -428,11 +428,6 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
     height: Math.max(0, containerBorderBox.height - verticalSum(contentBoxInset)),
   };
 
-  // If only the container's size has been requested
-  if (runMode === 'compute-size') {
-    return fromOuterSize(containerBorderBox);
-  }
-
   // 7. Resolve percentage track base sizes (indefinite container case)
   if (typeof availableGridSpace.width !== 'number') {
     for (const column of columns) {
@@ -626,6 +621,15 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
       );
       containerContentBox.height = Math.max(0, containerBorderBox.height - verticalSum(contentBoxInset));
     }
+  }
+
+  // Blink's intrinsic grid sizing completes block-axis tracks and, when an
+  // aspect-ratio item's inline contribution depends on their used size,
+  // performs the additional column pass before returning min/max sizes.
+  // The dependency reruns above are therefore part of `compute-size`, while
+  // alignment and item layout below are not.
+  if (runMode === 'compute-size') {
+    return fromOuterSize(containerBorderBox);
   }
 
   // 8. Track Alignment
