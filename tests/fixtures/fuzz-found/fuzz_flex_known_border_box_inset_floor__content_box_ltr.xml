@@ -1,0 +1,17 @@
+<test name="fuzz_flex_known_border_box_inset_floor__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" box-sizing="content-box" direction="ltr" position="absolute">
+      <div display="flex" box-sizing="content-box" direction="ltr" flex-direction="column" height="1px" border-bottom="20px">
+        <div box-sizing="content-box" direction="ltr"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="0" height="21">
+      <node x="0" y="0" width="0" height="21">
+        <node x="0" y="0" width="0" height="0"/>
+      </node>
+    </node>
+  </expectations>
+</test>

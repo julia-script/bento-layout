@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: batch seed=20260731, finding=eca72355 (mode=mixed), minimized
+  chrome: Chrome/151.0.7922.47
+  CSS Sizing 3 §3.3 floors a border-box content remainder at zero, so a
+  parent-known flex-container size cannot make its border box smaller than its
+  own padding and border.
+  Regenerate with: pnpm gentest fuzz_flex_known_border_box_inset_floor
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: parent-known flex size keeps border-box inset floor</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block;">
+  <div style="display: flex; flex-direction: column; height: 1px; border-bottom: 20px solid;">
+    <div></div>
+  </div>
+</div>
+
+</body>
+</html>

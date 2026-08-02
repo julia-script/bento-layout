@@ -270,12 +270,18 @@ export function computeFlexboxLayout(node: LayoutNode, inputs: LayoutInput): Lay
 
   // The size of the container should be floored by the padding and border
   const styledBasedKnownDimensions: Size<Opt> = {
-    width:
-      knownDimensions.width ??
-      mMax(minMaxDefiniteSize.width ?? clampedStyleSize.width ?? derivedFromKnown.width, paddingBorderSum.width),
-    height:
-      knownDimensions.height ??
-      mMax(minMaxDefiniteSize.height ?? clampedStyleSize.height ?? derivedFromKnown.height, paddingBorderSum.height),
+    // Parent-known dimensions are border-box sizes too, so they cannot bypass
+    // this floor (css-sizing-3 §3.3). Chrome, a block child with `height: 0`
+    // and 1px of border, uses a 1px border box; keeping the parent-known zero
+    // collapsed both the child and its block parent to zero.
+    width: mMax(
+      knownDimensions.width ?? minMaxDefiniteSize.width ?? clampedStyleSize.width ?? derivedFromKnown.width,
+      paddingBorderSum.width,
+    ),
+    height: mMax(
+      knownDimensions.height ?? minMaxDefiniteSize.height ?? clampedStyleSize.height ?? derivedFromKnown.height,
+      paddingBorderSum.height,
+    ),
   };
 
   // Remember when the automatic main size came from the ratio rather than the
