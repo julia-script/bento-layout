@@ -1,0 +1,13 @@
+<test name="fuzz_flex_auto_ratio_cross_stays_indefinite__content_box_ltr" use-rounding="true">
+  <viewport width="1280px" height="800px"/>
+  <input>
+    <div box-sizing="content-box" direction="ltr" position="absolute" aspect-ratio="1">
+      <div box-sizing="content-box" direction="ltr" aspect-ratio="1"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="0" height="0">
+      <node x="0" y="0" width="0" height="0"/>
+    </node>
+  </expectations>
+</test>

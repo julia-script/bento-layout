@@ -181,6 +181,8 @@ interface AlgoConstants {
   paddingBorderSize: Size<number>;
   mainSizeIsAuto: boolean;
   crossSizeIsAuto: boolean;
+  /** Out-of-flow containers receive containing-block space, not a stretched used cross size. */
+  isOutOfFlow: boolean;
   /** An automatic cross size was made numeric solely by a min/max pair. */
   crossSizeIsMinMaxDefinite: boolean;
   margin: Rect<number>;
@@ -817,6 +819,7 @@ function computeConstants(
     paddingBorderSize: paddingBorderSum,
     mainSizeIsAuto: main(resolvedStyleSize, dir) === null,
     crossSizeIsAuto: cross(resolvedStyleSize, dir) === null,
+    isOutOfFlow: style.position === 'absolute',
     crossSizeIsMinMaxDefinite:
       cross(resolvedStyleSize, dir) === null &&
       !cross(knownDimensionsAreHard ?? { width: false, height: false }, dir) &&
@@ -1185,7 +1188,7 @@ function determineFlexBaseSize(
       !constants.isWrap &&
       ((cross(constants.nodeInnerSize, dir) !== null &&
         (constants.isColumn || !constants.crossSizeIsMinMaxDefinite)) ||
-        constants.aspectRatio !== null) &&
+        (constants.aspectRatio !== null && !constants.isOutOfFlow)) &&
       child.alignSelf.keyword === 'stretch' &&
       !child.alignSelf.safe &&
       !rectCrossStart(child.marginIsAuto, constants.dir) &&
@@ -1200,6 +1203,11 @@ function determineFlexBaseSize(
       // stretches its ratio child later, without changing the child's main
       // size. A wrapping 97x20 row with an empty 3:1 item likewise has a 0px
       // base in Chrome; transferring the future 20px line stretch made it 60px.
+      // An in-flow ratio container can still receive its cross space from its
+      // parent's flex line during an intrinsic query (WPT
+      // flex-aspect-ratio-cross-size-002). An out-of-flow root instead receives
+      // the containing block's available height, which is not its used cross
+      // size; its ratio must not turn the 800px page viewport into 800x800.
       // Floor the stretched cross size by the item's own cross padding+border:
       // a box never shrinks below its insets, so stretching to a smaller
       // container leaves a *used* cross size larger than the space offered —
