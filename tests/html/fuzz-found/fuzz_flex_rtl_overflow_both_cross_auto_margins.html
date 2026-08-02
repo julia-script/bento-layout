@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=cd390092 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Flexbox §9.6 step 13 keeps the logical cross-start auto margin at zero
+  on overflow; in an RTL column the negative remainder belongs on physical left.
+  Regenerate with: pnpm gentest fuzz_flex_rtl_overflow_both_cross_auto_margins
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: RTL overflow with both cross auto margins</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex; flex-direction: column; width: 97px; height: 320px;">
+  <div style="margin-left: auto; margin-right: auto; border-left: 3px solid; border-right: 320px solid;"></div>
+</div>
+
+</body>
+</html>

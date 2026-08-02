@@ -2520,6 +2520,13 @@ function resolveCrossAxisAutoMargins(flexLines: FlexLine[], constants: AlgoConst
         } else {
           child.margin.left = autoMarginSpace / 2;
           child.margin.right = autoMarginSpace / 2;
+          // css-flexbox-1 §9.6 step 13 keeps the logical cross-start
+          // auto margin at zero when the item overflows, then assigns the
+          // negative remainder to the opposite margin. In an RTL column,
+          // inline-start is physical right, so physical left must carry that
+          // remainder: Chrome 151 places a 323px item in a 97px line at
+          // x = -226, rather than pinning its left edge to zero.
+          if (isRtlCross && freeSpace < 0) child.margin.left = freeSpace;
         }
       } else if (rectCrossStart(child.marginIsAuto, constants.dir)) {
         if (constants.isRow) child.margin.top = autoMarginSpace;

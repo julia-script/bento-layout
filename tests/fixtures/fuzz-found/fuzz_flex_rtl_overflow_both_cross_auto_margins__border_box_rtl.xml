@@ -1,0 +1,13 @@
+<test name="fuzz_flex_rtl_overflow_both_cross_auto_margins__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="flex" direction="rtl" position="absolute" flex-direction="column" width="97px" height="320px">
+      <div direction="rtl" margin-left="auto" margin-right="auto" border-left="3px" border-right="320px"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="97" height="320">
+      <node x="-226" y="0" width="323" height="0"/>
+    </node>
+  </expectations>
+</test>
