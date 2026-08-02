@@ -1,0 +1,25 @@
+<test name="fuzz_grid_dependency_pass_refreshes_all_items__border_box_ltr" use-rounding="true">
+  <viewport width="1280px" height="800px"/>
+  <input>
+    <div direction="ltr" position="absolute">
+      <div direction="ltr">
+        <div display="grid" direction="ltr">
+          <div direction="ltr" aspect-ratio="1"/>
+          <text direction="ltr" aspect-ratio="2">
+            H​H
+          </text>
+        </div>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="20" height="30">
+      <node x="0" y="0" width="20" height="30">
+        <node x="0" y="0" width="25" height="30">
+          <node x="0" y="0" width="25" height="25"/>
+          <node x="0" y="25" width="25" height="13"/>
+        </node>
+      </node>
+    </node>
+  </expectations>
+</test>

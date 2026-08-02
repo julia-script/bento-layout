@@ -511,7 +511,11 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
   if (!rerunColumnSizing) {
     intrinsicColumnContributionChanged = items
       .filter((item) => item.crossesIntrinsicColumn)
-      .some((item) => {
+      // Grid §11.3 reruns columns with every item's new row-dependent
+      // contribution. This reduction must not short-circuit: refreshing the
+      // caches is part of the pass, so a changed first item cannot leave a
+      // later ratio item's contribution stale.
+      .reduce((anyChanged, item) => {
         const gridAreaSize = itemGridAreaSize(
           item,
           'horizontal',
@@ -557,8 +561,8 @@ export function computeGridLayout(node: LayoutNode, inputs: LayoutInput): Layout
         item.maxContentContributionCache.width = null;
         item.minimumContributionCache.width = null;
 
-        return hasChanged;
-      });
+        return hasChanged || anyChanged;
+      }, false);
     rerunColumnSizing = intrinsicColumnContributionChanged;
   } else {
     // Clear intrinsic width caches
