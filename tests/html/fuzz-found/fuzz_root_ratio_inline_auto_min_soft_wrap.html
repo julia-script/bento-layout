@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=21866b02 (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS Sizing 4 §4.3 floors a ratio-dependent automatic inline size by its
+  min-content size. Two 10px runs separated by a soft wrap therefore floor a
+  zero-height 1:1 root at 10px, not the 20px max-content width.
+  Regenerate with: pnpm gentest fuzz_root_ratio_inline_auto_min_soft_wrap
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: root ratio inline automatic min-content floor</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex; width: auto; height: 0; aspect-ratio: 1;">
+  <div>H&#x200B;H</div>
+</div>
+
+</body>
+</html>

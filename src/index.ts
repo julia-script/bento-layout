@@ -439,23 +439,47 @@ function computeRootLayout(root: LayoutNode, availableSpace: Size<AvailableSpace
     // Blink's intrinsic query resolves descendants against that constraint.
     // Chrome 151, a 7x7 absolute root around an empty 3:1 child has a 21px
     // automatic inline minimum; measuring with an unknown height reports zero.
-    const contentWidth = measureChildSize(
+    const automaticMinWidth = measureChildSize(
       root,
       { width: null, height: output.size.height },
       parentSize,
-      // Keep the resolved inline constraint while measuring the automatic
-      // minimum. This is observable for an auto grid track around an item with
-      // an explicit minimum: Chrome uses the item's Grid §11.5 minimum
-      // contribution (375px of border-box padding), not its 385px min-content
-      // contribution including a 10px glyph. An unconstrained min-content grid
-      // query selects the latter rule. The box's own ratio remains suppressed
-      // by `content-size`, while the numeric constraint lets its formatting
-      // context choose the same contribution path Blink uses for the floor.
-      { width: output.size.width, height: 'max-content' },
+      {
+        // Sizing 4 §4.3 defines this floor as the min-content size. Blink's
+        // abspos ComputeOofInlineDimensions passes Length::MinIntrinsic to the
+        // formatting context. For flex this distinction is visible: two 10px
+        // soft-wrapping runs contribute 10px, not their 20px max-content size.
+        // Grid already selects its §11.5 minimum-contribution path from the
+        // resolved constraint (375px of padding rather than 385px including a
+        // glyph), so retain that context until its intrinsic API represents
+        // MinIntrinsic separately.
+        width: rootStyle.display === 'flex' ? 'min-content' : output.size.width,
+        height: 'max-content',
+      },
       'content-size',
       'horizontal',
     );
-    if (contentWidth > output.size.width) {
+    const usedPreferredSize = toUsedBorderBoxSize(rootSpecified, rootStyle.boxSizing, rootPaddingBorderSize);
+    const preferredInlineSize =
+      maybeApplyAspectRatioUsed(
+        usedPreferredSize,
+        rootStyle.aspectRatio,
+        rootStyle.boxSizing,
+        rootPaddingBorderSize,
+      ).width ?? ratioInlineInsetFloor;
+    const usedInlineMax = toUsedBorderBoxSize(
+      maybeResolveSize(rootStyle.maxSize, parentSize),
+      rootStyle.boxSizing,
+      rootPaddingBorderSize,
+    ).width;
+    // The first formatting-context pass may already have applied a broader
+    // content floor (a flex row's max-content hypothetical size is the common
+    // case), so comparing only against that result loses the provenance of the
+    // ratio-derived preferred size. Reconstruct Sizing 4's used-size clamp
+    // directly: preferred size, floored by the min-content automatic minimum,
+    // then capped by max-width. Chrome 151, `height: 0; aspect-ratio: 1`
+    // around two 10px soft-wrapping runs is therefore 10px wide, not 20px.
+    const contentWidth = vClamp(Math.max(preferredInlineSize, automaticMinWidth), null, usedInlineMax);
+    if (contentWidth !== output.size.width) {
       output = performChildLayout(
         root,
         { width: contentWidth, height: knownDimensions.height },
