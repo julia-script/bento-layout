@@ -1079,29 +1079,28 @@ function determineFlexBaseSize(
     const mainSize = main(child.size, dir);
     const crossKnown = cross(childKnownDimensions, dir);
     const crossMin = cross(child.minSize, dir);
-    // When the automatic cross size is still indefinite but the ratio needs
-    // it to resolve a column item's block-axis basis, §9.2 step 3E says to use
-    // the item's fit-content cross size. Blink's InlineSizeFunc obtains that
-    // border-box size before BlockSizeFromAspectRatio applies the ratio box.
+    // A column item's main size is in its block axis, so when its automatic
+    // cross size is still indefinite §9.2 step 3E says to use the item's
+    // fit-content cross size. Blink's InlineSizeFunc obtains that border-box
+    // size before measuring the block size (and before
+    // BlockSizeFromAspectRatio applies a ratio, when present).
     // Chrome: a non-stretched empty item with 1px of inline border and
     // `aspect-ratio: 1` has a 1px basis under border-box, but 0px under
     // content-box. Safe stretch and safe baseline are invalid declarations in
     // CSS and therefore retain the default stretch behavior in Chrome.
-    const usesFitContentCross =
-      constants.isColumn &&
-      child.alignSelf.keyword !== 'stretch' &&
-      !(child.alignSelf.keyword === 'baseline' && child.alignSelf.safe);
+    const usesFitContentCross = constants.isColumn && flexBasis === null;
     const fitContentCross =
-      mainSize === null && child.aspectRatio !== null && crossKnown === null && crossMin === null && usesFitContentCross
-        ? measureChildSize(
+      mainSize === null && crossKnown === null && usesFitContentCross
+        ? measureFitContentCrossSize(
             child.node,
             childKnownDimensions,
             childInsetParentSize,
             childAvailableSpace,
-            'inherent-size',
-            crossAxis(dir),
+            child.margin,
+            dir,
           )
         : null;
+    if (fitContentCross !== null) setCross(childKnownDimensions, dir, fitContentCross);
     // With no definite preferred/minimum cross size, only the item's own
     // padding+border floor can supply the ratio transfer used by the automatic
     // main minimum. Measuring all cross-axis content here would incorrectly
@@ -2002,21 +2001,22 @@ function determineHypotheticalCrossSize(
     if (childCross !== null) {
       childInnerCross = childCross;
     } else {
+      const childAvailableSpace: Size<AvailableSpace> = {
+        width: constants.isRow ? childKnownMain : childAvailableCross,
+        height: constants.isRow ? childAvailableCross : childKnownMain,
+      };
       childInnerCross = Math.max(
         vClamp(
-          measureChildSize(
+          measureFitContentCrossSize(
             child.node,
             {
               width: constants.isRow ? main(child.targetSize, constants.dir) : childCross,
               height: constants.isRow ? childCross : main(child.targetSize, constants.dir),
             },
             constants.nodeInnerSize,
-            {
-              width: constants.isRow ? childKnownMain : childAvailableCross,
-              height: constants.isRow ? childAvailableCross : childKnownMain,
-            },
-            'content-size',
-            crossAxis(constants.dir),
+            childAvailableSpace,
+            child.margin,
+            constants.dir,
           ),
           transferredMinCross,
           transferredMaxCross,
@@ -2029,6 +2029,41 @@ function determineHypotheticalCrossSize(
     setCross(child.hypotheticalInnerSize, constants.dir, childInnerCross);
     setCross(child.hypotheticalOuterSize, constants.dir, childOuterCross);
   }
+}
+
+/**
+ * Resolve the fit-content cross size used by §9.2 step 3E and §9.4 step 7.
+ *
+ * Blink gives ComputeInlineSizeForFragment the flex container's child
+ * available size. In this engine an auto-sized nested flex container otherwise
+ * reports its max-content width even under numeric available space, so spell
+ * out the fit-content clamp around its intrinsic measurements.
+ */
+function measureFitContentCrossSize(
+  node: LayoutNode,
+  knownDimensions: Size<Opt>,
+  parentSize: Size<Opt>,
+  availableSpace: Size<AvailableSpace>,
+  margin: Rect<number>,
+  dir: FlexDirection,
+): number {
+  const availableCross = cross(availableSpace, dir);
+  const measure = (constraint: AvailableSpace): number =>
+    measureChildSize(
+      node,
+      knownDimensions,
+      parentSize,
+      withCross(availableSpace, dir, constraint),
+      'inherent-size',
+      crossAxis(dir),
+    );
+
+  if (typeof availableCross !== 'number') return measure(availableCross);
+
+  const minContent = measure('min-content');
+  const maxContent = measure('max-content');
+  const stretchFit = Math.max(availableCross - rectCrossAxisSum(margin, dir), 0);
+  return Math.min(maxContent, Math.max(minContent, stretchFit));
 }
 
 /** Calculate the base lines of the children. */

@@ -1,0 +1,19 @@
+<test name="fuzz_flex_nested_column_fit_content_cross__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div direction="ltr" position="absolute" flex-direction="column-reverse" flex-wrap="wrap" width="7px">
+      <div direction="ltr">
+        <text direction="ltr">
+          HH​HHHHH​HHHH
+        </text>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="7" height="30">
+      <node x="0" y="0" width="50" height="30">
+        <node x="0" y="0" width="50" height="30"/>
+      </node>
+    </node>
+  </expectations>
+</test>
