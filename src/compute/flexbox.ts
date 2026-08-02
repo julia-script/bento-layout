@@ -63,6 +63,7 @@ import {
 } from './alignment.js';
 import {
   maybeApplyAspectRatioUsed,
+  toUsedBorderBoxSize,
   transferMaxSizeThroughAspectRatio,
   transferMinSizeThroughAspectRatio,
   transferUsedConstraintToStretchedAxis,
@@ -222,9 +223,20 @@ export function computeFlexboxLayout(node: LayoutNode, inputs: LayoutInput): Lay
   // first and clamping after transfers a bound onto the other axis:
   // `height: 200; aspect-ratio: 2; max-width: 3` is 3x200 in
   // Chrome for every display type, not 3x2.
-  const minSize = maybeAddSize(maybeResolveSize(style.minSize, parentSize), boxSizingAdjustment);
-  const maxSize = maybeAddSize(maybeResolveSize(style.maxSize, parentSize), boxSizingAdjustment);
-  const resolvedStyleSize = maybeAddSize(maybeResolveSize(style.size, parentSize), boxSizingAdjustment);
+  const minSize = toUsedBorderBoxSize(maybeResolveSize(style.minSize, parentSize), style.boxSizing, paddingBorderSum);
+  const maxSize = toUsedBorderBoxSize(maybeResolveSize(style.maxSize, parentSize), style.boxSizing, paddingBorderSum);
+  // The preferred ratio works in the box selected by `box-sizing` (Sizing 4
+  // §4.1). A definite border-box source is therefore floored by its own
+  // padding/border before it determines the automatic axis. Blink 7922's
+  // BlockSizeFromAspectRatio receives the already-used inline border box and
+  // asserts it is at least BorderPadding().InlineSum(). Applying the ratio to
+  // an authored `width: 0` first lost that floor: 40px of inline padding at
+  // ratio 2 became 40x0 instead of Chrome's 40x20.
+  const resolvedStyleSize = toUsedBorderBoxSize(
+    maybeResolveSize(style.size, parentSize),
+    style.boxSizing,
+    paddingBorderSum,
+  );
   const clampedStyleSize: Size<Opt> =
     inputs.sizingMode === 'inherent-size'
       ? applyAspectRatioClamped(resolvedStyleSize, minSize, maxSize, aspectRatio, boxSizingAdjustment)

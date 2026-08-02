@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: corrected 20260731 viewport campaign, finding=cb08a73f (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  A definite border-box ratio source is floored by its padding and border
+  before it determines the automatic axis. Thus width:0 plus 1px inline
+  padding at ratio 1 produces a 1x1 flex container, while content-box remains
+  1x0 (Sizing 4 §4.1).
+  Regenerate with: pnpm gentest fuzz_flex_border_box_ratio_source_floor
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: flex ratio uses the floored border-box source</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex; width: 0; height: auto; aspect-ratio: 1; padding-left: 1px;">
+  <div></div>
+</div>
+
+</body>
+</html>
