@@ -1,0 +1,31 @@
+<test name="fuzz_abspos_shrink_to_fit_inset_band__border_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" direction="ltr" width="20px" height="60px">
+      <text direction="ltr" position="absolute" right="100%">
+        H​H
+      </text>
+      <div display="flex" direction="ltr" width="12px" height="20px">
+        <text direction="ltr" position="absolute" max-width="11px" right="1px">
+          H​H
+        </text>
+      </div>
+      <div display="grid" direction="ltr" width="12px" height="20px">
+        <text direction="ltr" position="absolute" right="-5px">
+          H​H
+        </text>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="20" height="60">
+      <node x="-10" y="0" width="10" height="20"/>
+      <node x="0" y="0" width="12" height="20">
+        <node x="0" y="0" width="11" height="20"/>
+      </node>
+      <node x="0" y="20" width="12" height="20">
+        <node x="0" y="0" width="17" height="20"/>
+      </node>
+    </node>
+  </expectations>
+</test>

@@ -9,6 +9,17 @@ export interface ResolvedAbsoluteAxis {
   margin: { start: number; end: number };
 }
 
+/**
+ * The size available inside an abspos inset-modified containing block.
+ * If either inset is specified, auto resolves to zero and both used insets are
+ * removed; a negative band is clamped to zero (css-position-3 §3.5.1).
+ * Both-auto keeps the caller's static-position-based available size.
+ */
+export function insetModifiedContainingBlockSize(availableSize: number, inset: { start: Opt; end: Opt }): number {
+  if (inset.start === null && inset.end === null) return availableSize;
+  return Math.max(availableSize - (inset.start ?? 0) - (inset.end ?? 0), 0);
+}
+
 /** Resolve an abspos inset-modified containing block and its auto margins. */
 export function resolveAbsoluteAxis(
   availableSize: number,

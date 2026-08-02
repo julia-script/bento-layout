@@ -12,6 +12,7 @@ import {
   applyAlignmentFallback,
   computeAlignmentOffset,
   computeContentSizeContribution,
+  insetModifiedContainingBlockSize,
   resolveAbsoluteAxis,
   resolveSelfAlignmentSafety,
 } from '../alignment.js';
@@ -264,7 +265,10 @@ export function alignAndPositionItem(
   };
 
   const availableSpace = {
-    width: gridAreaMinusItemMarginsSize.width,
+    width:
+      position === 'absolute'
+        ? insetModifiedContainingBlockSize(gridAreaMinusItemMarginsSize.width, insetHorizontal)
+        : gridAreaMinusItemMarginsSize.width,
     height: gridAreaMinusItemMarginsSize.height,
   };
 

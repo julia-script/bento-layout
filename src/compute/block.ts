@@ -38,6 +38,7 @@ import {
   applyAlignmentFallback,
   computeAlignmentOffset,
   computeContentSizeContribution,
+  insetModifiedContainingBlockSize,
   resolveAbsoluteAxis,
 } from './alignment.js';
 import { transferMaxSizeThroughAspectRatio, transferMinSizeThroughAspectRatio } from './aspectRatio.js';
@@ -966,8 +967,11 @@ function performAbsoluteLayoutOnAbsoluteChildren(
       knownDimensions = sizeMaybeClamp(maybeApplyAspectRatio(knownDimensions, aspectRatio), minSize, maxSize);
     }
 
-    const clampedAvailableSpace: Size<AvailableSpace> = {
-      width: vClamp(areaWidth, minSize.width, maxSize.width),
+    const availableSpace: Size<AvailableSpace> = {
+      width:
+        left === null && right === null
+          ? vClamp(areaWidth, minSize.width, maxSize.width)
+          : insetModifiedContainingBlockSize(areaWidth, { start: left, end: right }),
       height: vClamp(areaHeight, minSize.height, maxSize.height),
     };
 
@@ -975,7 +979,7 @@ function performAbsoluteLayoutOnAbsoluteChildren(
       item.node,
       knownDimensions,
       { width: areaSize.width, height: areaSize.height },
-      clampedAvailableSpace,
+      availableSpace,
       'content-size',
     );
 
@@ -988,7 +992,7 @@ function performAbsoluteLayoutOnAbsoluteChildren(
       item.node,
       { width: finalSize.width, height: finalSize.height },
       { width: areaSize.width, height: areaSize.height },
-      clampedAvailableSpace,
+      availableSpace,
       'content-size',
     );
 

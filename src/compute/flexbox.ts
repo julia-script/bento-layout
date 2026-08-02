@@ -55,6 +55,7 @@ import {
   applyAlignmentFallback,
   computeAlignmentOffset,
   computeContentSizeContribution,
+  insetModifiedContainingBlockSize,
   resolveAbsoluteAxis,
   resolveSelfAlignmentSafety,
 } from './alignment.js';
@@ -2784,17 +2785,15 @@ function performAbsoluteLayoutOnAbsoluteChildren(node: LayoutNode, constants: Al
       knownDimensions = sizeMaybeClamp(maybeApplyAspectRatio(knownDimensions, aspectRatio), minSize, maxSize);
     }
 
-    // Shrink-to-fit sizes against the space that actually remains, not the whole
-    // containing block: CSS2 §10.3.7 finds the available width "by solving for
-    // 'width' after setting 'left' (in case 1) or 'right' (in case 3) to 0", so
-    // the one non-auto offset is subtracted. Both-auto and both-definite are
-    // already handled (the latter fills the width above), leaving exactly the
-    // one-sided case here. Chrome, an abspos text child in a 97-wide container:
-    // `left: 10; right: auto` -> 87 wide, `left: auto; right: 20` -> 77 wide,
-    // where passing the full 97 stretched both to the container width.
-    const insetReservedWidth = left !== null && right !== null ? 0 : (left ?? right ?? 0);
+    // CSS2 §10.3.7 measures shrink-to-fit width in the inset-modified
+    // containing block, then §10.4 clamps the tentative result by min/max.
+    // Do not clamp before removing the inset: in a 12px container,
+    // `right: 1; max-width: 11` is 11px wide in Chrome, not 10px.
     const insetReservedHeight = top !== null && bottom !== null ? 0 : (top ?? bottom ?? 0);
-    const shrinkToFitWidth = asMaybeSub(vClamp(containerWidth, minSize.width, maxSize.width), insetReservedWidth);
+    const shrinkToFitWidth =
+      left === null && right === null
+        ? vClamp(insetRelativeSize.width, minSize.width, maxSize.width)
+        : insetModifiedContainingBlockSize(insetRelativeSize.width, { start: left, end: right });
     const shrinkToFitHeight = asMaybeSub(vClamp(containerHeight, minSize.height, maxSize.height), insetReservedHeight);
     const measuredSize = measureChildSizeBoth(
       child,

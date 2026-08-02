@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: batch seed=20260731, finding=0c6a2b5e (mode=mixed), minimized
+  chrome: Chrome/151.0.7922.47
+  CSS2 §10.3.7 measures an automatic abspos width in its inset-modified
+  containing block; §10.4 applies min/max constraints to that tentative width.
+  Regenerate with: pnpm gentest fuzz_abspos_shrink_to_fit_inset_band
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: abspos shrink-to-fit uses inset band</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block; position: relative; width: 20px; height: 60px;">
+  <div style="position: absolute; right: 100%;">H&#x200B;H</div>
+  <div style="display: flex; position: relative; width: 12px; height: 20px;">
+    <div style="position: absolute; right: 1px; max-width: 11px;">H&#x200B;H</div>
+  </div>
+  <div style="display: grid; position: relative; width: 12px; height: 20px;">
+    <div style="position: absolute; right: -5px;">H&#x200B;H</div>
+  </div>
+</div>
+
+</body>
+</html>
