@@ -251,11 +251,21 @@ export function computeFlexboxLayout(node: LayoutNode, inputs: LayoutInput): Lay
   // transferring and add the destination-axis insets back. Chrome 151 sizes an
   // auto-width root with 150px inline insets, 50px block insets and ratio 1.5
   // to 150x50 in content-box mode, not 150x100.
-  const derivedFromKnown = sizeMaybeClamp(
-    applyAspectRatioClamped(knownDimensions, minSize, maxSize, aspectRatio, boxSizingAdjustment),
-    minSize,
-    maxSize,
-  );
+  // `content-size` asks for the child's intrinsic content contribution while
+  // the caller owns preferred sizing. Preserve known dimensions on their own
+  // axes, but do not derive the other axis through the child's ratio: doing so
+  // makes both axes known and short-circuits before descendants are measured.
+  // Leaf layout follows the same protocol by nulling its aspect ratio in this
+  // mode. Blink's flex BlockSizeFunc likewise bypasses its ratio kContent path
+  // when it asks for the separate kIntrinsic size.
+  const derivedFromKnown =
+    inputs.sizingMode === 'inherent-size'
+      ? sizeMaybeClamp(
+          applyAspectRatioClamped(knownDimensions, minSize, maxSize, aspectRatio, boxSizingAdjustment),
+          minSize,
+          maxSize,
+        )
+      : { width: null, height: null };
 
   // The size of the container should be floored by the padding and border
   const styledBasedKnownDimensions: Size<Opt> = {
@@ -651,6 +661,7 @@ function computeConstants(style: Style, knownDimensions: Size<Opt>, parentSize: 
       aspectRatio !== null &&
       cross(nodeOuterSize, dir) !== null &&
       cross(maybeResolveSize(style.size, parentSize), dir) === null &&
+      cross(style.minSize, dir) === 'auto' &&
       !isScrollContainer(isRow ? style.overflow.y : style.overflow.x),
     crossIsIntrinsicColumn: false,
     containerSize: sizeZero(),
@@ -1725,6 +1736,7 @@ function determineHypotheticalCrossSize(
   availableSpace: Size<AvailableSpace>,
 ): void {
   for (const child of line.items) {
+    const childStyle = internals(child.node).style;
     const paddingBorder = rectAdd(child.padding, child.border);
     const paddingBorderSum = rectCrossAxisSum(paddingBorder, constants.dir);
 
@@ -1733,10 +1745,7 @@ function determineHypotheticalCrossSize(
     // Sizes transferred through the aspect ratio clamp the hypothetical cross size —
     // but only when the cross axis's preferred size is auto (css-sizing-4 §5.2.2).
     const crossStyleIsAuto =
-      maybeResolve(
-        cross(internals(child.node).style.size, constants.dir),
-        cross(constants.nodeInnerSize, constants.dir),
-      ) === null;
+      maybeResolve(cross(childStyle.size, constants.dir), cross(constants.nodeInnerSize, constants.dir)) === null;
     // A *transferred* minimum (AR-derived, not explicitly specified in this axis)
     // is capped by the axis's own explicit maximum (css-sizing-4 §5.2.2; matches
     // Chrome). An explicit minimum still beats the maximum as usual.
@@ -1813,7 +1822,7 @@ function determineHypotheticalCrossSize(
     // specified main size looks like it has a definite cross size here.
     child.crossIsArDerived =
       child.aspectRatio !== null &&
-      cross(maybeResolveSize(internals(child.node).style.size, constants.nodeInnerSize), constants.dir) === null;
+      cross(maybeResolveSize(childStyle.size, constants.nodeInnerSize), constants.dir) === null;
 
     // Transfer from the *used* main size when the cross size is ratio-derived.
     // `child.size` applied the ratio before flex sizing, so it still reflects a
@@ -1824,10 +1833,41 @@ function determineHypotheticalCrossSize(
     // §4.1 defines the ratio over the box selected by `box-sizing`, and Blink's
     // BlockSizeFromAspectRatio likewise receives the used border-box inline size.
     const preferredCross = child.crossIsArDerived ? arDerivedCross : cross(child.size, constants.dir);
-    const childCross = mMax(mClamp(preferredCross, transferredMinCross, transferredMaxCross), paddingBorderSum);
-
     const childAvailableCross = asMaybeClampWithMax(
       asMaybeClamp(cross(availableSpace, constants.dir), transferredMinCross, transferredMaxCross),
+      paddingBorderSum,
+    );
+
+    // CSS Sizing 4 §4.2 gives a non-scroll, non-replaced ratio box an
+    // intrinsic automatic minimum in its ratio-dependent axis. Blink's
+    // BlockSizeFunc likewise joins its ratio-derived kContent size with its
+    // kIntrinsic block size. Keep that content floor separate from the ratio:
+    // a 0px-wide 1:1 flex item around 1px of vertical padding contributes 1px
+    // of height, not zero. A specified (including percentage) minimum or a
+    // scroll container disables the floor, and max-size still caps it.
+    const ratioAutomaticMinimumApplies =
+      child.crossIsArDerived &&
+      cross(childStyle.minSize, constants.dir) === 'auto' &&
+      !isScrollContainer(constants.isRow ? child.overflow.y : child.overflow.x);
+    const intrinsicCrossMinimum = ratioAutomaticMinimumApplies
+      ? measureChildSize(
+          child.node,
+          {
+            width: constants.isRow ? main(child.targetSize, constants.dir) : null,
+            height: constants.isRow ? null : main(child.targetSize, constants.dir),
+          },
+          constants.nodeInnerSize,
+          {
+            width: constants.isRow ? childKnownMain : childAvailableCross,
+            height: constants.isRow ? childAvailableCross : childKnownMain,
+          },
+          'content-size',
+          crossAxis(constants.dir),
+        )
+      : null;
+    const cappedIntrinsicCrossMinimum = mMin(intrinsicCrossMinimum, transferredMaxCross);
+    const childCross = mMax(
+      mMax(mClamp(preferredCross, transferredMinCross, transferredMaxCross), cappedIntrinsicCrossMinimum),
       paddingBorderSum,
     );
 

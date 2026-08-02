@@ -1,0 +1,17 @@
+<test name="fuzz_flex_ratio_cross_intrinsic_minimum__content_box_ltr" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="flex" box-sizing="content-box" direction="ltr" position="absolute">
+      <div box-sizing="content-box" direction="ltr" aspect-ratio="1">
+        <div box-sizing="content-box" direction="ltr" padding-bottom="1px"/>
+      </div>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="0" height="1">
+      <node x="0" y="0" width="0" height="1">
+        <node x="0" y="0" width="0" height="1"/>
+      </node>
+    </node>
+  </expectations>
+</test>
