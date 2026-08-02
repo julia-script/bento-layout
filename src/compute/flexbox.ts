@@ -326,6 +326,15 @@ export function computeFlexboxLayout(node: LayoutNode, inputs: LayoutInput): Lay
     main(minSize, dir) === null &&
     !isScrollContainer(dirIsRow(dir) ? style.overflow.x : style.overflow.y);
 
+  // Blink resolves flex gaps from CalculateChildPercentageSize before layout.
+  // An inline percentage basis is definite for a row, but an automatic column
+  // block size does not become definite merely because content or min/max
+  // eventually gives it a used height. An authored/parent-supplied height or
+  // the initial preferred-ratio transfer does establish the block basis; if a
+  // ratio automatic minimum later enlarges the box, that basis is not redone.
+  const mainGapPercentageBasisIsDefinite =
+    dirIsRow(dir) || main(knownDimensions, dir) !== null || main(resolvedStyleSize, dir) !== null || mainIsRatioDerived;
+
   // Short-circuit layout if the container's size is fully determined by the container's size and the run mode
   // is ComputeSize (and thus the container's size is all that we're interested in)
   if (runMode === 'compute-size') {
@@ -342,17 +351,30 @@ export function computeFlexboxLayout(node: LayoutNode, inputs: LayoutInput): Lay
     }
   }
 
-  return computePreliminary(node, { ...inputs, knownDimensions: styledBasedKnownDimensions }, ratioMainAutoMinApplies);
+  return computePreliminary(
+    node,
+    { ...inputs, knownDimensions: styledBasedKnownDimensions },
+    ratioMainAutoMinApplies,
+    mainGapPercentageBasisIsDefinite,
+  );
 }
 
 /** Compute a preliminary size for an item */
-function computePreliminary(node: LayoutNode, inputs: LayoutInput, ratioMainAutoMinApplies: boolean): LayoutOutput {
+function computePreliminary(
+  node: LayoutNode,
+  inputs: LayoutInput,
+  ratioMainAutoMinApplies: boolean,
+  mainGapPercentageBasisIsDefinite: boolean,
+): LayoutOutput {
   const nd = internals(node);
   const { knownDimensions: inputKnownDimensions, parentSize, availableSpace: outerAvailableSpace, runMode } = inputs;
   const knownDimensions = { ...inputKnownDimensions };
 
   // Define some general constants we will need for the remainder of the algorithm.
   const constants = computeConstants(nd.style, knownDimensions, parentSize, inputs.knownDimensionsAreHard);
+  if (!mainGapPercentageBasisIsDefinite && typeof main(nd.style.gap, constants.dir) === 'object') {
+    setMain(constants.gap, constants.dir, 0);
+  }
 
   // 9. Flex Layout Algorithm
 
@@ -488,20 +510,25 @@ function computePreliminary(node: LayoutNode, inputs: LayoutInput, ratioMainAuto
     setMain(constants.innerContainerSize, constants.dir, innerMainSize);
     setMain(constants.containerSize, constants.dir, outerMainSize);
 
-    // Intrinsic percentage gaps contribute zero to the floor above, then
-    // resolve against the resulting definite content box for layout.
-    const newGap = maybeResolve(main(nd.style.gap, constants.dir), innerMainSize) ?? 0;
-    setMain(constants.gap, constants.dir, newGap);
+    // An automatic inline size can become definite during flex intrinsic
+    // sizing. Blink's child percentage inline size observes that result;
+    // automatic block sizes remain indefinite, so columns never take this
+    // post-layout resolution path.
+    if (constants.isRow) {
+      const newGap = maybeResolve(main(nd.style.gap, constants.dir), innerMainSize) ?? 0;
+      setMain(constants.gap, constants.dir, newGap);
+    }
   } else {
     // Sets constants.container_size and constants.outer_container_size
     determineContainerMainSize(availableSpace, flexLines, constants);
     setMain(constants.nodeInnerSize, constants.dir, main(constants.innerContainerSize, constants.dir));
     setMain(constants.nodeOuterSize, constants.dir, main(constants.containerSize, constants.dir));
 
-    // Re-resolve percentage gaps
     const innerContainerSize = main(constants.innerContainerSize, constants.dir);
-    const newGap = maybeResolve(main(nd.style.gap, constants.dir), innerContainerSize) ?? 0;
-    setMain(constants.gap, constants.dir, newGap);
+    if (constants.isRow) {
+      const newGap = maybeResolve(main(nd.style.gap, constants.dir), innerContainerSize) ?? 0;
+      setMain(constants.gap, constants.dir, newGap);
+    }
 
     // Line collection ran against an intrinsic keyword, because the container's
     // main size was not known yet. Under a max-content constraint that meant

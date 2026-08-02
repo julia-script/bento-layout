@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: minimized from finding=ebbb7cec
+  chrome: Chrome/151.0.7922.47
+  CSS Sizing §5.2.1 resolves a cyclic percentage gutter against zero for an
+  intrinsic contribution. Blink's FlexLayoutAlgorithm also keeps an automatic
+  column block-size indefinite in CalculateChildPercentageSize, so the row gap
+  remains zero during final layout instead of re-resolving against 10px.
+  Regenerate with: pnpm gentest fuzz_flex_intrinsic_column_percentage_gap
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: intrinsic flex column keeps cyclic percentage gap at zero</title>
+</head>
+<body>
+
+<div id="test-root" style="display: flex; flex-direction: column-reverse; row-gap: 60%; column-gap: 40%;">
+  <div></div>
+  <div>HHH&#8203;H</div>
+</div>
+
+</body>
+</html>
