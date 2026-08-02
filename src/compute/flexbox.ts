@@ -626,8 +626,12 @@ function computePreliminary(node: LayoutNode, inputs: LayoutInput, ratioMainAuto
       ) ??
       firstLine.items[0] ??
       unreachable();
-    const offsetVertical = constants.isRow ? child.offsetCross : child.offsetMain;
-    firstVerticalBaseline = offsetVertical + child.baseline;
+    // `finalLayoutPass` stores the child's baseline in the container's
+    // coordinate space, including its resolved cross/main-axis offset. Do not
+    // add that offset again when exporting the container baseline. This
+    // matches Blink's BaselineAccumulator::AccumulateItem and keeps a 130px
+    // child in a 7px column-reverse container at baseline 7, not -116.
+    firstVerticalBaseline = child.baseline;
   }
 
   return fromSizesAndBaselines(constants.containerSize, sizeMax(inflowContentSize, absoluteContentSize), {
