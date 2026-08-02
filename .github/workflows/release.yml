@@ -61,7 +61,7 @@ jobs:
       # Puppeteer's package-pinned Chrome explicitly for the browser-backed
       # oracle tests. `chrome` resolves to Puppeteer's pinned build, not latest.
       - name: Install pinned Chrome
-        run: pnpm exec puppeteer browsers install chrome --install-deps
+        run: pnpm exec puppeteer browsers install chrome
 
       # Release gates. A failure in any of these stops the job before publish.
       - name: Build
