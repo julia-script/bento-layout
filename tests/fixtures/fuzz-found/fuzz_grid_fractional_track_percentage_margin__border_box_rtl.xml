@@ -1,0 +1,13 @@
+<test name="fuzz_grid_fractional_track_percentage_margin__border_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="grid" direction="rtl" position="absolute" width="96px" height="120px" grid-template-columns="30% repeat(auto-fit, 5%)">
+      <div direction="rtl" margin-top="97px" margin-left="0px" margin-bottom="20%" margin-right="auto" grid-column-start="-3" grid-column-end="2"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="96" height="120">
+      <node x="10" y="97" width="0" height="12"/>
+    </node>
+  </expectations>
+</test>

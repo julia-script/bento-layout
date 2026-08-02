@@ -384,8 +384,15 @@ function initializeTrackSizes(axisTracks: GridTrack[], axisInnerNodeSize: Opt): 
       track.growthLimit = gutterSize;
       continue;
     }
-    track.baseSize = trackDefiniteValue(track.minTrackSizingFunction, axisInnerNodeSize) ?? 0;
-    track.growthLimit = trackDefiniteValue(track.maxTrackSizingFunction, axisInnerNodeSize) ?? Infinity;
+    // Blink stores every resolved fixed track breadth as a 1/64px LayoutUnit
+    // before grid areas sum their spanned tracks. This is observable when that
+    // area becomes a percentage basis: twelve 5%-of-96px tracks are twelve
+    // 4.796875px tracks, so a 20% margin resolves to 11.5px; summing the ideal
+    // 4.8px values first resolves the margin to 11.515625px instead.
+    const baseSize = trackDefiniteValue(track.minTrackSizingFunction, axisInnerNodeSize) ?? 0;
+    const growthLimit = trackDefiniteValue(track.maxTrackSizingFunction, axisInnerNodeSize);
+    track.baseSize = toBlinkLayoutUnit(baseSize);
+    track.growthLimit = growthLimit === null ? Infinity : toBlinkLayoutUnit(growthLimit);
     if (track.growthLimit < track.baseSize) {
       track.growthLimit = track.baseSize;
     }

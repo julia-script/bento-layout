@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=edee478d (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  Blink resolves each fixed grid track into a 1/64px LayoutUnit before the
+  spanned grid area becomes the percentage basis for a grid item's margins.
+  Regenerate with: pnpm gentest fuzz_grid_fractional_track_percentage_margin
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: fractional tracks resolve before percentage margins</title>
+</head>
+<body>
+
+<div id="test-root" style="display: grid; width: 96px; height: 120px; grid-template-columns: 30% repeat(auto-fit, 5%);">
+  <div style="margin-left: 0; margin-right: auto; margin-top: 97px; margin-bottom: 20%; grid-column: -3 / 2;"></div>
+</div>
+
+</body>
+</html>
