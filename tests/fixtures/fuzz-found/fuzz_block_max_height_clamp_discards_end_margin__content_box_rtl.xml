@@ -1,0 +1,19 @@
+<test name="fuzz_block_max_height_clamp_discards_end_margin__content_box_rtl" use-rounding="true">
+  <viewport width="max-content" height="max-content"/>
+  <input>
+    <div display="block" box-sizing="content-box" direction="rtl" position="absolute" width="10px" height="7px" border-top="10px">
+      <div display="block" box-sizing="content-box" direction="rtl" max-height="50%">
+        <div box-sizing="content-box" direction="rtl" min-height="3px" margin-top="97px" margin-bottom="120px"/>
+      </div>
+      <div box-sizing="content-box" direction="rtl"/>
+    </div>
+  </input>
+  <expectations>
+    <node x="0" y="0" width="10" height="17">
+      <node x="0" y="107" width="10" height="3">
+        <node x="0" y="0" width="10" height="3"/>
+      </node>
+      <node x="0" y="230" width="10" height="0"/>
+    </node>
+  </expectations>
+</test>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  fuzz-found: rehydrated 20260731 batch, finding=1e4f773c (mode=mixed)
+  chrome: Chrome/151.0.7922.47
+  CSS2 §10.7 recomputes an auto-height block under its max-height constraint.
+  When the resulting height differs from its intrinsic height, Blink clears
+  the end margin strut before positioning the following sibling.
+  Regenerate with: pnpm gentest fuzz_block_max_height_clamp_discards_end_margin
+-->
+<html lang="en">
+<head>
+  <script src="../support/test_helper.js"></script>
+  <link rel="stylesheet" type="text/css" href="../support/test_base_style.css">
+  <title>Fuzz-found: max-height clamp discards the end margin strut</title>
+</head>
+<body>
+
+<div id="test-root" style="display: block; width: 10px; height: 7px; border-top-width: 10px;">
+  <div style="display: block; max-height: 50%;">
+    <div style="min-height: 3px; margin-top: 97px; margin-bottom: 120px;"></div>
+  </div>
+  <div></div>
+</div>
+
+</body>
+</html>

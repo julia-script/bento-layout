@@ -361,6 +361,13 @@ function computeInner(node: LayoutNode, inputs: LayoutInput, blockCtx: BlockCont
       : (knownDimensions.height ?? vClamp(intrinsicOuterHeight, minSize.height, maxSize.height));
   const containerOuterHeight = vMax(resolvedOuterHeight, paddingBorderSize.height);
   const finalOuterSize = { width: containerOuterWidth, height: containerOuterHeight };
+  // A min/max-constrained used block size stops the last child's end margin
+  // from collapsing out of this box, even though its computed height remains
+  // `auto`. Blink clears its end margin strut when the used border-box height
+  // differs from the intrinsic height. Chrome 151 therefore places a sibling
+  // directly after a max-height:0 parent containing a 3px child with a 120px
+  // bottom margin, rather than carrying that 120px margin forward (CSS2 §10.7).
+  const blockSizeDiffersFromIntrinsic = containerOuterHeight !== intrinsicOuterHeight;
 
   // Apply `align-content` to in-flow items if requested. The entire stack of
   // in-flow children is a single alignment subject (num_items = 1).
@@ -414,9 +421,10 @@ function computeInner(node: LayoutNode, inputs: LayoutInput, blockCtx: BlockCont
     topMargin: ownMarginsCollapseWithChildren.start
       ? firstChildTopMarginSet
       : marginSetFromMargin(resolveOrZero(rawMargin.top, parentSize.width)),
-    bottomMargin: ownMarginsCollapseWithChildren.end
-      ? lastChildBottomMarginSet
-      : marginSetFromMargin(resolveOrZero(rawMargin.bottom, parentSize.width)),
+    bottomMargin:
+      ownMarginsCollapseWithChildren.end && !blockSizeDiffersFromIntrinsic
+        ? lastChildBottomMarginSet
+        : marginSetFromMargin(resolveOrZero(rawMargin.bottom, parentSize.width)),
     marginsCanCollapseThrough: canBeCollapsedThrough,
   };
 
