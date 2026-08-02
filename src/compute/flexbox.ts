@@ -165,6 +165,7 @@ interface AlgoConstants {
    *  transfers through the ratio into the main size (determineContainerMainSize). */
   aspectRatio: number | null;
   boxSizing: Style['boxSizing'];
+  paddingBorderSize: Size<number>;
   mainSizeIsAuto: boolean;
   margin: Rect<number>;
   border: Rect<number>;
@@ -473,6 +474,39 @@ function computePreliminary(node: LayoutNode, inputs: LayoutInput, ratioMainAuto
     }
   }
 
+  // An intrinsic row main size is not known when computeConstants first tries
+  // the preferred ratio. Once §9.9 resolves that main size, transfer its used
+  // outer value into an automatic cross size before cross-axis layout. Blink
+  // likewise makes the single-line cross definite only after intrinsic inline
+  // sizing: an empty grid item with fixed 1200px rows in an auto-sized ratio
+  // row is laid out into the ratio's 0px cross size, rather than making the
+  // container 1200px tall.
+  if (
+    constants.isRow &&
+    constants.aspectRatio !== null &&
+    cross(constants.nodeOuterSize, constants.dir) === null &&
+    cross(nd.style.size, constants.dir) === 'auto'
+  ) {
+    const ratioBox = constants.boxSizing === 'content-box' ? constants.paddingBorderSize : sizeZero();
+    const ratioSize = applyAspectRatioClamped(
+      constants.nodeOuterSize,
+      constants.minSize,
+      constants.maxSize,
+      constants.aspectRatio,
+      ratioBox,
+    );
+    const outerCross = cross(ratioSize, constants.dir);
+    if (outerCross !== null) {
+      const innerCross = Math.max(outerCross - rectCrossAxisSum(constants.contentBoxInset, constants.dir), 0);
+      setCross(knownDimensions, constants.dir, outerCross);
+      setCross(constants.nodeOuterSize, constants.dir, outerCross);
+      setCross(constants.nodeInnerSize, constants.dir, innerCross);
+      constants.crossIsRatioDerived =
+        cross(nd.style.minSize, constants.dir) === 'auto' &&
+        !isScrollContainer(constants.isRow ? nd.style.overflow.y : nd.style.overflow.x);
+    }
+  }
+
   // 6. Resolve the flexible lengths of all the flex items to find their used main size.
   for (const line of flexLines) {
     resolveFlexibleLengths(line, constants);
@@ -654,6 +688,7 @@ function computeConstants(style: Style, knownDimensions: Size<Opt>, parentSize: 
     maxSize: maybeAddSize(maybeResolveSize(style.maxSize, parentSize), boxSizingAdjustment),
     aspectRatio,
     boxSizing: style.boxSizing,
+    paddingBorderSize: paddingBorderSum,
     mainSizeIsAuto: main(maybeResolveSize(style.size, parentSize), dir) === null,
     margin,
     border,
@@ -2138,7 +2173,7 @@ function determineUsedCrossSize(flexLines: FlexLine[], constants: AlgoConstants)
     // item stays 1x2; `align-items: flex-start` grows to 10px, and a stretched
     // item with `min-height: 20px` grows to 20px. This mirrors Blink's
     // GiveItemsFinalPositionAndSize guard for a definite single-line cross size.
-    if (constants.crossIsRatioDerived) {
+    if (constants.crossIsRatioDerived && !constants.isWrap) {
       const ratioOuterCross = vClamp(
         cross(constants.nodeOuterSize, constants.dir) ?? 0,
         cross(constants.minSize, constants.dir),
