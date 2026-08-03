@@ -135,18 +135,24 @@ a:not(.ld-btn):hover {
 }
 
 .fd-layout-rect {
-  stroke: var(--color-fd-border);
+  /* Accent ink, not the neutral border token: siblings that touch with no gap
+     between them are the common case (a flex row, a grid track), and the only
+     thing separating two adjacent boxes is this one shared edge. A pale grey
+     hairline over a terracotta fill vanished exactly where it mattered most. */
+  stroke: color-mix(in srgb, var(--organic-accent) 80%, transparent);
   stroke-width: 1;
   /* The preview zooms via a CSS transform on an ancestor. Geometry should
      scale with it — that is the layout being shown — but the ink should not:
      a hairline is chrome, and at 25% a scaled stroke thins to invisibility
      while at higher zoom it fattens into the box it is outlining. */
   vector-effect: non-scaling-stroke;
-  transition:
-    x 120ms ease,
-    y 120ms ease,
-    width 120ms ease,
-    height 120ms ease;
+  /* Deliberately NOT transitioned. Animating x/y/width/height meant the drawn
+     rects lagged the geometry they represent, and the browser-comparison
+     overlay measures real laid-out boxes — so a zoom change sampled mid-tween
+     produced a bogus "differs by 810px" verdict and flashed the "You found a
+     bug" banner on a demo that matches exactly. A layout engine's output is
+     the content here, not something to animate: it should read as correct the
+     instant it is computed. */
 }
 
 .fd-layout-rect[data-depth="0"] {
@@ -181,13 +187,6 @@ a:not(.ld-btn):hover {
   stroke-width: 2;
   stroke-dasharray: 3 2;
   vector-effect: non-scaling-stroke;
-}
-
-/* Motion is decoration here: the boxes' positions are the content. */
-@media (prefers-reduced-motion: reduce) {
-  .fd-layout-rect {
-    transition: none;
-  }
 }
 
 /* --- Demo: editor + preview -------------------------------------------- */
@@ -274,10 +273,15 @@ a:not(.ld-btn):hover {
 }
 
 /* Stand-in shown while Monaco loads: the same source, Shiki-highlighted, at
-   roughly Monaco's metrics so the swap does not jump. */
+   roughly Monaco's metrics so the swap does not jump. (Shiki's own inline
+   background-color is stripped in Demo.tsx, where it can actually be beaten —
+   it is an inline style, so it would win over this rule.) */
 .fd-demo-pre {
   margin: 0;
-  padding: 0.65rem 1rem;
+  /* Left inset matches Monaco's line-number gutter (lineNumbersMinChars: 3
+     plus its own padding), so the source does not slide sideways when the real
+     editor takes over. Top matches the editor's `padding.top`. */
+  padding: 0.625rem 1rem 0.625rem 3.125rem;
   border: 0;
   min-height: 100%;
   background: transparent;
@@ -632,9 +636,51 @@ a:not(.ld-btn):hover {
 
 @media (prefers-reduced-motion: reduce) {
   .fd-demo-zoom,
-  .fd-demo-handle {
+  .fd-demo-handle,
+  .fd-pg-example {
     transition: none;
   }
+}
+
+/* Playground example gallery. Wraps rather than scrolls: on a phone these
+   become two or three rows, which is easier to scan than a strip that hides
+   half its options off the right edge. */
+.fd-pg-examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-bottom: 0.75rem;
+}
+
+.fd-pg-example {
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-fd-border);
+  background: var(--color-fd-secondary);
+  color: var(--color-fd-muted-foreground);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.fd-pg-example:hover {
+  color: var(--color-fd-foreground);
+  background: var(--color-accent-100);
+}
+
+.fd-pg-example[data-active] {
+  background: var(--organic-accent);
+  border-color: var(--organic-accent);
+  color: #fff;
+}
+
+.fd-pg-blurb {
+  margin-bottom: 0.75rem;
+  color: var(--color-fd-muted-foreground);
+  font-size: 0.875rem;
 }
 
 .fd-demo-empty {

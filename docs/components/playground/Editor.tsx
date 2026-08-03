@@ -197,6 +197,11 @@ const CONTENT_PAD = 12;
 export interface EditorProps {
   /** Unique model path for this demo, e.g. `demo-r1.ts`. */
   path: string;
+  /**
+   * The source to show. Changing it REPLACES the editor's contents — that is
+   * how the playground's example gallery loads a different layout without
+   * remounting, which would reset the reader's zoom and viewport along with it.
+   */
   initialSource: string;
   /** Fires with fresh compiled code after each settled edit. */
   onCode: (code: DemoCode) => void;
@@ -247,6 +252,26 @@ export function Editor({ path, initialSource, onCode, minHeight = 160, fallback 
     },
     [],
   );
+
+  // Load a new source into the live editor (the example gallery switching
+  // layouts). `defaultValue` is consulted only on mount, so without this a
+  // changed prop would never reach Monaco.
+  //
+  // Guarded on inequality so this does not fight the reader's own typing: the
+  // parent holds the pristine source, which does not change as they edit, and
+  // re-running the effect for an unrelated reason must not revert their work.
+  // `pushEditOperations` rather than `setValue` keeps the change in the undo
+  // stack, so ctrl-Z after picking an example goes back instead of dead-ending.
+  // No compile() call is needed: editing the model fires
+  // onDidChangeModelContent, which schedules one. (Demo runs the new pristine
+  // source immediately anyway, so the preview does not wait for that debounce.)
+  useEffect(() => {
+    const editorInstance = editorRef.current;
+    const model = editorInstance?.getModel();
+    if (!editorInstance || !model || model.getValue() === initialSource) return;
+    model.pushEditOperations([], [{ range: model.getFullModelRange(), text: initialSource }], () => null);
+    editorInstance.setPosition({ lineNumber: 1, column: 1 });
+  }, [initialSource]);
 
   const compile = async () => {
     const editorInstance = editorRef.current;

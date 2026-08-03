@@ -1,27 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SiteNav } from '@/components/landing/SiteNav';
-import { Demo } from '@/components/playground/Demo';
-
-const SEED = `import { LayoutNode } from 'bento-layout';
-
-const sidebar = LayoutNode.make({ width: 120 });
-const badge = LayoutNode.make({ width: 80, height: 80 });
-const content = LayoutNode.make(
-  {
-    flexGrow: 1,
-    alignItems: { keyword: 'center', safe: false },
-    justifyContent: { keyword: 'center', safe: false },
-  },
-  [badge],
-);
-
-const root = LayoutNode.make(
-  { width: 480, height: 260, padding: 16, gap: 12 },
-  [sidebar, content],
-);
-
-renderPlayground(root);`;
+import { ExamplePicker } from '@/components/playground/ExamplePicker';
 
 export const metadata: Metadata = {
   // Bare title; the root layout's template appends "| bento-layout".
@@ -40,7 +20,8 @@ export default function PlaygroundPage() {
             Real code, run by the real engine as you type — with type checking, completions, and hover docs against the
             library&apos;s own declarations. <code>renderPlayground(root)</code> lays the tree out against the preview
             viewport and draws it; everything else is exactly what you would write in your own project. Code runs only
-            in your browser. See the{' '}
+            in your browser. Start from an example below and edit it, or drag the viewport&apos;s right edge to see the
+            layout reflow. See the{' '}
             <Link href="/docs" className="text-fd-foreground underline">
               docs
             </Link>{' '}
@@ -48,7 +29,7 @@ export default function PlaygroundPage() {
           </p>
         </header>
 
-        <Demo height={460}>{SEED}</Demo>
+        <ExamplePicker height={460} />
       </main>
     </>
   );

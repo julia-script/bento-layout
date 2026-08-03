@@ -34,6 +34,15 @@ export interface ChromeOverlayProps {
   /** Viewport width, so the browser lays out against the same available space. */
   width: number;
   /**
+   * The zoom this overlay is drawn at.
+   *
+   * Passed in rather than recovered from `measuredWidth / width`: that ratio is
+   * only correct once the browser has settled at the new scale, and a
+   * measurement taken before then divides every box by a wrong number — which
+   * reported a several-hundred-pixel disagreement on a demo that matches.
+   */
+  zoom: number;
+  /**
    * Reports the browser's computed boxes, in the overlay's own coordinate
    * space and in the same document order the engine walks its tree.
    */
@@ -49,7 +58,7 @@ export interface ChromeOverlayProps {
  * boxes and never reads the SVG. Without it the overlay would simply look a
  * pixel off; with it, visible daylight means the engines actually disagree.
  */
-export function ChromeOverlay({ root, width, onMeasure }: ChromeOverlayProps) {
+export function ChromeOverlay({ root, width, zoom, onMeasure }: ChromeOverlayProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   // Read the browser's answer back after it has laid the boxes out. Measured
@@ -59,26 +68,42 @@ export function ChromeOverlay({ root, width, onMeasure }: ChromeOverlayProps) {
   useEffect(() => {
     const el = ref.current;
     if (!el || !onMeasure) return;
-    const frame = requestAnimationFrame(() => {
-      const bounds = el.getBoundingClientRect();
-      // The overlay is inside the zoomed viewport; recover the scale from the
-      // element's own measured vs. declared width rather than threading zoom in.
-      const scale = bounds.width / width || 1;
-      const boxes = [...el.querySelectorAll<HTMLElement>('.fd-chrome-box')].map((node) => {
-        const b = node.getBoundingClientRect();
-        return {
-          x: (b.x - bounds.x) / scale,
-          y: (b.y - bounds.y) / scale,
-          width: b.width / scale,
-          height: b.height / scale,
-        };
+    let frame = 0;
+    // Two frames, not one. A single rAF after a React commit can still run
+    // before the browser has laid this subtree out at its new scale, and the
+    // measurement then describes the previous state; the second frame is
+    // guaranteed to be post-layout.
+    frame = requestAnimationFrame(() => {
+      frame = requestAnimationFrame(() => {
+        const bounds = el.getBoundingClientRect();
+        const scale = zoom || 1;
+
+        // Self-check before trusting anything: the overlay is `width` engine px
+        // drawn at `zoom`, so its screen width must be width*zoom. When it is
+        // not, this subtree has not been laid out at the current scale yet and
+        // every box below would be divided by a scale it was not drawn at —
+        // which is what reported "differs by 367px" on a demo that matches.
+        // Skipping leaves the previous measurement in place, and Demo's stamp
+        // makes that one unusable, so the verdict simply waits.
+        if (Math.abs(bounds.width - width * scale) > 1) return;
+
+        const boxes = [...el.querySelectorAll<HTMLElement>('.fd-chrome-box')].map((node) => {
+          const b = node.getBoundingClientRect();
+          return {
+            x: (b.x - bounds.x) / scale,
+            y: (b.y - bounds.y) / scale,
+            width: b.width / scale,
+            height: b.height / scale,
+          };
+        });
+        onMeasure(boxes);
       });
-      onMeasure(boxes);
     });
     return () => cancelAnimationFrame(frame);
     // `root` is what the rendered DOM is derived from, so re-measuring when
-    // it changes covers every edit; `width` covers a viewport resize.
-  }, [onMeasure, root, width]);
+    // it changes covers every edit; `width` covers a viewport resize, and
+    // `zoom` a scale change.
+  }, [onMeasure, root, width, zoom]);
 
   return (
     <div

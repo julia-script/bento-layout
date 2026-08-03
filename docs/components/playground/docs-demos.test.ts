@@ -9,6 +9,13 @@
 // TypeScript-only syntax (annotations, `as const`, interfaces), so this suite
 // also enforces the rule that pristine demo source is annotation-free JS —
 // a demo that needs the TS compiler would break the site's first render too.
+//
+// Those two rules pull against each other: no annotations, yet the demo is
+// shown in an editor that typechecks under `strict`, so an untyped helper
+// parameter is an implicit `any` a reader sees as a red squiggle. The
+// typecheck assertion below is what keeps both true at once — the way to
+// satisfy it is a default value (`(width = 32) =>`) or inline the callback
+// where its type is contextual, never an annotation.
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -17,6 +24,7 @@ import { compile } from '@mdx-js/mdx';
 import * as bento from 'bento-layout';
 import { describe, expect, it } from 'vitest';
 import { unreachable } from '../../../src/assert.js';
+import { EXAMPLES } from './examples.js';
 import { formatDemoSource } from './format.js';
 import { rewriteImports } from './runner.js';
 
@@ -56,13 +64,6 @@ async function compiledDemoSources(file: string): Promise<string[]> {
   return [...compiled.matchAll(/<Demo[^>]*>\{`([\s\S]*?)`\}<\/Demo>/g)].map((m) => m[1] ?? unreachable());
 }
 
-// The standalone playground's seed is a demo in every way that matters here,
-// so it rides along under the same assertions. It is a plain TS template
-// literal, so no MDX dedent applies.
-const seedMatch = /const SEED = `([\s\S]*?)`;/.exec(
-  readFileSync(join(DOCS_ROOT, 'app', 'playground', 'page.tsx'), 'utf8'),
-);
-
 const files = mdxFiles(CONTENT_ROOT);
 const demos = [
   ...(await Promise.all(files.map(compiledDemoSources))).flatMap((sources, fileIndex) =>
@@ -71,7 +72,11 @@ const demos = [
       source,
     })),
   ),
-  { name: 'playground seed', source: seedMatch?.[1] ?? unreachable() },
+  // The playground's example gallery, which is also what the page seeds with.
+  // Plain TS strings rather than MDX, so no dedent applies — but they are demo
+  // sources in every other respect, and a broken one is an error panel the
+  // moment a reader picks that tab.
+  ...EXAMPLES.map((example) => ({ name: `example: ${example.name}`, source: example.source })),
 ];
 
 /** Raw file text, for the assertions that are about how the .mdx is written. */
@@ -82,6 +87,53 @@ const rawDemos = files.flatMap((file) =>
     source: m[2] ?? unreachable(),
   })),
 );
+
+/**
+ * Type errors a demo would show in the editor, using Monaco's own settings.
+ *
+ * The demo is compiled as a real module against the library's source, with the
+ * same `renderPlayground` declaration Editor.tsx feeds Monaco — so an error
+ * here is an error a reader would see, and nothing else is.
+ */
+async function demoTypeErrors(source: string): Promise<string[]> {
+  const ts = (await import('typescript')).default;
+  const demoPath = join(DOCS_ROOT, '__demo__.ts');
+  const text = `${GLOBALS}\n${source}`;
+
+  const host = ts.createCompilerHost({}, true);
+  const readFile = host.readFile.bind(host);
+  const getSourceFile = host.getSourceFile.bind(host);
+  host.readFile = (name) => (name === demoPath ? text : readFile(name));
+  host.fileExists = (name) => name === demoPath || ts.sys.fileExists(name);
+  host.getSourceFile = (name, lang, onError, shouldCreate) =>
+    name === demoPath ? ts.createSourceFile(name, text, lang, true) : getSourceFile(name, lang, onError, shouldCreate);
+
+  const program = ts.createProgram(
+    [demoPath],
+    {
+      strict: true,
+      target: ts.ScriptTarget.ES2020,
+      module: ts.ModuleKind.CommonJS,
+      moduleResolution: ts.ModuleResolutionKind.Bundler,
+      esModuleInterop: true,
+      skipLibCheck: true,
+      noEmit: true,
+      // `bento-layout` resolves to the library source, exactly as
+      // next.config.mjs and vitest.config.ts alias it elsewhere.
+      baseUrl: DOCS_ROOT,
+      paths: { 'bento-layout': [join(DOCS_ROOT, '..', 'src', 'index.ts')] },
+    },
+    host,
+  );
+
+  const file = program.getSourceFile(demoPath);
+  return [...program.getSemanticDiagnostics(file), ...program.getSyntacticDiagnostics(file)].map((d) =>
+    ts.flattenDiagnosticMessageText(d.messageText, ' '),
+  );
+}
+
+/** Ambient declarations the playground provides; mirrors Editor.tsx's extraLib. */
+const GLOBALS = `declare function renderPlayground(root: unknown): void;`;
 
 /** The worker's execution model, minus the worker. */
 function runDemo(source: string): bento.LayoutNode {
@@ -126,5 +178,17 @@ describe('docs demos', () => {
     if (indent === '') return;
     const lazy = source.split('\n').filter((l) => l.trim() !== '' && !l.startsWith(indent));
     expect(lazy, `lines must be indented to at least ${indent.length} spaces`).toEqual([]);
+  });
+
+  // Demos are shown in an editor that typechecks them, so a demo carrying a
+  // type error greets the reader with red squiggles on code the docs are
+  // presenting as correct. Running is not enough to catch this: an untyped
+  // helper parameter executes fine and still errors under `strict`, which is
+  // how three of the playground examples shipped with implicit-`any` warnings.
+  //
+  // Compiled with Monaco's own options (see configureTypeScript in Editor.tsx)
+  // so this test and the editor agree about what counts as an error.
+  it.each(demos)('$name typechecks under strict', async ({ source }) => {
+    expect(await demoTypeErrors(source)).toEqual([]);
   });
 });

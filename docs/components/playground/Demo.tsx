@@ -7,14 +7,32 @@
 // engine API; it is compiled in the editor (Monaco's TS emit) and executed in
 // a worker (see run.worker.ts), and the demo shows whatever tree the code
 // hands to `renderPlayground`.
+//
+// This file is composition and markup. The state lives in four hooks, one per
+// concern, because every bug this component has shipped came from one concern
+// reading another's values:
+//
+//   useDemoSource        pristine vs. compiled code, and the tree it produces
+//   useViewport          how wide the engine lays out, and at what scale
+//   useBrowserComparison the overlay's measurement and the match/differs verdict
+//   useInspection        which node the reader is pointing at
+//
+// The rule that keeps them independent: nothing may derive a layout INPUT from
+// a layout OUTPUT. The stacked/side-by-side split is CSS's alone, the viewport
+// comes from the pane rather than the tree, and the comparison only trusts a
+// measurement stamped with the state still on screen.
 
 import { useShiki } from 'fumadocs-core/highlight/client';
-import { Suspense, useEffect, useId, useMemo, useRef, useState } from 'react';
-import { AGREEMENT_EPSILON, type BrowserInfo, detectBrowser, issueUrl, maxDelta, type Rect } from './browser.js';
+import { Suspense, useEffect, useId, useMemo, useState } from 'react';
+import { type BrowserInfo, detectBrowser, issueUrl, type Rect } from './browser.js';
 import { ChromeOverlay } from './ChromeOverlay.js';
-import { type DemoCode, Editor } from './Editor.js';
-import { type HoveredNode, LayoutCanvas } from './LayoutBox.js';
-import { type RenderNode, rewriteImports, useDemoRun } from './runner.js';
+import { Editor } from './Editor.js';
+import { LayoutCanvas } from './LayoutBox.js';
+import type { RenderNode } from './runner.js';
+import { useBrowserComparison } from './useBrowserComparison.js';
+import { useDemoSource } from './useDemoSource.js';
+import { useInspection } from './useInspection.js';
+import { useViewport, ZOOMS, type Zoom } from './useViewport.js';
 
 export interface DemoProps {
   /** Initial demo source. Readers edit from here; edits are not persisted. */
@@ -24,8 +42,12 @@ export interface DemoProps {
   /** Preview height. Defaults to a size that suits an inline docs demo. */
   height?: number | string;
   /**
-   * Force the stacked (single-column) layout. Leave unset to stack
-   * automatically when the laid-out tree is too wide for a side-by-side pane.
+   * Force the stacked (single-column) layout at every window width.
+   *
+   * Leave unset for the default, which is CSS's alone: side-by-side above
+   * 768px, stacked below. This must stay a static caller decision — deriving
+   * it from the pane or the laid-out tree creates a feedback loop, since a
+   * fluid demo's width is itself a function of whether it is stacked.
    */
   stacked?: boolean;
   /**
@@ -39,21 +61,8 @@ export interface DemoProps {
    * twice the width and is drawn half-size, so a phone reader sees the desktop
    * result. The reader can still change it.
    */
-  zoom?: 1 | 0.5 | 0.25;
+  zoom?: Zoom;
 }
-
-/**
- * Widest tree that still reads well beside the editor.
- *
- * Side-by-side splits the demo in half, and the docs column is itself inset by
- * the sidebar and table of contents, so a half-pane is only ~340px even on a
- * 1280px window — and `.fd-demo-preview`'s 1rem padding takes 32px more. A
- * tree wider than what is left would be clipped into a scroll box, which
- * silently hides exactly the comparison a wide demo exists to make, so it gets
- * the full width instead. Not scaled down: the preview is 1:1 with the
- * engine's own units on purpose.
- */
-const SIDE_BY_SIDE_MAX_WIDTH = 260;
 
 /**
  * The engine's boxes, flattened to absolute coordinates in document order.
@@ -71,36 +80,6 @@ function engineBoxes(node: RenderNode, originX = 0, originY = 0, out: Rect[] = [
   return out;
 }
 
-/**
- * Fallback available width, used for SSR and until the ResizeObserver reports.
- *
- * The viewport normally derives its width from the pane, but the first render
- * happens on the server where no pane exists. Demos in the docs are written
- * against this width, and `docs-demos.test.ts` asserts they lay out at it.
- */
-const AVAILABLE_WIDTH = 600;
-
-/**
- * Zoom presets.
- *
- * Zoom is a scale transform, NOT a layout change: at 50% the viewport holds
- * twice as many engine pixels and is drawn at half size, so it occupies the
- * same screen space. That is the point — a reader on a phone picks 50% or 25%
- * to see what the layout does at desktop widths, on a screen that could never
- * show those widths 1:1. The engine re-runs at the wider viewport, so the
- * reflow is real rather than a shrunk picture of the narrow one.
- */
-const ZOOMS = [1, 0.5, 0.25] as const;
-
-/** Narrow enough to be useless; the drag handle stops here. */
-const MIN_VIEWPORT = 80;
-
-/**
- * Screen px the frame needs outside the viewport box: the dashed outline's
- * 4px offset on both sides, plus room for the handle straddling the right edge.
- */
-const FRAME_ROOM = 26;
-
 function Highlighted({ code }: { code: string }) {
   const rendered = useShiki(code, {
     lang: 'typescript',
@@ -109,88 +88,98 @@ function Highlighted({ code }: { code: string }) {
       // Purely a stand-in while Monaco loads, so it must not scroll or capture
       // events of its own. Keep shiki's own classes: `.shiki` is what the
       // theme-switching CSS matches.
-      pre: (props) => <pre {...props} className={`${props.className ?? ''} fd-demo-pre`} />,
+      //
+      // `backgroundColor: undefined` drops the theme's own inline background.
+      // github-light's is white, and as an inline style it beat the
+      // stylesheet — the editor pane flashed a white slab on every load until
+      // Monaco mounted and replaced it.
+      pre: (props) => (
+        <pre
+          {...props}
+          className={`${props.className ?? ''} fd-demo-pre`}
+          style={{ ...props.style, backgroundColor: undefined }}
+        />
+      ),
     },
   });
   return <>{rendered}</>;
+}
+
+/**
+ * The engine disagreed with the browser — the most important thing on screen.
+ *
+ * Rendered above the preview, not under it: a reader who scrolled to the layout
+ * should not have to scroll past it to learn the engine is wrong. In a Chromium
+ * browser the oracle itself disagrees, so that IS a defect; elsewhere the
+ * engine may be faithfully matching Chrome while this browser differs from it,
+ * so the ask is softer but still worth filing.
+ */
+function DivergenceReport({
+  browser,
+  source,
+  viewport,
+  delta,
+}: {
+  browser: BrowserInfo;
+  source: string;
+  viewport: number;
+  delta: number | null;
+}) {
+  return (
+    <p className="fd-demo-report" role="alert">
+      <span className="fd-demo-report-icon" aria-hidden="true">
+        !
+      </span>
+      <span>
+        {browser.isOracle ? (
+          <>
+            <strong>You found a bug.</strong> bento-layout aims to match {browser.name} exactly, so this difference is a
+            defect worth fixing.
+          </>
+        ) : (
+          <>
+            <strong>Possibly a bug.</strong> bento-layout is verified against Chrome, so this may be {browser.name}{' '}
+            diverging from Chrome rather than an engine defect — please report it anyway and we will take a look.
+          </>
+        )}{' '}
+        <a
+          className="fd-demo-report-link"
+          href={issueUrl({ source, browser, viewport, delta })}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Report it →
+        </a>
+      </span>
+    </p>
+  );
 }
 
 export function Demo({ children, code, height, stacked, zoom: initialZoom }: DemoProps) {
   const initial = (code ?? children ?? '').replace(/^\n/, '').trimEnd();
   const editorPath = `demo-${useId().replace(/[^a-zA-Z0-9]/g, '')}.ts`;
 
-  // Until the reader edits, the demo runs the import-rewritten pristine
-  // source; after that, Monaco's TypeScript emit takes over.
-  const [demoCode, setDemoCode] = useState<DemoCode>(() => ({ source: initial, js: rewriteImports(initial) }));
+  const { paneRef, viewport, zoom, setZoom, onDragStart, onHandleKey, resetWidth } = useViewport(initialZoom);
+  const { demoCode, setDemoCode, shown, error } = useDemoSource(initial, viewport);
+  const { inspected, setHovered, setSelected } = useInspection();
 
-  const [zoom, setZoom] = useState<number>(initialZoom ?? ZOOMS[0]);
-  // Screen width of the preview pane. Null until measured, so the first paint
-  // (and SSR) falls back to AVAILABLE_WIDTH rather than flashing a wrong size.
-  const [paneWidth, setPaneWidth] = useState<number | null>(null);
-  // Viewport width in ENGINE px, when the reader has dragged it. Null means
-  // "follow the pane", which is the default at every zoom level.
-  const [dragged, setDragged] = useState<number | null>(null);
-  // Hover is transient; selection survives the pointer leaving. On touch there
-  // is no hover at all, so tapping a node is the only way to inspect it.
-  const [hovered, setHovered] = useState<HoveredNode | null>(null);
-  const [selected, setSelected] = useState<HoveredNode | null>(null);
   const [engines, setEngines] = useState<{ bento: boolean; browser: boolean }>({ bento: true, browser: false });
-  const [browserBoxes, setBrowserBoxes] = useState<Rect[] | null>(null);
-  const paneRef = useRef<HTMLDivElement>(null);
+
+  const ours = useMemo(() => (shown ? engineBoxes(shown) : []), [shown]);
+  const { browserBoxes, delta, agrees, disagrees, onMeasure } = useBrowserComparison(
+    engines.browser,
+    ours,
+    shown,
+    viewport,
+    zoom,
+  );
 
   // The overlay is the *current* browser, whichever that is — naming it
-  // "chrome" everywhere would be a lie on Safari, and the report wording below
+  // "chrome" everywhere would be a lie on Safari, and the report wording
   // depends on whether this browser is the conformance oracle. Resolved after
   // mount: navigator does not exist during SSR.
   const [browser, setBrowser] = useState<BrowserInfo | null>(null);
   useEffect(() => setBrowser(detectBrowser(navigator.userAgent)), []);
-
-  // What the highlight and badge describe: the pointer wins while it is over a
-  // node, otherwise the last tap/click stands.
-  const inspected = hovered ?? selected;
-
-  useEffect(() => {
-    const el = paneRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(([entry]) => setPaneWidth(entry.contentRect.width));
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  // Clicking anywhere that is not a node clears the selection. Bound to the
-  // document rather than the stage so a click outside the demo dismisses it
-  // too; the rects call stopPropagation, so their own clicks never reach here.
-  useEffect(() => {
-    if (!selected) return;
-    const clear = () => setSelected(null);
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setSelected(null);
-    document.addEventListener('click', clear);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('click', clear);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [selected]);
-
-  // At zoom z the viewport is drawn at scale z, so filling a pane of P screen
-  // px takes P/z engine px. That is what makes 50% show twice the layout width
-  // in the same space. FRAME_ROOM keeps the dashed outline and the drag handle
-  // (which sit outside the viewport box) inside the pane at 100%.
-  const fitted = ((paneWidth ?? AVAILABLE_WIDTH) - FRAME_ROOM) / zoom;
-  const viewport = Math.max(MIN_VIEWPORT, dragged ?? fitted);
-
-  const result = useDemoRun(demoCode.js, viewport);
-
-  // Mid-edit invalid states are the common case, not the exception. Keeping the
-  // last good tree means a half-typed demo shows an error without blanking the
-  // preview the reader is working against.
-  const lastGood = useRef<RenderNode | null>(null);
-  if (result?.ok) lastGood.current = result.root;
-  const shown = result?.ok ? result.root : lastGood.current;
-
-  // Decided from the tree on screen, so a demo the reader widens by editing
-  // reflows to stacked rather than starting to clip.
-  const tooWide = (shown?.width ?? 0) > SIDE_BY_SIDE_MAX_WIDTH;
 
   // The frame wraps the laid-out tree, with a floor so an empty or very short
   // demo still shows a viewport to drag rather than a collapsed line. Numeric
@@ -198,56 +187,14 @@ export function Demo({ children, code, height, stacked, zoom: initialZoom }: Dem
   const floor = typeof height === 'number' ? height / zoom : 200;
   const contentHeight = Math.max(floor, shown?.height ?? 0);
 
-  // Engine vs. browser, in the same units and the same order.
-  const ours = useMemo(() => (shown ? engineBoxes(shown) : []), [shown]);
-  const delta = engines.browser && browserBoxes ? maxDelta(ours, browserBoxes) : undefined;
-  const agrees = delta !== undefined && delta !== null && delta <= AGREEMENT_EPSILON;
-  const disagrees = delta !== undefined && !agrees;
-
   // Per-node browser geometry for the tooltip, matched by document order.
   const inspectedIndex = inspected ? ours.findIndex((b) => b.x === inspected.x && b.y === inspected.y) : -1;
   const inspectedBrowserBox = inspectedIndex >= 0 ? (browserBoxes?.[inspectedIndex] ?? null) : null;
 
-  // Drag resizes from the right edge. The viewport is centered, so the pointer
-  // travels half as far as the width changes — hence the doubling.
-  const onDragStart = (e: React.PointerEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    e.currentTarget.setPointerCapture(e.pointerId);
-    const startX = e.clientX;
-    const startWidth = viewport;
-    const move = (ev: PointerEvent) => {
-      setDragged(Math.max(MIN_VIEWPORT, startWidth + ((ev.clientX - startX) * 2) / zoom));
-    };
-    const up = (ev: PointerEvent) => {
-      window.removeEventListener('pointermove', move);
-      window.removeEventListener('pointerup', up);
-      window.removeEventListener('pointercancel', up);
-      void ev;
-    };
-    window.addEventListener('pointermove', move);
-    window.addEventListener('pointerup', up);
-    window.addEventListener('pointercancel', up);
-  };
-
-  // Keyboard equivalent of the drag, so the viewport is not mouse-only.
-  const onHandleKey = (e: React.KeyboardEvent<HTMLButtonElement>) => {
-    const step = e.shiftKey ? 100 : 20;
-    if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      setDragged(Math.max(MIN_VIEWPORT, viewport - step));
-    } else if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      setDragged(viewport + step);
-    } else if (e.key === 'Home') {
-      e.preventDefault();
-      setDragged(null);
-    }
-  };
-
   return (
     <div
       className="fd-demo not-prose my-6 overflow-hidden rounded-lg border border-fd-border"
-      data-stacked={(stacked ?? tooWide) ? '' : undefined}
+      data-stacked={stacked ? '' : undefined}
     >
       <div className="fd-demo-panes">
         <Editor
@@ -265,42 +212,8 @@ export function Demo({ children, code, height, stacked, zoom: initialZoom }: Dem
         {/* Measured here, not on the stage: the stage's width follows the
             viewport, so observing it would feed back into its own size. */}
         <div className="fd-demo-preview" ref={paneRef} style={{ minHeight: height ?? 220 }}>
-          {/* Above everything, not tucked under the preview: a divergence from
-              the oracle is the most important thing on screen when it happens,
-              and a reader who scrolled to the layout should not have to scroll
-              past it to learn the engine disagrees.
-              In a Chromium browser the oracle itself disagrees, which means the
-              engine is wrong — that is a bug report. Elsewhere the engine may be
-              faithfully matching Chrome while this browser differs from it, so
-              the ask is softer but still worth filing. */}
           {disagrees && browser && (
-            <p className="fd-demo-report" role="alert">
-              <span className="fd-demo-report-icon" aria-hidden="true">
-                !
-              </span>
-              <span>
-                {browser.isOracle ? (
-                  <>
-                    <strong>You found a bug.</strong> bento-layout aims to match {browser.name} exactly, so this
-                    difference is a defect worth fixing.
-                  </>
-                ) : (
-                  <>
-                    <strong>Possibly a bug.</strong> bento-layout is verified against Chrome, so this may be{' '}
-                    {browser.name} diverging from Chrome rather than an engine defect — please report it anyway and we
-                    will take a look.
-                  </>
-                )}{' '}
-                <a
-                  className="fd-demo-report-link"
-                  href={issueUrl({ source: demoCode.source, browser, viewport, delta: delta ?? null })}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Report it →
-                </a>
-              </span>
-            </p>
+            <DivergenceReport browser={browser} source={demoCode.source} viewport={viewport} delta={delta ?? null} />
           )}
 
           <div className="fd-demo-toolbar">
@@ -312,12 +225,7 @@ export function Demo({ children, code, height, stacked, zoom: initialZoom }: Dem
                   className="fd-demo-zoom"
                   data-active={z === zoom ? '' : undefined}
                   aria-pressed={z === zoom}
-                  // Dragged width is in engine px and was chosen against the old
-                  // zoom; clearing it refits the viewport to the new one.
-                  onClick={() => {
-                    setZoom(z);
-                    setDragged(null);
-                  }}
+                  onClick={() => setZoom(z)}
                 >
                   {z * 100}%
                 </button>
@@ -357,14 +265,14 @@ export function Demo({ children, code, height, stacked, zoom: initialZoom }: Dem
             )}
             {disagrees && (
               <span className="fd-demo-verdict" data-mismatch="">
-                {delta === null ? 'differs' : `differs by ${delta.toFixed(1)}px`}
+                {delta === null || delta === undefined ? 'differs' : `differs by ${delta.toFixed(1)}px`}
               </span>
             )}
 
             {/* status, not a bare span: the value changes as the viewport is
                 dragged, and a live region is what announces that. */}
             <output className="fd-demo-dims">
-              {Math.round(viewport)} × {Math.round(shown?.height ?? 0)} px
+              {viewport} × {Math.round(shown?.height ?? 0)} px
             </output>
           </div>
 
@@ -380,7 +288,9 @@ export function Demo({ children, code, height, stacked, zoom: initialZoom }: Dem
               className="fd-demo-viewport"
               style={{ width: viewport, height: contentHeight, transform: `scale(${zoom})` }}
             >
-              {engines.browser && shown && <ChromeOverlay root={shown} width={viewport} onMeasure={setBrowserBoxes} />}
+              {engines.browser && shown && (
+                <ChromeOverlay root={shown} width={viewport} zoom={zoom} onMeasure={onMeasure} />
+              )}
 
               {shown && engines.bento ? (
                 <LayoutCanvas root={shown} hovered={inspected} onHover={setHovered} onSelect={setSelected} />
@@ -428,8 +338,8 @@ export function Demo({ children, code, height, stacked, zoom: initialZoom }: Dem
               className="fd-demo-handle"
               onPointerDown={onDragStart}
               onKeyDown={onHandleKey}
-              onDoubleClick={() => setDragged(null)}
-              aria-label={`Viewport width, ${Math.round(viewport)} pixels. Arrow keys to resize, Home to fit.`}
+              onDoubleClick={resetWidth}
+              aria-label={`Viewport width, ${viewport} pixels. Arrow keys to resize, Home to fit.`}
               style={{ left: `calc(50% + ${(viewport * zoom) / 2}px)` }}
             />
           </div>
@@ -437,9 +347,9 @@ export function Demo({ children, code, height, stacked, zoom: initialZoom }: Dem
           {/* Errors are part of editing, not a failure of the page: a half-typed
               demo, a missing renderPlayground call, or a runtime throw all land
               here while the last good layout stays up. */}
-          {result && !result.ok && (
+          {error && (
             <p className="fd-demo-error" role="alert">
-              {result.message}
+              {error}
             </p>
           )}
         </div>
