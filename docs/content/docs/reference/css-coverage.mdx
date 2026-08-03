@@ -53,9 +53,8 @@ library toward being a framework or dilute the browser-verified claim:
 - **CSS string parsing.** Styles are structured data (`{ fr: 1 }`,
   `{ min, max }`), not `'1fr'` or `'10px 20px'` strings. The single string
   form the library accepts is a percentage (`'50%'`), which is a spelling
-  rather than a parser — one number, one `%`, no `calc()`. Every other
-  CSS-ish string in the docs playground is parsed by the docs site, never
-  by the library.
+  rather than a parser — one number, one `%`, no `calc()`. The docs
+  playground passes the same structured data; nothing anywhere parses CSS.
 - **Floats and inline layout.** Boxes only; text lives behind measure
   callbacks.
 - **`calc()`.** Values are numbers by the time they reach the engine —

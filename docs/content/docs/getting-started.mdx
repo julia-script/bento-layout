@@ -131,17 +131,24 @@ The body got `480 − 60 − 40 = 380` pixels — `flexGrow: 1` claims the
 leftover space. All three children are 320 wide without asking: in a column,
 the cross axis is horizontal, and flex items stretch across it by default.
 
-Here is the same frame drawn by the engine. Change the header's `height`, or
-give the footer `flexGrow: 1` too, and watch the body give up its space:
+Here is the same frame, live — the demo runs the exact code you just wrote,
+with `renderPlayground(frame)` in place of the `console.log`s. Change the
+header's `height`, or give the footer `flexGrow: 1` too, and watch the body
+give up its space:
 
 <Demo>
-{`<Layout>
-  <Node style={{flexDirection: 'column', width: '320px', height: '480px'}}>
-    <Node style={{height: '60px'}} />
-    <Node style={{flexGrow: 1}} />
-    <Node style={{height: '40px'}} />
-  </Node>
-</Layout>`}
+{`import { LayoutNode } from 'bento-layout';
+
+const header = LayoutNode.make({ height: 60 });
+const body = LayoutNode.make({ flexGrow: 1 });
+const footer = LayoutNode.make({ height: 40 });
+
+const frame = LayoutNode.make(
+  { flexDirection: 'column', width: 320, height: 480 },
+  [header, body, footer],
+);
+
+renderPlayground(frame);`}
 </Demo>
 
 ## Change a style and lay out again
@@ -223,19 +230,28 @@ The width is right — 320 minus two 12px margins — but the height filled the
 whole body. That is not a bug: the body is a flex container, and a lone flex
 item stretches across the cross axis by default, exactly as in CSS. Both
 containers below hold the same 160×40 child; only the right one says
-`alignItems: 'flex-start'`:
+`alignItems: { keyword: 'flex-start', safe: false }`:
 
 <Demo height={160}>
-{`<Layout>
-  <Node style={{width: '420px', height: '140px', columnGap: '20px'}}>
-    <Node style={{flexGrow: 1}}>
-      <Node style={{width: '160px', height: '40px'}} />
-    </Node>
-    <Node style={{flexGrow: 1, alignItems: 'flex-start'}}>
-      <Node style={{width: '160px', height: '40px'}} />
-    </Node>
-  </Node>
-</Layout>`}
+{`import { LayoutNode } from 'bento-layout';
+
+const stretched = LayoutNode.make({ flexGrow: 1 }, [
+  LayoutNode.make({ width: 160, height: 40 }),
+]);
+const topAligned = LayoutNode.make(
+  {
+    flexGrow: 1,
+    alignItems: { keyword: 'flex-start', safe: false },
+  },
+  [LayoutNode.make({ width: 160, height: 40 })],
+);
+
+const root = LayoutNode.make(
+  { width: 420, height: 140, columnGap: 20 },
+  [stretched, topAligned],
+);
+
+renderPlayground(root);`}
 </Demo>
 
 Tell the body to align its items to the top the same way:

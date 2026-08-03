@@ -3,18 +3,18 @@
 // The editable demo: source on one side, the engine's layout on the other.
 //
 // One component serves both inline docs demos and the standalone playground —
-// they differ only in size. Editing is a transparent <textarea> over
-// Shiki-highlighted output, so a docs page carrying a demo does not also carry
-// an editor bundle; Fumadocs already ships Shiki for its code blocks.
+// they differ only in size. The source is real TypeScript against the real
+// engine API; it is compiled in the editor (Monaco's TS emit) and executed in
+// a worker (see run.worker.ts), and the demo shows whatever tree the code
+// hands to `renderPlayground`.
 
-import type { LayoutNode } from 'bento-layout';
-import { computeLayout } from 'bento-layout';
 import { useShiki } from 'fumadocs-core/highlight/client';
-import { Suspense, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { AGREEMENT_EPSILON, type BrowserInfo, detectBrowser, issueUrl, maxDelta, type Rect } from './browser.js';
 import { ChromeOverlay } from './ChromeOverlay.js';
+import { type DemoCode, Editor } from './Editor.js';
 import { type HoveredNode, LayoutCanvas } from './LayoutBox.js';
-import { buildTree, parseDemo, type StyleNode } from './parse.js';
+import { type RenderNode, rewriteImports, useDemoRun } from './runner.js';
 
 export interface DemoProps {
   /** Initial demo source. Readers edit from here; edits are not persisted. */
@@ -55,45 +55,18 @@ export interface DemoProps {
  */
 const SIDE_BY_SIDE_MAX_WIDTH = 260;
 
-type Result = { ok: true; root: LayoutNode; styles: StyleNode } | { ok: false; message: string };
-
-/**
- * Parse, build, and lay out demo source.
- *
- * Every failure mode is caught here: dialect errors, coercion errors, and
- * anything the engine itself throws (`InvalidStyleError` for a `repeat()` with
- * a non-finite count, say). A demo must never take the page down.
- *
- * The parsed `styles` are returned alongside the laid-out tree because the
- * Chrome overlay renders the *same* source as real DOM: the demo dialect is
- * CSS-shaped, so those strings go straight onto elements without a second
- * translation that could itself be the thing that differs.
- */
-function runDemo(source: string, available: number): Result {
-  try {
-    const styles = parseDemo(source);
-    const root = buildTree(styles);
-    computeLayout(root, { width: available, height: 'max-content' });
-    return { ok: true, root, styles };
-  } catch (err) {
-    return { ok: false, message: err instanceof Error ? err.message : String(err) };
-  }
-}
-
 /**
  * The engine's boxes, flattened to absolute coordinates in document order.
  *
  * Document order is what makes this comparable with the overlay: both walk the
- * same source tree depth-first, so index i is the same node in both lists.
- * `display: none` nodes are skipped in both — the overlay never renders one,
- * and the engine lays it out at zero size.
+ * same serialized tree depth-first, so index i is the same node in both lists.
+ * (`display: none` subtrees never reach either — the worker drops them when it
+ * serializes.)
  */
-function engineBoxes(node: LayoutNode, originX = 0, originY = 0, out: Rect[] = []): Rect[] {
-  if (node.style.display === 'none') return out;
-  const { location, size } = node.layout;
-  const x = originX + location.x;
-  const y = originY + location.y;
-  out.push({ x, y, width: size.width, height: size.height });
+function engineBoxes(node: RenderNode, originX = 0, originY = 0, out: Rect[] = []): Rect[] {
+  const x = originX + node.x;
+  const y = originY + node.y;
+  out.push({ x, y, width: node.width, height: node.height });
   for (const child of node.children) engineBoxes(child, x, y, out);
   return out;
 }
@@ -130,12 +103,12 @@ const FRAME_ROOM = 26;
 
 function Highlighted({ code }: { code: string }) {
   const rendered = useShiki(code, {
-    lang: 'jsx',
+    lang: 'typescript',
     theme: 'github-light',
     components: {
-      // The <pre> is a backdrop for the textarea, so it must not scroll or
-      // capture events independently — the textarea on top owns both. Keep
-      // shiki's own classes: `.shiki` is what the theme-switching CSS matches.
+      // Purely a stand-in while Monaco loads, so it must not scroll or capture
+      // events of its own. Keep shiki's own classes: `.shiki` is what the
+      // theme-switching CSS matches.
       pre: (props) => <pre {...props} className={`${props.className ?? ''} fd-demo-pre`} />,
     },
   });
@@ -144,12 +117,11 @@ function Highlighted({ code }: { code: string }) {
 
 export function Demo({ children, code, height, stacked, zoom: initialZoom }: DemoProps) {
   const initial = (code ?? children ?? '').replace(/^\n/, '').trimEnd();
-  const [source, setSource] = useState(initial);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const editorPath = `demo-${useId().replace(/[^a-zA-Z0-9]/g, '')}.ts`;
 
-  // Highlighting is heavier than layout, so let it lag a keystroke behind
-  // rather than blocking the preview update.
-  const deferredSource = useDeferredValue(source);
+  // Until the reader edits, the demo runs the import-rewritten pristine
+  // source; after that, Monaco's TypeScript emit takes over.
+  const [demoCode, setDemoCode] = useState<DemoCode>(() => ({ source: initial, js: rewriteImports(initial) }));
 
   const [zoom, setZoom] = useState<number>(initialZoom ?? ZOOMS[0]);
   // Screen width of the preview pane. Null until measured, so the first paint
@@ -207,24 +179,24 @@ export function Demo({ children, code, height, stacked, zoom: initialZoom }: Dem
   const fitted = ((paneWidth ?? AVAILABLE_WIDTH) - FRAME_ROOM) / zoom;
   const viewport = Math.max(MIN_VIEWPORT, dragged ?? fitted);
 
-  const result = useMemo(() => runDemo(source, viewport), [source, viewport]);
+  const result = useDemoRun(demoCode.js, viewport);
 
   // Mid-edit invalid states are the common case, not the exception. Keeping the
-  // last good tree means a half-typed value shows an error without blanking the
+  // last good tree means a half-typed demo shows an error without blanking the
   // preview the reader is working against.
-  const lastGood = useRef<LayoutNode | null>(null);
-  if (result.ok) lastGood.current = result.root;
-  const shown = result.ok ? result.root : lastGood.current;
+  const lastGood = useRef<RenderNode | null>(null);
+  if (result?.ok) lastGood.current = result.root;
+  const shown = result?.ok ? result.root : lastGood.current;
 
   // Decided from the tree on screen, so a demo the reader widens by editing
   // reflows to stacked rather than starting to clip.
-  const tooWide = (shown?.layout.size.width ?? 0) > SIDE_BY_SIDE_MAX_WIDTH;
+  const tooWide = (shown?.width ?? 0) > SIDE_BY_SIDE_MAX_WIDTH;
 
   // The frame wraps the laid-out tree, with a floor so an empty or very short
   // demo still shows a viewport to drag rather than a collapsed line. Numeric
   // `height` is the caller's pane size, so it is unzoomed into engine px.
   const floor = typeof height === 'number' ? height / zoom : 200;
-  const contentHeight = Math.max(floor, shown?.layout.size.height ?? 0);
+  const contentHeight = Math.max(floor, shown?.height ?? 0);
 
   // Engine vs. browser, in the same units and the same order.
   const ours = useMemo(() => (shown ? engineBoxes(shown) : []), [shown]);
@@ -278,23 +250,17 @@ export function Demo({ children, code, height, stacked, zoom: initialZoom }: Dem
       data-stacked={(stacked ?? tooWide) ? '' : undefined}
     >
       <div className="fd-demo-panes">
-        <div className="fd-demo-editor">
-          <Suspense fallback={<pre className="fd-demo-pre fd-demo-fallback">{deferredSource}</pre>}>
-            <Highlighted code={deferredSource} />
-          </Suspense>
-          <textarea
-            ref={textareaRef}
-            className="fd-demo-input"
-            value={source}
-            onChange={(e) => setSource(e.target.value)}
-            spellCheck={false}
-            autoComplete="off"
-            autoCorrect="off"
-            autoCapitalize="off"
-            aria-label="Editable layout demo source"
-            style={{ minHeight: height ?? undefined }}
-          />
-        </div>
+        <Editor
+          path={editorPath}
+          initialSource={initial}
+          onCode={setDemoCode}
+          minHeight={typeof height === 'number' ? height : 160}
+          fallback={
+            <Suspense fallback={<pre className="fd-demo-pre fd-demo-fallback">{initial}</pre>}>
+              <Highlighted code={initial} />
+            </Suspense>
+          }
+        />
 
         {/* Measured here, not on the stage: the stage's width follows the
             viewport, so observing it would feed back into its own size. */}
@@ -327,7 +293,7 @@ export function Demo({ children, code, height, stacked, zoom: initialZoom }: Dem
                 )}{' '}
                 <a
                   className="fd-demo-report-link"
-                  href={issueUrl({ source, browser, viewport, delta: delta ?? null })}
+                  href={issueUrl({ source: demoCode.source, browser, viewport, delta: delta ?? null })}
                   target="_blank"
                   rel="noreferrer"
                 >
@@ -398,7 +364,7 @@ export function Demo({ children, code, height, stacked, zoom: initialZoom }: Dem
             {/* status, not a bare span: the value changes as the viewport is
                 dragged, and a live region is what announces that. */}
             <output className="fd-demo-dims">
-              {Math.round(viewport)} × {Math.round(shown?.layout.size.height ?? 0)} px
+              {Math.round(viewport)} × {Math.round(shown?.height ?? 0)} px
             </output>
           </div>
 
@@ -414,9 +380,7 @@ export function Demo({ children, code, height, stacked, zoom: initialZoom }: Dem
               className="fd-demo-viewport"
               style={{ width: viewport, height: contentHeight, transform: `scale(${zoom})` }}
             >
-              {engines.browser && result.ok && (
-                <ChromeOverlay styles={result.styles} width={viewport} onMeasure={setBrowserBoxes} />
-              )}
+              {engines.browser && shown && <ChromeOverlay root={shown} width={viewport} onMeasure={setBrowserBoxes} />}
 
               {shown && engines.bento ? (
                 <LayoutCanvas root={shown} hovered={inspected} onHover={setHovered} onSelect={setSelected} />
@@ -470,12 +434,10 @@ export function Demo({ children, code, height, stacked, zoom: initialZoom }: Dem
             />
           </div>
 
-          {/* A disagreement is the interesting case, so it gets a way to act on
-              it. In a Chromium browser the oracle itself disagrees, which means
-              the engine is wrong — that is a bug report. Elsewhere the engine
-              may be faithfully matching Chrome while this browser differs from
-              it, so the ask is softer but still worth filing. */}
-          {!result.ok && (
+          {/* Errors are part of editing, not a failure of the page: a half-typed
+              demo, a missing renderPlayground call, or a runtime throw all land
+              here while the last good layout stays up. */}
+          {result && !result.ok && (
             <p className="fd-demo-error" role="alert">
               {result.message}
             </p>

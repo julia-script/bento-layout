@@ -7,17 +7,21 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "postinstall": "fumadocs-mdx",
+    "postinstall": "fumadocs-mdx && node scripts/copy-monaco.mjs",
     "test": "vitest run"
   },
   "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
     "acorn": "^8.18.0",
     "acorn-jsx": "^5.3.2",
     "fumadocs-core": "^16.14.0",
     "fumadocs-mdx": "^15.2.1",
     "fumadocs-ui": "^16.14.0",
+    "monaco-editor": "^0.56.0",
+    "monaco-vim": "^0.4.4",
     "next": "^16.2.12",
     "postcss-value-parser": "^4.2.0",
+    "prettier": "^3.9.6",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },

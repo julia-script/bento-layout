@@ -13,3 +13,4 @@ docs/next-env.d.ts
 # batch is a local working target, not a shared artifact — the findings that
 # matter get promoted to fixtures under tests/fixtures/fuzz-found/ instead.
 tests/fuzz-batches/
+docs/public/monaco/

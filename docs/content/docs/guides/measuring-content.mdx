@@ -99,19 +99,37 @@ answer the two intrinsic questions honestly, and wrap when handed a definite
 width. For a terminal UI the same function works with
 `width = charCount * cellWidth` in place of `measureText`.
 
-The result is a box that trades width for height. Below is what that
-function returns for one paragraph at three widths — 440, 220, and 120 —
-laid out as fixed sizes, since demos on this site cannot carry callbacks:
+The result is a box that trades width for height. The demo below runs a real
+measure function — a fixed-width fake at 8px per character — through the real
+engine at three container widths. Edit the text or the widths and watch the
+measured heights follow:
 
 <Demo height={180}>
-{`<Layout>
-  <Node style={{flexDirection: 'column', width: '440px', rowGap: '12px',
-                alignItems: 'flex-start'}}>
-    <Node style={{width: '440px', height: '18px'}} />
-    <Node style={{width: '220px', height: '36px'}} />
-    <Node style={{width: '120px', height: '72px'}} />
-  </Node>
-</Layout>`}
+{`import { LayoutNode } from 'bento-layout';
+
+const text = 'The engine calls, the text answers.';
+
+const root = LayoutNode.make(
+  {
+    flexDirection: 'column',
+    width: 440,
+    rowGap: 12,
+    alignItems: { keyword: 'flex-start', safe: false },
+  },
+  [440, 220, 120].map((width) =>
+    LayoutNode.make({ width }).setMeasure((known) => {
+      const full = text.length * 8;
+      const w = known.width ?? full;
+      const lines = Math.max(1, Math.ceil(full / w));
+      return {
+        width: w,
+        height: known.height ?? lines * 18,
+      };
+    }),
+  ),
+);
+
+renderPlayground(root);`}
 </Demo>
 
 ## Report a baseline for text

@@ -56,19 +56,38 @@ for `width: 160, padding: 20`; the right one is `content-box`, so the padding
 is added outside the 160 and it paints 200 wide:
 
 <Demo height={150}>
-{`<Layout>
-  <Node style={{width: '420px', height: '120px', columnGap: '20px',
-                alignItems: 'flex-start'}}>
-    <Node style={{width: '160px', height: '80px', padding: '20px',
-                  boxSizing: 'border-box'}}>
-      <Node style={{flexGrow: 1, height: '40px'}} />
-    </Node>
-    <Node style={{width: '160px', height: '80px', padding: '20px',
-                  boxSizing: 'content-box'}}>
-      <Node style={{flexGrow: 1, height: '40px'}} />
-    </Node>
-  </Node>
-</Layout>`}
+{`import { LayoutNode } from 'bento-layout';
+
+const root = LayoutNode.make(
+  {
+    width: 420,
+    height: 120,
+    columnGap: 20,
+    alignItems: { keyword: 'flex-start', safe: false },
+  },
+  [
+    LayoutNode.make(
+      {
+        width: 160,
+        height: 80,
+        padding: 20,
+        boxSizing: 'border-box',
+      },
+      [LayoutNode.make({ flexGrow: 1, height: 40 })],
+    ),
+    LayoutNode.make(
+      {
+        width: 160,
+        height: 80,
+        padding: 20,
+        boxSizing: 'content-box',
+      },
+      [LayoutNode.make({ flexGrow: 1, height: 40 })],
+    ),
+  ],
+);
+
+renderPlayground(root);`}
 </Demo>
 
 ## Layout mode and box
@@ -145,11 +164,17 @@ That last one is worth seeing — a uniform `'auto'` margin absorbs the free
 space on every side, which centers the box without any alignment property:
 
 <Demo height={140}>
-{`<Layout>
-  <Node style={{width: '400px', height: '100px'}}>
-    <Node style={{width: '120px', height: '60px', margin: 'auto'}} />
-  </Node>
-</Layout>`}
+{`import { LayoutNode } from 'bento-layout';
+
+const root = LayoutNode.make({ width: 400, height: 100 }, [
+  LayoutNode.make({
+    width: 120,
+    height: 60,
+    margin: 'auto',
+  }),
+]);
+
+renderPlayground(root);`}
 </Demo>
 
 ## Position offsets

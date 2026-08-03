@@ -8,9 +8,8 @@ the spelling differs. There is no CSS string parser, so a track list is an
 array of structured values rather than `'repeat(3, 1fr)'`. This guide maps
 the common grid patterns onto that vocabulary.
 
-(Demos on this page *do* use the CSS-style strings — the playground ships
-its own CSS-ish parser precisely so demos read like CSS. Your code passes
-the structured forms shown in the TypeScript blocks.)
+Every demo on this page is live and uses that same structured vocabulary —
+what you edit here is exactly what your code passes.
 
 ## A minimal grid
 
@@ -107,14 +106,23 @@ content.layout.size.width; // 424 — 640 − 200 − 16
 ```
 
 <Demo>
-{`<Layout>
-  <Node style={{display: 'grid', width: '480px', height: '180px',
-                gridTemplateColumns: '200px minmax(100px, 1fr)',
-                columnGap: '16px'}}>
-    <Node style={{}} />
-    <Node style={{}} />
-  </Node>
-</Layout>`}
+{`import { LayoutNode } from 'bento-layout';
+
+const page = LayoutNode.make(
+  {
+    display: 'grid',
+    width: 480,
+    height: 180,
+    gridTemplateColumns: [
+      { min: 200, max: 200 },
+      { min: 100, max: { fr: 1 } },
+    ],
+    columnGap: 16,
+  },
+  [LayoutNode.make({}), LayoutNode.make({})],
+);
+
+renderPlayground(page);`}
 </Demo>
 
 ## As many cards as fit
@@ -158,17 +166,29 @@ and watch the track count change: at 460px a third 150px track no longer
 fits beside the gaps, so the grid drops to two columns of 225px.
 
 <Demo>
-{`<Layout>
-  <Node style={{display: 'grid', width: '480px',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-                gridAutoRows: '80px', gap: '10px'}}>
-    <Node style={{}} />
-    <Node style={{}} />
-    <Node style={{}} />
-    <Node style={{}} />
-    <Node style={{}} />
-  </Node>
-</Layout>`}
+{`import { LayoutNode } from 'bento-layout';
+
+const cards = Array.from({ length: 5 }, () =>
+  LayoutNode.make({}),
+);
+
+const wall = LayoutNode.make(
+  {
+    display: 'grid',
+    width: 480,
+    gridTemplateColumns: [
+      {
+        repeat: 'auto-fill',
+        tracks: [{ min: 150, max: { fr: 1 } }],
+      },
+    ],
+    gridAutoRows: [{ min: 80, max: 80 }],
+    gap: 10,
+  },
+  cards,
+);
+
+renderPlayground(wall);`}
 </Demo>
 
 ## Placing items
@@ -214,17 +234,37 @@ A placement CSS would reject — line `0`, which does not exist — falls back
 to `'auto'` instead of throwing, matching how browsers recover.
 
 <Demo>
-{`<Layout>
-  <Node style={{display: 'grid', width: '300px',
-                gridTemplateColumns: '1fr 1fr 1fr', gridAutoRows: '40px',
-                gap: '6px'}}>
-    <Node style={{gridColumnStart: 1, gridColumnEnd: -1}} />
-    <Node style={{gridRowEnd: 'span 2'}} />
-    <Node style={{}} />
-    <Node style={{}} />
-    <Node style={{}} />
-  </Node>
-</Layout>`}
+{`import { LayoutNode } from 'bento-layout';
+
+const banner = LayoutNode.make({
+  gridColumnStart: { line: 1 },
+  gridColumnEnd: { line: -1 },
+});
+const tall = LayoutNode.make({ gridRowEnd: { span: 2 } });
+
+const grid = LayoutNode.make(
+  {
+    display: 'grid',
+    width: 300,
+    gridTemplateColumns: [
+      {
+        repeat: 3,
+        tracks: [{ min: 'auto', max: { fr: 1 } }],
+      },
+    ],
+    gridAutoRows: [{ min: 40, max: 40 }],
+    gap: 6,
+  },
+  [
+    banner,
+    tall,
+    LayoutNode.make({}),
+    LayoutNode.make({}),
+    LayoutNode.make({}),
+  ],
+);
+
+renderPlayground(grid);`}
 </Demo>
 
 ## Implicit tracks

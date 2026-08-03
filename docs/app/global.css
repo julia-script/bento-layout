@@ -190,9 +190,7 @@ a:not(.ld-btn):hover {
   }
 }
 
-/* --- Demo: editor + preview --------------------------------------------
-   Unchanged from the previous theme except for the radius token; the geometry
-   rules here must keep the textarea caret aligned with the highlighted <pre>. */
+/* --- Demo: editor + preview -------------------------------------------- */
 
 .fd-demo-panes {
   display: grid;
@@ -207,8 +205,61 @@ a:not(.ld-btn):hover {
 
 .fd-demo-editor {
   position: relative;
+  display: flex;
+  flex-direction: column;
   background-color: var(--color-fd-secondary);
-  overflow: auto;
+  overflow: hidden;
+}
+
+/* Small controls strip above the editor: copy / format / vim. */
+.fd-demo-edbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-bottom: 1px solid var(--color-fd-border);
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+
+.fd-demo-edbtn {
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  color: var(--color-fd-muted-foreground);
+  cursor: pointer;
+}
+
+.fd-demo-edbtn:hover {
+  color: var(--color-fd-foreground);
+}
+
+.fd-demo-edbtn[data-active] {
+  background-color: var(--color-fd-primary);
+  color: var(--color-fd-primary-foreground);
+}
+
+/* monaco-vim writes the mode/command line in here. Zero-height when vim is
+   off so the editor pane does not reserve an empty strip. */
+.fd-demo-vimbar {
+  display: none;
+  padding: 0.15rem 0.75rem;
+  border-top: 1px solid var(--color-fd-border);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.6875rem;
+  color: var(--color-fd-muted-foreground);
+  min-height: 1.4rem;
+}
+
+.fd-demo-vimbar[data-visible] {
+  display: block;
+}
+
+/* Monaco draws its own background; let the pane's show through so light/dark
+   follow the site theme even before the editor theme flips. */
+.fd-demo-editor .monaco-editor,
+.fd-demo-editor .monaco-editor-background,
+.fd-demo-editor .monaco-editor .margin {
+  background-color: transparent;
 }
 
 .fd-demo:not([data-stacked]) .fd-demo-editor {
@@ -222,48 +273,26 @@ a:not(.ld-btn):hover {
   }
 }
 
-/* The textarea sits transparently on top of the highlighted <pre>. Every
-   property that affects glyph position must match between the two or the
-   caret drifts from the text it is pointing at. */
-.fd-demo-pre,
-.fd-demo-input {
+/* Stand-in shown while Monaco loads: the same source, Shiki-highlighted, at
+   roughly Monaco's metrics so the swap does not jump. */
+.fd-demo-pre {
   margin: 0;
-  padding: 1rem;
+  padding: 0.65rem 1rem;
   border: 0;
+  min-height: 100%;
+  background: transparent;
+  pointer-events: none;
   font-family: var(--font-mono, ui-monospace, monospace);
   font-size: 0.8125rem;
-  line-height: 1.6;
+  line-height: 1.5;
   tab-size: 2;
   white-space: pre;
   overflow-wrap: normal;
   letter-spacing: normal;
 }
 
-.fd-demo-pre {
-  min-height: 100%;
-  background: transparent;
-  pointer-events: none;
-}
-
 .fd-demo-fallback {
   color: var(--color-fd-muted-foreground);
-}
-
-.fd-demo-input {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  resize: none;
-  color: transparent;
-  background: transparent;
-  caret-color: var(--color-fd-foreground);
-  outline: none;
-  overflow: hidden;
-}
-
-.fd-demo-input::selection {
-  background-color: var(--color-accent-200);
 }
 
 /* The demo lays out against the viewport width shown in the toolbar. A wide

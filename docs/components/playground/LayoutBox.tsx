@@ -9,7 +9,7 @@
 // between, so subpixel geometry survives and there is no border-box arithmetic
 // to get wrong. `unroundedLayout` therefore renders faithfully.
 
-import type { LayoutNode } from 'bento-layout';
+import type { RenderNode } from './runner.js';
 
 /** How many depth colours before the palette repeats. */
 const DEPTH_STEPS = 5;
@@ -53,7 +53,7 @@ const PADDING = 1;
 export const CANVAS_ORIGIN = PADDING + INSET;
 
 export interface LayoutBoxProps {
-  node: LayoutNode;
+  node: RenderNode;
   depth?: number;
   /** Absolute origin of this node's parent, for reporting hovers. */
   originX?: number;
@@ -70,16 +70,14 @@ export interface LayoutBoxProps {
  * relative to the parent's border box, so the transform *is* that relationship.
  */
 export function LayoutBox({ node, depth = 0, originX = 0, originY = 0, onHover, onSelect }: LayoutBoxProps) {
-  // `display: none` nodes lay out as zero-sized; drawing them would leave a
-  // stroke artifact where there is no box.
-  if (node.style.display === 'none') return null;
-
-  const { location, size } = node.layout;
+  // (`display: none` subtrees never reach here — the worker drops them when
+  // serializing, keeping this walk aligned with the browser overlay's.)
+  const size = { width: node.width, height: node.height };
   const collapsed = size.width === 0 || size.height === 0;
 
   // Absolute position of this node, for the hover readout.
-  const x = originX + location.x;
-  const y = originY + location.y;
+  const x = originX + node.x;
+  const y = originY + node.y;
 
   const children = node.children.map((child, i) => (
     <LayoutBox key={i} node={child} depth={depth + 1} originX={x} originY={y} onHover={onHover} onSelect={onSelect} />
@@ -91,11 +89,11 @@ export function LayoutBox({ node, depth = 0, originX = 0, originY = 0, onHover, 
     width: size.width,
     height: size.height,
     depth,
-    display: String(node.style.display ?? 'flex'),
+    display: node.display,
   };
 
   return (
-    <g transform={`translate(${location.x} ${location.y})`}>
+    <g transform={`translate(${node.x} ${node.y})`}>
       {collapsed ? (
         // SVG renders no rect at zero width or height, so a box collapsed on
         // one axis would vanish even though it still has extent on the other.
@@ -156,7 +154,7 @@ export function LayoutBox({ node, depth = 0, originX = 0, originY = 0, onHover, 
 }
 
 export interface LayoutCanvasProps {
-  root: LayoutNode;
+  root: RenderNode;
   /** Reports the innermost node under the pointer, or null on leave. */
   onHover?: (node: HoveredNode | null) => void;
   /** Reports a clicked/tapped node, which stays inspected after the pointer leaves. */
@@ -174,7 +172,7 @@ export interface LayoutCanvasProps {
  * stay visible, matching what the engine reports in `contentSize`.
  */
 export function LayoutCanvas({ root, onHover, onSelect, hovered }: LayoutCanvasProps) {
-  const { width, height } = root.layout.size;
+  const { width, height } = root;
   const w = width + PADDING * 2;
   const h = height + PADDING * 2;
 
