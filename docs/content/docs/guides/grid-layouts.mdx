@@ -79,31 +79,11 @@ grid.children[2].layout.location; // { x: 200, y: 0 }
 
 ## A sidebar layout
 
-Fixed sidebar, flexible content with a floor — `200px minmax(100px, 1fr)`:
-
-```typescript
-const sidebar = LayoutNode.make();
-const content = LayoutNode.make();
-
-const page = LayoutNode.make(
-  {
-    display: 'grid',
-    width: 640,
-    height: 200,
-    gridTemplateColumns: [
-      { min: 200, max: 200 },
-      { min: 100, max: { fr: 1 } },
-    ],
-    columnGap: 16,
-  },
-  [sidebar, content],
-);
-
-computeLayout(page, { width: 'max-content', height: 'max-content' });
-
-sidebar.layout.size.width; // 200
-content.layout.size.width; // 424 — 640 − 200 − 16
-```
+Fixed sidebar, flexible content with a floor — CSS's
+`200px minmax(100px, 1fr)`. Drag the viewport below: the sidebar holds at
+200px while the content column takes every pixel of the difference, until
+the `minmax` floor stops it at 100px and the grid overflows rather than
+crushing the content.
 
 <Demo>
 {`import { LayoutNode } from 'bento-layout';
@@ -111,7 +91,7 @@ content.layout.size.width; // 424 — 640 − 200 − 16
   const page = LayoutNode.make(
     {
       display: 'grid',
-      width: 480,
+      width: '100%',
       height: 180,
       gridTemplateColumns: [
         { min: 200, max: 200 },
@@ -127,43 +107,27 @@ content.layout.size.width; // 424 — 640 − 200 − 16
 
 ## As many cards as fit
 
-`auto-fill` fits as many repetitions as the container allows. It needs a
-definite width to fill — an auto-sized grid shrink-wraps and produces a
-single repetition:
+`auto-fill` fits as many repetitions as the container allows:
+`{ repeat: 'auto-fill', tracks: [{ min: 150, max: { fr: 1 } }] }` is CSS's
+`repeat(auto-fill, minmax(150px, 1fr))`. It needs a definite width to fill —
+an auto-sized grid shrink-wraps and produces a single repetition.
 
-```typescript
-const cards = Array.from({ length: 5 }, () => LayoutNode.make());
-
-const wall = LayoutNode.make(
-  {
-    display: 'grid',
-    width: 520,
-    gridTemplateColumns: [
-      { repeat: 'auto-fill', tracks: [{ min: 150, max: { fr: 1 } }] },
-    ],
-    gridAutoRows: [{ min: 80, max: 80 }],
-    gap: 10,
-  },
-  cards,
-);
-
-computeLayout(wall, { width: 'max-content', height: 'max-content' });
-
-// Three 150px-minimum tracks fit in 520px; the leftover stretches them.
-cards[0].layout.size.width; // 167
-cards[3].layout.location; // { x: 0, y: 90 } — wrapped to the second row
-```
-
-(167, not 166.67 — layout is pixel-snapped by default, cumulatively, so the
-three tracks come out 167/166/167 and stay flush. See
+Laid into 520px, three 150px-minimum tracks fit and the leftover stretches
+them to 167px each, with the fourth card wrapping to a second row at
+`{ x: 0, y: 90 }`. (167, not 166.67 — layout is pixel-snapped by default,
+cumulatively, so the three tracks come out 167/166/167 and stay flush. See
 [Driving a renderer](/docs/guides/rendering#rounding) for the rounding
 rules.)
 
 `'auto-fit'` is the same, but repetitions left with no items collapse to
-zero and their space goes back to the filled tracks. The demo below is the
-same grid at 480px — still three tracks, now 153px each. Edit the `width`
-and watch the track count change: at 460px a third 150px track no longer
-fits beside the gaps, so the grid drops to two columns of 225px.
+zero and their space goes back to the filled tracks.
+
+This is the responsive card wall in its natural habitat: the grid below is
+`width: '100%'`, so it takes whatever the viewport gives it. Drag the
+viewport's right edge and watch the track count change on its own — at 460px
+a third 150px track no longer fits beside the gaps, so the grid drops to two
+columns, then to one. That is the whole responsive card grid, with no media
+queries and nothing to recompute by hand.
 
 <Demo>
 {`import { LayoutNode } from 'bento-layout';
@@ -175,7 +139,7 @@ fits beside the gaps, so the grid drops to two columns of 225px.
   const wall = LayoutNode.make(
     {
       display: 'grid',
-      width: 480,
+      width: '100%',
       gridTemplateColumns: [
         {
           repeat: 'auto-fill',
@@ -199,36 +163,21 @@ Lines are 1-based and negative lines count from the end, so `{ line: -1 }`
 is the last line — the idiom for "stretch to the end":
 
 ```typescript
-const fr1 = { min: 'auto', max: { fr: 1 } } as const;
-
 const banner = LayoutNode.make({
   gridColumnStart: { line: 1 },
   gridColumnEnd: { line: -1 }, // full width
 });
 const tall = LayoutNode.make({ gridRowEnd: { span: 2 } }); // two rows
-const [a, b, c] = [LayoutNode.make(), LayoutNode.make(), LayoutNode.make()];
-
-const grid = LayoutNode.make(
-  {
-    display: 'grid',
-    width: 300,
-    gridTemplateColumns: [fr1, fr1, fr1],
-    gridAutoRows: [{ min: 40, max: 40 }],
-  },
-  [banner, tall, a, b, c],
-);
-
-computeLayout(grid, { width: 'max-content', height: 'max-content' });
-
-banner.layout.size; // { width: 300, height: 40 } — spans all three columns
-tall.layout.size; // { width: 100, height: 80 } — two 40px rows
-tall.layout.location; // { x: 0, y: 40 } — placed under the banner
 ```
 
-The unplaced items flow around the placed ones. `gridAutoFlow` controls the
-direction and packing: `'row'` (the default) fills each row before moving
-down, `'column'` fills columns first, and the `-dense` variants backtrack to
-fill holes at the cost of source order.
+In a three-column, 300px grid with 40px rows, the banner comes out
+`{ width: 300, height: 40 }` spanning every column, and `tall` is
+`{ width: 100, height: 80 }` at `{ x: 0, y: 40 }` — two rows, tucked under
+the banner. The unplaced items flow around the placed ones.
+
+`gridAutoFlow` controls the direction and packing: `'row'` (the default)
+fills each row before moving down, `'column'` fills columns first, and the
+`-dense` variants backtrack to fill holes at the cost of source order.
 
 A placement CSS would reject — line `0`, which does not exist — falls back
 to `'auto'` instead of throwing, matching how browsers recover.
@@ -245,7 +194,7 @@ to `'auto'` instead of throwing, matching how browsers recover.
   const grid = LayoutNode.make(
     {
       display: 'grid',
-      width: 300,
+      width: '100%',
       gridTemplateColumns: [
         {
           repeat: 3,

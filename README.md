@@ -1,5 +1,7 @@
 # bento-layout
 
+**[Documentation and live playground → bento.jlort.com](https://bento.jlort.com/)**
+
 A flexbox, CSS Grid, and block layout engine in plain TypeScript. Style data
 goes in, pixel positions come out — and that is the whole transaction. No
 WASM binary to load, no async initialization, no engine instance to register
@@ -90,10 +92,15 @@ Correctness is defined as agreement with a pinned Chrome:
 
 ## Documentation
 
-The full documentation — a getting-started tutorial, guides for measuring
-content, grid, and renderer integration, a complete style-property
-reference, and the conformance story — lives in the [docs site](docs/)
-(`cd docs && pnpm dev`), with live, editable demos running the real engine.
+**[bento.jlort.com](https://bento.jlort.com/)** — a getting-started tutorial,
+guides for measuring content, grid, and renderer integration, a complete
+style-property reference, and the conformance story. Every demo is live and
+editable, running the real engine in your browser; the
+[playground](https://bento.jlort.com/playground) starts from a gallery of
+real layouts (holy grail, card wall, dashboard) you can edit and resize.
+
+The site's source is in [docs/](docs/); run it locally with
+`cd docs && pnpm dev`.
 
 ## Non-goals
 

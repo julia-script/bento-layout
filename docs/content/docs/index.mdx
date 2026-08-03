@@ -17,29 +17,42 @@ a PDF generator, or an SVG diagram, without dragging in the rest of a browser.
 ## Try it
 
 Every demo on this site is real code, run by the real engine as you type —
-with the hover docs, completions, and type checking of a proper editor. Try
-changing the alignment keyword to `'flex-start'`, or giving the middle node
-`flexGrow: 2`.
+with the hover docs, completions, and type checking of a proper editor. This
+one is the [holy grail layout](https://en.wikipedia.org/wiki/Holy_grail_(web_design)):
+header, footer, a fluid centre column, and two fixed side columns. Drag the
+viewport's right edge and watch it reflow — the root has no `width`, so it
+takes whatever space it is laid into, exactly as a page does.
 
-<Demo>
+<Demo height={280}>
 {`import { LayoutNode } from 'bento-layout';
 
-  const root = LayoutNode.make(
-    {
-      width: 440,
-      height: 160,
-      columnGap: 12,
-      alignItems: { keyword: 'center', safe: false },
-    },
-    [
-      LayoutNode.make({ width: 100, height: 100 }),
-      LayoutNode.make({ flexGrow: 1, height: 60 }),
-      LayoutNode.make({ width: 100, height: 100 }),
-    ],
+  const header = LayoutNode.make({ height: 48 });
+  const nav = LayoutNode.make({ width: 120 });
+  const main = LayoutNode.make({ flexGrow: 1, minWidth: 0 });
+  const aside = LayoutNode.make({ width: 96 });
+  const footer = LayoutNode.make({ height: 36 });
+
+  const body = LayoutNode.make(
+    { flexGrow: 1, columnGap: 12 },
+    [nav, main, aside],
   );
 
-  renderPlayground(root);`}
+  const page = LayoutNode.make(
+    {
+      flexDirection: 'column',
+      height: 260,
+      padding: 12,
+      rowGap: 12,
+    },
+    [header, body, footer],
+  );
+
+  renderPlayground(page);`}
 </Demo>
+
+Everything on this page is one `computeLayout` call — no CSS engine, no DOM.
+Try giving `aside` a `flexGrow: 1`, or swapping `nav`'s width for
+`{ min: 100, max: 160 }`-style constraints via `minWidth`/`maxWidth`.
 
 What you see is exactly what runs in your project: copy a demo out, swap
 `renderPlayground(root)` for `computeLayout(root, …)` plus your renderer, and
@@ -79,39 +92,42 @@ load.
   aspect ratios, percentages, auto margins, absolute positioning, RTL,
   `box-sizing`, gaps, alignment including `safe` variants, and scrollbar
   gutters. The modes compose freely — a grid inside a flex row inside a block
-  page is the normal case, not a special one. That is exactly what this is:
+  page is the normal case, not a special one. This is a media-object card
+  wall: a **block** page, a **flex** row for the sidebar, and a **grid** of
+  cards that reflows as the viewport narrows.
 
 <Demo height={260}>
 {`import { LayoutNode } from 'bento-layout';
 
-  const cells = Array.from({ length: 6 }, () =>
+  const cards = Array.from({ length: 6 }, () =>
     LayoutNode.make({}),
   );
 
-  const grid = LayoutNode.make(
+  const wall = LayoutNode.make(
     {
       display: 'grid',
       flexGrow: 1,
+      minWidth: 0,
       gridTemplateColumns: [
         {
-          repeat: 3,
-          tracks: [{ min: 'auto', max: { fr: 1 } }],
+          repeat: 'auto-fill',
+          tracks: [{ min: 100, max: { fr: 1 } }],
         },
       ],
       gridAutoRows: [{ min: 69, max: 69 }],
       gap: 12,
     },
-    cells,
+    cards,
   );
 
   const root = LayoutNode.make(
-    { display: 'block', width: 440, padding: 12 },
+    { display: 'block', padding: 12 },
     [
       LayoutNode.make({ height: 32, marginBottom: 12 }),
-      LayoutNode.make(
-        { display: 'flex', columnGap: 12, height: 150 },
-        [LayoutNode.make({ width: 120 }), grid],
-      ),
+      LayoutNode.make({ display: 'flex', columnGap: 12 }, [
+        LayoutNode.make({ width: 120 }),
+        wall,
+      ]),
     ],
   );
 

@@ -60,7 +60,7 @@ is added outside the 160 and it paints 200 wide:
 
   const root = LayoutNode.make(
     {
-      width: 420,
+      width: '100%',
       height: 120,
       columnGap: 20,
       alignItems: { keyword: 'flex-start', safe: false },
@@ -166,13 +166,16 @@ space on every side, which centers the box without any alignment property:
 <Demo height={140}>
 {`import { LayoutNode } from 'bento-layout';
 
-  const root = LayoutNode.make({ width: 400, height: 100 }, [
-    LayoutNode.make({
-      width: 120,
-      height: 60,
-      margin: 'auto',
-    }),
-  ]);
+  const root = LayoutNode.make(
+    { width: '100%', height: 100 },
+    [
+      LayoutNode.make({
+        width: 120,
+        height: 60,
+        margin: 'auto',
+      }),
+    ],
+  );
 
   renderPlayground(root);`}
 </Demo>

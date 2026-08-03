@@ -101,32 +101,38 @@ width. For a terminal UI the same function works with
 
 The result is a box that trades width for height. The demo below runs a real
 measure function — a fixed-width fake at 8px per character — through the real
-engine at three container widths. Edit the text or the widths and watch the
-measured heights follow:
+engine at three container widths, each a fraction of the viewport. Drag the
+viewport, or edit the text, and watch the measured heights follow: the
+narrower the box, the more lines the same string reports.
 
 <Demo height={180}>
 {`import { LayoutNode } from 'bento-layout';
 
   const text = 'The engine calls, the text answers.';
 
+  const column = (node = LayoutNode.make()) =>
+    node.setMeasure((known) => {
+      const full = text.length * 8;
+      const w = known.width ?? full;
+      const lines = Math.max(1, Math.ceil(full / w));
+      return {
+        width: w,
+        height: known.height ?? lines * 18,
+      };
+    });
+
   const root = LayoutNode.make(
     {
       flexDirection: 'column',
-      width: 440,
+      width: '100%',
       rowGap: 12,
       alignItems: { keyword: 'flex-start', safe: false },
     },
-    [440, 220, 120].map((width) =>
-      LayoutNode.make({ width }).setMeasure((known) => {
-        const full = text.length * 8;
-        const w = known.width ?? full;
-        const lines = Math.max(1, Math.ceil(full / w));
-        return {
-          width: w,
-          height: known.height ?? lines * 18,
-        };
-      }),
-    ),
+    [
+      column(LayoutNode.make({ width: '100%' })),
+      column(LayoutNode.make({ width: '50%' })),
+      column(LayoutNode.make({ width: '25%' })),
+    ],
   );
 
   renderPlayground(root);`}
