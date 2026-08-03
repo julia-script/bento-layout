@@ -5,13 +5,23 @@
       "name": "docs",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--dir", "docs", "dev"],
-      "port": 3000
+      "port": 3000,
+      "autoPort": true
+    },
+    {
+      "_comment": "Same dev server, isolated build dir. `next dev` locks its distDir and refuses to start when another dev server on this checkout already holds it — a directory conflict, not a port one, so autoPort alone cannot fix it. Use this when another session is already running `docs`.",
+      "name": "docs-isolated",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "NEXT_DIST_DIR=.next-dev-alt pnpm --dir docs dev"],
+      "port": 3000,
+      "autoPort": true
     },
     {
       "name": "docs-prod",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--dir", "docs", "start"],
-      "port": 3000
+      "port": 3000,
+      "autoPort": true
     }
   ]
 }

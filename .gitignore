@@ -1,6 +1,9 @@
 node_modules/
 dist/
 docs/.next/
+# Alternate build dirs (NEXT_DIST_DIR), used when a second dev server has to
+# run against this checkout — `next dev` locks its distDir against reuse.
+docs/.next-*/
 docs/.source/
 docs/next-env.d.ts
 *.tsbuildinfo
