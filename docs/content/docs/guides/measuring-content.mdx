@@ -107,29 +107,29 @@ measured heights follow:
 <Demo height={180}>
 {`import { LayoutNode } from 'bento-layout';
 
-const text = 'The engine calls, the text answers.';
+  const text = 'The engine calls, the text answers.';
 
-const root = LayoutNode.make(
-  {
-    flexDirection: 'column',
-    width: 440,
-    rowGap: 12,
-    alignItems: { keyword: 'flex-start', safe: false },
-  },
-  [440, 220, 120].map((width) =>
-    LayoutNode.make({ width }).setMeasure((known) => {
-      const full = text.length * 8;
-      const w = known.width ?? full;
-      const lines = Math.max(1, Math.ceil(full / w));
-      return {
-        width: w,
-        height: known.height ?? lines * 18,
-      };
-    }),
-  ),
-);
+  const root = LayoutNode.make(
+    {
+      flexDirection: 'column',
+      width: 440,
+      rowGap: 12,
+      alignItems: { keyword: 'flex-start', safe: false },
+    },
+    [440, 220, 120].map((width) =>
+      LayoutNode.make({ width }).setMeasure((known) => {
+        const full = text.length * 8;
+        const w = known.width ?? full;
+        const lines = Math.max(1, Math.ceil(full / w));
+        return {
+          width: w,
+          height: known.height ?? lines * 18,
+        };
+      }),
+    ),
+  );
 
-renderPlayground(root);`}
+  renderPlayground(root);`}
 </Demo>
 
 ## Report a baseline for text

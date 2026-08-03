@@ -13,6 +13,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { compile } from '@mdx-js/mdx';
 import * as bento from 'bento-layout';
 import { describe, expect, it } from 'vitest';
 import { unreachable } from '../../../src/assert.js';
@@ -35,22 +36,52 @@ function mdxFiles(dir: string): string[] {
 
 const DEMO_RE = /^([ \t]*)<Demo(?:\s[^>]*)?>\s*\{`([\s\S]*?)`\}\s*<\/Demo>/gm;
 
+/**
+ * The demo strings `<Demo>` actually receives, taken from compiled MDX.
+ *
+ * NOT read straight out of the .mdx file. MDX removes two spaces (markdown's
+ * continuation indent, clamped at zero) from every line but the first of a
+ * template literal inside a JSX expression, so demo blocks in the .mdx carry
+ * two spaces of compensation and look over-indented on purpose — that is what
+ * makes them arrive correctly formatted. Reading the file directly hid this
+ * for a whole release: the file text looked right, the browser got it
+ * dedented, and pressing format reindented code the reader never touched.
+ * Compiling here is what makes these assertions test the real input.
+ */
+async function compiledDemoSources(file: string): Promise<string[]> {
+  const body = readFileSync(file, 'utf8').replace(/^---[\s\S]*?\n---\n/, '');
+  const compiled = String(await compile(body, { jsx: true }));
+  // Each demo compiles to `<Demo …>{`…`}</Demo>`; the backticked run is the
+  // string the component gets, with MDX's own escaping already applied.
+  return [...compiled.matchAll(/<Demo[^>]*>\{`([\s\S]*?)`\}<\/Demo>/g)].map((m) => m[1] ?? unreachable());
+}
+
 // The standalone playground's seed is a demo in every way that matters here,
-// so it rides along under the same assertions.
+// so it rides along under the same assertions. It is a plain TS template
+// literal, so no MDX dedent applies.
 const seedMatch = /const SEED = `([\s\S]*?)`;/.exec(
   readFileSync(join(DOCS_ROOT, 'app', 'playground', 'page.tsx'), 'utf8'),
 );
 
+const files = mdxFiles(CONTENT_ROOT);
 const demos = [
-  ...mdxFiles(CONTENT_ROOT).flatMap((file) =>
-    [...readFileSync(file, 'utf8').matchAll(DEMO_RE)].map((m, i) => ({
-      name: `${file.slice(CONTENT_ROOT.length + 1)} #${i + 1}`,
-      indent: m[1] ?? unreachable(),
-      source: m[2] ?? unreachable(),
+  ...(await Promise.all(files.map(compiledDemoSources))).flatMap((sources, fileIndex) =>
+    sources.map((source, i) => ({
+      name: `${(files[fileIndex] ?? unreachable()).slice(CONTENT_ROOT.length + 1)} #${i + 1}`,
+      source,
     })),
   ),
-  { name: 'playground seed', indent: '', source: seedMatch?.[1] ?? unreachable() },
+  { name: 'playground seed', source: seedMatch?.[1] ?? unreachable() },
 ];
+
+/** Raw file text, for the assertions that are about how the .mdx is written. */
+const rawDemos = files.flatMap((file) =>
+  [...readFileSync(file, 'utf8').matchAll(DEMO_RE)].map((m, i) => ({
+    name: `${file.slice(CONTENT_ROOT.length + 1)} #${i + 1}`,
+    indent: m[1] ?? unreachable(),
+    source: m[2] ?? unreachable(),
+  })),
+);
 
 /** The worker's execution model, minus the worker. */
 function runDemo(source: string): bento.LayoutNode {
@@ -78,24 +109,20 @@ describe('docs demos', () => {
     expect(root.layout.size.height).toBeGreaterThan(0);
   });
 
-  // The format action must be a no-op on a demo the reader has not touched:
-  // pristine sources ship pre-formatted with the exact formatter the button
-  // runs. On failure, paste the printed expected value into the doc.
-  it.each(demos)('$name is a formatter fixpoint', async ({ indent, source }) => {
-    const plain = source
-      .split('\n')
-      .map((line) => (indent !== '' && line.startsWith(indent) ? line.slice(indent.length) : line))
-      .join('\n')
-      .replace(/^\n/, '');
-    const formatted = await formatDemoSource(plain);
-    expect(plain.trimEnd()).toBe(formatted.trimEnd());
+  // The format action must be a no-op on a demo the reader has not touched.
+  // `source` here is post-MDX — the exact string <Demo> is handed — because
+  // MDX's dedent is precisely what used to make a well-formatted .mdx file
+  // reach the browser misindented.
+  it.each(demos)('$name is a formatter fixpoint', async ({ source }) => {
+    const formatted = await formatDemoSource(source);
+    expect(source.trimEnd()).toBe(formatted.trimEnd());
   });
 
   // A <Demo> indented into a list item needs every line of its template
   // literal indented too, or MDX rejects the page ("unexpected lazy line in
   // expression in container"). The layout assertion above passes either way,
   // so without this the failure only shows up at `pnpm build`.
-  it.each(demos)('$name sits at a column MDX accepts', ({ indent, source }) => {
+  it.each(rawDemos)('$name sits at a column MDX accepts', ({ indent, source }) => {
     if (indent === '') return;
     const lazy = source.split('\n').filter((l) => l.trim() !== '' && !l.startsWith(indent));
     expect(lazy, `lines must be indented to at least ${indent.length} spaces`).toEqual([]);

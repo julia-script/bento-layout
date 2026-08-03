@@ -84,13 +84,13 @@ it computed — no seams, despite the thirds:
 <Demo height={140}>
 {`import { LayoutNode } from 'bento-layout';
 
-const row = LayoutNode.make({ width: 100, height: 48 }, [
-  LayoutNode.make({ flexGrow: 1 }),
-  LayoutNode.make({ flexGrow: 1 }),
-  LayoutNode.make({ flexGrow: 1 }),
-]);
+  const row = LayoutNode.make({ width: 100, height: 48 }, [
+    LayoutNode.make({ flexGrow: 1 }),
+    LayoutNode.make({ flexGrow: 1 }),
+    LayoutNode.make({ flexGrow: 1 }),
+  ]);
 
-renderPlayground(row);`}
+  renderPlayground(row);`}
 </Demo>
 
 If your back-end does its own subpixel positioning — canvas with
@@ -140,20 +140,20 @@ out because of the reserved gutter:
 <Demo height={200}>
 {`import { LayoutNode } from 'bento-layout';
 
-const pane = LayoutNode.make(
-  {
-    width: 200,
-    height: 200,
-    overflowY: 'scroll',
-    scrollbarWidth: 12,
-  },
-  [LayoutNode.make({ width: 400, height: 260 })],
-);
-const root = LayoutNode.make({ width: 260, height: 160 }, [
-  pane,
-]);
+  const pane = LayoutNode.make(
+    {
+      width: 200,
+      height: 200,
+      overflowY: 'scroll',
+      scrollbarWidth: 12,
+    },
+    [LayoutNode.make({ width: 400, height: 260 })],
+  );
+  const root = LayoutNode.make({ width: 260, height: 160 }, [
+    pane,
+  ]);
 
-renderPlayground(root);`}
+  renderPlayground(root);`}
 </Demo>
 
 A scroll offset is then the renderer's job: clip to the pane's box and

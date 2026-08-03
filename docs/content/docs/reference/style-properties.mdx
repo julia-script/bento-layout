@@ -58,36 +58,36 @@ is added outside the 160 and it paints 200 wide:
 <Demo height={150}>
 {`import { LayoutNode } from 'bento-layout';
 
-const root = LayoutNode.make(
-  {
-    width: 420,
-    height: 120,
-    columnGap: 20,
-    alignItems: { keyword: 'flex-start', safe: false },
-  },
-  [
-    LayoutNode.make(
-      {
-        width: 160,
-        height: 80,
-        padding: 20,
-        boxSizing: 'border-box',
-      },
-      [LayoutNode.make({ flexGrow: 1, height: 40 })],
-    ),
-    LayoutNode.make(
-      {
-        width: 160,
-        height: 80,
-        padding: 20,
-        boxSizing: 'content-box',
-      },
-      [LayoutNode.make({ flexGrow: 1, height: 40 })],
-    ),
-  ],
-);
+  const root = LayoutNode.make(
+    {
+      width: 420,
+      height: 120,
+      columnGap: 20,
+      alignItems: { keyword: 'flex-start', safe: false },
+    },
+    [
+      LayoutNode.make(
+        {
+          width: 160,
+          height: 80,
+          padding: 20,
+          boxSizing: 'border-box',
+        },
+        [LayoutNode.make({ flexGrow: 1, height: 40 })],
+      ),
+      LayoutNode.make(
+        {
+          width: 160,
+          height: 80,
+          padding: 20,
+          boxSizing: 'content-box',
+        },
+        [LayoutNode.make({ flexGrow: 1, height: 40 })],
+      ),
+    ],
+  );
 
-renderPlayground(root);`}
+  renderPlayground(root);`}
 </Demo>
 
 ## Layout mode and box
@@ -166,15 +166,15 @@ space on every side, which centers the box without any alignment property:
 <Demo height={140}>
 {`import { LayoutNode } from 'bento-layout';
 
-const root = LayoutNode.make({ width: 400, height: 100 }, [
-  LayoutNode.make({
-    width: 120,
-    height: 60,
-    margin: 'auto',
-  }),
-]);
+  const root = LayoutNode.make({ width: 400, height: 100 }, [
+    LayoutNode.make({
+      width: 120,
+      height: 60,
+      margin: 'auto',
+    }),
+  ]);
 
-renderPlayground(root);`}
+  renderPlayground(root);`}
 </Demo>
 
 ## Position offsets

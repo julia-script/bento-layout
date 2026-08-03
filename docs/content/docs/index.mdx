@@ -24,21 +24,21 @@ changing the alignment keyword to `'flex-start'`, or giving the middle node
 <Demo>
 {`import { LayoutNode } from 'bento-layout';
 
-const root = LayoutNode.make(
-  {
-    width: 440,
-    height: 160,
-    columnGap: 12,
-    alignItems: { keyword: 'center', safe: false },
-  },
-  [
-    LayoutNode.make({ width: 100, height: 100 }),
-    LayoutNode.make({ flexGrow: 1, height: 60 }),
-    LayoutNode.make({ width: 100, height: 100 }),
-  ],
-);
+  const root = LayoutNode.make(
+    {
+      width: 440,
+      height: 160,
+      columnGap: 12,
+      alignItems: { keyword: 'center', safe: false },
+    },
+    [
+      LayoutNode.make({ width: 100, height: 100 }),
+      LayoutNode.make({ flexGrow: 1, height: 60 }),
+      LayoutNode.make({ width: 100, height: 100 }),
+    ],
+  );
 
-renderPlayground(root);`}
+  renderPlayground(root);`}
 </Demo>
 
 What you see is exactly what runs in your project: copy a demo out, swap
@@ -84,38 +84,38 @@ load.
 <Demo height={260}>
 {`import { LayoutNode } from 'bento-layout';
 
-const cells = Array.from({ length: 6 }, () =>
-  LayoutNode.make({}),
-);
+  const cells = Array.from({ length: 6 }, () =>
+    LayoutNode.make({}),
+  );
 
-const grid = LayoutNode.make(
-  {
-    display: 'grid',
-    flexGrow: 1,
-    gridTemplateColumns: [
-      {
-        repeat: 3,
-        tracks: [{ min: 'auto', max: { fr: 1 } }],
-      },
+  const grid = LayoutNode.make(
+    {
+      display: 'grid',
+      flexGrow: 1,
+      gridTemplateColumns: [
+        {
+          repeat: 3,
+          tracks: [{ min: 'auto', max: { fr: 1 } }],
+        },
+      ],
+      gridAutoRows: [{ min: 69, max: 69 }],
+      gap: 12,
+    },
+    cells,
+  );
+
+  const root = LayoutNode.make(
+    { display: 'block', width: 440, padding: 12 },
+    [
+      LayoutNode.make({ height: 32, marginBottom: 12 }),
+      LayoutNode.make(
+        { display: 'flex', columnGap: 12, height: 150 },
+        [LayoutNode.make({ width: 120 }), grid],
+      ),
     ],
-    gridAutoRows: [{ min: 69, max: 69 }],
-    gap: 12,
-  },
-  cells,
-);
+  );
 
-const root = LayoutNode.make(
-  { display: 'block', width: 440, padding: 12 },
-  [
-    LayoutNode.make({ height: 32, marginBottom: 12 }),
-    LayoutNode.make(
-      { display: 'flex', columnGap: 12, height: 150 },
-      [LayoutNode.make({ width: 120 }), grid],
-    ),
-  ],
-);
-
-renderPlayground(root);`}
+  renderPlayground(root);`}
 </Demo>
 - **Plain data in, plain objects out.** `LayoutNode.make(style, children)`
   takes flat camelCase CSS properties, the same spelling as `element.style`.

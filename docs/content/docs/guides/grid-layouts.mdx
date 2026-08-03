@@ -108,21 +108,21 @@ content.layout.size.width; // 424 — 640 − 200 − 16
 <Demo>
 {`import { LayoutNode } from 'bento-layout';
 
-const page = LayoutNode.make(
-  {
-    display: 'grid',
-    width: 480,
-    height: 180,
-    gridTemplateColumns: [
-      { min: 200, max: 200 },
-      { min: 100, max: { fr: 1 } },
-    ],
-    columnGap: 16,
-  },
-  [LayoutNode.make({}), LayoutNode.make({})],
-);
+  const page = LayoutNode.make(
+    {
+      display: 'grid',
+      width: 480,
+      height: 180,
+      gridTemplateColumns: [
+        { min: 200, max: 200 },
+        { min: 100, max: { fr: 1 } },
+      ],
+      columnGap: 16,
+    },
+    [LayoutNode.make({}), LayoutNode.make({})],
+  );
 
-renderPlayground(page);`}
+  renderPlayground(page);`}
 </Demo>
 
 ## As many cards as fit
@@ -168,27 +168,27 @@ fits beside the gaps, so the grid drops to two columns of 225px.
 <Demo>
 {`import { LayoutNode } from 'bento-layout';
 
-const cards = Array.from({ length: 5 }, () =>
-  LayoutNode.make({}),
-);
+  const cards = Array.from({ length: 5 }, () =>
+    LayoutNode.make({}),
+  );
 
-const wall = LayoutNode.make(
-  {
-    display: 'grid',
-    width: 480,
-    gridTemplateColumns: [
-      {
-        repeat: 'auto-fill',
-        tracks: [{ min: 150, max: { fr: 1 } }],
-      },
-    ],
-    gridAutoRows: [{ min: 80, max: 80 }],
-    gap: 10,
-  },
-  cards,
-);
+  const wall = LayoutNode.make(
+    {
+      display: 'grid',
+      width: 480,
+      gridTemplateColumns: [
+        {
+          repeat: 'auto-fill',
+          tracks: [{ min: 150, max: { fr: 1 } }],
+        },
+      ],
+      gridAutoRows: [{ min: 80, max: 80 }],
+      gap: 10,
+    },
+    cards,
+  );
 
-renderPlayground(wall);`}
+  renderPlayground(wall);`}
 </Demo>
 
 ## Placing items
@@ -236,35 +236,35 @@ to `'auto'` instead of throwing, matching how browsers recover.
 <Demo>
 {`import { LayoutNode } from 'bento-layout';
 
-const banner = LayoutNode.make({
-  gridColumnStart: { line: 1 },
-  gridColumnEnd: { line: -1 },
-});
-const tall = LayoutNode.make({ gridRowEnd: { span: 2 } });
+  const banner = LayoutNode.make({
+    gridColumnStart: { line: 1 },
+    gridColumnEnd: { line: -1 },
+  });
+  const tall = LayoutNode.make({ gridRowEnd: { span: 2 } });
 
-const grid = LayoutNode.make(
-  {
-    display: 'grid',
-    width: 300,
-    gridTemplateColumns: [
-      {
-        repeat: 3,
-        tracks: [{ min: 'auto', max: { fr: 1 } }],
-      },
+  const grid = LayoutNode.make(
+    {
+      display: 'grid',
+      width: 300,
+      gridTemplateColumns: [
+        {
+          repeat: 3,
+          tracks: [{ min: 'auto', max: { fr: 1 } }],
+        },
+      ],
+      gridAutoRows: [{ min: 40, max: 40 }],
+      gap: 6,
+    },
+    [
+      banner,
+      tall,
+      LayoutNode.make({}),
+      LayoutNode.make({}),
+      LayoutNode.make({}),
     ],
-    gridAutoRows: [{ min: 40, max: 40 }],
-    gap: 6,
-  },
-  [
-    banner,
-    tall,
-    LayoutNode.make({}),
-    LayoutNode.make({}),
-    LayoutNode.make({}),
-  ],
-);
+  );
 
-renderPlayground(grid);`}
+  renderPlayground(grid);`}
 </Demo>
 
 ## Implicit tracks
