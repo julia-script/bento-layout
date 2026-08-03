@@ -1,5 +1,5 @@
-import { generateOGImage } from 'fumadocs-ui/og';
 import { notFound } from 'next/navigation';
+import { renderOg } from '@/lib/og';
 import { source } from '@/lib/source';
 
 // Per-page OG cards live here rather than as an `opengraph-image` file beside
@@ -9,7 +9,9 @@ import { source } from '@/lib/source';
 // cards get their own required catch-all and pages link to them explicitly
 // via generateMetadata.
 //
-// Statically rendered at build time; the site has no runtime rendering.
+// Statically rendered at build time; the site has no runtime rendering. That
+// is also why there is no query-string card route (/og?title=…): nothing
+// renders at request time to answer it.
 export const dynamic = 'force-static';
 
 export function generateStaticParams() {
@@ -25,13 +27,14 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
   const page = source.getPage(pageSlug);
   if (!page) notFound();
 
-  return generateOGImage({
+  return renderOg({
+    eyebrow: 'Docs',
     title: page.data.title,
-    description: page.data.description,
-    site: 'bento-layout',
-    primaryColor: 'hsl(13, 72%, 62%)',
-    primaryTextColor: 'hsl(35, 12%, 16%)',
-    width: 1200,
-    height: 630,
+    // The frame paints `accent` terracotta as the heading's tail. A page title
+    // is one phrase with no natural tail, so it stays whole and unaccented.
+    accent: '',
+    tagline: page.data.description ?? '',
+    // No install line on a reference page — the pill is the landing card's job.
+    command: '',
   });
 }

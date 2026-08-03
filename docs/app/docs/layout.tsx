@@ -16,6 +16,9 @@ export default function Layout({ children }: { children: ReactNode }) {
           </span>
         ),
       }}
+      // Without this the playground is unreachable from every docs page: the
+      // landing nav links to it, but fumadocs' chrome replaces that nav here.
+      links={[{ text: 'Playground', url: '/playground' }]}
       // Light-only site — the switch would write a preference nothing reads.
       themeSwitch={{ enabled: false }}
     >
