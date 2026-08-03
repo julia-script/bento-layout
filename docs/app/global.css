@@ -2,48 +2,123 @@
 @import "fumadocs-ui/css/neutral.css";
 @import "fumadocs-ui/css/preset.css";
 
-/* --- Theme: "elegant anime" ---------------------------------------------
-   Warm washi-paper neutrals with a salmon-coral primary, drawn from the
-   bento palette (rice, nori, salmon, tamago, matcha, sakura). Applied as
-   fumadocs variable overrides so docs, playground, and landing all share it.
-   Deliberately quiet: the tint carries the vibe, not ornamentation. */
+/* --- Theme: "Organic" ----------------------------------------------------
+   Warm cream ground with a terracotta accent and a sage second accent,
+   Caprasimo display headings over Figtree. Applied as fumadocs variable
+   overrides so docs, playground, and landing all share it. Ramps are
+   generated in OKLCH on one shared lightness scale, so the same step of any
+   role carries the same visual weight — prefer a ramp step over an ad-hoc
+   color-mix(). */
 
 :root {
   /* Light-only site. Pins UA-rendered bits (scrollbars, form controls) to
      light too, so a dark-preferring OS cannot half-darken the page. */
   color-scheme: light;
 
-  --bento-paper: hsl(40, 45%, 97%);
-  --bento-surface: hsl(42, 50%, 98.5%);
-  --bento-ink: hsl(35, 12%, 16%);
-  --bento-muted-ink: hsl(35, 9%, 42%);
-  --bento-line: hsla(35, 20%, 40%, 0.22);
-  --bento-coral: hsl(13, 72%, 62%);
-  --bento-coral-deep: hsl(13, 58%, 47%);
-  --bento-tamago: hsl(44, 78%, 65%);
-  --bento-matcha: hsl(100, 22%, 50%);
-  --bento-sakura: hsl(348, 55%, 78%);
-  --bento-nori: hsl(37, 12%, 20%);
-  --bento-rice: hsl(43, 55%, 94%);
+  --organic-bg: #f5ead8;
+  --organic-surface: #ebddc5;
+  --organic-text: #201e1d;
+  --organic-accent: #c67139;
+  --organic-accent-2: #7a8a5e;
 
-  --color-fd-background: var(--bento-paper);
-  --color-fd-foreground: var(--bento-ink);
-  --color-fd-muted: hsl(40, 30%, 93%);
-  --color-fd-muted-foreground: var(--bento-muted-ink);
-  --color-fd-popover: var(--bento-surface);
-  --color-fd-popover-foreground: var(--bento-ink);
-  --color-fd-card: hsl(41, 42%, 95.5%);
-  --color-fd-card-foreground: var(--bento-ink);
-  --color-fd-border: var(--bento-line);
-  --color-fd-primary: var(--bento-coral-deep);
-  --color-fd-primary-foreground: hsl(42, 50%, 98%);
-  --color-fd-secondary: hsl(40, 32%, 92.5%);
-  --color-fd-secondary-foreground: var(--bento-ink);
-  --color-fd-accent: hsla(38, 35%, 82%, 0.55);
-  --color-fd-accent-foreground: var(--bento-ink);
-  --color-fd-ring: var(--bento-coral);
+  --color-neutral-100: #f9f4ed;
+  --color-neutral-200: #eee7db;
+  --color-neutral-300: #dcd3c4;
+  --color-neutral-400: #c0b6a5;
+  --color-neutral-500: #a19786;
+  --color-neutral-600: #82796a;
+  --color-neutral-700: #645c50;
+  --color-neutral-800: #474238;
+  --color-neutral-900: #2e2b25;
 
-  --font-display: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", Georgia, serif;
+  --color-accent-100: #fff2eb;
+  --color-accent-200: #ffe1d0;
+  --color-accent-300: #ffc6a5;
+  --color-accent-400: #f6a06b;
+  --color-accent-500: #d67f48;
+  --color-accent-600: #b2622d;
+  --color-accent-700: #8c491a;
+  --color-accent-800: #643312;
+  --color-accent-900: #402310;
+
+  --color-accent-2-100: #f0fae1;
+  --color-accent-2-200: #e1eecc;
+  --color-accent-2-300: #ccdbb2;
+  --color-accent-2-400: #aebf92;
+  --color-accent-2-500: #8fa073;
+  --color-accent-2-600: #728157;
+  --color-accent-2-700: #56633f;
+  --color-accent-2-800: #3d472b;
+  --color-accent-2-900: #272e1b;
+
+  /* fumadocs surface — docs and playground inherit the theme from here. */
+  --color-fd-background: var(--organic-bg);
+  --color-fd-foreground: var(--organic-text);
+  --color-fd-muted: var(--color-neutral-200);
+  --color-fd-muted-foreground: var(--color-neutral-700);
+  --color-fd-popover: var(--color-neutral-100);
+  --color-fd-popover-foreground: var(--organic-text);
+  --color-fd-card: var(--color-neutral-100);
+  --color-fd-card-foreground: var(--organic-text);
+  --color-fd-border: var(--color-neutral-300);
+  /* accent-700, not the base terracotta: --organic-accent on this ground is
+     only ~3:1, fine for chrome but not for the body-size text and links that
+     fumadocs paints with --color-fd-primary. */
+  --color-fd-primary: var(--color-accent-700);
+  --color-fd-primary-foreground: var(--color-neutral-100);
+  --color-fd-secondary: var(--color-neutral-200);
+  --color-fd-secondary-foreground: var(--organic-text);
+  --color-fd-accent: var(--color-accent-100);
+  --color-fd-accent-foreground: var(--organic-text);
+  --color-fd-ring: var(--organic-accent);
+
+  --font-heading: "Caprasimo", system-ui, sans-serif;
+  --font-body: "Figtree", system-ui, sans-serif;
+  /* Kept for any consumer still reading the old name. */
+  --font-display: var(--font-heading);
+
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 28px;
+
+  --shadow-sm: 0 1px 2px color-mix(in srgb, #2e2b25 14%, transparent);
+  --shadow-md: 0 3px 10px color-mix(in srgb, #2e2b25 16%, transparent);
+  --shadow-lg: 0 12px 32px color-mix(in srgb, #2e2b25 22%, transparent);
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+}
+
+/* Themed, never the browser default. */
+:focus-visible {
+  outline: 2px solid var(--organic-accent);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--color-accent-200);
+}
+
+/* Scoped off .ld-btn — a filled button must keep its own foreground on hover.
+   An unscoped `a:hover { color }` rule made primary buttons read text-on-text;
+   do not reintroduce it. */
+a:not(.ld-btn):hover {
+  color: var(--color-accent-600);
 }
 
 /* --- Playground preview boxes ------------------------------------------
@@ -62,6 +137,11 @@
 .fd-layout-rect {
   stroke: var(--color-fd-border);
   stroke-width: 1;
+  /* The preview zooms via a CSS transform on an ancestor. Geometry should
+     scale with it — that is the layout being shown — but the ink should not:
+     a hairline is chrome, and at 25% a scaled stroke thins to invisibility
+     while at higher zoom it fattens into the box it is outlining. */
+  vector-effect: non-scaling-stroke;
   transition:
     x 120ms ease,
     y 120ms ease,
@@ -70,19 +150,28 @@
 }
 
 .fd-layout-rect[data-depth="0"] {
-  fill: color-mix(in srgb, var(--color-fd-primary) 8%, transparent);
+  fill: color-mix(in srgb, var(--organic-accent) 8%, transparent);
 }
 .fd-layout-rect[data-depth="1"] {
-  fill: color-mix(in srgb, var(--color-fd-primary) 18%, transparent);
+  fill: color-mix(in srgb, var(--organic-accent) 18%, transparent);
 }
 .fd-layout-rect[data-depth="2"] {
-  fill: color-mix(in srgb, var(--color-fd-primary) 28%, transparent);
+  fill: color-mix(in srgb, var(--organic-accent) 28%, transparent);
 }
 .fd-layout-rect[data-depth="3"] {
-  fill: color-mix(in srgb, var(--color-fd-primary) 38%, transparent);
+  fill: color-mix(in srgb, var(--organic-accent) 38%, transparent);
 }
 .fd-layout-rect[data-depth="4"] {
-  fill: color-mix(in srgb, var(--color-fd-primary) 48%, transparent);
+  fill: color-mix(in srgb, var(--organic-accent) 48%, transparent);
+}
+
+/* Hover highlight: the node under the pointer, devtools-style. Fill plus a
+   solid edge, so it reads over the depth tint underneath it. */
+.fd-layout-highlight {
+  fill: color-mix(in srgb, var(--organic-accent) 22%, transparent);
+  stroke: var(--organic-accent);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
 }
 
 /* A box collapsed on one axis is drawn as a line, since SVG renders no rect at
@@ -91,6 +180,7 @@
   stroke: var(--color-fd-muted-foreground);
   stroke-width: 2;
   stroke-dasharray: 3 2;
+  vector-effect: non-scaling-stroke;
 }
 
 /* Motion is decoration here: the boxes' positions are the content. */
@@ -100,7 +190,9 @@
   }
 }
 
-/* --- Demo: editor + preview -------------------------------------------- */
+/* --- Demo: editor + preview --------------------------------------------
+   Unchanged from the previous theme except for the radius token; the geometry
+   rules here must keep the textarea caret aligned with the highlighted <pre>. */
 
 .fd-demo-panes {
   display: grid;
@@ -171,19 +263,349 @@
 }
 
 .fd-demo-input::selection {
-  background-color: color-mix(in srgb, var(--color-fd-primary) 30%, transparent);
+  background-color: var(--color-accent-200);
 }
 
-/* The demo lays out against a fixed available width so it computes the same
-   for every reader. That means a wide demo can exceed a narrow pane, so the
-   pane scrolls rather than clipping — shrinking it would silently show a
-   different layout than the one the engine computed. */
+/* The demo lays out against the viewport width shown in the toolbar. A wide
+   demo can still exceed a narrow pane, so the pane scrolls rather than
+   clipping — shrinking it would silently show a different layout than the one
+   the engine computed. */
 .fd-demo-preview {
   position: relative;
   padding: 1rem;
   overflow: auto;
   background-image: radial-gradient(var(--color-fd-border) 1px, transparent 1px);
   background-size: 12px 12px;
+}
+
+/* --- Demo viewport ruler ------------------------------------------------
+   A devtools-style frame around the area the engine laid out against. The
+   dotted edge is the viewport boundary itself, so "what width is this?" is
+   answered on screen instead of in prose. */
+
+.fd-demo-toolbar {
+  display: flex;
+  align-items: center;
+  /* Controls group together on the left, the readout sits apart on the right. */
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.6875rem;
+  color: var(--color-fd-muted-foreground);
+}
+
+/* A <fieldset> for the grouping semantics; its UA border/padding/min-width are
+   reset so it reads as a segmented pill. */
+.fd-demo-zooms {
+  display: inline-flex;
+  gap: 2px;
+  margin: 0;
+  padding: 2px;
+  min-width: 0;
+  border-radius: 999px;
+  background: var(--color-fd-secondary);
+  border: 1px solid var(--color-fd-border);
+}
+
+.fd-demo-zoom {
+  padding: 2px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+.fd-demo-zoom:hover {
+  background: var(--color-accent-100);
+}
+.fd-demo-zoom[data-active] {
+  background: var(--organic-accent);
+  color: #fff;
+}
+
+.fd-demo-dims {
+  /* Pushed to the far end of the toolbar; the controls group at the start. */
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Engine toggles. Independent, not a radio set: seeing both at once is the
+   comparison this exists for. Each carries its own colour, matching the ink it
+   controls in the preview. */
+.fd-demo-engines {
+  display: inline-flex;
+  gap: 2px;
+  margin: 0;
+  padding: 2px;
+  min-width: 0;
+  border-radius: 999px;
+  background: var(--color-fd-secondary);
+  border: 1px solid var(--color-fd-border);
+}
+
+.fd-demo-engine {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-neutral-500);
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+/* Colour key: a dot in the same ink the engine draws with, so the toggle and
+   the boxes it governs are legible as the same thing without a legend. */
+.fd-demo-engine::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.fd-demo-engine[data-engine="bento"][data-active] {
+  background: color-mix(in srgb, var(--organic-accent) 16%, transparent);
+  color: var(--color-accent-700);
+}
+.fd-demo-engine[data-engine="browser"][data-active] {
+  background: color-mix(in srgb, var(--organic-accent-2) 18%, transparent);
+  color: var(--color-accent-2-700);
+}
+
+/* Agreement verdict: the answer to "do these two match?" at a glance. */
+.fd-demo-verdict {
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.625rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.fd-demo-verdict[data-match] {
+  background: color-mix(in srgb, var(--organic-accent-2) 20%, transparent);
+  color: var(--color-accent-2-800);
+}
+.fd-demo-verdict[data-mismatch] {
+  background: color-mix(in srgb, #b4341f 16%, transparent);
+  color: #8c2412;
+}
+
+/* Mismatch call to action, at the top of the preview.
+   Loud on purpose: everything else in this component is quiet chrome, so the
+   one state that means "the engine is wrong" gets the only saturated fill on
+   the page. A reader who finds a real divergence is doing conformance work,
+   and the report should be one click away. */
+.fd-demo-report {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin: 0 0 0.85rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--radius-sm);
+  background: #8c2412;
+  color: #fdece8;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  box-shadow: var(--shadow-md);
+}
+
+/* Round badge, so the alert is recognisable before a word of it is read. */
+.fd-demo-report-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: #fdece8;
+  color: #8c2412;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.fd-demo-report strong {
+  font-weight: 700;
+}
+
+/* Overrides the global `a:not(.ld-btn):hover` colour, which is tuned for the
+   cream ground and would go invisible on this fill. */
+.fd-demo-report-link,
+.fd-demo-report-link:hover {
+  white-space: nowrap;
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* --- Chrome overlay -----------------------------------------------------
+   The same demo laid out by the browser. Outlines only, over the engine's
+   filled boxes, so where the two agree the sage edge sits exactly on the
+   terracotta one and any disagreement shows as visible daylight. */
+
+.fd-chrome-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* Never intercepts the pointer: hovering and tapping belong to the engine's
+     own rects underneath, which are what the inspector reports on. */
+  pointer-events: none;
+}
+
+/* X-ray: no fill, and a dashed edge heavier than the engine's 1px hairline
+   underneath, so the browser's box reads as an outline drawn OVER the engine's
+   solid one rather than as a second filled box competing with it. */
+.fd-chrome-box {
+  outline: 1.5px dashed var(--organic-accent-2);
+  outline-offset: -1px;
+  background: none;
+}
+
+/* Positioning context for the centered viewport and its handle. The top
+   padding is room for the frame's "viewport" caption, which sits above it. */
+.fd-demo-stage {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+/* The frame is a SEPARATE, unscaled element sized to the viewport's screen
+   footprint. Putting the border on the scaled element itself would scale the
+   dashes with it — a 1px dash becoming 0.25px at 25% — and the frame is chrome
+   marking the boundary, not part of the layout being measured. */
+.fd-demo-frame {
+  position: absolute;
+  top: 0;
+  border: 1px dashed color-mix(in srgb, var(--organic-accent) 60%, transparent);
+  border-radius: 3px;
+  /* Slightly lighter than the dotted pane, so the viewport reads as its own
+     surface rather than blending into the background. */
+  background: color-mix(in srgb, var(--color-neutral-100) 70%, white);
+  pointer-events: none;
+}
+
+/* "viewport" caption, sitting just above the frame's top-left corner so the
+   box says what it is. Outside the border rather than straddling it, which
+   would clip the glyphs against the pane's own edge. */
+.fd-demo-frame::before {
+  content: "viewport";
+  position: absolute;
+  bottom: 100%;
+  left: -1px;
+  margin-bottom: 3px;
+  color: color-mix(in srgb, var(--organic-accent) 80%, var(--organic-text));
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 9px;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.fd-demo-viewport {
+  position: relative;
+  /* A flex child shrinks below its width by default; the viewport's width IS
+     the thing being demonstrated, so it must hold exactly. */
+  flex: none;
+  /* top center, so shrinking the viewport keeps it centered in the pane and
+     scaling pins it to the top edge rather than drifting down. */
+  transform-origin: top center;
+  /* The engine's own overflow must stay visible (see .fd-layout-canvas), so
+     the frame marks the boundary without clipping at it. */
+  overflow: visible;
+}
+
+/* Hover readout: the node's computed size, like devtools' inspect badge. */
+.fd-demo-tip {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: var(--color-neutral-900);
+  color: var(--color-neutral-100);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: nowrap;
+  /* The badge labels the box under the pointer; it must never become the thing
+     the pointer is over, or hovering it would change what it reports. */
+  pointer-events: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.fd-demo-tip-tag {
+  color: var(--color-accent-300);
+}
+
+/* The browser's numbers for the same node, in the overlay's own colour so the
+   two readings are attributable at a glance. */
+.fd-demo-tip-alt {
+  padding-left: 6px;
+  border-left: 1px solid color-mix(in srgb, var(--color-neutral-100) 30%, transparent);
+  color: var(--color-accent-2-300);
+}
+
+/* Grab tab on the viewport's top-right corner.
+   Top rather than vertically centred, so it stays reachable no matter how tall
+   the demo is — but a bare bar floating mid-air reads as a rendering bug, so it
+   is drawn as a tab fused to the frame's corner: square on the side that meets
+   the edge, rounded on the outside, with grip lines. That makes its position
+   look deliberate rather than mispositioned. */
+.fd-demo-handle {
+  position: absolute;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 14px;
+  height: 34px;
+  padding: 0;
+  border: 1px dashed color-mix(in srgb, var(--organic-accent) 60%, transparent);
+  border-left-style: solid;
+  border-left-color: color-mix(in srgb, var(--organic-accent) 25%, transparent);
+  border-radius: 0 4px 4px 0;
+  background: color-mix(in srgb, var(--color-accent-100) 70%, white);
+  cursor: ew-resize;
+  touch-action: none;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+/* Two grip lines — the affordance that says "drag me". */
+.fd-demo-handle::before,
+.fd-demo-handle::after {
+  content: "";
+  width: 1px;
+  height: 12px;
+  background: color-mix(in srgb, var(--organic-accent) 70%, transparent);
+}
+
+.fd-demo-handle:hover,
+.fd-demo-handle:focus-visible {
+  background: var(--color-accent-200);
+  border-color: var(--organic-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fd-demo-zoom,
+  .fd-demo-handle {
+    transition: none;
+  }
 }
 
 .fd-demo-empty {
@@ -199,7 +621,7 @@
   bottom: 0;
   margin-top: 0.75rem;
   padding: 0.5rem 0.75rem;
-  border-radius: 0.375rem;
+  border-radius: var(--radius-sm);
   background-color: color-mix(in srgb, var(--color-fd-background) 92%, red);
   border: 1px solid color-mix(in srgb, var(--color-fd-border) 60%, red);
   color: var(--color-fd-foreground);
@@ -213,31 +635,105 @@
    app/page.tsx and components/landing/. */
 
 .ld-display {
-  font-family: var(--font-display);
-  font-weight: 500;
-  letter-spacing: 0.01em;
+  font-family: var(--font-heading);
+  font-weight: 400;
+  letter-spacing: -0.015em;
 }
 
-/* Faint paper grain + one soft coral/matcha wash behind the hero. */
-.ld-hero-bg {
+/* Buttons — pills, per the system. */
+.ld-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 0.625rem 1.25rem;
+  font-family: var(--font-heading);
+  font-size: 14px;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+.ld-btn-primary {
+  background: var(--organic-accent);
+  color: #fff;
+  border: 1px solid var(--organic-accent);
+}
+.ld-btn-primary:hover {
+  background: var(--color-accent-600);
+  border-color: var(--color-accent-600);
+  color: #fff;
+}
+.ld-btn-primary:active {
+  background: var(--color-accent-700);
+}
+.ld-btn-secondary {
+  background: transparent;
+  color: var(--organic-text);
+  border: 1px solid var(--color-neutral-300);
+}
+.ld-btn-secondary:hover {
+  background: var(--color-accent-100);
+  border-color: var(--organic-accent);
+}
+.ld-btn-ghost {
+  background: transparent;
+  color: var(--organic-text);
+  border: 1px solid transparent;
+}
+.ld-btn-ghost:hover {
+  background: color-mix(in srgb, var(--organic-accent) 12%, transparent);
+}
+
+.ld-navlink {
+  padding: 8px 16px;
+  border-radius: 999px;
+  color: var(--color-neutral-700);
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+.ld-navlink:hover {
+  background: var(--color-accent-100);
+  color: var(--organic-text);
+}
+
+.ld-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: var(--color-accent-100);
+  color: var(--color-accent-800);
+  font-size: 13px;
+}
+
+/* Soft circular decoration behind the hero. */
+@keyframes ld-floaty {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-18px);
+  }
+}
+.ld-blob {
   position: absolute;
-  inset: 0;
+  border-radius: 50%;
   pointer-events: none;
-  background-image:
-    radial-gradient(1100px 520px at 78% -10%, color-mix(in srgb, var(--bento-coral) 10%, transparent), transparent 70%),
-    radial-gradient(900px 480px at -10% 30%, color-mix(in srgb, var(--bento-matcha) 8%, transparent), transparent 70%),
-    radial-gradient(color-mix(in srgb, var(--bento-ink) 5%, transparent) 1px, transparent 1px);
-  background-size:
-    auto,
-    auto,
-    22px 22px;
+  animation: ld-floaty 11s ease-in-out infinite;
 }
 
 /* Entrance: staggered fade-up, CSS only. */
 @keyframes ld-rise {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(18px);
   }
   to {
     opacity: 1;
@@ -274,60 +770,140 @@
     opacity: 1;
     transform: none;
   }
-}
-
-/* Thin ink divider with a diamond, like a chapter mark. */
-.ld-divider {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  color: var(--bento-muted-ink);
-}
-.ld-divider::before,
-.ld-divider::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: var(--bento-line);
-}
-.ld-divider-mark {
-  width: 7px;
-  height: 7px;
-  transform: rotate(45deg);
-  background: color-mix(in srgb, var(--bento-coral) 55%, transparent);
-  border-radius: 1px;
+  .ld-blob {
+    animation: none;
+  }
 }
 
 .ld-card {
   background: var(--color-fd-card);
   border: 1px solid var(--color-fd-border);
-  border-radius: 0.875rem;
+  border-radius: 24px;
+  padding: 24px;
   transition:
     transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.35s ease,
-    border-color 0.35s ease;
+    box-shadow 0.35s ease;
 }
 .ld-card:hover {
-  transform: translateY(-3px);
-  border-color: color-mix(in srgb, var(--bento-coral) 35%, var(--color-fd-border));
-  box-shadow: 0 12px 32px -16px color-mix(in srgb, var(--bento-ink) 35%, transparent);
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-lg);
 }
 
 .ld-kbd {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
   font-family: var(--font-mono, ui-monospace, monospace);
-  background: var(--color-fd-secondary);
-  border: 1px solid var(--color-fd-border);
-  border-radius: 0.5rem;
+  font-size: 14px;
+  color: var(--organic-text);
+  background: var(--color-neutral-100);
+  border: 1px solid var(--color-neutral-300);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+.ld-kbd:hover {
+  border-color: var(--organic-accent);
 }
 
 /* Code panel on the landing page (server-highlighted). */
+.ld-code {
+  background: var(--color-neutral-100);
+  border: 1px solid var(--color-neutral-300);
+  border-radius: 24px;
+  /* auto, not hidden: the sample is wider than the column at some widths, and
+     `hidden` here clips the longest lines mid-token instead of letting the
+     inner <pre> scroll. Still clips to the radius. */
+  overflow-x: auto;
+  box-shadow: var(--shadow-md);
+}
 .ld-code pre {
   margin: 0;
-  padding: 1.25rem 1.5rem;
+  /* Tighter than the 1.625rem the rest of the cards use: the sample's longest
+     line has to clear the column at this size, and padding is the cheapest
+     place to find the last few pixels. */
+  padding: 1.375rem 1.125rem;
   overflow-x: auto;
   background: transparent;
-  font-size: 0.8125rem;
+  font-size: 0.78125rem;
   line-height: 1.7;
+}
+
+/* Numbers band: tinted circles. */
+.ld-fact-circle {
+  width: 96px;
+  height: 96px;
+  margin: 0 auto;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-size: 28px;
+}
+
+/* Closing CTA patch. */
+.ld-patch {
+  background: var(--color-accent-2-100);
+  border-radius: 40px;
+  padding: 64px 32px;
+  text-align: center;
+}
+
+/* --- Chrome-is-the-oracle diagram --------------------------------------
+   The dashed "chrome" box drifts off the solid "engine" box and settles back
+   exactly onto it: the section's claim, animated. */
+
+.ld-oracle {
+  position: relative;
+  max-width: 360px;
+  margin: 0 auto;
+  aspect-ratio: 1 / 0.92;
+  border-radius: 32px;
+  background: radial-gradient(var(--color-neutral-300) 1.2px, transparent 1.2px), var(--color-neutral-100);
+  background-size: 16px 16px;
+  border: 1px solid var(--color-neutral-300);
+}
+.ld-oracle-box {
+  position: absolute;
+  left: 18%;
+  top: 24%;
+  width: 54%;
+  height: 40%;
+  border-radius: 16px;
+  box-sizing: border-box;
+}
+.ld-oracle-engine {
+  background: var(--color-accent-200);
+  border: 2px solid var(--color-accent-600);
+}
+.ld-oracle-chrome {
+  border: 2px dashed var(--organic-text);
+  animation: ld-verify 7s ease-in-out infinite;
+}
+@keyframes ld-verify {
+  0%,
+  55% {
+    transform: translate(0, 0);
+  }
+  65% {
+    transform: translate(12px, -14px);
+  }
+  80%,
+  100% {
+    transform: translate(0, 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ld-oracle-chrome {
+    animation: none;
+  }
+}
+.ld-oracle-label {
+  position: absolute;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 11px;
 }
 
 /* --- Bento hero demo ----------------------------------------------------
@@ -336,31 +912,17 @@
 
 .bh-stage {
   position: relative;
-  border-radius: 1.25rem;
-  background:
-    radial-gradient(color-mix(in srgb, var(--bento-ink) 4%, transparent) 1px, transparent 1px), var(--bento-surface);
-  background-size:
-    14px 14px,
-    auto;
-  border: 1px solid var(--color-fd-border);
-  box-shadow:
-    0 1px 2px color-mix(in srgb, var(--bento-ink) 8%, transparent),
-    0 24px 60px -30px color-mix(in srgb, var(--bento-ink) 45%, transparent);
+  border-radius: 32px;
+  background: var(--color-neutral-100);
+  border: 1px solid var(--color-neutral-300);
+  box-shadow: var(--shadow-lg);
+  cursor: pointer;
 }
 
-.bh-tray {
-  position: absolute;
-  border-radius: 14px;
-  border: 1.5px solid color-mix(in srgb, var(--bento-ink) 55%, transparent);
-  background: color-mix(in srgb, var(--bento-nori) 12%, var(--bento-surface));
-  box-shadow: inset 0 0 0 5px color-mix(in srgb, var(--bento-surface) 60%, transparent);
-}
-
+.bh-tray,
 .bh-item {
   position: absolute;
-  border-radius: 9px;
-  border: 1.5px solid color-mix(in srgb, var(--bento-ink) 45%, transparent);
-  box-shadow: inset 0 1.5px 0 color-mix(in srgb, white 45%, transparent);
+  box-sizing: border-box;
   transition:
     left 0.8s cubic-bezier(0.22, 1, 0.36, 1),
     top 0.8s cubic-bezier(0.22, 1, 0.36, 1),
@@ -368,76 +930,93 @@
     height 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
 @media (prefers-reduced-motion: reduce) {
+  .bh-tray,
   .bh-item {
     transition: none;
   }
 }
 
+.bh-tray {
+  border-radius: 26px;
+  border: 2px solid color-mix(in srgb, var(--organic-text) 55%, transparent);
+  background: color-mix(in srgb, white 55%, var(--color-neutral-100));
+  box-shadow:
+    inset 0 0 0 6px rgba(255, 255, 255, 0.75),
+    inset 0 10px 22px color-mix(in srgb, var(--organic-text) 10%, transparent),
+    0 14px 30px -16px color-mix(in srgb, var(--organic-text) 38%, transparent);
+}
+
+/* Flat offset shadow, not a blur — the "cartoon depth" the food shapes read
+   against. */
+.bh-item {
+  border-radius: 14px;
+  border: 2px solid color-mix(in srgb, var(--organic-text) 30%, transparent);
+  box-shadow:
+    0 3px 0 color-mix(in srgb, var(--organic-text) 15%, transparent),
+    inset 0 2px 0 rgba(255, 255, 255, 0.55);
+  overflow: hidden;
+}
+
 .bh-salmon {
-  background:
-    repeating-linear-gradient(115deg, transparent 0 14px, color-mix(in srgb, white 30%, transparent) 14px 17px),
-    linear-gradient(155deg, color-mix(in srgb, var(--bento-coral) 92%, white), var(--bento-coral));
+  background: linear-gradient(155deg, var(--color-accent-300), var(--color-accent-500));
 }
 .bh-rice {
-  background:
-    radial-gradient(color-mix(in srgb, var(--bento-ink) 55%, transparent) 1.2px, transparent 1.6px), var(--bento-rice);
-  background-size: 26px 22px;
-  background-position: 6px 4px;
+  background: color-mix(in srgb, white 70%, var(--color-neutral-100));
 }
+/* The compartment holding the slices reads as a paper cup. */
 .bh-tamago {
-  background: linear-gradient(160deg, color-mix(in srgb, var(--bento-tamago) 80%, white), var(--bento-tamago));
+  background: color-mix(in srgb, white 45%, var(--color-neutral-100));
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--organic-text) 22%, transparent);
 }
+/* Omelette yellow: the one intentional non-token color — neither the
+   terracotta nor the sage ramp carries a yellow, and tamago has to read as
+   egg. */
 .bh-slice {
-  background: color-mix(in srgb, var(--bento-tamago) 55%, white);
-  border-color: color-mix(in srgb, var(--bento-ink) 30%, transparent);
-  border-radius: 6px;
+  border-radius: 10px;
+  border: 2px solid oklch(0.72 0.12 85);
+  background: linear-gradient(160deg, oklch(0.9 0.1 95), oklch(0.85 0.12 88));
 }
 .bh-greens {
-  background: linear-gradient(160deg, color-mix(in srgb, var(--bento-matcha) 78%, white), var(--bento-matcha));
-}
-.bh-broccoli {
-  background: color-mix(in srgb, var(--bento-matcha) 72%, var(--bento-ink));
-  border-radius: 45% 45% 30% 30%;
-  border-color: color-mix(in srgb, var(--bento-ink) 30%, transparent);
-}
-.bh-tomato {
-  background: linear-gradient(150deg, hsl(9, 68%, 66%), hsl(9, 62%, 56%));
-  border-radius: 50%;
-  border-color: color-mix(in srgb, var(--bento-ink) 30%, transparent);
+  background:
+    radial-gradient(var(--color-accent-2-200) 1.5px, transparent 1.9px) 4px 4px / 13px 13px,
+    var(--color-accent-2-100);
 }
 .bh-pickles {
-  background: linear-gradient(160deg, color-mix(in srgb, var(--bento-sakura) 82%, white), var(--bento-sakura));
+  background: var(--color-accent-2-100);
 }
 
 /* Variant selector dots. */
 .bh-dot {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
+  border: none;
+  padding: 0;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--bento-ink) 22%, transparent);
+  background: var(--color-neutral-300);
+  cursor: pointer;
   transition:
     background 0.3s ease,
     transform 0.3s ease;
 }
 .bh-dot[data-active] {
-  background: var(--bento-coral-deep);
+  background: var(--organic-accent);
   transform: scale(1.3);
 }
 
-/* The style chip under the tray: the property that produced this state. */
+/* The style chip under the tray: the object that produced this state. */
 .bh-chip {
   font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 0.75rem;
+  font-size: 12px;
   line-height: 1.5;
-  color: var(--color-fd-muted-foreground);
-  background: var(--color-fd-secondary);
-  border: 1px solid var(--color-fd-border);
-  border-radius: 0.5rem;
-  padding: 0.375rem 0.625rem;
+  color: var(--color-neutral-700);
+  background: var(--color-neutral-100);
+  border: 1px solid var(--color-neutral-300);
+  border-radius: 14px;
+  padding: 8px 14px;
   white-space: pre;
   overflow-x: auto;
 }
-.bh-chip strong {
-  color: var(--bento-coral-deep);
-  font-weight: 600;
+.bh-chip-comment {
+  color: var(--color-neutral-500);
 }

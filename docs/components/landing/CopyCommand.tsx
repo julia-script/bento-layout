@@ -9,7 +9,7 @@ export function CopyCommand({ command }: { command: string }) {
   return (
     <button
       type="button"
-      className="ld-kbd inline-flex items-center gap-3 px-4 py-2.5 text-sm text-fd-foreground transition-colors hover:border-fd-primary/40"
+      className="ld-kbd"
       onClick={() => {
         navigator.clipboard?.writeText(command).then(() => {
           setCopied(true);

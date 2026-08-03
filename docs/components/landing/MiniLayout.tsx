@@ -16,9 +16,9 @@ function build(spec: MiniSpec): LayoutNode {
 }
 
 const FILLS = [
-  'color-mix(in srgb, var(--bento-coral) 14%, transparent)',
-  'color-mix(in srgb, var(--bento-coral) 38%, transparent)',
-  'color-mix(in srgb, var(--bento-coral) 62%, transparent)',
+  'color-mix(in srgb, var(--organic-accent) 14%, transparent)',
+  'color-mix(in srgb, var(--organic-accent) 38%, transparent)',
+  'color-mix(in srgb, var(--organic-accent) 62%, transparent)',
 ];
 
 function Rects({ node, depth }: { node: LayoutNode; depth: number }) {
@@ -30,9 +30,9 @@ function Rects({ node, depth }: { node: LayoutNode; depth: number }) {
         y={0.5}
         width={Math.max(0, size.width - 1)}
         height={Math.max(0, size.height - 1)}
-        rx={4}
+        rx={6}
         fill={FILLS[Math.min(depth, FILLS.length - 1)]}
-        stroke="color-mix(in srgb, var(--bento-ink) 35%, transparent)"
+        stroke="color-mix(in srgb, var(--organic-text) 30%, transparent)"
         strokeWidth={1}
       />
       {node.children.map((child, i) => (

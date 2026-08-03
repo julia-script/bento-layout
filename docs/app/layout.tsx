@@ -33,24 +33,24 @@ export const metadata: Metadata = {
   },
 };
 
-// Paper token from global.css, so the browser chrome matches the page rather
-// than defaulting to white. Light-only: the site forces one scheme.
+// Organic ground token from global.css, so the browser chrome matches the page
+// rather than defaulting to white. Light-only: the site forces one scheme.
 export const viewport: Viewport = {
-  themeColor: 'hsl(40, 45%, 97%)',
+  themeColor: '#f5ead8',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        {/* Display serif for headings; falls back to system mincho/serif when
-            offline. React hoists these into <head>. */}
+        {/* Organic pairing: Caprasimo display over Figtree body; both fall back
+            to system-ui when offline. React hoists these into <head>. */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
           rel="stylesheet"
           precedence="default"
-          href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;600;700&display=swap"
         />
         {/* Light-only. The provider stays enabled — `enabled: false` skips
             ThemeProvider entirely, which would drop forcedTheme with it. */}
